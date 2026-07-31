@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!--
+  Ursprung/Herkunftsnachweis: Neorob1976 · 69126
+  Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
+  Unautorisierte Vervielfältigung oder Weitergabe als eigenes Werk
+  ist nicht gestattet.
+-->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -78,14 +84,12 @@ body{
 
 header{
   display:flex;
-  justify-content:space-between;
-  align-items:flex-end;
+  flex-direction:column;
   border-bottom:1px solid var(--panel-border);
   position:relative;
   padding-bottom:16px;
   margin-bottom:28px;
-  gap:16px;
-  flex-wrap:wrap;
+  gap:14px;
 }
 header::after{
   content:'';
@@ -95,7 +99,8 @@ header::after{
   background:var(--cyan);
   box-shadow:0 0 8px var(--cyan-glow);
 }
-header .title-block{display:flex;align-items:center;gap:14px;}
+header .header-title-row{display:flex;align-items:center;justify-content:center;gap:14px;}
+header .header-info-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;}
 header svg{flex-shrink:0;filter:drop-shadow(0 0 6px var(--cyan-glow));}
 
 .tabbar{
@@ -119,8 +124,50 @@ header svg{flex-shrink:0;filter:drop-shadow(0 0 6px var(--cyan-glow));}
   padding:10px 16px;
   cursor:pointer;
   border-radius:0;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
 }
 .tab-btn:hover{color:var(--ink);}
+.tab-btn.tab-dragging{opacity:0.4;}
+@keyframes loginProgressSlide{
+  0%{transform:translateX(-100%);}
+  100%{transform:translateX(350%);}
+}
+.accent-swatch{
+  width:32px; height:32px; border-radius:50%;
+  border:2px solid var(--panel-border);
+  cursor:pointer; padding:0;
+}
+.accent-swatch.selected{box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--ink);}
+#orgNameInTitle{color:var(--cyan);}
+#btnHelp:hover{color:var(--ink);border-color:var(--cyan);}
+#helpBody h3{
+  font-family:'Orbitron', sans-serif;
+  font-size:13px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:var(--cyan);
+  margin:22px 0 8px;
+}
+#helpBody h3:first-child{margin-top:0;}
+#helpBody h4{
+  font-family:'Rajdhani', sans-serif;
+  font-size:14.5px;
+  font-weight:700;
+  color:var(--ink);
+  margin:14px 0 4px;
+}
+#helpBody p, #helpBody li{
+  font-family:'Rajdhani', sans-serif;
+  font-size:13.5px;
+  line-height:1.55;
+  color:var(--ink-soft);
+}
+#helpBody ul{margin:4px 0 0;padding-left:20px;}
+#helpBody li{margin-bottom:4px;}
+#helpBody li strong{color:var(--ink);}
 .tab-btn.active{
   color:var(--cyan);
   border-bottom:2px solid var(--cyan);
@@ -158,10 +205,43 @@ header svg{flex-shrink:0;filter:drop-shadow(0 0 6px var(--cyan-glow));}
 .flag-btn.active{opacity:1;border-color:var(--cyan);box-shadow:0 0 8px var(--cyan-glow);}
 body.device-mobile .flag-switcher{top:10px;right:10px;padding:4px;gap:5px;}
 body.device-mobile .flag-btn{width:28px;height:19px;}
+body.device-mobile #orgSwitcherWrap{top:39px;right:10px;}
+body.device-mobile #btnHelp{bottom:16px;right:16px;width:40px;height:40px;font-size:16px;}
 body.device-mobile .ocr-modal-content{padding:16px;max-height:94vh;}
 body.device-mobile #ocrImageWrap{max-height:38vh;}
 body.device-mobile #ocrPreviewImg{max-height:38vh;}
 
+.btn-add-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  width:100%;
+  padding:11px;
+  background:rgba(0,216,255,0.03);
+  border:1px dashed var(--panel-border);
+  border-top:none;
+  color:var(--cyan);
+  font-family:'Share Tech Mono', monospace;
+  font-size:12.5px;
+  font-weight:700;
+  letter-spacing:0.3px;
+  cursor:pointer;
+  transition:background 0.15s, border-color 0.15s;
+  box-sizing:border-box;
+}
+.btn-add-row:hover{background:rgba(0,216,255,0.1);border-color:var(--cyan);}
+.btn-add-row .plus-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  border:1px solid currentColor;
+  font-size:12px;
+  line-height:1;
+}
 .tab-badge{
   display:inline-block;
   min-width:16px;
@@ -198,7 +278,7 @@ body.device-mobile .tab-btn{
 h1{
   font-family:'Orbitron', sans-serif;
   font-weight:800;
-  font-size:26px;
+  font-size:32px;
   letter-spacing:2px;
   text-transform:uppercase;
   margin:0;
@@ -314,6 +394,8 @@ button{
 .btn-icon{background:transparent;border:none;cursor:pointer;padding:4px 6px;color:var(--ink-soft);font-size:14px;}
 .btn-icon:hover{color:var(--cyan);}
 .btn-icon.danger:hover{color:var(--low);}
+.btn-ghost.danger{color:var(--low);border-color:var(--low);}
+.btn-ghost.danger:hover{background:var(--low-bg);}
 .btn-compact{font-size:11px;padding:6px 12px;}
 .btn-confirming{
   color:var(--low) !important;
@@ -380,6 +462,7 @@ tbody tr:hover{background:rgba(0,216,255,0.05);}
 .badge.prio-hoch{background:var(--med-bg);color:var(--med);}
 .badge.prio-mittel{background:rgba(79,195,217,0.14);color:var(--steel);}
 .badge.prio-niedrig{background:rgba(110,143,160,0.12);color:var(--ink-soft);}
+.badge.project-reserved{background:rgba(0,216,255,0.12);color:var(--cyan);text-transform:none;letter-spacing:0;font-weight:600;}
 
 .qty-cell{font-family:'Share Tech Mono', monospace;font-weight:600;color:var(--ink);}
 .gauge{
@@ -741,6 +824,9 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 </head>
 <body>
 
+<div id="orgSwitcherWrap" style="display:none;position:fixed;top:60px;right:16px;z-index:60;">
+  <select id="orgSwitcher" style="background:rgba(13,20,28,0.85);border:1px solid var(--panel-border);border-radius:var(--radius);color:var(--cyan);font-family:'Share Tech Mono', monospace;font-size:11px;padding:6px 10px;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(0,0,0,0.4);"></select>
+</div>
 <div class="flag-switcher" id="flagSwitcher">
   <button type="button" class="flag-btn" data-lang="de" title="Deutsch" aria-label="Deutsch">
     <svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
@@ -776,6 +862,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     </radialGradient>
   </defs>
 
+  <g id="symbolWolf">
   <path d="M 60,60 Q 100,100 150,155 Q 178,140 200,122 Q 222,140 250,155 Q 300,100 340,60 Q 322,128 300,190 Q 320,218 332,250 Q 302,292 270,330 Q 238,360 200,380 Q 162,360 130,330 Q 98,292 68,250 Q 80,218 100,190 Q 78,128 60,60 Z" fill="url(#wolfShade)"/>
 
   <g stroke="currentColor" stroke-width="2" opacity="0.55" fill="none" stroke-linecap="round">
@@ -796,7 +883,23 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <path d="M191,306 Q188,310 191,314 M209,306 Q212,310 209,314" stroke="currentColor" stroke-width="1.5" opacity="0.6" fill="none" stroke-linecap="round"/>
 
   <path d="M200,320 Q180,340 163,352 M200,320 Q220,340 237,352" stroke="var(--bg)" stroke-width="3" opacity="0.55" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <g id="symbolStar" style="display:none;">
+    <path d="M 200,40 L 224.9,139.9 L 313.1,86.9 L 260.1,175.1 L 360,200 L 260.1,224.9 L 313.1,313.1 L 224.9,260.1 L 200,360 L 175.1,260.1 L 86.9,313.1 L 139.9,224.9 L 40,200 L 139.9,175.1 L 86.9,86.9 L 175.1,139.9 Z" fill="currentColor"/>
+  </g>
+
+  <g id="symbolShield" style="display:none;">
+    <path d="M 200,50 L 290,90 L 290,210 Q 290,300 200,350 Q 110,300 110,210 L 110,90 Z" fill="none" stroke="currentColor" stroke-width="6"/>
+    <path d="M 200,100 L 255,125 L 255,205 Q 255,265 200,300 Q 145,265 145,205 L 145,125 Z" fill="none" stroke="currentColor" stroke-width="3" opacity="0.6"/>
+  </g>
+
+  <g id="symbolFalcon" style="display:none;">
+    <path d="M 200,170 Q 130,110 40,145 Q 100,170 150,195 Q 100,220 40,255 Q 130,290 200,225 Q 270,290 360,255 Q 300,220 250,195 Q 300,170 360,145 Q 270,110 200,170 Z" fill="currentColor"/>
+  </g>
 </svg>
+
+<img id="customEmblemWatermark" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;padding:5vh 5vw;box-sizing:border-box;object-fit:contain;object-position:center;opacity:0.06;pointer-events:none;z-index:0;" aria-hidden="true">
 
 <div id="loginScreen">
   <div class="login-card">
@@ -817,7 +920,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         </svg>
       </button>
     </div>
-    <button class="btn-primary" id="btnLogin">Anmelden</button>
+    <button class="btn-primary" id="btnLogin" data-i18n="btn_login">Anmelden</button>
+    <div id="loginProgress" style="display:none;height:3px;border-radius:2px;overflow:hidden;background:rgba(0,210,255,0.12);margin-top:10px;">
+      <div id="loginProgressBar" style="height:100%;width:40%;background:var(--cyan);border-radius:2px;animation:loginProgressSlide 1.1s ease-in-out infinite;"></div>
+    </div>
     <div class="login-hint" id="loginError"></div>
     <div class="login-hint" style="margin-top:10px;">
       <a href="#" id="linkForgotPw" data-i18n="link_forgot_password" style="color:var(--cyan);text-decoration:none;">Passwort vergessen?</a>
@@ -826,7 +932,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="legal-footer" data-i18n="legal_disclaimer">
     Inoffizielles Fan-Projekt. Nicht verbunden mit, nicht unterstützt oder autorisiert durch die Cloud Imperium Games Corporation und alle mit ihr verbundenen Unternehmen (u. a. Cloud Imperium Rights LLC, Cloud Imperium Games UK Ltd., Cloud Imperium Games Silicon Valley Inc., Cloud Imperium Germany GmbH, Foundry 42 Ltd., Foundry 42 GmbH sowie Roberts Space Industries). Alle Nennungen von Star Citizen, RSI sowie zugehöriger Schiffe, Marken, Standorte und Materialien sind Warenzeichen bzw. Eigentum der jeweiligen Rechteinhaber und werden hier ausschließlich zu privaten, nicht-kommerziellen Organisationszwecken verwendet.
   </div>
-  <div class="copyright-notice" data-i18n="copyright_notice">© 2026 Robin Graf. Alle Rechte vorbehalten.</div>
+  <div class="copyright-notice" data-i18n="copyright_notice">© 2026 Neorob1976. Alle Rechte vorbehalten.</div>
 </div>
 
 <div id="forgotPwScreen" style="display:none;min-height:100vh;min-height:calc(var(--vh, 1vh) * 100);flex-direction:column;align-items:center;justify-content:center;padding:24px;">
@@ -867,7 +973,49 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <label for="forced-pw-confirm">Neues Passwort wiederholen</label>
     <input type="password" id="forced-pw-confirm" placeholder="Neues Passwort wiederholen" style="width:100%;font-family:'Rajdhani', sans-serif;font-weight:600;font-size:14.5px;padding:10px;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:16px;box-sizing:border-box;background:rgba(0,10,16,0.6);color:var(--ink);">
     <button class="btn-primary" id="btnSubmitForcedPw" data-i18n="btn_save_password">Passwort speichern</button>
+    <div id="forcedPwProgress" style="display:none;height:3px;border-radius:2px;overflow:hidden;background:rgba(0,210,255,0.12);margin-top:10px;">
+      <div style="height:100%;width:40%;background:var(--cyan);border-radius:2px;animation:loginProgressSlide 1.1s ease-in-out infinite;"></div>
+    </div>
     <div class="login-hint" id="forcedPwStatus"></div>
+  </div>
+</div>
+
+<button id="btnHelp" title="Hilfe" data-i18n-title="tooltip_help" aria-label="Hilfe" style="display:none;position:fixed;bottom:24px;right:24px;z-index:55;width:46px;height:46px;border-radius:50%;background:rgba(13,20,28,0.9);border:1px solid var(--panel-border);color:var(--cyan);font-family:'Orbitron', sans-serif;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.4), 0 0 12px var(--cyan-glow);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);">?</button>
+
+<div id="watermarkModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:300;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:30px 34px;max-width:380px;text-align:center;box-shadow:0 0 40px var(--cyan-glow);">
+    <div style="font-family:'Orbitron', sans-serif;font-size:13px;letter-spacing:2px;color:var(--cyan);margin-bottom:14px;">HERKUNFTSNACHWEIS</div>
+    <div id="watermarkModalId" style="font-family:'Share Tech Mono', monospace;font-size:19px;color:var(--ink);letter-spacing:1px;"></div>
+    <button class="btn-ghost" id="btnCloseWatermark" style="margin-top:20px;">Schließen</button>
+  </div>
+</div>
+
+<div id="helpModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:95;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;padding:20px;">
+  <div class="ocr-modal-content" style="max-width:720px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 style="margin:0;" data-i18n="help_title">Hilfe & Handbuch</h2>
+      <button class="btn-icon" id="btnCloseHelp" title="Schließen">✕</button>
+    </div>
+    <div id="helpBody" style="max-height:70vh;overflow-y:auto;padding-right:6px;"></div>
+    <div style="margin-top:14px;text-align:center;">
+      <button class="btn-ghost" id="btnRestartTour" data-i18n="btn_restart_tour">Kurze Einführungs-Tour erneut starten</button>
+    </div>
+  </div>
+</div>
+
+<div id="onboardingTourModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:250;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:30px 32px;max-width:440px;box-shadow:0 0 40px var(--cyan-glow);">
+    <div id="tourStepDots" style="display:flex;gap:6px;justify-content:center;margin-bottom:18px;"></div>
+    <div id="tourStepIcon" style="font-size:34px;text-align:center;margin-bottom:10px;"></div>
+    <h3 id="tourStepTitle" style="text-align:center;font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 10px;"></h3>
+    <p id="tourStepText" style="text-align:center;font-family:'Rajdhani', sans-serif;font-size:14.5px;color:var(--ink-soft);line-height:1.55;margin:0 0 24px;"></p>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+      <button class="btn-ghost" id="btnTourSkip" data-i18n="tour_btn_skip">Überspringen</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-ghost" id="btnTourBack" data-i18n="tour_btn_back">Zurück</button>
+        <button class="btn-primary" id="btnTourNext" data-i18n="tour_btn_next">Weiter</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -929,32 +1077,36 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
 <div class="wrap" id="appWrap" style="display:none;">
   <header>
-    <div class="title-block">
+    <div class="header-title-row">
       <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
         <path d="M4 30 L14 8 L19 18 L24 6 L34 30 Z" fill="none" stroke="#00D8FF" stroke-width="2.5" stroke-linejoin="round"/>
       </svg>
-      <div>
-        <h1 data-i18n="app_title">Materialbestand</h1>
-        <div class="subtitle" data-i18n="app_subtitle">Mining-Material · Qualität, Menge, Lagerort, Verantwortlicher</div>
-      </div>
+      <h1><span id="orgNameInTitle"></span><span data-i18n="app_title">Materialbestand</span></h1>
     </div>
-    <div class="stats">
-      <div class="stat"><div class="num" id="statCount">0</div><div class="label">Einträge</div></div>
-      <div class="stat"><div class="num" id="statLocations">0</div><div class="label">Lagerorte</div></div>
-      <div class="user-badge">
-        <div class="who">
-          <div class="name" id="badgeName"></div>
-          <div class="role" id="badgeRole"></div>
-        </div>
-        <button class="btn-logout" id="btnChangePw" data-i18n="btn_change_password">Passwort ändern</button>
+    <div class="header-info-row">
+      <div>
+        <div class="subtitle" data-i18n="app_subtitle">Mining-Material · Qualität, Menge, Lagerort, Verantwortlicher</div>
+        <div class="subtitle" id="orgMottoDisplay" style="display:none;"></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="num" id="statCount">0</div><div class="label">Einträge</div></div>
+        <div class="stat"><div class="num" id="statLocations">0</div><div class="label">Lagerorte</div></div>
+        <div class="user-badge">
+          <div class="who">
+            <div class="name" id="badgeName"></div>
+            <div class="role" id="badgeRole"></div>
+          </div>
+          <span id="connectionStatusDot" style="display:none;width:8px;height:8px;border-radius:50%;background:var(--low);flex-shrink:0;" title="Verbindungsproblem" data-i18n-title="msg_connection_issue"></span>
+          <button class="btn-logout" id="btnChangePw" data-i18n="btn_change_password">Passwort ändern</button>
         <button class="btn-logout" id="btnLogout" data-i18n="btn_logout">Abmelden</button>
       </div>
     </div>
+  </div>
   </header>
 
   <nav class="tabbar" id="tabbar">
     <button class="tab-btn active" id="tabBtn-uebersicht" data-tab="uebersicht" data-i18n="tab_uebersicht">Übersicht</button>
-    <button class="tab-btn" id="tabBtn-bestand" data-tab="bestand" data-i18n="tab_bestand">Bestand</button>
+    <button class="tab-btn" id="tabBtn-bestand" data-tab="bestand"><span data-i18n="tab_bestand">Bestand</span><span class="tab-badge" id="tabBadge-bestand" style="display:none;" title="Unter Sollbestand" data-i18n-title="tooltip_under_min_stock"></span></button>
     <button class="tab-btn" id="tabBtn-bedarfe" data-tab="bedarfe"><span data-i18n="tab_bedarf">Bedarf</span><span class="tab-badge" id="tabBadge-bedarfe" style="display:none;"></span></button>
     <button class="tab-btn" id="tabBtn-projekte" data-tab="projekte" data-i18n="tab_projekte">Projekte</button>
     <button class="tab-btn" id="tabBtn-sammelobjekte" data-tab="sammelobjekte" data-i18n="tab_sammelobjekte">Sammelobjekte</button>
@@ -986,9 +1138,54 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="verwaltung" style="display:none;">
+  <div class="panel" id="orgBrandingPanel" style="display:none;">
+    <h2 data-i18n="panel_org_branding">Organisation anpassen</h2>
+    <div class="field">
+      <label for="orgMottoInput" data-i18n="label_org_motto">Motto / Untertitel (optional)</label>
+      <input type="text" id="orgMottoInput" placeholder="z. B. Mining Division" maxlength="60">
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label data-i18n="label_org_accent">Akzentfarbe</label>
+      <div id="orgAccentSwatches" style="display:flex;gap:10px;margin-top:6px;"></div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label data-i18n="label_org_background">Hintergrundfarbe</label>
+      <div id="orgBackgroundSwatches" style="display:flex;gap:10px;margin-top:6px;"></div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label data-i18n="label_org_symbol">Wappentier / Symbol</label>
+      <div id="orgSymbolSwatches" style="display:flex;gap:10px;margin-top:6px;"></div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label data-i18n="label_org_emblem">Eigenes Emblem (optional, ersetzt das Symbol oben)</label>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap;">
+        <img id="orgEmblemPreview" style="display:none;width:48px;height:48px;object-fit:contain;border:1px solid var(--panel-border);border-radius:4px;background:rgba(0,0,0,0.3);">
+        <button type="button" class="btn-ghost" id="btnUploadEmblem" data-i18n="btn_upload_emblem">Bild hochladen</button>
+        <button type="button" class="btn-ghost danger" id="btnRemoveEmblem" style="display:none;" data-i18n="btn_remove_emblem">Emblem entfernen</button>
+        <input type="file" id="orgEmblemFileInput" accept="image/*" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+      </div>
+      <div class="user-note" style="margin-top:6px;" data-i18n="hint_emblem_size">Wird automatisch verkleinert und komprimiert (max. ca. 150 KB). Empfohlen: einfaches, kontrastreiches Bild.</div>
+    </div>
+    <div class="user-note" style="margin-top:12px;" data-i18n="hint_branding_live_preview">Farbe und Symbol werden sofort zur Vorschau angewendet — dauerhaft übernommen wird alles erst mit "Speichern".</div>
+    <div style="margin-top:12px;">
+      <button class="btn-primary" id="btnSaveOrgBranding" data-i18n="btn_save">Speichern</button>
+    </div>
+    <div class="status-msg" id="orgBrandingStatus"></div>
+  </div>
+
+  <div class="panel" id="orgExportPanel" style="display:none;">
+    <h2 data-i18n="panel_org_export">Datensicherung</h2>
+    <div class="user-note" data-i18n="hint_org_export">Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.</div>
+    <div id="exportReminderHint" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(255,166,48,0.08);border:1px solid var(--accent);border-radius:var(--radius);font-family:'Share Tech Mono', monospace;font-size:12px;color:var(--ink);"></div>
+    <div style="margin-top:12px;">
+      <button class="btn-ghost" id="btnExportOrgData" data-i18n="btn_export_org_data">Alles exportieren (JSON)</button>
+    </div>
+    <div class="status-msg" id="orgExportStatus"></div>
+  </div>
+
   <div class="panel" id="adminPanel" style="display:none;">
     <h2 data-i18n="panel_benutzerverwaltung">Benutzerverwaltung</h2>
-    <div class="form-grid" style="grid-template-columns:1.6fr 2fr 1.4fr auto;">
+    <div class="form-grid" style="grid-template-columns:1.4fr 1.8fr 1.2fr 1.4fr auto;">
       <div class="field">
         <label for="newUserName" data-i18n="label_benutzername">Benutzername</label>
         <input type="text" id="newUserName" placeholder="z. B. Neuermensch99">
@@ -999,11 +1196,11 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </div>
       <div class="field">
         <label for="newUserRole" data-i18n="label_rolle">Rolle</label>
-        <select id="newUserRole">
-          <option value="viewer" data-i18n="role_leserechte_label">Benutzer (Leserechte)</option>
-          <option value="editor" data-i18n="role_bearbeitung_label">Benutzer (Bearbeitungsrechte)</option>
-          <option value="admin" data-i18n="role_admin_label">Administrator</option>
-        </select>
+        <select id="newUserRole"></select>
+      </div>
+      <div class="field" id="newUserOrgWrap" style="display:none;">
+        <label for="newUserOrg" data-i18n="label_organisation">Organisation</label>
+        <select id="newUserOrg"></select>
       </div>
       <div class="field">
         <button class="btn-primary" id="btnAddUser" data-i18n="btn_anlegen">Anlegen</button>
@@ -1012,6 +1209,22 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="userFormStatus"></div>
     <div class="user-list" id="userListContainer" style="margin-top:12px;"></div>
     <div class="user-note" data-i18n="hint_default_password">Neue Benutzer erhalten automatisch das Initialpasswort night, das sie nach der Anmeldung selbst ändern können.</div>
+  </div>
+
+  <div class="panel" id="orgManagementPanel" style="display:none;">
+    <h2 data-i18n="panel_organisationsverwaltung">Organisationen verwalten</h2>
+    <div class="form-grid" style="grid-template-columns:2fr auto;">
+      <div class="field">
+        <label for="newOrgName" data-i18n="label_organisationsname">Name der Organisation</label>
+        <input type="text" id="newOrgName" placeholder="z. B. Meine Gilde">
+      </div>
+      <div class="field">
+        <button class="btn-primary" id="btnAddOrg" data-i18n="btn_anlegen">Anlegen</button>
+      </div>
+    </div>
+    <div class="status-msg" id="orgFormStatus"></div>
+    <div class="user-list" id="orgListContainer" style="margin-top:12px;"></div>
+    <div class="user-note" data-i18n="hint_org_no_delete">Organisationen können umbenannt, aber aus Sicherheitsgründen nicht gelöscht werden.</div>
   </div>
 
   <div class="panel" id="catalogPanel" style="display:none;">
@@ -1074,7 +1287,13 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="tab-content" data-tab="uebersicht">
   <div class="panel">
     <h2 data-i18n="panel_uebersicht">Übersicht</h2>
+    <div id="criticalNeedsBanner" style="display:none;margin-bottom:14px;padding:12px 16px;background:rgba(255,59,92,0.08);border:1px solid var(--low);border-radius:var(--radius);"></div>
     <div id="dashboardStats" class="dashboard-grid"></div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="panel_leaderboard">Beitragende (gesamt)</h2>
+    <div id="contributorLeaderboard"></div>
   </div>
 
   <div class="panel">
@@ -1141,10 +1360,6 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div id="f-lagerort-wrap"></div>
       </div>
       <div class="field">
-        <label for="f-person" data-i18n="label_verantwortlicher">Verantwortlicher</label>
-        <input id="f-person" type="text" placeholder="Name">
-      </div>
-      <div class="field">
         <label for="f-projekt" data-i18n="label_projektziel">Projektziel</label>
         <div id="f-projekt-wrap"></div>
       </div>
@@ -1158,7 +1373,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-ghost" id="btnToggleBulk" data-i18n="btn_show_bulk">Massen-Eingabe anzeigen</button>
       <button class="btn-ghost" id="btnOpenOcr" data-i18n="ocr_open_btn">Per Foto erfassen</button>
       <div id="bulkAddContainer" style="display:none;margin-top:12px;">
-        <div class="user-note" style="margin:0 0 10px 0;"><span data-i18n="hint_bulk_format">Ein Eintrag pro Zeile, Felder getrennt mit Semikolon:</span><br><code>Material;Qualität;Menge;Einheit;Lagerort;Verantwortlicher;Projekt(optional)</code><br>Beispiel: <code>Iron;720;150;SCU;ARC-L1 – Wide Forest Station;Heiko;</code></div>
+        <div class="user-note" id="bulkCsvHint" style="margin:0 0 10px 0;"><span data-i18n="hint_bulk_format">Ein Eintrag pro Zeile, Felder getrennt mit Semikolon:</span><br><code>Material;Qualität;Menge;Einheit;Lagerort;Verantwortlicher;Projekt(optional)</code><br>Beispiel: <code>Iron;720;150;SCU;ARC-L1 – Wide Forest Station;Heiko;</code></div>
         <textarea id="bulkAddText" rows="6" placeholder="Iron;720;150;SCU;ARC-L1 – Wide Forest Station;Heiko;&#10;Titanium;650;80;SCU;ARC-L1 – Wide Forest Station;Stedo;" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:13px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
         <div id="bulkOcrWarning" class="user-note" style="display:none;margin-top:10px;border-left:3px solid var(--low);padding-left:10px;" data-i18n="ocr_review_warning">⚠ Diese Werte wurden automatisch per Bilderkennung ermittelt und können Fehler enthalten. Bitte prüfe jede Zeile sorgfältig, bevor du sie übernimmst.</div>
         <div id="bulkOcrConfirmRow" style="display:none;margin-top:10px;align-items:center;gap:10px;">
@@ -1167,6 +1382,36 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div style="margin-top:10px;">
           <button class="btn-primary" id="btnSubmitBulk" data-i18n="btn_submit_bulk">Alle Einträge hinzufügen</button>
         </div>
+
+        <div id="bulkTableWrap">
+          <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_bulk_table">Lagerort, Verantwortlicher und Projekt gelten für die ganze Tabelle. Für jede Zeile Material, Qualität und Menge auswählen/eintragen.</div>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="field">
+              <label for="bulkTableLagerortWrap" data-i18n="col_lagerort">Lagerort</label>
+              <div id="bulkTableLagerortWrap"></div>
+            </div>
+            <div class="field">
+              <label for="bulkTableProjektWrap" data-i18n="label_ziel_optional">Projekt (optional)</label>
+              <div id="bulkTableProjektWrap"></div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;margin-top:10px;">
+            <table>
+              <thead><tr>
+                <th data-i18n="label_material">Material</th>
+                <th data-i18n="label_qualitaet">Qualität</th>
+                <th data-i18n="label_menge">Menge</th>
+                <th></th>
+              </tr></thead>
+              <tbody id="bulkTableBody"></tbody>
+            </table>
+            <button type="button" class="btn-add-row" id="btnAddBulkTableRow"><span class="plus-icon">+</span><span data-i18n="btn_add_bulk_row">Weitere Zeile hinzufügen</span></button>
+          </div>
+          <div style="margin-top:14px;">
+            <button class="btn-primary" id="btnSubmitBulkTable" data-i18n="btn_submit_bulk">Alle Einträge hinzufügen</button>
+          </div>
+        </div>
+
         <div class="status-msg" id="bulkAddStatus"></div>
       </div>
     </div>
@@ -1187,6 +1432,13 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <select id="filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
       <input type="number" id="filterQualitaet" placeholder="Qualität ≥" step="0.01" style="max-width:140px;" data-i18n-placeholder="placeholder_qualitaet_ge">
       <button class="btn-ghost btn-compact" id="btnToggleGroupByLocation" data-i18n="btn_group_by_location">Nach Lagerort gruppieren</button>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono', monospace;font-size:12px;color:var(--ink-soft);white-space:nowrap;">
+        <input type="checkbox" id="filterOnlyUnassigned"> <span data-i18n="filter_only_unassigned">Nur unverplanten Bestand zeigen</span>
+      </label>
+    </div>
+    <div id="bulkActionsBar" style="display:none;margin-bottom:10px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="bulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-icon danger" id="btnBulkDeleteEntries" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
     </div>
     <div id="tableContainer"></div>
   </div>
@@ -1227,10 +1479,6 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div id="priv-lagerort-wrap"></div>
       </div>
       <div class="field">
-        <label for="priv-person" data-i18n="label_verantwortlicher">Verantwortlicher</label>
-        <input id="priv-person" type="text" placeholder="Name">
-      </div>
-      <div class="field">
         <label for="priv-projekt" data-i18n="label_projektziel">Projektziel</label>
         <div id="priv-projekt-wrap"></div>
       </div>
@@ -1244,7 +1492,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-ghost" id="priv-btnToggleBulk" data-i18n="btn_show_bulk">Massen-Eingabe anzeigen</button>
       <button class="btn-ghost" id="priv-btnOpenOcr" data-i18n="ocr_open_btn">Per Foto erfassen</button>
       <div id="priv-bulkAddContainer" style="display:none;margin-top:12px;">
-        <div class="user-note" style="margin:0 0 10px 0;"><span data-i18n="hint_bulk_format">Ein Eintrag pro Zeile, Felder getrennt mit Semikolon:</span><br><code>Material;Qualität;Menge;Einheit;Lagerort;Verantwortlicher;Projekt(optional)</code><br>Beispiel: <code>Iron;720;150;SCU;ARC-L1 – Wide Forest Station;Heiko;</code></div>
+        <div class="user-note" id="priv-bulkCsvHint" style="margin:0 0 10px 0;"><span data-i18n="hint_bulk_format">Ein Eintrag pro Zeile, Felder getrennt mit Semikolon:</span><br><code>Material;Qualität;Menge;Einheit;Lagerort;Verantwortlicher;Projekt(optional)</code><br>Beispiel: <code>Iron;720;150;SCU;ARC-L1 – Wide Forest Station;Heiko;</code></div>
         <textarea id="priv-bulkAddText" rows="6" placeholder="Iron;720;150;SCU;ARC-L1 – Wide Forest Station;Heiko;&#10;Titanium;650;80;SCU;ARC-L1 – Wide Forest Station;Stedo;" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:13px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
         <div id="priv-bulkOcrWarning" class="user-note" style="display:none;margin-top:10px;border-left:3px solid var(--low);padding-left:10px;" data-i18n="ocr_review_warning">⚠ Diese Werte wurden automatisch per Bilderkennung ermittelt und können Fehler enthalten. Bitte prüfe jede Zeile sorgfältig, bevor du sie übernimmst.</div>
         <div id="priv-bulkOcrConfirmRow" style="display:none;margin-top:10px;align-items:center;gap:10px;">
@@ -1253,6 +1501,36 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div style="margin-top:10px;">
           <button class="btn-primary" id="priv-btnSubmitBulk" data-i18n="btn_submit_bulk">Alle Einträge hinzufügen</button>
         </div>
+
+        <div id="priv-bulkTableWrap">
+          <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_bulk_table">Lagerort, Verantwortlicher und Projekt gelten für die ganze Tabelle. Für jede Zeile Material, Qualität und Menge auswählen/eintragen.</div>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="field">
+              <label for="priv-bulkTableLagerortWrap" data-i18n="col_lagerort">Lagerort</label>
+              <div id="priv-bulkTableLagerortWrap"></div>
+            </div>
+            <div class="field">
+              <label for="priv-bulkTableProjektWrap" data-i18n="label_ziel_optional">Projekt (optional)</label>
+              <div id="priv-bulkTableProjektWrap"></div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;margin-top:10px;">
+            <table>
+              <thead><tr>
+                <th data-i18n="label_material">Material</th>
+                <th data-i18n="label_qualitaet">Qualität</th>
+                <th data-i18n="label_menge">Menge</th>
+                <th></th>
+              </tr></thead>
+              <tbody id="priv-bulkTableBody"></tbody>
+            </table>
+            <button type="button" class="btn-add-row" id="priv-btnAddBulkTableRow"><span class="plus-icon">+</span><span data-i18n="btn_add_bulk_row">Weitere Zeile hinzufügen</span></button>
+          </div>
+          <div style="margin-top:14px;">
+            <button class="btn-primary" id="priv-btnSubmitBulkTable" data-i18n="btn_submit_bulk">Alle Einträge hinzufügen</button>
+          </div>
+        </div>
+
         <div class="status-msg" id="priv-bulkAddStatus"></div>
       </div>
     </div>
@@ -1425,10 +1703,45 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="legal-footer" data-i18n="legal_disclaimer">
     Inoffizielles Fan-Projekt. Nicht verbunden mit, nicht unterstützt oder autorisiert durch die Cloud Imperium Games Corporation und alle mit ihr verbundenen Unternehmen (u. a. Cloud Imperium Rights LLC, Cloud Imperium Games UK Ltd., Cloud Imperium Games Silicon Valley Inc., Cloud Imperium Germany GmbH, Foundry 42 Ltd., Foundry 42 GmbH sowie Roberts Space Industries). Alle Nennungen von Star Citizen, RSI sowie zugehöriger Schiffe, Marken, Standorte und Materialien sind Warenzeichen bzw. Eigentum der jeweiligen Rechteinhaber und werden hier ausschließlich zu privaten, nicht-kommerziellen Organisationszwecken verwendet.
   </div>
-  <div class="copyright-notice" data-i18n="copyright_notice">© 2026 Robin Graf. Alle Rechte vorbehalten.</div>
+  <div class="copyright-notice" data-i18n="copyright_notice">© 2026 Neorob1976. Alle Rechte vorbehalten.</div>
 </div>
 
 <script>
+// ============================================================
+// Funktionsschalter: "Per Foto erfassen" (OCR-Bilderkennung)
+// -----------------------------------------------------------
+// Vorübergehend ausgeblendet, da die Erkennungsqualität noch nicht
+// zuverlässig genug ist. Der komplette Code (Modal, Erkennungs-Logik,
+// Vorschau) bleibt unangetastet bestehen — zum Wiedereinschalten reicht
+// es, die folgende Zeile auf "true" zu setzen. Keine weiteren Änderungen
+// nötig.
+// ============================================================
+const OCR_FEATURE_ENABLED = false;
+if(!OCR_FEATURE_ENABLED){
+  const ocrBtn1 = document.getElementById('btnOpenOcr');
+  const ocrBtn2 = document.getElementById('priv-btnOpenOcr');
+  if(ocrBtn1) ocrBtn1.style.display = 'none';
+  if(ocrBtn2) ocrBtn2.style.display = 'none';
+}
+
+// ============================================================
+// Funktionsschalter: Massen-Eingabe per CSV-Text
+// -----------------------------------------------------------
+// Vorübergehend durch die neue tabellarische Massen-Eingabe (Dropdown für
+// Material, Eingabefelder für Qualität/Menge) ersetzt. Der komplette
+// bisherige Code (Textfeld, Format-Hinweis, Verarbeitung) bleibt
+// unangetastet bestehen — zum Wiedereinschalten reicht es, die folgende
+// Zeile auf "true" zu setzen. Keine weiteren Änderungen nötig.
+// ============================================================
+const BULK_CSV_MODE_ENABLED = false;
+if(!BULK_CSV_MODE_ENABLED){
+  ['bulkCsvHint', 'bulkAddText', 'bulkOcrWarning', 'bulkOcrConfirmRow', 'btnSubmitBulk',
+   'priv-bulkCsvHint', 'priv-bulkAddText', 'priv-bulkOcrWarning', 'priv-bulkOcrConfirmRow', 'priv-btnSubmitBulk'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+}
+
 // ============================================================
 // window.storage — Anbindung an Supabase als echtes, gemeinsames
 // Backend. Die Schnittstelle (get/set/delete/list mit key, value,
@@ -1459,6 +1772,30 @@ function getDeviceId(){
 }
 const SHARED_OWNER = '__shared__';
 
+// ============================================================
+// Verbindungsstatus-Anzeige — meldet dem Nutzer sichtbar, wenn Anfragen
+// an Supabase fehlschlagen, statt dass eine Aktion scheinbar folgenlos
+// "nichts tut". Erst ab zwei aufeinanderfolgenden Fehlschlägen sichtbar,
+// um einen einzelnen kurzen Aussetzer nicht sofort zu melden. Ein
+// "nicht gefunden" (kein Fehler, nur kein Datensatz) zählt bewusst NICHT
+// als Fehlschlag. Bewusst nur ein dezenter Punkt in der Kopfzeile (nicht
+// auf der Login-Seite sichtbar, da dort noch kein Anwendungsbereich
+// existiert) statt eines auffälligen Banners.
+let consecutiveStorageFailures = 0;
+const CONNECTION_FAILURE_THRESHOLD = 2;
+function markStorageSuccess(){
+  consecutiveStorageFailures = 0;
+  const dot = document.getElementById('connectionStatusDot');
+  if(dot) dot.style.display = 'none';
+}
+function markStorageFailure(){
+  consecutiveStorageFailures++;
+  if(consecutiveStorageFailures >= CONNECTION_FAILURE_THRESHOLD){
+    const dot = document.getElementById('connectionStatusDot');
+    if(dot) dot.style.display = 'inline-block';
+  }
+}
+
 window.storage = {
   async get(key, shared){
     try{
@@ -1469,9 +1806,11 @@ window.storage = {
         .eq('key', key)
         .eq('owner_id', owner)
         .maybeSingle();
-      if(res.error || !res.data) return null;
+      if(res.error){ markStorageFailure(); return null; }
+      markStorageSuccess();
+      if(!res.data) return null;
       return { key, value: res.data.value, shared: !!shared };
-    }catch(e){ return null; }
+    }catch(e){ markStorageFailure(); return null; }
   },
   async set(key, value, shared){
     try{
@@ -1479,9 +1818,10 @@ window.storage = {
       const res = await supabaseClient
         .from('app_storage')
         .upsert({ key, value, shared: !!shared, owner_id: owner, updated_at: new Date().toISOString() }, { onConflict: 'key,owner_id' });
-      if(res.error) return null;
+      if(res.error){ markStorageFailure(); return null; }
+      markStorageSuccess();
       return { key, value, shared: !!shared };
-    }catch(e){ return null; }
+    }catch(e){ markStorageFailure(); return null; }
   },
   async delete(key, shared){
     try{
@@ -1491,9 +1831,10 @@ window.storage = {
         .delete()
         .eq('key', key)
         .eq('owner_id', owner);
-      if(res.error) return null;
+      if(res.error){ markStorageFailure(); return null; }
+      markStorageSuccess();
       return { key, deleted: true, shared: !!shared };
-    }catch(e){ return null; }
+    }catch(e){ markStorageFailure(); return null; }
   },
   async list(prefix, shared){
     try{
@@ -1501,9 +1842,10 @@ window.storage = {
       let query = supabaseClient.from('app_storage').select('key').eq('owner_id', owner);
       if(prefix) query = query.like('key', prefix+'%');
       const res = await query;
-      if(res.error) return null;
+      if(res.error){ markStorageFailure(); return null; }
+      markStorageSuccess();
       return { keys: (res.data||[]).map(r=>r.key), prefix, shared: !!shared };
-    }catch(e){ return null; }
+    }catch(e){ markStorageFailure(); return null; }
   }
 };
 
@@ -1563,6 +1905,7 @@ const I18N = {
   "placeholder_username": "Benutzername",
   "placeholder_password": "Passwort",
   "btn_login": "Anmelden",
+  "btn_login_busy": "Wird angemeldet…",
   "link_forgot_password": "Passwort vergessen?",
   "forgot_title": "Passwort vergessen",
   "forgot_subtitle": "Bestätige Benutzername und hinterlegte E-Mail-Adresse",
@@ -1577,6 +1920,7 @@ const I18N = {
   "link_back_to_login": "Zurück zum Login",
   "forced_title": "Neues Passwort",
   "btn_save_password": "Passwort speichern",
+  "btn_save_password_busy": "Wird gespeichert…",
   "panel_change_password": "Passwort ändern",
   "label_current_password": "Aktuelles Passwort",
   "btn_cancel": "Abbrechen",
@@ -1602,6 +1946,8 @@ const I18N = {
   "tile_bestandseintraege": "Bestandseinträge",
   "tile_aktive_projekte": "Aktive Projekte",
   "tile_ungedeckte_bedarfe": "Ungedeckte Bedarfe (hoch/kritisch)",
+  "label_critical_needs_title": "⚠ Kritischer Bedarf",
+  "label_critical_needs_for": "für",
   "tile_sammelobjekte_gesamt": "Sammelobjekte gesamt",
   "panel_neuer_eintrag": "Neuer Eintrag",
   "panel_neuer_eintrag_privat": "Neuer Eintrag (Privat)",
@@ -1714,10 +2060,129 @@ const I18N = {
   "msg_password_updated": "Passwort aktualisiert.",
   "msg_save_failed": "Speichern fehlgeschlagen — bitte erneut versuchen.",
   "msg_login_error": "Unbekannter Benutzer oder falsches Passwort.",
+  "msg_login_username_not_found": "Diesen Benutzernamen gibt es nicht.",
+  "msg_login_wrong_password": "Falsches Passwort.",
+  "tooltip_under_min_stock": "Materialien unter Sollbestand",
+  "label_under_min_stock": "Unter Soll",
+  "val_quality_range": "Qualität muss zwischen 0 und 1000 liegen.",
+  "val_menge_positive": "Menge muss größer als 0 sein.",
+  "label_last_active": "Zuletzt aktiv",
+  "label_never_active": "noch nie angemeldet",
+  "panel_org_export": "Datensicherung",
+  "hint_org_export": "Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.",
+  "btn_export_org_data": "Alles exportieren (JSON)",
+  "hint_export_reminder_never": "Noch keine Datensicherung für diese Organisation erstellt.",
+  "hint_export_reminder_overdue": "Letzte Datensicherung liegt {days} Tage zurück — evtl. Zeit für eine neue.",
+  "msg_export_done": "Export heruntergeladen.",
+  "btn_delete_selected": "Ausgewählte löschen",
+  "label_selected_count": "{count} ausgewählt",
+  "msg_bulk_deleted": "{count} Einträge gelöscht.",
+  "label_zwischensumme": "Zwischensumme",
+  "msg_connection_issue": "Verbindungsproblem — Änderungen werden möglicherweise nicht gespeichert.",
+  "label_ziel_optional": "Projekt (optional)",
+  "btn_add_bulk_row": "Weitere Zeile hinzufügen",
+  "hint_bulk_table": "Lagerort und Projekt gelten für die ganze Tabelle (als Verantwortlicher wirst automatisch du hinterlegt). Für jede Zeile Material, Qualität und Menge auswählen/eintragen.",
+  "val_no_valid_bulk_rows": "Keine gültige Zeile — bitte Material auswählen und Qualität/Menge korrekt eintragen.",
+  "msg_bulk_table_added": "{count} Einträge hinzugefügt.",
+  "msg_bulk_table_added_with_skipped": "{count} Einträge hinzugefügt, {skipped} Zeile(n) übersprungen (unvollständig).",
+  "confirm_unsaved_bulk_rows": "Es gibt ausgefüllte, aber noch nicht übernommene Zeilen in der Massen-Eingabe. Trotzdem wechseln und diese verwerfen?",
+  "tooltip_reserved_for": "Vorgemerkt für Projekt:",
+  "filter_only_unassigned": "Nur unverplanten Bestand zeigen",
+  "panel_leaderboard": "Beitragende (gesamt)",
+  "empty_leaderboard": "Noch keine Bestandseinträge vorhanden.",
+  "btn_restart_tour": "Kurze Einführungs-Tour erneut starten",
+  "tour_btn_skip": "Überspringen",
+  "tour_btn_back": "Zurück",
+  "tour_btn_next": "Weiter",
+  "tour_btn_finish": "Los geht's",
+  "tour_step1_title": "Willkommen an Bord!",
+  "tour_step1_text": "Kurze, überspringbare Tour durch die wichtigsten Bereiche — dauert nur eine Minute. Du kannst sie jederzeit über den Hilfe-Button unten rechts erneut aufrufen.",
+  "tour_step2_title": "Die Reiter oben",
+  "tour_step2_text": "Übersicht, Bestand, Bedarf, Projekte, Sammelobjekte und Privatbestand. Du kannst die Reiter frei per Ziehen umsortieren — die Reihenfolge merkt sich die Anwendung für dich persönlich.",
+  "tour_step3_title": "Bestand eintragen",
+  "tour_step3_text": "Material, Qualität, Menge, Lagerort und Verantwortlicher — einzeln eintragen oder über die Massen-Eingabe gleich mehrere Zeilen auf einmal.",
+  "tour_step4_title": "Massen-Eingabe",
+  "tour_step4_text": "Lagerort, Verantwortlicher und Projekt einmal für die ganze Tabelle festlegen, dann pro Zeile nur noch Material, Qualität und Menge — mit \"Weitere Zeile hinzufügen\" beliebig erweiterbar.",
+  "tour_step5_title": "Bedarf & Projekte",
+  "tour_step5_text": "Trag ein, was du brauchst — die Anwendung zeigt live, ob der Bestand das bereits deckt. Projekte zeigen den Fortschritt anhand der benötigten Ressourcen.",
+  "tour_step6_title": "Später Hilfe nötig?",
+  "tour_step6_text": "Der \"?\"-Button unten rechts ist immer erreichbar und erklärt Rollen, Reiter und alle Verwaltungsbereiche im Detail. Viel Erfolg beim Fördern!",
+  "msg_saving": "Wird gespeichert …",
+  "msg_loading": "Wird geladen …",
+  "label_entries_count": "Einträge",
+  "label_ok_min_stock": "OK",
   "legal_disclaimer": "Inoffizielles Fan-Projekt. Nicht verbunden mit, nicht unterstützt oder autorisiert durch die Cloud Imperium Games Corporation und alle mit ihr verbundenen Unternehmen (u. a. Cloud Imperium Rights LLC, Cloud Imperium Games UK Ltd., Cloud Imperium Games Silicon Valley Inc., Cloud Imperium Germany GmbH, Foundry 42 Ltd., Foundry 42 GmbH sowie Roberts Space Industries). Alle Nennungen von Star Citizen, RSI sowie zugehöriger Schiffe, Marken, Standorte und Materialien sind Warenzeichen bzw. Eigentum der jeweiligen Rechteinhaber und werden hier ausschließlich zu privaten, nicht-kommerziellen Organisationszwecken verwendet.",
   "role_leserechte_label": "Benutzer (Leserechte)",
   "role_bearbeitung_label": "Benutzer (Bearbeitungsrechte)",
   "role_admin_label": "Administrator",
+  "role_owner_label": "Besitzer",
+  "role_org_admin_label": "Organisations-Administrator",
+  "label_organisation": "Organisation",
+  "panel_organisationsverwaltung": "Organisationen verwalten",
+  "label_organisationsname": "Name der Organisation",
+  "hint_org_no_delete": "Organisationen können umbenannt, aber aus Sicherheitsgründen nicht gelöscht werden.",
+  "val_org_name_required": "Bitte einen Namen für die Organisation eingeben.",
+  "val_org_name_exists": "Eine Organisation mit diesem Namen existiert bereits.",
+  "msg_org_added": "Organisation „{name}“ angelegt.",
+  "msg_org_renamed": "Organisation umbenannt.",
+  "val_min_one_owner": "Es muss mindestens ein Besitzer bestehen bleiben.",
+  "val_no_permission_role": "Du darfst diese Rolle nicht vergeben.",
+  "panel_org_branding": "Organisation anpassen",
+  "label_org_motto": "Motto / Untertitel (optional)",
+  "label_org_accent": "Akzentfarbe",
+  "msg_org_branding_saved": "Aussehen der Organisation gespeichert.",
+  "accent_cyan": "Cyan",
+  "accent_amber": "Bernstein",
+  "accent_crimson": "Karmesinrot",
+  "accent_toxic": "Giftgrün",
+  "label_org_background": "Hintergrundfarbe",
+  "bg_void": "Void-Schwarz (Standard)",
+  "bg_graphite": "Graphit",
+  "bg_navy": "Tiefes Marineblau",
+  "bg_forest": "Tiefes Waldgrün",
+  "tooltip_help": "Hilfe & Handbuch",
+  "help_title": "Hilfe & Handbuch",
+  "help_section_roles": "Rollen",
+  "help_roles_intro": "Jeder Benutzer hat genau eine der folgenden Rollen, von den wenigsten zu den meisten Rechten:",
+  "help_role_viewer": "Kann alles einsehen, aber nichts eintragen oder verändern.",
+  "help_role_editor": "Kann Bestand, Bedarf, Projekte, Sammelobjekte und Privatbestand eintragen und bearbeiten.",
+  "help_role_admin": "Zusätzlich: Material-/Lagerort-Katalog verwalten, Änderungsprotokoll und Bestandsentwicklung einsehen. Verwaltet keine Benutzer.",
+  "help_role_org_admin": "Zusätzlich: verwaltet Benutzer der eigenen Organisation (bis zur Rolle Administrator) und passt das Erscheinungsbild der eigenen Organisation an.",
+  "help_role_owner": "Höchste Rolle, organisationsübergreifend. Sieht und verwaltet alle Organisationen, legt neue Organisationen an, kann zwischen ihnen wechseln.",
+  "help_section_tabs": "Reiter",
+  "help_tab_uebersicht": "Kennzahlen auf einen Blick, klickbare Kacheln zu den anderen Bereichen; für Administratoren zusätzlich Bestandsentwicklung und letzte Änderungen.",
+  "help_tab_bestand": "Der zentrale, geteilte Materialbestand der Organisation. Eintragen, filtern, sortieren, nach Lagerort gruppieren, Massen-Eingabe, CSV-Export, Papierkorb.",
+  "help_tab_bedarf": "Persönliche Materialwünsche mit Priorität — zeigt live an, ob der Bedarf bereits durch den Bestand gedeckt ist.",
+  "help_tab_projekte": "Bauvorhaben mit benötigten Ressourcen und Fortschrittsbalken, der sich automatisch am vorhandenen Bestand orientiert.",
+  "help_tab_sammelobjekte": "Artefakte und Sammelobjekte, nach Besitzer aufgeschlüsselt.",
+  "help_tab_privatbestand": "Persönlicher, nicht geteilter Bestand — kann bei Bedarf gezielt in den allgemeinen Bestand übertragen werden.",
+  "help_tab_verwaltung": "Nur für Administrator und höhere Rollen sichtbar — siehe nächster Abschnitt.",
+  "help_section_admin": "Bereiche in der Verwaltung",
+  "help_admin_branding": "Motto, Akzentfarbe, Hintergrundfarbe, Wappentier/Symbol und eigenes Emblem für die eigene Organisation festlegen. (Ab Organisations-Administrator)",
+  "help_admin_orgs": "Neue Organisationen anlegen und umbenennen. (Nur Besitzer)",
+  "help_admin_users": "Benutzer anlegen, Rollen vergeben, bearbeiten und löschen. (Ab Organisations-Administrator)",
+  "help_admin_catalog": "<strong>Material-/Lagerort-Katalog</strong> — neue Materialien und Lagerorte anlegen, optional mit Sollbestand. (Ab Administrator)",
+  "help_admin_log": "<strong>Änderungsprotokoll</strong> — vollständiger Verlauf aller Änderungen. (Ab Administrator)",
+  "help_section_tips": "Tipps",
+  "help_tip_reorder": "Die Reiter oben lassen sich per Ziehen frei umsortieren — die Reihenfolge wird persönlich für den eigenen Benutzernamen gemerkt, unabhängig vom verwendeten Gerät.",
+  "help_tip_shortcuts": "Die Zifferntasten 1–6 springen direkt zu den Reitern, in der jeweils eigenen (ggf. verschobenen) Reihenfolge.",
+  "help_tip_search": "Die Taste \"/\" springt direkt ins Suchfeld des aktuell geöffneten Reiters.",
+  "help_tip_trash": "Gelöschte Bestandseinträge landen für begrenzte Zeit im Papierkorb und können dort wiederhergestellt werden.",
+  "label_org_symbol": "Wappentier / Symbol",
+  "symbol_wolf": "Wolf",
+  "symbol_star": "Kompass-Stern",
+  "symbol_shield": "Schild",
+  "symbol_falcon": "Falke",
+  "label_org_emblem": "Eigenes Emblem (optional, ersetzt das Symbol oben)",
+  "btn_upload_emblem": "Bild hochladen",
+  "btn_remove_emblem": "Emblem entfernen",
+  "hint_emblem_size": "Wird automatisch verkleinert und komprimiert (max. ca. 150 KB). Empfohlen: einfaches, kontrastreiches Bild.",
+  "val_emblem_too_large_source": "Die Datei ist zu groß (max. 10 MB vor der Komprimierung).",
+  "val_emblem_processing_failed": "Bild konnte nicht verarbeitet werden. Bitte ein anderes Bildformat versuchen.",
+  "val_emblem_still_too_large": "Auch nach Komprimierung noch zu groß — bitte ein einfacheres Bild versuchen.",
+  "msg_emblem_uploaded": "Emblem hochgeladen ({size} KB) — nicht vergessen zu speichern.",
+  "hint_branding_live_preview": "Farbe und Symbol werden sofort zur Vorschau angewendet — dauerhaft übernommen wird alles erst mit \"Speichern\".",
+  "msg_user_added": "Benutzer „{name}“ angelegt (Initialpasswort: night).",
   "label_benutzername": "Benutzername",
   "label_email_optional": "E-Mail-Adresse (optional)",
   "label_rolle": "Rolle",
@@ -1788,7 +2253,7 @@ const I18N = {
   "ocr_recognized_as": "Erkannt als",
   "ocr_raw_text_hint": "So wurde dieser Bereich des Bilds ursprünglich gelesen, bevor er mit der Materialliste abgeglichen wurde",
   "ocr_rows_skipped_no_material": "Achtung: {count} Zeile(n) übersprungen, da kein Material ausgewählt wurde.",
-  "copyright_notice": "© 2026 Robin Graf. Alle Rechte vorbehalten.",
+  "copyright_notice": "© 2026 Neorob1976. Alle Rechte vorbehalten.",
   "ocr_pick_file": "Foto auswählen oder aufnehmen",
   "ocr_pick_camera": "📷 Foto aufnehmen",
   "ocr_pick_gallery": "Aus Galerie wählen",
@@ -1850,6 +2315,7 @@ const I18N = {
   "placeholder_username": "Username",
   "placeholder_password": "Password",
   "btn_login": "Sign in",
+  "btn_login_busy": "Signing in…",
   "link_forgot_password": "Forgot password?",
   "forgot_title": "Forgot password",
   "forgot_subtitle": "Confirm your username and registered email address",
@@ -1864,6 +2330,7 @@ const I18N = {
   "link_back_to_login": "Back to sign in",
   "forced_title": "New password",
   "btn_save_password": "Save password",
+  "btn_save_password_busy": "Saving…",
   "panel_change_password": "Change password",
   "label_current_password": "Current password",
   "btn_cancel": "Cancel",
@@ -1889,6 +2356,8 @@ const I18N = {
   "tile_bestandseintraege": "Inventory entries",
   "tile_aktive_projekte": "Active projects",
   "tile_ungedeckte_bedarfe": "Unmet needs (high/critical)",
+  "label_critical_needs_title": "⚠ Critical need",
+  "label_critical_needs_for": "for",
   "tile_sammelobjekte_gesamt": "Collectibles total",
   "panel_neuer_eintrag": "New entry",
   "panel_neuer_eintrag_privat": "New entry (Private)",
@@ -2001,10 +2470,129 @@ const I18N = {
   "msg_password_updated": "Password updated.",
   "msg_save_failed": "Save failed — please try again.",
   "msg_login_error": "Unknown user or incorrect password.",
+  "msg_login_username_not_found": "This username does not exist.",
+  "msg_login_wrong_password": "Incorrect password.",
+  "tooltip_under_min_stock": "Materials below target stock",
+  "label_under_min_stock": "Below target",
+  "val_quality_range": "Quality must be between 0 and 1000.",
+  "val_menge_positive": "Quantity must be greater than 0.",
+  "label_last_active": "Last active",
+  "label_never_active": "never logged in",
+  "panel_org_export": "Data backup",
+  "hint_org_export": "Downloads a single file with all shared data of the current organization (inventory, needs, projects, collectibles, catalogs) — independent of Supabase, e.g. for your own backup.",
+  "btn_export_org_data": "Export everything (JSON)",
+  "hint_export_reminder_never": "No data backup created yet for this organization.",
+  "hint_export_reminder_overdue": "Last data backup was {days} days ago — might be time for a new one.",
+  "msg_export_done": "Export downloaded.",
+  "btn_delete_selected": "Delete selected",
+  "label_selected_count": "{count} selected",
+  "msg_bulk_deleted": "{count} entries deleted.",
+  "label_zwischensumme": "Subtotal",
+  "msg_connection_issue": "Connection issue — changes may not be saved.",
+  "label_ziel_optional": "Project (optional)",
+  "btn_add_bulk_row": "Add another row",
+  "hint_bulk_table": "Location and project apply to the whole table (you are automatically set as the responsible person). For each row, select/enter material, quality, and quantity.",
+  "val_no_valid_bulk_rows": "No valid row — please select a material and enter a correct quality/quantity.",
+  "msg_bulk_table_added": "{count} entries added.",
+  "msg_bulk_table_added_with_skipped": "{count} entries added, {skipped} row(s) skipped (incomplete).",
+  "confirm_unsaved_bulk_rows": "There are filled-in but not yet added rows in the bulk entry. Switch anyway and discard them?",
+  "tooltip_reserved_for": "Reserved for project:",
+  "filter_only_unassigned": "Show only unassigned stock",
+  "panel_leaderboard": "Contributors (total)",
+  "empty_leaderboard": "No inventory entries yet.",
+  "btn_restart_tour": "Restart the short intro tour",
+  "tour_btn_skip": "Skip",
+  "tour_btn_back": "Back",
+  "tour_btn_next": "Next",
+  "tour_btn_finish": "Let's go",
+  "tour_step1_title": "Welcome aboard!",
+  "tour_step1_text": "A short, skippable tour through the key areas — takes only a minute. You can restart it anytime via the help button in the bottom right.",
+  "tour_step2_title": "The tabs up top",
+  "tour_step2_text": "Overview, inventory, needs, projects, collectibles, and private stock. You can freely reorder the tabs by dragging — the order is remembered personally for you.",
+  "tour_step3_title": "Adding inventory",
+  "tour_step3_text": "Material, quality, quantity, location, and responsible person — enter items one at a time, or add several rows at once via the bulk entry.",
+  "tour_step4_title": "Bulk entry",
+  "tour_step4_text": "Set location, responsible person, and project once for the whole table, then just material, quality, and quantity per row — extend with \"Add another row\" as needed.",
+  "tour_step5_title": "Needs & projects",
+  "tour_step5_text": "Enter what you need — the app shows live whether the inventory already covers it. Projects show progress based on the required resources.",
+  "tour_step6_title": "Need help later?",
+  "tour_step6_text": "The \"?\" button in the bottom right is always available and explains roles, tabs, and all administration areas in detail. Happy mining!",
+  "msg_saving": "Saving …",
+  "msg_loading": "Loading …",
+  "label_entries_count": "entries",
+  "label_ok_min_stock": "OK",
   "legal_disclaimer": "Unofficial fan project. Not affiliated with, endorsed by, or authorized by the Cloud Imperium Games Corporation and any of its affiliated companies (including Cloud Imperium Rights LLC, Cloud Imperium Games UK Ltd., Cloud Imperium Games Silicon Valley Inc., Cloud Imperium Germany GmbH, Foundry 42 Ltd., Foundry 42 GmbH, and Roberts Space Industries). All references to Star Citizen, RSI, and related ships, brands, locations, and materials are trademarks or property of their respective owners and are used here solely for private, non-commercial organizational purposes.",
   "role_leserechte_label": "User (read-only)",
   "role_bearbeitung_label": "User (edit rights)",
   "role_admin_label": "Administrator",
+  "role_owner_label": "Owner",
+  "role_org_admin_label": "Organization Administrator",
+  "label_organisation": "Organization",
+  "panel_organisationsverwaltung": "Manage organizations",
+  "label_organisationsname": "Organization name",
+  "hint_org_no_delete": "Organizations can be renamed, but cannot be deleted for safety reasons.",
+  "val_org_name_required": "Please enter a name for the organization.",
+  "val_org_name_exists": "An organization with this name already exists.",
+  "msg_org_added": "Organization \"{name}\" created.",
+  "msg_org_renamed": "Organization renamed.",
+  "val_min_one_owner": "At least one owner must remain.",
+  "val_no_permission_role": "You are not allowed to assign this role.",
+  "panel_org_branding": "Customize organization",
+  "label_org_motto": "Motto / subtitle (optional)",
+  "label_org_accent": "Accent color",
+  "msg_org_branding_saved": "Organization appearance saved.",
+  "accent_cyan": "Cyan",
+  "accent_amber": "Amber",
+  "accent_crimson": "Crimson",
+  "accent_toxic": "Toxic green",
+  "label_org_background": "Background color",
+  "bg_void": "Void black (default)",
+  "bg_graphite": "Graphite",
+  "bg_navy": "Deep navy",
+  "bg_forest": "Deep forest green",
+  "tooltip_help": "Help & manual",
+  "help_title": "Help & manual",
+  "help_section_roles": "Roles",
+  "help_roles_intro": "Every user has exactly one of the following roles, from the fewest to the most permissions:",
+  "help_role_viewer": "Can view everything, but cannot add or change anything.",
+  "help_role_editor": "Can add and edit inventory, needs, projects, collectibles and private stock.",
+  "help_role_admin": "Additionally: manages the material/location catalog, views the change log and inventory history. Does not manage users.",
+  "help_role_org_admin": "Additionally: manages users of their own organization (up to the Administrator role) and customizes their organization's appearance.",
+  "help_role_owner": "Highest role, across all organizations. Sees and manages all organizations, creates new organizations, can switch between them.",
+  "help_section_tabs": "Tabs",
+  "help_tab_uebersicht": "Key figures at a glance, clickable tiles linking to the other areas; administrators additionally see inventory history and recent changes.",
+  "help_tab_bestand": "The organization's central, shared material inventory. Add, filter, sort, group by location, bulk entry, CSV export, recycle bin.",
+  "help_tab_bedarf": "Personal material requests with priority — shows live whether the need is already covered by the inventory.",
+  "help_tab_projekte": "Construction projects with required resources and a progress bar that automatically follows the available inventory.",
+  "help_tab_sammelobjekte": "Artifacts and collectibles, broken down by owner.",
+  "help_tab_privatbestand": "Personal, non-shared stock — can be transferred to the general inventory as needed.",
+  "help_tab_verwaltung": "Only visible to Administrator and higher roles — see next section.",
+  "help_section_admin": "Sections within Administration",
+  "help_admin_branding": "Set motto, accent color, background color, emblem/symbol and a custom logo for your own organization. (From Organization Administrator upward)",
+  "help_admin_orgs": "Create and rename new organizations. (Owner only)",
+  "help_admin_users": "Create users, assign roles, edit and delete them. (From Organization Administrator upward)",
+  "help_admin_catalog": "<strong>Material/location catalog</strong> — add new materials and locations, optionally with a target stock level. (From Administrator upward)",
+  "help_admin_log": "<strong>Change log</strong> — complete history of all changes. (From Administrator upward)",
+  "help_section_tips": "Tips",
+  "help_tip_reorder": "The tabs above can be freely reordered by dragging — the order is remembered personally for your own username, regardless of the device used.",
+  "help_tip_shortcuts": "The number keys 1–6 jump directly to the tabs, in your own (possibly reordered) tab order.",
+  "help_tip_search": "The \"/\" key jumps directly to the search field of the currently open tab.",
+  "help_tip_trash": "Deleted inventory entries land in the recycle bin for a limited time and can be restored there.",
+  "label_org_symbol": "Emblem / symbol",
+  "symbol_wolf": "Wolf",
+  "symbol_star": "Compass star",
+  "symbol_shield": "Shield",
+  "symbol_falcon": "Falcon",
+  "label_org_emblem": "Custom emblem (optional, replaces the symbol above)",
+  "btn_upload_emblem": "Upload image",
+  "btn_remove_emblem": "Remove emblem",
+  "hint_emblem_size": "Automatically resized and compressed (max. approx. 150 KB). Recommended: a simple, high-contrast image.",
+  "val_emblem_too_large_source": "The file is too large (max. 10 MB before compression).",
+  "val_emblem_processing_failed": "The image could not be processed. Please try a different image format.",
+  "val_emblem_still_too_large": "Still too large even after compression — please try a simpler image.",
+  "msg_emblem_uploaded": "Emblem uploaded ({size} KB) — don't forget to save.",
+  "hint_branding_live_preview": "Color and symbol are applied immediately as a preview — everything is only saved permanently once you click \"Save\".",
+  "msg_user_added": "User \"{name}\" created (initial password: night).",
   "label_benutzername": "Username",
   "label_email_optional": "Email address (optional)",
   "label_rolle": "Role",
@@ -2075,7 +2663,7 @@ const I18N = {
   "ocr_recognized_as": "Recognized as",
   "ocr_raw_text_hint": "This is what was originally read in this area of the image, before matching it against the material list",
   "ocr_rows_skipped_no_material": "Note: {count} row(s) skipped because no material was selected.",
-  "copyright_notice": "© 2026 Robin Graf. All rights reserved.",
+  "copyright_notice": "© 2026 Neorob1976. All rights reserved.",
   "ocr_pick_file": "Choose or take a photo",
   "ocr_pick_camera": "📷 Take photo",
   "ocr_pick_gallery": "Choose from gallery",
@@ -2137,6 +2725,7 @@ const I18N = {
   "placeholder_username": "Nom d'utilisateur",
   "placeholder_password": "Mot de passe",
   "btn_login": "Se connecter",
+  "btn_login_busy": "Connexion en cours…",
   "link_forgot_password": "Mot de passe oublié ?",
   "forgot_title": "Mot de passe oublié",
   "forgot_subtitle": "Confirmez votre nom d'utilisateur et votre adresse e-mail enregistrée",
@@ -2151,6 +2740,7 @@ const I18N = {
   "link_back_to_login": "Retour à la connexion",
   "forced_title": "Nouveau mot de passe",
   "btn_save_password": "Enregistrer le mot de passe",
+  "btn_save_password_busy": "Enregistrement en cours…",
   "panel_change_password": "Changer le mot de passe",
   "label_current_password": "Mot de passe actuel",
   "btn_cancel": "Annuler",
@@ -2176,6 +2766,8 @@ const I18N = {
   "tile_bestandseintraege": "Entrées de stock",
   "tile_aktive_projekte": "Projets actifs",
   "tile_ungedeckte_bedarfe": "Besoins non couverts (élevé/critique)",
+  "label_critical_needs_title": "⚠ Besoin critique",
+  "label_critical_needs_for": "pour",
   "tile_sammelobjekte_gesamt": "Total des objets de collection",
   "panel_neuer_eintrag": "Nouvelle entrée",
   "panel_neuer_eintrag_privat": "Nouvelle entrée (Privé)",
@@ -2288,10 +2880,129 @@ const I18N = {
   "msg_password_updated": "Mot de passe mis à jour.",
   "msg_save_failed": "Échec de l'enregistrement — veuillez réessayer.",
   "msg_login_error": "Utilisateur inconnu ou mot de passe incorrect.",
+  "msg_login_username_not_found": "Ce nom d'utilisateur n'existe pas.",
+  "msg_login_wrong_password": "Mot de passe incorrect.",
+  "tooltip_under_min_stock": "Matériaux en dessous du stock cible",
+  "label_under_min_stock": "Sous l'objectif",
+  "val_quality_range": "La qualité doit être comprise entre 0 et 1000.",
+  "val_menge_positive": "La quantité doit être supérieure à 0.",
+  "label_last_active": "Dernière activité",
+  "label_never_active": "jamais connecté",
+  "panel_org_export": "Sauvegarde des données",
+  "hint_org_export": "Télécharge un seul fichier contenant toutes les données partagées de l'organisation actuelle (stock, besoins, projets, objets de collection, catalogues) — indépendamment de Supabase, par exemple pour votre propre sauvegarde.",
+  "btn_export_org_data": "Tout exporter (JSON)",
+  "hint_export_reminder_never": "Aucune sauvegarde de données encore créée pour cette organisation.",
+  "hint_export_reminder_overdue": "Dernière sauvegarde des données il y a {days} jours — peut-être temps pour une nouvelle.",
+  "msg_export_done": "Export téléchargé.",
+  "btn_delete_selected": "Supprimer la sélection",
+  "label_selected_count": "{count} sélectionné(s)",
+  "msg_bulk_deleted": "{count} entrées supprimées.",
+  "label_zwischensumme": "Sous-total",
+  "msg_connection_issue": "Problème de connexion — les modifications risquent de ne pas être enregistrées.",
+  "label_ziel_optional": "Projet (facultatif)",
+  "btn_add_bulk_row": "Ajouter une autre ligne",
+  "hint_bulk_table": "L'emplacement et le projet s'appliquent à toute la table (vous êtes automatiquement défini comme responsable). Pour chaque ligne, sélectionnez/saisissez le matériau, la qualité et la quantité.",
+  "val_no_valid_bulk_rows": "Aucune ligne valide — veuillez sélectionner un matériau et saisir une qualité/quantité correcte.",
+  "msg_bulk_table_added": "{count} entrées ajoutées.",
+  "msg_bulk_table_added_with_skipped": "{count} entrées ajoutées, {skipped} ligne(s) ignorée(s) (incomplète(s)).",
+  "confirm_unsaved_bulk_rows": "Il y a des lignes remplies mais pas encore ajoutées dans la saisie groupée. Changer quand même et les abandonner\u00a0?",
+  "tooltip_reserved_for": "Réservé pour le projet\u00a0:",
+  "filter_only_unassigned": "Afficher uniquement le stock non affecté",
+  "panel_leaderboard": "Contributeurs (total)",
+  "empty_leaderboard": "Aucune entrée de stock pour le moment.",
+  "btn_restart_tour": "Relancer la visite guidée rapide",
+  "tour_btn_skip": "Ignorer",
+  "tour_btn_back": "Retour",
+  "tour_btn_next": "Suivant",
+  "tour_btn_finish": "C'est parti",
+  "tour_step1_title": "Bienvenue à bord !",
+  "tour_step1_text": "Une visite guidée courte et facultative des principales sections — ne prend qu'une minute. Vous pouvez la relancer à tout moment via le bouton d'aide en bas à droite.",
+  "tour_step2_title": "Les onglets en haut",
+  "tour_step2_text": "Aperçu, stock, besoins, projets, objets de collection et stock privé. Vous pouvez réorganiser librement les onglets par glisser-déposer — l'ordre est mémorisé personnellement pour vous.",
+  "tour_step3_title": "Ajouter du stock",
+  "tour_step3_text": "Matériau, qualité, quantité, emplacement et responsable — saisissez un élément à la fois, ou ajoutez plusieurs lignes à la fois via la saisie groupée.",
+  "tour_step4_title": "Saisie groupée",
+  "tour_step4_text": "Définissez l'emplacement, le responsable et le projet une fois pour toute la table, puis seulement le matériau, la qualité et la quantité par ligne — étendez avec « Ajouter une autre ligne » si nécessaire.",
+  "tour_step5_title": "Besoins et projets",
+  "tour_step5_text": "Indiquez ce dont vous avez besoin — l'application affiche en temps réel si le stock le couvre déjà. Les projets affichent la progression en fonction des ressources nécessaires.",
+  "tour_step6_title": "Besoin d'aide plus tard ?",
+  "tour_step6_text": "Le bouton « ? » en bas à droite est toujours disponible et explique en détail les rôles, les onglets et toutes les sections d'administration. Bon minage !",
+  "msg_saving": "Enregistrement en cours …",
+  "msg_loading": "Chargement en cours …",
+  "label_entries_count": "entrées",
+  "label_ok_min_stock": "OK",
   "legal_disclaimer": "Projet de fans non officiel. Non affilié, approuvé ou autorisé par Cloud Imperium Games Corporation ni par les sociétés qui lui sont liées (notamment Cloud Imperium Rights LLC, Cloud Imperium Games UK Ltd., Cloud Imperium Games Silicon Valley Inc., Cloud Imperium Germany GmbH, Foundry 42 Ltd., Foundry 42 GmbH et Roberts Space Industries). Toute mention de Star Citizen, RSI ainsi que des vaisseaux, marques, lieux et matériaux associés constitue une marque ou une propriété de leurs détenteurs respectifs et n'est utilisée ici qu'à des fins privées et non commerciales d'organisation.",
   "role_leserechte_label": "Utilisateur (lecture seule)",
   "role_bearbeitung_label": "Utilisateur (droits de modification)",
   "role_admin_label": "Administrateur",
+  "role_owner_label": "Propriétaire",
+  "role_org_admin_label": "Administrateur d'organisation",
+  "label_organisation": "Organisation",
+  "panel_organisationsverwaltung": "Gérer les organisations",
+  "label_organisationsname": "Nom de l'organisation",
+  "hint_org_no_delete": "Les organisations peuvent être renommées, mais ne peuvent pas être supprimées pour des raisons de sécurité.",
+  "val_org_name_required": "Veuillez saisir un nom pour l'organisation.",
+  "val_org_name_exists": "Une organisation portant ce nom existe déjà.",
+  "msg_org_added": "Organisation « {name} » créée.",
+  "msg_org_renamed": "Organisation renommée.",
+  "val_min_one_owner": "Il doit rester au moins un propriétaire.",
+  "val_no_permission_role": "Vous n'êtes pas autorisé à attribuer ce rôle.",
+  "panel_org_branding": "Personnaliser l'organisation",
+  "label_org_motto": "Devise / sous-titre (facultatif)",
+  "label_org_accent": "Couleur d'accent",
+  "msg_org_branding_saved": "Apparence de l'organisation enregistrée.",
+  "accent_cyan": "Cyan",
+  "accent_amber": "Ambre",
+  "accent_crimson": "Cramoisi",
+  "accent_toxic": "Vert toxique",
+  "label_org_background": "Couleur d'arrière-plan",
+  "bg_void": "Noir abyssal (par défaut)",
+  "bg_graphite": "Graphite",
+  "bg_navy": "Bleu marine profond",
+  "bg_forest": "Vert forêt profond",
+  "tooltip_help": "Aide et manuel",
+  "help_title": "Aide et manuel",
+  "help_section_roles": "Rôles",
+  "help_roles_intro": "Chaque utilisateur possède exactement l'un des rôles suivants, du moins au plus de droits :",
+  "help_role_viewer": "Peut tout consulter, mais ne peut rien ajouter ni modifier.",
+  "help_role_editor": "Peut ajouter et modifier le stock, les besoins, les projets, les objets de collection et le stock privé.",
+  "help_role_admin": "En plus : gère le catalogue des matériaux/emplacements, consulte le journal des modifications et l'évolution du stock. Ne gère pas les utilisateurs.",
+  "help_role_org_admin": "En plus : gère les utilisateurs de sa propre organisation (jusqu'au rôle Administrateur) et personnalise l'apparence de son organisation.",
+  "help_role_owner": "Rôle le plus élevé, sur toutes les organisations. Voit et gère toutes les organisations, en crée de nouvelles, peut basculer entre elles.",
+  "help_section_tabs": "Onglets",
+  "help_tab_uebersicht": "Chiffres clés en un coup d'œil, tuiles cliquables vers les autres sections ; les administrateurs voient en plus l'évolution du stock et les dernières modifications.",
+  "help_tab_bestand": "Le stock de matériaux central et partagé de l'organisation. Ajouter, filtrer, trier, regrouper par emplacement, saisie groupée, export CSV, corbeille.",
+  "help_tab_bedarf": "Besoins personnels en matériaux avec priorité — indique en temps réel si le besoin est déjà couvert par le stock.",
+  "help_tab_projekte": "Projets de construction avec les ressources nécessaires et une barre de progression qui suit automatiquement le stock disponible.",
+  "help_tab_sammelobjekte": "Artefacts et objets de collection, répartis par propriétaire.",
+  "help_tab_privatbestand": "Stock personnel non partagé — peut être transféré vers le stock général si nécessaire.",
+  "help_tab_verwaltung": "Visible uniquement pour le rôle Administrateur et supérieur — voir la section suivante.",
+  "help_section_admin": "Sections dans l'administration",
+  "help_admin_branding": "Définir la devise, la couleur d'accent, la couleur d'arrière-plan, l'emblème/symbole et un logo personnalisé pour sa propre organisation. (À partir du rôle Administrateur d'organisation)",
+  "help_admin_orgs": "Créer et renommer des organisations. (Propriétaire uniquement)",
+  "help_admin_users": "Créer des utilisateurs, attribuer des rôles, les modifier et les supprimer. (À partir du rôle Administrateur d'organisation)",
+  "help_admin_catalog": "<strong>Catalogue des matériaux/emplacements</strong> — ajouter de nouveaux matériaux et emplacements, avec un niveau de stock cible facultatif. (À partir du rôle Administrateur)",
+  "help_admin_log": "<strong>Journal des modifications</strong> — historique complet de toutes les modifications. (À partir du rôle Administrateur)",
+  "help_section_tips": "Astuces",
+  "help_tip_reorder": "Les onglets ci-dessus peuvent être librement réorganisés par glisser-déposer — l'ordre est mémorisé personnellement pour votre nom d'utilisateur, quel que soit l'appareil utilisé.",
+  "help_tip_shortcuts": "Les touches numériques 1 à 6 permettent d'accéder directement aux onglets, dans votre propre ordre (éventuellement réorganisé).",
+  "help_tip_search": "La touche « / » permet d'accéder directement au champ de recherche de l'onglet actuellement ouvert.",
+  "help_tip_trash": "Les entrées de stock supprimées atterrissent temporairement dans la corbeille et peuvent y être restaurées.",
+  "label_org_symbol": "Emblème / symbole",
+  "symbol_wolf": "Loup",
+  "symbol_star": "Étoile boussole",
+  "symbol_shield": "Bouclier",
+  "symbol_falcon": "Faucon",
+  "label_org_emblem": "Emblème personnalisé (facultatif, remplace le symbole ci-dessus)",
+  "btn_upload_emblem": "Téléverser une image",
+  "btn_remove_emblem": "Supprimer l'emblème",
+  "hint_emblem_size": "Redimensionné et compressé automatiquement (max. env. 150 Ko). Recommandé\u00a0: une image simple et contrastée.",
+  "val_emblem_too_large_source": "Le fichier est trop volumineux (max. 10 Mo avant compression).",
+  "val_emblem_processing_failed": "L'image n'a pas pu être traitée. Veuillez essayer un autre format d'image.",
+  "val_emblem_still_too_large": "Toujours trop volumineux même après compression — veuillez essayer une image plus simple.",
+  "msg_emblem_uploaded": "Emblème téléversé ({size} Ko) — n'oubliez pas d'enregistrer.",
+  "hint_branding_live_preview": "La couleur et le symbole sont appliqués immédiatement en aperçu — tout n'est enregistré définitivement qu'en cliquant sur « Enregistrer ».",
+  "msg_user_added": "Utilisateur « {name} » créé (mot de passe initial\u00a0: night).",
   "label_benutzername": "Nom d'utilisateur",
   "label_email_optional": "Adresse e-mail (facultatif)",
   "label_rolle": "Rôle",
@@ -2362,7 +3073,7 @@ const I18N = {
   "ocr_recognized_as": "Reconnu comme",
   "ocr_raw_text_hint": "Voici ce qui a été lu à l'origine dans cette zone de l'image, avant la comparaison avec la liste des matériaux",
   "ocr_rows_skipped_no_material": "Attention\u00a0: {count} ligne(s) ignorée(s) car aucun matériau n'a été sélectionné.",
-  "copyright_notice": "© 2026 Robin Graf. Tous droits réservés.",
+  "copyright_notice": "© 2026 Neorob1976. Tous droits réservés.",
   "ocr_pick_file": "Choisir ou prendre une photo",
   "ocr_pick_camera": "📷 Prendre une photo",
   "ocr_pick_gallery": "Choisir depuis la galerie",
@@ -2482,9 +3193,15 @@ async function changeLanguage(lang){
   ['uebersicht','bestand','privatbestand','bedarfe','projekte','sammelobjekte'].forEach(tab=>{
     if(typeof renderTabContent === 'function') renderTabContent(tab);
   });
-  if(currentUser && currentUser.role==='admin'){
+  if(currentUser && roleAtLeast(currentUser.role, 'org_admin')){
     if(typeof renderUserList === 'function') renderUserList();
+  }
+  if(currentUser && roleAtLeast(currentUser.role, 'admin')){
     if(typeof renderCatalogLists === 'function') renderCatalogLists();
+  }
+  const helpModal = document.getElementById('helpModal');
+  if(helpModal && helpModal.style.display !== 'none' && typeof renderHelpContent === 'function'){
+    renderHelpContent();
   }
 }
 
@@ -2492,6 +3209,7 @@ async function changeLanguage(lang){
 const STORAGE_KEY = 'entries';
 let entries = [];
 let editingId = null;
+let selectedEntryIds = new Set();
 let sortKey = null;
 let sortDir = 1;
 let groupByLocation = false;
@@ -2502,8 +3220,50 @@ let editingNeedId = null;
 const PRIORITY_ORDER = {Kritisch:0, Hoch:1, Mittel:2, Niedrig:3};
 const PRIORITY_CLASS = {Kritisch:'prio-kritisch', Hoch:'prio-hoch', Mittel:'prio-mittel', Niedrig:'prio-niedrig'};
 
+// ============================================================
+// Mehrstufige Organisations- und Rollen-Hierarchie:
+// Besitzer (systemweit) > Organisations-Administrator (pro Organisation)
+// > Administrator > Editor > Viewer. Jede Organisation hat vollständig
+// getrennte Inhalte (Bestand, Bedarf, Projekte usw.) — technisch über
+// einen Organisations-Anhang am jeweiligen Speicherschlüssel gelöst
+// (siehe orgKey()), sodass der gesamte übrige Anwendungscode unverändert
+// bleibt und weiterhin einfach mit "dem aktuellen" Bestand arbeitet.
+// ============================================================
+const ROLE_HIERARCHY = ['viewer', 'editor', 'admin', 'org_admin', 'owner'];
+function roleAtLeast(role, minRole){
+  return ROLE_HIERARCHY.indexOf(role) >= ROLE_HIERARCHY.indexOf(minRole);
+}
+
+const ORGANIZATIONS_KEY = 'organizations';
+let ORGANIZATIONS = [];
+let organizationsLoaded = false;
+async function loadOrganizations(){
+  if(organizationsLoaded) return;
+  try{
+    const res = await window.storage.get(ORGANIZATIONS_KEY, true);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      if(Array.isArray(parsed)) ORGANIZATIONS = parsed;
+    }
+  }catch(e){ /* Ausgangsliste bleibt leer */ }
+  organizationsLoaded = true;
+}
+async function saveOrganizations(){
+  try{ await window.storage.set(ORGANIZATIONS_KEY, JSON.stringify(ORGANIZATIONS), true); return true; }
+  catch(e){ return false; }
+}
+
+// Aktuell aktive Organisation — bei normalen Benutzern fest an ihr Konto
+// gebunden, beim Besitzer über den Organisations-Wechsler veränderbar.
+let currentOrgId = null;
+function orgKey(base){
+  return currentOrgId ? `${base}__org_${currentOrgId}` : base;
+}
+
 // Benutzerliste — Ausgangsbestand. Administratoren können darüber hinaus
 // weitere Benutzer anlegen, bearbeiten und löschen (siehe Benutzerverwaltung).
+// Benutzernamen sind organisationsübergreifend eindeutig, die Liste selbst
+// bleibt daher bewusst global (nicht organisationsgebunden gespeichert).
 const USERS_KEY = 'users-list';
 let USERS = [
   {username:'Neorob1976', role:'admin'},
@@ -2513,7 +3273,7 @@ let USERS = [
   {username:'Shawn', role:'editor'}
 ];
 let usersLoaded = false;
-const ROLE_KEY_MAP = {admin:'role_admin_label', editor:'role_bearbeitung_label', viewer:'role_leserechte_label'};
+const ROLE_KEY_MAP = {owner:'role_owner_label', org_admin:'role_org_admin_label', admin:'role_admin_label', editor:'role_bearbeitung_label', viewer:'role_leserechte_label'};
 function roleLabel(role){ return ROLE_KEY_MAP[role] ? t(ROLE_KEY_MAP[role]) : role; }
 let currentUser = null;
 let editingUserIndex = null;
@@ -2582,11 +3342,11 @@ async function logAction(action, details, actorOverride){
   const actor = actorOverride || (currentUser && currentUser.username);
   if(!actor) return;
   try{
-    const res = await window.storage.get(LOG_KEY, true);
+    const res = await window.storage.get(orgKey(LOG_KEY), true);
     let log = res && res.value ? JSON.parse(res.value) : [];
     log.push({ ts: new Date().toISOString(), user: actor, action, details: details || '' });
     if(log.length > LOG_MAX_ENTRIES) log = log.slice(log.length - LOG_MAX_ENTRIES);
-    await window.storage.set(LOG_KEY, JSON.stringify(log), true);
+    await window.storage.set(orgKey(LOG_KEY), JSON.stringify(log), true);
   }catch(e){
     // Protokollierung darf die eigentliche Aktion nicht verhindern.
   }
@@ -2611,7 +3371,7 @@ async function renderLog(){
   const container = document.getElementById('logContainer');
   container.innerHTML = `<div class="empty">Lade Protokoll…</div>`;
   try{
-    const res = await window.storage.get(LOG_KEY, true);
+    const res = await window.storage.get(orgKey(LOG_KEY), true);
     const log = res && res.value ? JSON.parse(res.value) : [];
     if(log.length === 0){
       container.innerHTML = `<div class="empty"><div class="big">${t('empty_log_title')}</div>${t('empty_log_sub')}</div>`;
@@ -2635,19 +3395,57 @@ async function renderLog(){
   }
 }
 
+// Welche Rollen darf die aktuell angemeldete Person vergeben? Ein
+// Organisations-Administrator darf nur bis "Administrator" hochstufen,
+// niemals zu Organisations-Administrator oder Besitzer — das bleibt dem
+// Besitzer vorbehalten.
+function getAssignableRoles(actingRole){
+  if(actingRole === 'owner') return ['viewer', 'editor', 'admin', 'org_admin', 'owner'];
+  if(actingRole === 'org_admin') return ['viewer', 'editor', 'admin'];
+  return ['viewer', 'editor'];
+}
+function buildRoleOptionsHTML(selectedRole, actingRole){
+  const roles = getAssignableRoles(actingRole);
+  // Falls die bisherige Rolle eines Benutzers höher ist, als die aktuell
+  // angemeldete Person vergeben dürfte (z. B. ein Organisations-Administrator
+  // bearbeitet einen bestehenden Administrator), bleibt sie als Option
+  // trotzdem sichtbar — nur eben nicht neu zuweisbar zu etwas noch Höherem.
+  const allOptions = roles.includes(selectedRole) ? roles : [selectedRole, ...roles];
+  return allOptions.map(r=> `<option value="${r}" ${r===selectedRole?'selected':''}>${escapeHtml(roleLabel(r))}</option>`).join('');
+}
+function getOrgName(orgId){
+  const org = ORGANIZATIONS.find(o=>o.id===orgId);
+  return org ? org.name : (orgId || '—');
+}
+// Rollen-Dropdown und (nur für den Besitzer) Organisationsauswahl im
+// "Benutzer anlegen"-Formular passend zur eigenen Berechtigung aufbauen.
+function buildNewUserRoleOptions(){
+  document.getElementById('newUserRole').innerHTML = buildRoleOptionsHTML('editor', currentUser.role);
+  const orgWrap = document.getElementById('newUserOrgWrap');
+  if(currentUser.role === 'owner'){
+    orgWrap.style.display = '';
+    document.getElementById('newUserOrg').innerHTML = ORGANIZATIONS.map(o=>
+      `<option value="${escapeHtml(o.id)}" ${o.id===currentUser.organizationId?'selected':''}>${escapeHtml(o.name)}</option>`
+    ).join('');
+  } else {
+    orgWrap.style.display = 'none';
+  }
+}
+
 function renderUserList(){
   const container = document.getElementById('userListContainer');
-  container.innerHTML = USERS.map((u,idx)=>{
+  const isOwner = currentUser.role === 'owner';
+  // Ein Organisations-Administrator sieht ausschließlich Benutzer der
+  // eigenen Organisation — der Besitzer sieht alle, organisationsübergreifend.
+  const visibleUsers = isOwner ? USERS : USERS.filter(u => u.organizationId === currentUser.organizationId);
+  container.innerHTML = visibleUsers.map((u)=>{
+    const idx = USERS.indexOf(u);
     if(editingUserIndex === idx){
       return `<div class="user-row">
         <div class="user-info">
           <input class="edit-input" id="edit-user-name-${idx}" value="${escapeHtml(u.username)}" style="max-width:150px;">
           <input class="edit-input" id="edit-user-email-${idx}" type="email" placeholder="E-Mail (optional)" value="${escapeHtml(u.email||'')}">
-          <select class="edit-input" id="edit-user-role-${idx}">
-            <option value="viewer" ${u.role==='viewer'?'selected':''}>${roleLabel('viewer')}</option>
-            <option value="editor" ${u.role==='editor'?'selected':''}>${roleLabel('editor')}</option>
-            <option value="admin" ${u.role==='admin'?'selected':''}>${roleLabel('admin')}</option>
-          </select>
+          <select class="edit-input" id="edit-user-role-${idx}">${buildRoleOptionsHTML(u.role, currentUser.role)}</select>
         </div>
         <div class="actions-cell">
           <button class="btn-icon" data-action="save-user" data-idx="${idx}" title="${t('btn_save')}">✓</button>
@@ -2659,7 +3457,9 @@ function renderUserList(){
       <div class="user-info">
         <span>${userDot(u.username)}${escapeHtml(u.username)}${currentUser && u.username===currentUser.username ? ' <span style="color:var(--ink-soft);font-size:11px;">(Du)</span>' : ''}</span>
         ${u.email ? `<span style="color:var(--ink-soft);font-size:11px;">${escapeHtml(u.email)}</span>` : ''}
-        <span class="role-tag ${u.role==='admin'?'admin':''}">${roleLabel(u.role)}</span>
+        ${isOwner ? `<span style="color:var(--ink-soft);font-size:11px;">${escapeHtml(getOrgName(u.organizationId))}</span>` : ''}
+        <span style="color:var(--ink-soft);font-size:11px;">${t('label_last_active')}: ${u.lastActive ? new Date(u.lastActive).toLocaleString('de-DE') : t('label_never_active')}</span>
+        <span class="role-tag ${roleAtLeast(u.role,'admin')?'admin':''}">${roleLabel(u.role)}</span>
       </div>
       <div class="actions-cell">
         <button class="btn-icon" data-action="edit-user" data-idx="${idx}" title="${t('btn_edit')}">✎</button>
@@ -2690,6 +3490,11 @@ async function addUser(){
   const username = nameInput.value.trim();
   const email = emailInput.value.trim();
   const role = roleSelect.value;
+  // Nur der Besitzer wählt die Organisation frei — ein Organisations-
+  // Administrator legt neue Benutzer automatisch in der eigenen Organisation an.
+  const organizationId = currentUser.role === 'owner'
+    ? document.getElementById('newUserOrg').value
+    : currentUser.organizationId;
 
   if(!username){
     statusEl.textContent = t('val_username_required');
@@ -2699,14 +3504,19 @@ async function addUser(){
     statusEl.textContent = t('val_username_exists');
     return;
   }
+  if(!getAssignableRoles(currentUser.role).includes(role)){
+    statusEl.textContent = t('val_no_permission_role');
+    return;
+  }
 
-  USERS.push({username, role, email});
+  USERS.push({username, role, email, organizationId});
+  statusEl.textContent = t('msg_saving');
   const ok = await saveUsers();
   if(ok) await logAction('Benutzer angelegt', `${username} (${roleLabel(role)})${email ? ', E-Mail hinterlegt' : ''}`);
   nameInput.value = '';
   emailInput.value = '';
-  roleSelect.value = 'editor';
-  statusEl.textContent = ok ? `Benutzer „${username}“ angelegt (Initialpasswort: night).` : t('msg_save_failed');
+  buildNewUserRoleOptions();
+  statusEl.textContent = ok ? t('msg_user_added').replace('{name}', username) : t('msg_save_failed');
   renderUserList();
   setTimeout(()=>{ statusEl.textContent=''; }, 4000);
 }
@@ -2728,9 +3538,13 @@ async function saveUserEdit(idx){
     statusEl.textContent = t('val_username_exists');
     return;
   }
-  const otherAdmins = USERS.filter((u,i)=> i!==idx && u.role==='admin');
-  if(oldRole==='admin' && newRole!=='admin' && otherAdmins.length===0){
-    statusEl.textContent = t('val_min_one_admin');
+  if(!getAssignableRoles(currentUser.role).includes(newRole)){
+    statusEl.textContent = t('val_no_permission_role');
+    return;
+  }
+  const otherOwners = USERS.filter((u,i)=> i!==idx && u.role==='owner');
+  if(oldRole==='owner' && newRole!=='owner' && otherOwners.length===0){
+    statusEl.textContent = t('val_min_one_owner');
     return;
   }
 
@@ -2743,28 +3557,32 @@ async function saveUserEdit(idx){
     }
   }
 
-  USERS[idx] = {username:newUsername, role:newRole, email:newEmail};
+  // organizationId bewusst aus dem bestehenden Datensatz übernehmen, statt
+  // das gesamte Objekt zu ersetzen — sonst würde die Organisationszuordnung
+  // bei jeder Bearbeitung stillschweigend verloren gehen.
+  USERS[idx] = {...USERS[idx], username:newUsername, role:newRole, email:newEmail};
   editingUserIndex = null;
+  statusEl.textContent = t('msg_saving');
   await saveUsers();
   await logAction('Benutzer bearbeitet', `${oldUsername} → ${newUsername} (${roleLabel(newRole)})`);
 
   if(currentUser && currentUser.username === oldUsername){
     currentUser = USERS[idx];
+    const isAdminOrAbove = roleAtLeast(newRole, 'admin');
+    const isOrgAdminOrAbove = roleAtLeast(newRole, 'org_admin');
     document.getElementById('badgeName').textContent = newUsername;
     document.getElementById('badgeRole').textContent = roleLabel(newRole);
-    document.getElementById('badgeRole').className = 'role ' + (newRole==='admin' ? 'admin' : '');
-    if(newRole!=='admin'){
-      document.getElementById('adminPanel').style.display = 'none';
-      document.getElementById('catalogPanel').style.display = 'none';
-      document.getElementById('logPanel').style.display = 'none';
-      document.getElementById('tabBtn-verwaltung').style.display = 'none';
-      if(document.getElementById('tabBtn-verwaltung').classList.contains('active')) switchTab('uebersicht');
-    } else {
-      document.getElementById('tabBtn-verwaltung').style.display = '';
-    }
+    document.getElementById('badgeRole').className = 'role ' + (isAdminOrAbove ? 'admin' : '');
+    document.getElementById('adminPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+    document.getElementById('catalogPanel').style.display = isAdminOrAbove ? '' : 'none';
+    document.getElementById('logPanel').style.display = isAdminOrAbove ? '' : 'none';
+    document.getElementById('orgManagementPanel').style.display = newRole==='owner' ? '' : 'none';
+    document.getElementById('orgSwitcherWrap').style.display = newRole==='owner' ? '' : 'none';
+    document.getElementById('tabBtn-verwaltung').style.display = isAdminOrAbove ? '' : 'none';
+    if(!isAdminOrAbove && document.getElementById('tabBtn-verwaltung').classList.contains('active')) switchTab('uebersicht');
     document.getElementById('entryFormPanel').style.display = newRole==='viewer' ? 'none' : '';
     document.getElementById('needFormGrid').style.display = newRole==='viewer' ? 'none' : '';
-    document.getElementById('projectAddSection').style.display = newRole==='admin' ? '' : 'none';
+    document.getElementById('projectAddSection').style.display = isAdminOrAbove ? '' : 'none';
     document.getElementById('collectibleAddSection').style.display = newRole==='viewer' ? 'none' : '';
   }
 
@@ -2781,13 +3599,21 @@ async function deleteUser(idx){
     statusEl.textContent = t('val_cannot_delete_self');
     return;
   }
-  const otherAdmins = USERS.filter((u,i)=> i!==idx && u.role==='admin');
-  if(user.role==='admin' && otherAdmins.length===0){
-    statusEl.textContent = t('val_min_one_admin');
+  // Sicherheitsnetz: ein Organisations-Administrator darf ausschließlich
+  // Benutzer der eigenen Organisation löschen, selbst wenn er auf anderem
+  // Weg an einen fremden Index gelangen würde.
+  if(currentUser.role !== 'owner' && user.organizationId !== currentUser.organizationId){
+    statusEl.textContent = t('val_no_permission_role');
+    return;
+  }
+  const otherOwners = USERS.filter((u,i)=> i!==idx && u.role==='owner');
+  if(user.role==='owner' && otherOwners.length===0){
+    statusEl.textContent = t('val_min_one_owner');
     return;
   }
 
   USERS.splice(idx,1);
+  statusEl.textContent = t('msg_saving');
   await ensureCredentialsLoaded();
   if(credentials[user.username] !== undefined){
     delete credentials[user.username];
@@ -2800,36 +3626,741 @@ async function deleteUser(idx){
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
 }
 
+// ============================================================
+// Organisationsverwaltung — ausschließlich für den Besitzer sichtbar.
+// Organisationen können angelegt und umbenannt, aber bewusst nicht
+// gelöscht werden (das würde verwaiste, organisationsgebundene Daten
+// hinterlassen, ohne dass jemand mehr Zugriff darauf hätte).
+// ============================================================
+let editingOrgIndex = null;
+
+async function addOrganization(){
+  const nameInput = document.getElementById('newOrgName');
+  const statusEl = document.getElementById('orgFormStatus');
+  const name = nameInput.value.trim();
+
+  if(!name){
+    statusEl.textContent = t('val_org_name_required');
+    return;
+  }
+  if(ORGANIZATIONS.some(o=>o.name.toLowerCase()===name.toLowerCase())){
+    statusEl.textContent = t('val_org_name_exists');
+    return;
+  }
+
+  const id = 'org_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7);
+  ORGANIZATIONS.push({ id, name, createdAt: new Date().toISOString() });
+  statusEl.textContent = t('msg_saving');
+  const ok = await saveOrganizations();
+  if(ok) await logAction('Organisation angelegt', name);
+  nameInput.value = '';
+  statusEl.textContent = ok ? t('msg_org_added').replace('{name}', name) : t('msg_save_failed');
+  renderOrgManagementList();
+  renderOrgSwitcher();
+  buildNewUserRoleOptions(); // Organisationsauswahl im "Benutzer anlegen"-Formular aktualisieren
+  setTimeout(()=>{ statusEl.textContent=''; }, 4000);
+}
+
+function renderOrgManagementList(){
+  const container = document.getElementById('orgListContainer');
+  container.innerHTML = ORGANIZATIONS.map((o,idx)=>{
+    const userCount = USERS.filter(u=>u.organizationId===o.id).length;
+    if(editingOrgIndex === idx){
+      return `<div class="user-row">
+        <div class="user-info">
+          <input class="edit-input" id="edit-org-name-${idx}" value="${escapeHtml(o.name)}">
+        </div>
+        <div class="actions-cell">
+          <button class="btn-icon" data-action="save-org" data-idx="${idx}" title="${t('btn_save')}">✓</button>
+          <button class="btn-icon danger" data-action="cancel-org" title="${t('btn_cancel')}">✕</button>
+        </div>
+      </div>`;
+    }
+    return `<div class="user-row">
+      <div class="user-info">
+        <span>${escapeHtml(o.name)}</span>
+        <span style="color:var(--ink-soft);font-size:11px;">${userCount} ${t('col_benutzer')}</span>
+      </div>
+      <div class="actions-cell">
+        <button class="btn-icon" data-action="edit-org" data-idx="${idx}" title="${t('btn_edit')}">✎</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('[data-action="edit-org"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ editingOrgIndex = parseInt(btn.dataset.idx); renderOrgManagementList(); });
+  });
+  container.querySelectorAll('[data-action="cancel-org"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ editingOrgIndex = null; document.getElementById('orgFormStatus').textContent=''; renderOrgManagementList(); });
+  });
+  container.querySelectorAll('[data-action="save-org"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ saveOrgEdit(parseInt(btn.dataset.idx)); });
+  });
+}
+
+async function saveOrgEdit(idx){
+  const statusEl = document.getElementById('orgFormStatus');
+  const newName = document.getElementById('edit-org-name-'+idx).value.trim();
+
+  if(!newName){
+    statusEl.textContent = t('val_org_name_required');
+    return;
+  }
+  const duplicate = ORGANIZATIONS.some((o,i)=> i!==idx && o.name.toLowerCase()===newName.toLowerCase());
+  if(duplicate){
+    statusEl.textContent = t('val_org_name_exists');
+    return;
+  }
+
+  ORGANIZATIONS[idx].name = newName;
+  editingOrgIndex = null;
+  statusEl.textContent = t('msg_saving');
+  const ok = await saveOrganizations();
+  if(ok) await logAction('Organisation umbenannt', newName);
+  statusEl.textContent = ok ? t('msg_org_renamed') : t('msg_save_failed');
+  renderOrgManagementList();
+  renderOrgSwitcher();
+  setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+}
+document.getElementById('btnAddOrg').addEventListener('click', addOrganization);
+
+// ============================================================
+// Hilfe & Handbuch — fasst Rollen, Reiter, Verwaltungsbereiche und ein
+// paar Bedien-Tipps zusammen. Der Inhalt wird bei jedem Öffnen (und bei
+// einem Sprachwechsel, falls das Fenster gerade offen ist) frisch über
+// t() aufgebaut, genau wie andere dynamische Bereiche der Anwendung.
+// ============================================================
+function renderHelpContent(){
+  const body = document.getElementById('helpBody');
+  body.innerHTML = `
+    <h3>${t('help_section_roles')}</h3>
+    <p>${t('help_roles_intro')}</p>
+    <ul>
+      <li><strong>${t('role_leserechte_label')}</strong> — ${t('help_role_viewer')}</li>
+      <li><strong>${t('role_bearbeitung_label')}</strong> — ${t('help_role_editor')}</li>
+      <li><strong>${t('role_admin_label')}</strong> — ${t('help_role_admin')}</li>
+      <li><strong>${t('role_org_admin_label')}</strong> — ${t('help_role_org_admin')}</li>
+      <li><strong>${t('role_owner_label')}</strong> — ${t('help_role_owner')}</li>
+    </ul>
+
+    <h3>${t('help_section_tabs')}</h3>
+    <ul>
+      <li><strong>${t('tab_uebersicht')}</strong> — ${t('help_tab_uebersicht')}</li>
+      <li><strong>${t('tab_bestand')}</strong> — ${t('help_tab_bestand')}</li>
+      <li><strong>${t('tab_bedarf')}</strong> — ${t('help_tab_bedarf')}</li>
+      <li><strong>${t('tab_projekte')}</strong> — ${t('help_tab_projekte')}</li>
+      <li><strong>${t('tab_sammelobjekte')}</strong> — ${t('help_tab_sammelobjekte')}</li>
+      <li><strong>${t('tab_privatbestand')}</strong> — ${t('help_tab_privatbestand')}</li>
+      <li><strong>${t('tab_verwaltung')}</strong> — ${t('help_tab_verwaltung')}</li>
+    </ul>
+
+    <h3>${t('help_section_admin')}</h3>
+    <ul>
+      <li><strong>${t('panel_org_branding')}</strong> — ${t('help_admin_branding')}</li>
+      <li><strong>${t('panel_organisationsverwaltung')}</strong> — ${t('help_admin_orgs')}</li>
+      <li><strong>${t('panel_benutzerverwaltung')}</strong> — ${t('help_admin_users')}</li>
+      <li>${t('help_admin_catalog')}</li>
+      <li>${t('help_admin_log')}</li>
+    </ul>
+
+    <h3>${t('help_section_tips')}</h3>
+    <ul>
+      <li>${t('help_tip_reorder')}</li>
+      <li>${t('help_tip_shortcuts')}</li>
+      <li>${t('help_tip_search')}</li>
+      <li>${t('help_tip_trash')}</li>
+    </ul>
+  `;
+}
+function openHelpModal(){
+  renderHelpContent();
+  document.getElementById('helpModal').style.display = 'flex';
+}
+function closeHelpModal(){
+  document.getElementById('helpModal').style.display = 'none';
+}
+document.getElementById('btnHelp').addEventListener('click', openHelpModal);
+document.getElementById('btnCloseHelp').addEventListener('click', closeHelpModal);
+
+// ============================================================
+// Kurze, überspringbare Einführungs-Tour — erscheint automatisch beim
+// allerersten Login eines Benutzers (siehe completeLogin), lässt sich
+// über die Hilfe jederzeit erneut aufrufen. Der "gesehen"-Status wird
+// pro Benutzer gespeichert (user.tourSeen), nicht geräteweise, damit er
+// unabhängig vom verwendeten Gerät nur einmal automatisch erscheint.
+// ============================================================
+const ONBOARDING_STEPS = [
+  { icon:'👋', titleKey:'tour_step1_title', textKey:'tour_step1_text' },
+  { icon:'📑', titleKey:'tour_step2_title', textKey:'tour_step2_text' },
+  { icon:'📦', titleKey:'tour_step3_title', textKey:'tour_step3_text' },
+  { icon:'📝', titleKey:'tour_step4_title', textKey:'tour_step4_text' },
+  { icon:'🎯', titleKey:'tour_step5_title', textKey:'tour_step5_text' },
+  { icon:'❓', titleKey:'tour_step6_title', textKey:'tour_step6_text' }
+];
+let tourStepIndex = 0;
+
+function renderTourStep(){
+  const step = ONBOARDING_STEPS[tourStepIndex];
+  document.getElementById('tourStepIcon').textContent = step.icon;
+  document.getElementById('tourStepTitle').textContent = t(step.titleKey);
+  document.getElementById('tourStepText').textContent = t(step.textKey);
+  document.getElementById('tourStepDots').innerHTML = ONBOARDING_STEPS.map((s,i)=>
+    `<span style="width:7px;height:7px;border-radius:50%;background:${i===tourStepIndex?'var(--cyan)':'var(--panel-border)'};"></span>`
+  ).join('');
+  document.getElementById('btnTourBack').style.display = tourStepIndex===0 ? 'none' : '';
+  document.getElementById('btnTourNext').textContent = tourStepIndex === ONBOARDING_STEPS.length-1 ? t('tour_btn_finish') : t('tour_btn_next');
+}
+
+function openOnboardingTour(){
+  tourStepIndex = 0;
+  renderTourStep();
+  document.getElementById('onboardingTourModal').style.display = 'flex';
+}
+
+async function closeOnboardingTour(){
+  document.getElementById('onboardingTourModal').style.display = 'none';
+  // "Gesehen"-Status dauerhaft merken, damit die Tour beim nächsten Login
+  // nicht automatisch erneut erscheint (manuelles Aufrufen über die Hilfe
+  // bleibt davon unberührt).
+  if(currentUser && !currentUser.tourSeen){
+    currentUser.tourSeen = true;
+    await saveUsers();
+  }
+}
+
+document.getElementById('btnTourSkip').addEventListener('click', closeOnboardingTour);
+document.getElementById('btnTourNext').addEventListener('click', ()=>{
+  if(tourStepIndex < ONBOARDING_STEPS.length-1){
+    tourStepIndex++;
+    renderTourStep();
+  } else {
+    closeOnboardingTour();
+  }
+});
+document.getElementById('btnTourBack').addEventListener('click', ()=>{
+  if(tourStepIndex > 0){
+    tourStepIndex--;
+    renderTourStep();
+  }
+});
+document.getElementById('btnRestartTour').addEventListener('click', ()=>{
+  closeHelpModal();
+  openOnboardingTour();
+});
+
+
+// ============================================================
+// Individualisierung der Organisation (Name im Titel, Motto, Akzentfarbe)
+// — für Organisations-Administrator und Besitzer bearbeitbar, bezieht
+// sich immer auf die gerade aktive Organisation (beim Besitzer also die,
+// die er über den Organisations-Wechsler gerade ausgewählt hat).
+// Bewusst eine kleine, kuratierte Farbauswahl statt freier Farbwahl, damit
+// Lesbarkeit und Kontrast im bestehenden HUD-Design immer gewahrt bleiben.
+// ============================================================
+const ORG_ACCENT_PRESETS = {
+  cyan:    { cyan:'#00D8FF', cyanGlow:'rgba(0, 216, 255, 0.35)',  steel:'#4FC3D9' },
+  amber:   { cyan:'#FFA630', cyanGlow:'rgba(255, 166, 48, 0.35)', steel:'#D9A44F' },
+  crimson: { cyan:'#FF3860', cyanGlow:'rgba(255, 56, 96, 0.35)',  steel:'#D94F6E' },
+  toxic:   { cyan:'#39FF6A', cyanGlow:'rgba(57, 255, 106, 0.35)', steel:'#4FD98C' }
+};
+let selectedAccentPreset = 'cyan';
+
+function applyOrgAccent(presetKey){
+  const preset = ORG_ACCENT_PRESETS[presetKey] || ORG_ACCENT_PRESETS.cyan;
+  document.documentElement.style.setProperty('--cyan', preset.cyan);
+  document.documentElement.style.setProperty('--cyan-glow', preset.cyanGlow);
+  document.documentElement.style.setProperty('--steel', preset.steel);
+}
+
+// Auch hier bewusst eine kleine, kuratierte Auswahl statt freier Farbwahl
+// — alle Varianten bleiben dunkel, damit der helle Text und die Lesbarkeit
+// im gesamten bestehenden Design in jedem Fall erhalten bleiben.
+const ORG_BG_PRESETS = {
+  void:     { bg:'#05080C', panel:'rgba(13, 20, 28, 0.88)',  bgGrid:'rgba(0, 220, 255, 0.035)' },
+  graphite: { bg:'#0A0A0C', panel:'rgba(22, 22, 26, 0.88)',  bgGrid:'rgba(200, 200, 220, 0.035)' },
+  navy:     { bg:'#050810', panel:'rgba(12, 18, 32, 0.88)',  bgGrid:'rgba(0, 150, 255, 0.035)' },
+  forest:   { bg:'#050A08', panel:'rgba(12, 24, 20, 0.88)',  bgGrid:'rgba(0, 220, 140, 0.035)' }
+};
+let selectedBgPreset = 'void';
+
+function applyOrgBackground(presetKey){
+  const preset = ORG_BG_PRESETS[presetKey] || ORG_BG_PRESETS.void;
+  document.documentElement.style.setProperty('--bg', preset.bg);
+  document.documentElement.style.setProperty('--panel', preset.panel);
+  document.documentElement.style.setProperty('--bg-grid', preset.bgGrid);
+}
+
+function renderOrgBackgroundSwatches(currentPreset){
+  selectedBgPreset = ORG_BG_PRESETS[currentPreset] ? currentPreset : 'void';
+  const wrap = document.getElementById('orgBackgroundSwatches');
+  wrap.innerHTML = Object.keys(ORG_BG_PRESETS).map(key=>{
+    const preset = ORG_BG_PRESETS[key];
+    const isSelected = key === selectedBgPreset;
+    return `<button type="button" class="accent-swatch ${isSelected?'selected':''}" data-bg="${key}" title="${escapeHtml(t('bg_'+key))}" style="background:${preset.bg};"></button>`;
+  }).join('');
+  wrap.querySelectorAll('[data-bg]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      selectedBgPreset = btn.dataset.bg;
+      wrap.querySelectorAll('[data-bg]').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      // Sofort live anwenden, wie bei Akzentfarbe und Symbol — dauerhaft
+      // gespeichert wird erst über "Speichern".
+      applyOrgBackground(selectedBgPreset);
+    });
+  });
+}
+
+// Kleine, kuratierte Symbol-Auswahl (statt freier Icon-Wahl) — jedes
+// Symbol liegt bereits als eigene Gruppe im Wasserzeichen-SVG bereit und
+// wird per Sichtbarkeit umgeschaltet, keine Neuerzeugung von Markup nötig.
+const SYMBOL_KEYS = ['wolf', 'star', 'shield', 'falcon'];
+const SYMBOL_ICON_SVG = {
+  wolf:   `<svg width="20" height="20" viewBox="0 0 400 400"><path d="M 60,60 Q 100,100 150,155 Q 178,140 200,122 Q 222,140 250,155 Q 300,100 340,60 Q 322,128 300,190 Q 320,218 332,250 Q 302,292 270,330 Q 238,360 200,380 Q 162,360 130,330 Q 98,292 68,250 Q 80,218 100,190 Q 78,128 60,60 Z" fill="currentColor"/></svg>`,
+  star:   `<svg width="20" height="20" viewBox="0 0 400 400"><path d="M 200,40 L 224.9,139.9 L 313.1,86.9 L 260.1,175.1 L 360,200 L 260.1,224.9 L 313.1,313.1 L 224.9,260.1 L 200,360 L 175.1,260.1 L 86.9,313.1 L 139.9,224.9 L 40,200 L 139.9,175.1 L 86.9,86.9 L 175.1,139.9 Z" fill="currentColor"/></svg>`,
+  shield: `<svg width="20" height="20" viewBox="0 0 400 400"><path d="M 200,50 L 290,90 L 290,210 Q 290,300 200,350 Q 110,300 110,210 L 110,90 Z" fill="currentColor"/></svg>`,
+  falcon: `<svg width="20" height="20" viewBox="0 0 400 400"><path d="M 200,170 Q 130,110 40,145 Q 100,170 150,195 Q 100,220 40,255 Q 130,290 200,225 Q 270,290 360,255 Q 300,220 250,195 Q 300,170 360,145 Q 270,110 200,170 Z" fill="currentColor"/></svg>`
+};
+let selectedSymbol = 'wolf';
+
+function applyOrgSymbol(symbolKey){
+  const key = SYMBOL_KEYS.includes(symbolKey) ? symbolKey : 'wolf';
+  SYMBOL_KEYS.forEach(k=>{
+    const g = document.getElementById('symbol'+k.charAt(0).toUpperCase()+k.slice(1));
+    if(g) g.style.display = (k===key) ? '' : 'none';
+  });
+}
+
+function renderOrgSymbolSwatches(currentSymbol){
+  selectedSymbol = SYMBOL_KEYS.includes(currentSymbol) ? currentSymbol : 'wolf';
+  const wrap = document.getElementById('orgSymbolSwatches');
+  wrap.innerHTML = SYMBOL_KEYS.map(key=>{
+    const isSelected = key === selectedSymbol;
+    return `<button type="button" class="accent-swatch ${isSelected?'selected':''}" data-symbol="${key}" title="${escapeHtml(t('symbol_'+key))}" style="background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--ink);">${SYMBOL_ICON_SVG[key]}</button>`;
+  }).join('');
+  wrap.querySelectorAll('[data-symbol]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      selectedSymbol = btn.dataset.symbol;
+      wrap.querySelectorAll('[data-symbol]').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      // Sofort live anwenden, damit die Wirkung direkt sichtbar ist —
+      // dauerhaft gespeichert wird die Auswahl erst über "Speichern".
+      if(!getEffectiveEmblem()) applyOrgSymbol(selectedSymbol);
+    });
+  });
+}
+
+// ============================================================
+// Eigenes Emblem hochladen — wird clientseitig verkleinert und komprimiert,
+// bevor es überhaupt gespeichert wird, damit weder die Datenbank noch die
+// spätere Ladezeit der Anwendung durch große Bilddateien belastet werden.
+// Ein hochgeladenes Emblem ersetzt die Symbol-Anzeige vollständig, solange
+// es besteht; wird es entfernt, greift wieder die Symbolauswahl darüber.
+// ============================================================
+const EMBLEM_MAX_SOURCE_BYTES = 10 * 1024 * 1024; // Obergrenze der Originaldatei vor der Verarbeitung
+const EMBLEM_MAX_DIMENSION = 200;                  // Zielgröße in Pixel (längste Seite) nach dem Verkleinern
+const EMBLEM_TARGET_BYTES = 150 * 1024;            // Angestrebte Obergrenze nach der Komprimierung
+
+let pendingEmblemDataUrl; // undefined = unverändert, null = zum Entfernen vorgemerkt, String = neu hochgeladen
+
+// Den gerade tatsächlich wirksamen Emblem-Zustand ermitteln — berücksichtigt
+// auch eine noch nicht gespeicherte Änderung (neu hochgeladen oder zum
+// Entfernen vorgemerkt), damit die Live-Vorschau immer stimmig bleibt.
+function getEffectiveEmblem(){
+  if(pendingEmblemDataUrl === null) return null;
+  if(typeof pendingEmblemDataUrl === 'string') return pendingEmblemDataUrl;
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  return org ? org.emblem : null;
+}
+
+async function handleEmblemFile(file){
+  const statusEl = document.getElementById('orgBrandingStatus');
+  if(!file) return;
+  if(file.size > EMBLEM_MAX_SOURCE_BYTES){
+    statusEl.textContent = t('val_emblem_too_large_source');
+    return;
+  }
+  let objectUrl;
+  try{
+    objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    await new Promise((resolve, reject)=>{
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = objectUrl;
+    });
+
+    const scale = Math.min(1, EMBLEM_MAX_DIMENSION / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * scale));
+    const h = Math.max(1, Math.round(img.naturalHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+
+    // Qualität schrittweise absenken, bis das Ergebnis unter der
+    // Zielobergrenze liegt, statt ein zu großes Bild einfach zu speichern.
+    const qualities = [0.85, 0.7, 0.55, 0.4];
+    let dataUrl = canvas.toDataURL('image/jpeg', qualities[0]);
+    let qi = 0;
+    while(dataUrl.length > EMBLEM_TARGET_BYTES && qi < qualities.length-1){
+      qi++;
+      dataUrl = canvas.toDataURL('image/jpeg', qualities[qi]);
+    }
+
+    if(dataUrl.length > EMBLEM_TARGET_BYTES){
+      statusEl.textContent = t('val_emblem_still_too_large');
+      return;
+    }
+
+    pendingEmblemDataUrl = dataUrl;
+    const preview = document.getElementById('orgEmblemPreview');
+    preview.src = dataUrl;
+    preview.style.display = '';
+    document.getElementById('btnRemoveEmblem').style.display = '';
+    document.getElementById('wolfWatermark').style.display = 'none';
+    const liveEmblem = document.getElementById('customEmblemWatermark');
+    liveEmblem.src = dataUrl;
+    liveEmblem.style.display = '';
+    statusEl.textContent = t('msg_emblem_uploaded').replace('{size}', Math.round(dataUrl.length/1024));
+  }catch(e){
+    statusEl.textContent = t('val_emblem_processing_failed');
+  }finally{
+    if(objectUrl) URL.revokeObjectURL(objectUrl);
+  }
+}
+document.getElementById('btnUploadEmblem').addEventListener('click', ()=>{
+  document.getElementById('orgEmblemFileInput').click();
+});
+document.getElementById('orgEmblemFileInput').addEventListener('change', (e)=>{
+  handleEmblemFile(e.target.files[0]);
+});
+document.getElementById('btnRemoveEmblem').addEventListener('click', ()=>{
+  pendingEmblemDataUrl = null;
+  document.getElementById('orgEmblemPreview').style.display = 'none';
+  document.getElementById('btnRemoveEmblem').style.display = 'none';
+  document.getElementById('customEmblemWatermark').style.display = 'none';
+  document.getElementById('wolfWatermark').style.display = '';
+  applyOrgSymbol(selectedSymbol);
+});
+
+// Titel, Motto, Akzentfarbe, Symbol/Emblem der aktuell aktiven Organisation
+// anzeigen. Ohne aktive Organisation (z. B. vor dem Login) bleibt alles auf
+// dem Ausgangszustand.
+function applyOrgBranding(){
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  const titleSpan = document.getElementById('orgNameInTitle');
+  if(titleSpan) titleSpan.textContent = org ? `${org.name} — ` : '';
+  document.title = org ? `${org.name} — Materialbestand` : 'Materialbestand';
+  const mottoEl = document.getElementById('orgMottoDisplay');
+  if(mottoEl){
+    const hasMotto = !!(org && org.motto);
+    mottoEl.textContent = hasMotto ? org.motto : '';
+    mottoEl.style.display = hasMotto ? '' : 'none';
+  }
+  applyOrgAccent(org ? org.accentColor : 'cyan');
+  applyOrgBackground(org ? org.background : 'void');
+
+  const wolfSvg = document.getElementById('wolfWatermark');
+  const emblemImg = document.getElementById('customEmblemWatermark');
+  if(org && org.emblem){
+    wolfSvg.style.display = 'none';
+    emblemImg.src = org.emblem;
+    emblemImg.style.display = '';
+  } else {
+    emblemImg.style.display = 'none';
+    emblemImg.removeAttribute('src');
+    wolfSvg.style.display = '';
+    applyOrgSymbol(org ? org.symbol : 'wolf');
+  }
+}
+
+function renderOrgAccentSwatches(currentPreset){
+  selectedAccentPreset = ORG_ACCENT_PRESETS[currentPreset] ? currentPreset : 'cyan';
+  const wrap = document.getElementById('orgAccentSwatches');
+  wrap.innerHTML = Object.keys(ORG_ACCENT_PRESETS).map(key=>{
+    const preset = ORG_ACCENT_PRESETS[key];
+    const isSelected = key === selectedAccentPreset;
+    return `<button type="button" class="accent-swatch ${isSelected?'selected':''}" data-preset="${key}" title="${escapeHtml(t('accent_'+key))}" style="background:${preset.cyan};"></button>`;
+  }).join('');
+  wrap.querySelectorAll('.accent-swatch').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      selectedAccentPreset = btn.dataset.preset;
+      wrap.querySelectorAll('.accent-swatch').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      // Sofort live anwenden, damit die Wirkung direkt sichtbar ist —
+      // dauerhaft gespeichert wird die Auswahl erst über "Speichern".
+      applyOrgAccent(selectedAccentPreset);
+    });
+  });
+}
+
+// Formular mit den aktuellen Werten der aktiven Organisation befüllen.
+function renderOrgBrandingForm(){
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  document.getElementById('orgMottoInput').value = org && org.motto ? org.motto : '';
+  renderOrgAccentSwatches(org ? org.accentColor : 'cyan');
+  renderOrgBackgroundSwatches(org ? org.background : 'void');
+  renderOrgSymbolSwatches(org ? org.symbol : 'wolf');
+  pendingEmblemDataUrl = undefined;
+  const preview = document.getElementById('orgEmblemPreview');
+  const removeBtn = document.getElementById('btnRemoveEmblem');
+  if(org && org.emblem){
+    preview.src = org.emblem;
+    preview.style.display = '';
+    removeBtn.style.display = '';
+  } else {
+    preview.style.display = 'none';
+    removeBtn.style.display = 'none';
+  }
+}
+
+// Dezenter Hinweis, falls die letzte Datensicherung der Organisation schon
+// eine Weile zurückliegt (oder noch nie erstellt wurde) — rein informativ,
+// erzwingt nichts.
+const EXPORT_REMINDER_DAYS = 28;
+function renderExportReminder(){
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  const hint = document.getElementById('exportReminderHint');
+  if(!hint) return;
+  if(!org || !org.lastExportAt){
+    hint.textContent = t('hint_export_reminder_never');
+    hint.style.display = '';
+    return;
+  }
+  const daysSince = Math.floor((Date.now() - new Date(org.lastExportAt).getTime()) / (1000*60*60*24));
+  if(daysSince >= EXPORT_REMINDER_DAYS){
+    hint.textContent = t('hint_export_reminder_overdue').replace('{days}', daysSince);
+    hint.style.display = '';
+  } else {
+    hint.style.display = 'none';
+  }
+}
+
+async function saveOrgBranding(){
+  const statusEl = document.getElementById('orgBrandingStatus');
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  if(!org){ statusEl.textContent = t('msg_save_failed'); return; }
+
+  org.motto = document.getElementById('orgMottoInput').value.trim();
+  org.accentColor = selectedAccentPreset;
+  org.background = selectedBgPreset;
+  org.symbol = selectedSymbol;
+  if(pendingEmblemDataUrl === null) delete org.emblem;
+  else if(typeof pendingEmblemDataUrl === 'string') org.emblem = pendingEmblemDataUrl;
+
+  statusEl.textContent = t('msg_saving');
+  const ok = await saveOrganizations();
+  if(ok) await logAction('Organisation individualisiert', org.name);
+  pendingEmblemDataUrl = undefined;
+  applyOrgBranding();
+  statusEl.textContent = ok ? t('msg_org_branding_saved') : t('msg_save_failed');
+  setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+}
+document.getElementById('btnSaveOrgBranding').addEventListener('click', saveOrgBranding);
+
+// ============================================================
+// Vollständiger Datenexport der aktiven Organisation — bewusst auf die
+// geteilten (organisationsweiten) Daten beschränkt, nicht die persönlichen
+// Privatbestände einzelner Benutzer, da das sonst fremde, nicht-geteilte
+// Daten in eine gemeinsame Sicherungsdatei mischen würde.
+// ============================================================
+async function exportOrgDataJSON(){
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    organization: org ? org.name : currentOrgId,
+    _src: WATERMARK_ID,
+    entries, needs, projects, collectibles,
+    materials: MATERIALS, locations: LOCATIONS
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const safeName = (org ? org.name : currentOrgId).replace(/[^a-z0-9]/gi, '_');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `materialbestand-export-${safeName}-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  if(org){
+    org.lastExportAt = new Date().toISOString();
+    await saveOrganizations();
+    renderExportReminder();
+  }
+  document.getElementById('orgExportStatus').textContent = t('msg_export_done');
+  setTimeout(()=>{ document.getElementById('orgExportStatus').textContent=''; }, 3000);
+}
+document.getElementById('btnExportOrgData').addEventListener('click', exportOrgDataJSON);
+
+// Einmalige, automatische Migration der bisherigen (nicht
+// organisationsgebundenen) Daten in die erste Organisation "Nightwolf" —
+// läuft beim ersten Login nach dieser Umstellung genau einmal, erkennbar
+// an einer Merker-Markierung, danach nie wieder. Bestehende Benutzer ohne
+// Organisation werden Nightwolf zugeordnet, der erste Administrator wird
+// automatisch zum Besitzer hochgestuft, sofern noch kein Besitzer existiert.
+const ORG_MIGRATION_FLAG_KEY = 'org_migration_v1_done';
+const LEGACY_ORG_ID = 'nightwolf';
+// Als Funktion statt als sofort ausgewertete Konstante, da einige der
+// referenzierten KEY-Konstanten (z. B. PROJECTS_KEY) erst weiter unten im
+// Skript deklariert werden — wird erst bei tatsächlichem Aufruf beim Login
+// ausgewertet, also lange nachdem das gesamte Skript geladen wurde.
+function getOrgScopedKeys(){
+  return [STORAGE_KEY, NEEDS_KEY, PROJECTS_KEY, COLLECTIBLES_KEY, PRIVATE_STORAGE_KEY, PRIVATE_COLLECTIBLES_KEY, MATERIALS_KEY, LOCATIONS_KEY, LOG_KEY, TRASH_KEY];
+}
+
+async function runOrgMigrationIfNeeded(){
+  try{
+    const flag = await window.storage.get(ORG_MIGRATION_FLAG_KEY, true);
+    if(flag && flag.value === 'done') return;
+
+    await loadOrganizations();
+    if(!ORGANIZATIONS.find(o=>o.id===LEGACY_ORG_ID)){
+      ORGANIZATIONS.push({ id: LEGACY_ORG_ID, name: 'Nightwolf', createdAt: new Date().toISOString() });
+      await saveOrganizations();
+    }
+
+    // Alle zehn Speicherbereiche parallel statt nacheinander prüfen/migrieren —
+    // betrifft zwar nur den allerersten Login nach dieser Umstellung, macht
+    // aber genau diesen spürbar schneller (aus rund zwanzig bis dreißig
+    // nacheinander folgenden Netzwerk-Anfragen werden dadurch nur wenige
+    // gleichzeitige "Runden").
+    await Promise.all(getOrgScopedKeys().map(async (key)=>{
+      const legacyRes = await window.storage.get(key, true);
+      if(legacyRes && legacyRes.value){
+        const scopedKey = `${key}__org_${LEGACY_ORG_ID}`;
+        const existingScoped = await window.storage.get(scopedKey, true);
+        if(!existingScoped || !existingScoped.value){
+          await window.storage.set(scopedKey, legacyRes.value, true);
+        }
+      }
+    }));
+
+    let usersChanged = false;
+    USERS.forEach(u=>{
+      if(!u.organizationId){ u.organizationId = LEGACY_ORG_ID; usersChanged = true; }
+    });
+    if(!USERS.some(u=>u.role==='owner')){
+      const firstAdmin = USERS.find(u=>u.role==='admin');
+      if(firstAdmin){ firstAdmin.role = 'owner'; usersChanged = true; }
+    }
+    if(usersChanged) await saveUsers();
+
+    await window.storage.set(ORG_MIGRATION_FLAG_KEY, 'done', true);
+  }catch(e){
+    // Migration bei Fehler nicht als abgeschlossen markieren — wird beim
+    // nächsten Login erneut versucht, statt Daten stillschweigend zu verlieren.
+  }
+}
+
+// Sichtbare Rückmeldung während des Logins — ohne diese wäre für den
+// Benutzer nicht erkennbar, dass im Hintergrund tatsächlich etwas passiert
+// (Netzwerk-Anfragen an Supabase brauchen spürbar länger als das frühere,
+// rein lokale Speichern). Ein unbestimmter Fortschrittsbalken ist hier
+// ehrlicher als eine feste Prozentanzeige, da die Dauer nicht im Voraus
+// bekannt ist.
+function setLoginBusy(isBusy){
+  const btn = document.getElementById('btnLogin');
+  const progress = document.getElementById('loginProgress');
+  btn.disabled = isBusy;
+  btn.textContent = isBusy ? t('btn_login_busy') : t('btn_login');
+  progress.style.display = isBusy ? '' : 'none';
+}
+
+// Für kleine, in sich geschlossene Formulare (Login, Passwort-Bildschirme):
+// Die Tab-Taste springt ausschließlich zwischen den angegebenen Feldern hin
+// und her (nicht zu Elementen außerhalb, z. B. dem Absenden-Button), und die
+// Eingabetaste löst in jedem Feld direkt die übergebene Absende-Funktion aus
+// — entspricht einem Klick auf den jeweiligen Haupt-Button.
+function setupFormKeyboardNav(fieldIds, submitFn){
+  const fields = fieldIds.map(id=>document.getElementById(id));
+  fields.forEach((field, idx)=>{
+    field.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        submitFn();
+        return;
+      }
+      if(e.key === 'Tab'){
+        e.preventDefault();
+        const nextIdx = e.shiftKey
+          ? (idx - 1 + fields.length) % fields.length
+          : (idx + 1) % fields.length;
+        fields[nextIdx].focus();
+      }
+    });
+  });
+}
+
 async function doLogin(){
-  await ensureCredentialsLoaded();
-  await loadUsers();
+  setLoginBusy(true);
+  // Diese drei Ladevorgänge sind unabhängig voneinander — parallel statt
+  // nacheinander ausführen reduziert die Wartezeit spürbar (von "Summe
+  // aller drei Anfragen" auf "langsamste der drei").
+  await Promise.all([ensureCredentialsLoaded(), loadUsers(), loadOrganizations()]);
+  await runOrgMigrationIfNeeded();
   const username = document.getElementById('loginUser').value.trim();
   const password = document.getElementById('loginPassword').value;
   const user = USERS.find(u=>u.username.toLowerCase()===username.toLowerCase());
   if(!user){
-    document.getElementById('loginError').textContent = t('msg_login_error');
+    setLoginBusy(false);
+    document.getElementById('loginError').textContent = t('msg_login_username_not_found');
     return;
   }
   if(password !== getPassword(user.username)){
-    document.getElementById('loginError').textContent = t('msg_login_error');
+    setLoginBusy(false);
+    document.getElementById('loginError').textContent = t('msg_login_wrong_password');
     return;
   }
   document.getElementById('loginError').textContent = '';
   document.getElementById('loginPassword').value = '';
   currentUser = user;
+  currentOrgId = user.organizationId || LEGACY_ORG_ID;
 
   if(password === DEFAULT_PASSWORD){
     // Erster Login mit Standardpasswort — individuelles Passwort ist Pflicht.
+    setLoginBusy(false);
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('forcedPwScreen').style.display = 'flex';
     document.getElementById('forcedPwWho').textContent = user.username;
+    document.getElementById('forced-pw-new').focus();
     return;
   }
 
   completeLogin(user);
 }
 
+// Prüft, ob die tabellarische Massen-Eingabe (Bestand oder Privatbestand)
+// gerade geöffnet ist und mindestens eine Zeile mit Inhalt enthält, die
+// noch nicht übernommen wurde — Grundlage für die Warnung beim
+// versehentlichen Reiter-Wechsel.
+function hasUnsavedBulkTableData(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  const container = document.getElementById(prefix+'bulkAddContainer');
+  if(!container || container.style.display === 'none') return false;
+  const tbody = document.getElementById(prefix+'bulkTableBody');
+  if(!tbody) return false;
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  return rows.some(tr=>{
+    const rowId = tr.dataset.rowId;
+    const matEl = document.getElementById(prefix+'bulk-mat-'+rowId);
+    const qualEl = document.getElementById(prefix+'bulk-qual-'+rowId);
+    const mengeEl = document.getElementById(prefix+'bulk-menge-'+rowId);
+    return (matEl && matEl.value) || (qualEl && qualEl.value) || (mengeEl && mengeEl.value);
+  });
+}
+
 function switchTab(tabName){
+  const activeBtn = document.querySelector('.tab-btn.active');
+  const currentTabName = activeBtn ? activeBtn.dataset.tab : null;
+  if(currentTabName && currentTabName !== tabName){
+    if(currentTabName==='bestand' && hasUnsavedBulkTableData(false)){
+      if(!confirm(t('confirm_unsaved_bulk_rows'))) return;
+    }
+    if(currentTabName==='privatbestand' && hasUnsavedBulkTableData(true)){
+      if(!confirm(t('confirm_unsaved_bulk_rows'))) return;
+    }
+  }
   document.querySelectorAll('.tab-content').forEach(el=>{
     el.style.display = el.dataset.tab===tabName ? '' : 'none';
   });
@@ -2841,9 +4372,97 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{ switchTab(btn.dataset.tab); });
 });
 
+// ============================================================
+// Frei verschiebbare Reiter-Reihenfolge (persönliche, geräteweise
+// Einstellung, wie die Sprachauswahl). Ein Ziehen unterhalb einer
+// kleinen Bewegungs-Schwelle wird weiterhin als normaler Klick behandelt
+// — es ist also keine Umschaltfläche nötig, ziehen und klicken
+// funktionieren nebeneinander.
+// ============================================================
+const TAB_ORDER_KEY = 'tab-order';
+// An den Benutzernamen gebunden (nicht an das Gerät) — derselbe Nutzer
+// erhält so seine bevorzugte Reihenfolge auf jedem Gerät, auf dem er sich
+// anmeldet. Technisch als eigener, geteilter Speicherbereich je Benutzer
+// abgelegt (ähnlich der Organisationstrennung, nur mit Benutzername statt
+// Organisations-ID am Schlüssel).
+function userKey(base){
+  return currentUser ? `${base}__user_${currentUser.username}` : base;
+}
+async function saveTabOrder(){
+  const order = Array.from(document.getElementById('tabbar').querySelectorAll('.tab-btn')).map(b=>b.dataset.tab);
+  try{ await window.storage.set(userKey(TAB_ORDER_KEY), JSON.stringify(order), true); }catch(e){}
+}
+async function loadTabOrderPref(){
+  if(!currentUser) return; // Benutzername wird für den Speicherschlüssel benötigt
+  try{
+    const res = await window.storage.get(userKey(TAB_ORDER_KEY), true);
+    if(res && res.value){
+      const order = JSON.parse(res.value);
+      const tabbar = document.getElementById('tabbar');
+      order.forEach(tabName=>{
+        const btn = document.getElementById('tabBtn-'+tabName);
+        if(btn) tabbar.appendChild(btn);
+      });
+    }
+  }catch(e){ /* Ausgangsreihenfolge bleibt bestehen */ }
+}
+
+function setupTabReordering(){
+  const tabbar = document.getElementById('tabbar');
+  const DRAG_THRESHOLD = 8;
+  let dragBtn = null, startX = 0, dragging = false;
+
+  function reorderLive(clientX){
+    const others = Array.from(tabbar.querySelectorAll('.tab-btn')).filter(b=>b!==dragBtn);
+    for(const other of others){
+      const rect = other.getBoundingClientRect();
+      if(clientX < rect.left + rect.width/2){
+        if(dragBtn.nextElementSibling !== other) tabbar.insertBefore(dragBtn, other);
+        return;
+      }
+    }
+    tabbar.appendChild(dragBtn);
+  }
+
+  tabbar.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('pointerdown', (e)=>{
+      dragBtn = btn; startX = e.clientX; dragging = false;
+    });
+  });
+  // Bewusst am gesamten Dokument statt nur an der Tableiste registriert —
+  // robuster, falls der Zeiger während der Geste kurz außerhalb der
+  // schmalen Tableisten-Fläche gerät (z. B. minimale vertikale Bewegung
+  // bei einer Touch-Geste), statt sich allein auf die Ereignis-Weitergabe
+  // über die Zeiger-Erfassung zu verlassen.
+  document.addEventListener('pointermove', (e)=>{
+    if(!dragBtn) return;
+    if(!dragging){
+      if(Math.abs(e.clientX - startX) < DRAG_THRESHOLD) return;
+      dragging = true;
+      dragBtn.classList.add('tab-dragging');
+      try{ dragBtn.setPointerCapture(e.pointerId); }catch(err){}
+    }
+    e.preventDefault();
+    reorderLive(e.clientX);
+  });
+  function endDrag(){
+    if(dragBtn && dragging){
+      dragBtn.classList.remove('tab-dragging');
+      saveTabOrder();
+    }
+    dragBtn = null; dragging = false;
+  }
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', endDrag);
+}
+setupTabReordering();
+
 // Tastenkürzel für Power-User — nur aktiv, wenn eingeloggt und nicht
 // gerade in einem Eingabefeld getippt wird, damit normales Tippen nie
-// gestört wird.
+// gestört wird. Die Zuordnung folgt der AKTUELLEN, ggf. frei verschobenen
+// Reihenfolge der sichtbaren Reiter, nicht einer festen Ausgangsordnung —
+// Taste "2" springt also immer zu dem, was gerade tatsächlich an zweiter
+// Stelle angezeigt wird.
 document.addEventListener('keydown', (e)=>{
   if(!currentUser) return;
   const tag = document.activeElement ? document.activeElement.tagName : '';
@@ -2864,12 +4483,10 @@ document.addEventListener('keydown', (e)=>{
   }
 
   if(!isTyping && e.key>='1' && e.key<='6'){
-    const tabOrder = ['uebersicht','bestand','bedarfe','projekte','sammelobjekte','privatbestand'];
-    const tabName = tabOrder[parseInt(e.key,10)-1];
-    const btn = tabName ? document.getElementById('tabBtn-'+tabName) : null;
-    if(btn && btn.style.display !== 'none'){
-      switchTab(tabName);
-    }
+    const visibleTabs = Array.from(document.getElementById('tabbar').querySelectorAll('.tab-btn'))
+      .filter(b=>b.style.display !== 'none');
+    const btn = visibleTabs[parseInt(e.key,10)-1];
+    if(btn) switchTab(btn.dataset.tab);
   }
 });
 
@@ -2879,18 +4496,66 @@ function completeLogin(user){
   document.getElementById('appWrap').style.display = '';
   document.getElementById('badgeName').textContent = user.username;
   document.getElementById('badgeRole').textContent = roleLabel(user.role);
-  document.getElementById('badgeRole').className = 'role ' + (user.role==='admin' ? 'admin' : '');
-  document.getElementById('adminPanel').style.display = user.role==='admin' ? '' : 'none';
-  document.getElementById('catalogPanel').style.display = user.role==='admin' ? '' : 'none';
-  document.getElementById('logPanel').style.display = user.role==='admin' ? '' : 'none';
+  document.getElementById('btnHelp').style.display = '';
+  loadTabOrderPref();
+  // Zeitpunkt der letzten Anmeldung merken (für die Benutzerverwaltung) —
+  // bewusst nicht abgewartet, damit das Speichern den eigentlichen Login
+  // nicht künstlich verzögert.
+  user.lastActive = new Date().toISOString();
+  saveUsers();
+  const isAdminOrAbove = roleAtLeast(user.role, 'admin');
+  // Benutzerverwaltung (und Organisationsverwaltung) sind ab Organisations-
+  // Administrator aufwärts sichtbar — ein regulärer Administrator behält
+  // Katalog- und Protokollrechte, kann aber keine Benutzerrollen mehr vergeben.
+  const isOrgAdminOrAbove = roleAtLeast(user.role, 'org_admin');
+  document.getElementById('badgeRole').className = 'role ' + (isAdminOrAbove ? 'admin' : '');
+  document.getElementById('adminPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+  document.getElementById('orgBrandingPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+  document.getElementById('orgExportPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+  document.getElementById('catalogPanel').style.display = isAdminOrAbove ? '' : 'none';
+  document.getElementById('logPanel').style.display = isAdminOrAbove ? '' : 'none';
   document.getElementById('entryFormPanel').style.display = user.role==='viewer' ? 'none' : '';
   document.getElementById('needFormGrid').style.display = user.role==='viewer' ? 'none' : '';
-  document.getElementById('projectAddSection').style.display = user.role==='admin' ? '' : 'none';
+  document.getElementById('projectAddSection').style.display = isAdminOrAbove ? '' : 'none';
   document.getElementById('collectibleAddSection').style.display = user.role==='viewer' ? 'none' : '';
-  document.getElementById('tabBtn-verwaltung').style.display = user.role==='admin' ? '' : 'none';
+  document.getElementById('tabBtn-verwaltung').style.display = isAdminOrAbove ? '' : 'none';
+  document.getElementById('orgManagementPanel').style.display = user.role==='owner' ? '' : 'none';
+  document.getElementById('orgSwitcherWrap').style.display = user.role==='owner' ? '' : 'none';
+  if(user.role==='owner'){ renderOrgSwitcher(); renderOrgManagementList(); }
+  applyOrgBranding();
+  if(isOrgAdminOrAbove){ renderOrgBrandingForm(); renderExportReminder(); }
   switchTab('uebersicht');
-  if(user.role==='admin'){ renderUserList(); }
-  load().then(()=>{ if(user.role==='admin') renderCatalogLists(); });
+  if(isOrgAdminOrAbove){ buildNewUserRoleOptions(); renderUserList(); }
+  load().then(()=>{ if(isAdminOrAbove) renderCatalogLists(); });
+  if(!user.tourSeen) openOnboardingTour();
+}
+
+// Nur für den Besitzer sichtbar: Dropdown zum Wechseln zwischen allen
+// Organisationen. Die eigene Organisation steht dabei immer zuoberst.
+function renderOrgSwitcher(){
+  const select = document.getElementById('orgSwitcher');
+  const ownOrgId = currentUser.organizationId;
+  const sorted = [...ORGANIZATIONS].sort((a,b)=> a.id===ownOrgId ? -1 : b.id===ownOrgId ? 1 : a.name.localeCompare(b.name));
+  select.innerHTML = sorted.map(o=> `<option value="${escapeHtml(o.id)}" ${o.id===currentOrgId?'selected':''}>${escapeHtml(o.name)}${o.id===ownOrgId?' ★':''}</option>`).join('');
+}
+document.getElementById('orgSwitcher').addEventListener('change', (e)=>{
+  switchOrganization(e.target.value);
+});
+
+// Wechselt die aktive Organisation (nur der Besitzer kann das) und lädt
+// sämtliche organisationsgebundenen Daten für die neu gewählte Organisation
+// neu — inklusive Zurücksetzen der "bereits geladen"-Merker für Material-
+// und Lagerort-Katalog, die sonst ein erneutes Laden verhindern würden.
+async function switchOrganization(newOrgId){
+  if(newOrgId === currentOrgId) return;
+  currentOrgId = newOrgId;
+  materialsLoaded = false;
+  locationsLoaded = false;
+  applyOrgBranding();
+  renderOrgBrandingForm();
+  renderExportReminder();
+  await load();
+  if(roleAtLeast(currentUser.role, 'admin')) renderCatalogLists();
 }
 
 function showForgotPw(){
@@ -2901,6 +4566,7 @@ function showForgotPw(){
   document.getElementById('forgot-pw-new').value = '';
   document.getElementById('forgot-pw-confirm').value = '';
   document.getElementById('forgotPwStatus').textContent = '';
+  document.getElementById('forgot-username').focus();
 }
 function backToLoginFromForgot(){
   document.getElementById('forgotPwScreen').style.display = 'none';
@@ -2926,8 +4592,7 @@ async function submitForgotPassword(){
     return;
   }
 
-  await loadUsers();
-  await ensureCredentialsLoaded();
+  await Promise.all([loadUsers(), ensureCredentialsLoaded()]);
   const user = USERS.find(u=>u.username.toLowerCase()===username.toLowerCase());
 
   if(!user || !user.email || user.email.toLowerCase() !== email.toLowerCase()){
@@ -2948,6 +4613,14 @@ async function submitForgotPassword(){
 }
 document.getElementById('btnResetForgotPw').addEventListener('click', submitForgotPassword);
 
+function setForcedPwBusy(isBusy){
+  const btn = document.getElementById('btnSubmitForcedPw');
+  const progress = document.getElementById('forcedPwProgress');
+  btn.disabled = isBusy;
+  btn.textContent = isBusy ? t('btn_save_password_busy') : t('btn_save_password');
+  progress.style.display = isBusy ? '' : 'none';
+}
+
 async function submitForcedPassword(){
   const next = document.getElementById('forced-pw-new').value;
   const confirmVal = document.getElementById('forced-pw-confirm').value;
@@ -2966,9 +4639,11 @@ async function submitForcedPassword(){
     return;
   }
 
+  setForcedPwBusy(true);
   credentials[currentUser.username] = next;
   const ok = await saveCredentials();
   if(!ok){
+    setForcedPwBusy(false);
     statusEl.textContent = t('msg_save_failed');
     return;
   }
@@ -2978,6 +4653,32 @@ async function submitForcedPassword(){
   statusEl.textContent = '';
   completeLogin(currentUser);
 }
+
+// ============================================================
+// Herkunftsnachweis — bewusst unauffällig gehalten. Funktioniert absichtlich
+// bereits auf der Login-Seite, also auch ohne Anmeldung, für den Fall, dass
+// jemand unautorisiert auf die Benutzerdaten zugegriffen oder diese
+// verändert hat. Der Auslöser liegt hier als Zeichencode-Folge vor statt
+// als lesbarer Text, damit er nicht durch bloßes Durchsuchen des
+// Quelltexts auffindbar ist.
+// ============================================================
+const WATERMARK_ID = 'Neorob1976 · 69126';
+const WATERMARK_TRIGGER = [73,53,111,110,116,106,116,97,50,52,53,37].map(c=>String.fromCharCode(c)).join('');
+let watermarkKeyBuffer = '';
+document.addEventListener('keydown', (e)=>{
+  const loginScreenEl = document.getElementById('loginScreen');
+  if(!loginScreenEl || loginScreenEl.style.display === 'none') return;
+  if(e.key.length !== 1) return;
+  watermarkKeyBuffer = (watermarkKeyBuffer + e.key).slice(-WATERMARK_TRIGGER.length);
+  if(watermarkKeyBuffer === WATERMARK_TRIGGER){
+    watermarkKeyBuffer = '';
+    document.getElementById('watermarkModalId').textContent = WATERMARK_ID;
+    document.getElementById('watermarkModal').style.display = 'flex';
+  }
+});
+document.getElementById('btnCloseWatermark').addEventListener('click', ()=>{
+  document.getElementById('watermarkModal').style.display = 'none';
+});
 
 function doLogout(){
   currentUser = null;
@@ -2991,6 +4692,11 @@ function doLogout(){
   document.getElementById('loginError').textContent = '';
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPassword').value = '';
+  document.getElementById('btnHelp').style.display = 'none';
+  closeHelpModal();
+  markStorageSuccess();
+  setLoginBusy(false);
+  setForcedPwBusy(false);
   document.getElementById('loginUser').focus();
 }
 
@@ -3020,6 +4726,7 @@ async function savePassword(){
   }
 
   credentials[currentUser.username] = next;
+  statusEl.textContent = t('msg_saving');
   const ok = await saveCredentials();
   if(ok) await logAction('Passwort geändert', currentUser.username);
   document.getElementById('pw-current').value = '';
@@ -3030,17 +4737,23 @@ async function savePassword(){
 }
 
 (async function initLogin(){
-  await loadLanguagePref();
-  applyI18n();
-  await loadUsers();
+  // Benutzerliste bereits parallel zur Spracheinstellung vorladen — steht
+  // dadurch schon im Zwischenspeicher bereit, sobald tatsächlich eingeloggt
+  // wird, statt beim Login-Klick eine weitere Anfrage abwarten zu müssen.
+  // Die Reiter-Reihenfolge kann dagegen erst NACH dem Login geladen werden,
+  // da sie jetzt an den Benutzernamen gebunden ist (siehe completeLogin()).
+  await Promise.all([
+    (async ()=>{ await loadLanguagePref(); applyI18n(); })(),
+    loadUsers()
+  ]);
 })();
 document.querySelectorAll('.flag-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{ changeLanguage(btn.dataset.lang); });
 });
 document.getElementById('btnLogin').addEventListener('click', doLogin);
-document.getElementById('loginPassword').addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter') doLogin();
-});
+setupFormKeyboardNav(['loginUser', 'loginPassword'], doLogin);
+setupFormKeyboardNav(['forced-pw-new', 'forced-pw-confirm'], submitForcedPassword);
+setupFormKeyboardNav(['forgot-username', 'forgot-email', 'forgot-pw-new', 'forgot-pw-confirm'], submitForgotPassword);
 document.getElementById('btnToggleLoginPw').addEventListener('click', ()=>{
   const input = document.getElementById('loginPassword');
   const btn = document.getElementById('btnToggleLoginPw');
@@ -3243,7 +4956,7 @@ let editingCollectibleId = null;
 
 async function loadCollectibles(){
   try{
-    const res = await window.storage.get(COLLECTIBLES_KEY, true);
+    const res = await window.storage.get(orgKey(COLLECTIBLES_KEY), true);
     collectibles = res && res.value ? JSON.parse(res.value) : [];
   }catch(e){
     collectibles = [];
@@ -3251,7 +4964,7 @@ async function loadCollectibles(){
 }
 async function saveCollectibles(){
   try{
-    await window.storage.set(COLLECTIBLES_KEY, JSON.stringify(collectibles), true);
+    await window.storage.set(orgKey(COLLECTIBLES_KEY), JSON.stringify(collectibles), true);
     return true;
   }catch(e){
     return false;
@@ -3302,6 +5015,7 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
     besitzer
   });
 
+  statusEl.textContent = t('msg_saving');
   await saveCollectibles();
   await logAction('Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${anzahl}x (${besitzer})`);
 
@@ -3465,7 +5179,7 @@ let editingPrivateCollectibleId = null;
 
 async function loadPrivateCollectibles(){
   try{
-    const res = await window.storage.get(PRIVATE_COLLECTIBLES_KEY, true);
+    const res = await window.storage.get(orgKey(PRIVATE_COLLECTIBLES_KEY), true);
     privateCollectibles = res && res.value ? JSON.parse(res.value) : [];
   }catch(e){
     privateCollectibles = [];
@@ -3473,7 +5187,7 @@ async function loadPrivateCollectibles(){
 }
 async function savePrivateCollectibles(){
   try{
-    await window.storage.set(PRIVATE_COLLECTIBLES_KEY, JSON.stringify(privateCollectibles), true);
+    await window.storage.set(orgKey(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(privateCollectibles), true);
     return true;
   }catch(e){
     return false;
@@ -3707,7 +5421,7 @@ function renderPrivateCollectibleSummary(){
 async function loadLocations(){
   if(locationsLoaded) return;
   try{
-    const res = await window.storage.get(LOCATIONS_KEY, true);
+    const res = await window.storage.get(orgKey(LOCATIONS_KEY), true);
     if(res && res.value){
       const parsed = JSON.parse(res.value);
       if(Array.isArray(parsed) && parsed.length) LOCATIONS = parsed;
@@ -3719,7 +5433,7 @@ async function loadLocations(){
 }
 async function saveLocations(){
   try{
-    await window.storage.set(LOCATIONS_KEY, JSON.stringify(LOCATIONS), true);
+    await window.storage.set(orgKey(LOCATIONS_KEY), JSON.stringify(LOCATIONS), true);
     return true;
   }catch(e){
     return false;
@@ -3729,7 +5443,7 @@ async function saveLocations(){
 async function loadMaterials(){
   if(materialsLoaded) return;
   try{
-    const res = await window.storage.get(MATERIALS_KEY, true);
+    const res = await window.storage.get(orgKey(MATERIALS_KEY), true);
     if(res && res.value){
       const parsed = JSON.parse(res.value);
       if(Array.isArray(parsed) && parsed.length) MATERIALS = parsed;
@@ -3741,7 +5455,7 @@ async function loadMaterials(){
 }
 async function saveMaterials(){
   try{
-    await window.storage.set(MATERIALS_KEY, JSON.stringify(MATERIALS), true);
+    await window.storage.set(orgKey(MATERIALS_KEY), JSON.stringify(MATERIALS), true);
     return true;
   }catch(e){
     return false;
@@ -3826,6 +5540,7 @@ async function addMaterial(){
   }
 
   MATERIALS.push({category, name, minStock});
+  statusEl.textContent = t('msg_saving');
   const ok = await saveMaterials();
   if(ok) await logAction('Material hinzugefügt', `${name} (${category})${minStock!=null ? ', Sollbestand: '+minStock : ''}`);
   catInput.value = '';
@@ -3866,6 +5581,7 @@ async function addLocation(){
   }
 
   LOCATIONS.push({system, code, name});
+  statusEl.textContent = t('msg_saving');
   const ok = await saveLocations();
   if(ok) await logAction('Lagerort hinzugefügt', `${code} – ${name} (${system})`);
   sysInput.value = '';
@@ -3896,7 +5612,7 @@ let editingProjectId = null;
 
 async function loadProjects(){
   try{
-    const res = await window.storage.get(PROJECTS_KEY, true);
+    const res = await window.storage.get(orgKey(PROJECTS_KEY), true);
     projects = res && res.value ? JSON.parse(res.value) : [];
   }catch(e){
     projects = [];
@@ -3904,7 +5620,7 @@ async function loadProjects(){
 }
 async function saveProjects(){
   try{
-    await window.storage.set(PROJECTS_KEY, JSON.stringify(projects), true);
+    await window.storage.set(orgKey(PROJECTS_KEY), JSON.stringify(projects), true);
     return true;
   }catch(e){
     return false;
@@ -4000,6 +5716,7 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
     resources
   });
 
+  statusEl.textContent = t('msg_saving');
   await saveProjects();
   await logAction('Projekt angelegt', `${ziel} (${anzahl}x)`);
 
@@ -4044,7 +5761,7 @@ function renderProjects(){
     return;
   }
 
-  const canManage = currentUser.role==='admin';
+  const canManage = roleAtLeast(currentUser.role, 'admin');
 
   let html = `<table><thead><tr>
     <th>${t('label_ziel')}</th><th>${t('label_anzahl')}</th><th>${t('col_ressourcen')}</th><th></th>
@@ -4195,7 +5912,7 @@ function gaugeColor(q){
 
 async function saveNeeds(){
   try{
-    await window.storage.set(NEEDS_KEY, JSON.stringify(needs), true);
+    await window.storage.set(orgKey(NEEDS_KEY), JSON.stringify(needs), true);
     return true;
   }catch(e){
     return false;
@@ -4217,11 +5934,19 @@ document.getElementById('btnAddNeed').addEventListener('click', async ()=>{
     return;
   }
 
+  const needQualitaet = parseFloat(qualitaetRaw);
+  const needMenge = parseFloat(menge);
+  const needValidationError = validateQualityAndMenge(needQualitaet, needMenge);
+  if(needValidationError){
+    statusEl.textContent = needValidationError;
+    return;
+  }
+
   needs.push({
     id: needUid(),
     user: currentUser.username,
-    material, qualitaet: parseFloat(qualitaetRaw),
-    menge: parseFloat(menge), einheit,
+    material, qualitaet: needQualitaet,
+    menge: needMenge, einheit,
     prioritaet
   });
 
@@ -4230,6 +5955,7 @@ document.getElementById('btnAddNeed').addEventListener('click', async ()=>{
   document.getElementById('need-menge').value = '';
   document.getElementById('need-prioritaet').value = 'Mittel';
 
+  statusEl.textContent = t('msg_saving');
   await saveNeeds();
   await logAction('Bedarf hinzugefügt', `${material}, ${menge} ${einheit} (${prioritaet})`);
   renderNeeds();
@@ -4254,11 +5980,11 @@ function renderNeeds(){
   </tr></thead><tbody>`;
 
   list.forEach(n=>{
-    const canManage = currentUser.role==='admin' || (currentUser.role!=='viewer' && n.user===currentUser.username);
+    const canManage = roleAtLeast(currentUser.role, 'admin') || (currentUser.role!=='viewer' && n.user===currentUser.username);
     if(editingNeedId === n.id){
       html += `<tr>
-        <td data-label="Benutzer">${escapeHtml(n.user)}</td>
-        <td data-label="Material">${buildMaterialSelectHTML('edit-need-material', n.material, 'edit-input')}</td>
+        <td data-label="${t('col_benutzer')}">${escapeHtml(n.user)}</td>
+        <td data-label="${t('col_material')}">${buildMaterialSelectHTML('edit-need-material', n.material, 'edit-input')}</td>
         <td data-label="${t('label_mind_qualitaet')}"><input class="edit-input" id="edit-need-qualitaet" type="number" step="0.01" value="${n.qualitaet}"></td>
         <td data-label="${t('label_menge')}">
           <div style="display:flex;gap:4px;">
@@ -4273,7 +5999,7 @@ function renderNeeds(){
             ${['Niedrig','Mittel','Hoch','Kritisch'].map(p=>`<option value="${p}" ${p===n.prioritaet?'selected':''}>${escapeHtml(prioLabel(p))}</option>`).join('')}
           </select>
         </td>
-        <td data-label="Status"><span style="color:var(--ink-soft);">—</span></td>
+        <td data-label="${t('col_status')}"><span style="color:var(--ink-soft);">—</span></td>
         <td class="actions-cell">
           <button class="btn-icon" data-action="save-need" data-id="${n.id}" title="${t('btn_save')}">✓</button>
           <button class="btn-icon danger" data-action="cancel-need" title="${t('btn_cancel')}">✕</button>
@@ -4283,12 +6009,12 @@ function renderNeeds(){
       const avail = stockAmount(n.material, undefined, n.einheit);
       const covered = avail >= n.menge;
       html += `<tr>
-        <td data-label="Benutzer"><span style="display:inline-flex;align-items:center;">${userDot(n.user)}${escapeHtml(n.user)}${n.user===currentUser.username?' <span style="color:var(--ink-soft);font-size:11px;">(Du)</span>':''}</span></td>
-        <td data-label="Material">${escapeHtml(n.material)}</td>
+        <td data-label="${t('col_benutzer')}"><span style="display:inline-flex;align-items:center;">${userDot(n.user)}${escapeHtml(n.user)}${n.user===currentUser.username?' <span style="color:var(--ink-soft);font-size:11px;">(Du)</span>':''}</span></td>
+        <td data-label="${t('col_material')}">${escapeHtml(n.material)}</td>
         <td data-label="${t('label_mind_qualitaet')}">${n.qualitaet}</td>
         <td data-label="${t('label_menge')}" class="qty-cell">${n.menge} ${escapeHtml(einheitLabel(n.einheit))}</td>
         <td data-label="${t('label_prioritaet')}"><span class="badge ${PRIORITY_CLASS[n.prioritaet]}">${escapeHtml(prioLabel(n.prioritaet))}</span></td>
-        <td data-label="Status" title="Bestand: ${avail} ${escapeHtml(n.einheit)}"><span class="badge ${covered?'high':'low'}">${statusLabel(covered)}</span></td>
+        <td data-label="${t('col_status')}" title="Bestand: ${avail} ${escapeHtml(n.einheit)}"><span class="badge ${covered?'high':'low'}">${statusLabel(covered)}</span></td>
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit-need" data-id="${n.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon danger" data-action="delete-need" data-id="${n.id}" title="${t('btn_delete')}">🗑</button>` : ''}
@@ -4321,17 +6047,25 @@ function renderNeeds(){
     saveBtn.addEventListener('click', async ()=>{
       const idx = needs.findIndex(n=>n.id===editingNeedId);
       if(idx>-1){
+        const newNeedQualitaet = parseFloat(document.getElementById('edit-need-qualitaet').value);
+        const newNeedMenge = parseFloat(document.getElementById('edit-need-menge').value);
+        const needEditValidationError = validateQualityAndMenge(newNeedQualitaet, newNeedMenge);
+        if(needEditValidationError){
+          document.getElementById('needStatus').textContent = needEditValidationError;
+          return;
+        }
         needs[idx] = {
           ...needs[idx],
           material: document.getElementById('edit-need-material').value,
-          qualitaet: parseFloat(document.getElementById('edit-need-qualitaet').value)||0,
-          menge: parseFloat(document.getElementById('edit-need-menge').value)||0,
+          qualitaet: newNeedQualitaet,
+          menge: newNeedMenge,
           einheit: document.getElementById('edit-need-einheit').value,
           prioritaet: document.getElementById('edit-need-prioritaet').value
         };
         await logAction('Bedarf bearbeitet', `${needs[idx].material}, ${needs[idx].menge} ${needs[idx].einheit} (${needs[idx].user})`);
       }
       editingNeedId = null;
+      document.getElementById('needStatus').textContent = t('msg_saving');
       await saveNeeds();
       renderNeeds();
     });
@@ -4343,13 +6077,13 @@ async function load(){
   // das reduziert die Wartezeit von "Summe aller Abfragen" auf "langsamste Abfrage".
   const entriesPromise = (async ()=>{
     try{
-      const res = await window.storage.get(STORAGE_KEY, true);
+      const res = await window.storage.get(orgKey(STORAGE_KEY), true);
       entries = res && res.value ? JSON.parse(res.value) : [];
     }catch(e){ entries = []; }
   })();
   const needsPromise = (async ()=>{
     try{
-      const resN = await window.storage.get(NEEDS_KEY, true);
+      const resN = await window.storage.get(orgKey(NEEDS_KEY), true);
       needs = resN && resN.value ? JSON.parse(resN.value) : [];
     }catch(e){ needs = []; }
   })();
@@ -4415,9 +6149,42 @@ function scheduleRenderDashboard(){
   dashboardRenderTimer = setTimeout(()=>{ renderDashboard(); }, 150);
 }
 
+// Rangliste der Beitragenden — bewusst nach Anzahl der Einträge sortiert,
+// nicht nach reiner Mengensumme, da SCU und Stück nicht sinnvoll addierbar
+// sind. Zeigt die jeweiligen Mengen je Einheit zusätzlich als Detail an.
+function renderContributorLeaderboard(){
+  const container = document.getElementById('contributorLeaderboard');
+  if(!container) return;
+  if(entries.length === 0){
+    container.innerHTML = `<div class="empty">${t('empty_leaderboard')}</div>`;
+    return;
+  }
+  const stats = {};
+  entries.forEach(e=>{
+    if(!stats[e.person]) stats[e.person] = { count:0, scu:0, stueck:0 };
+    stats[e.person].count++;
+    if(e.einheit==='Stück') stats[e.person].stueck += e.menge;
+    else stats[e.person].scu += e.menge;
+  });
+  const ranked = Object.keys(stats).map(person=>({person, ...stats[person]})).sort((a,b)=> b.count - a.count);
+
+  container.innerHTML = ranked.map((r,idx)=>{
+    const details = [`${r.count} ${t('label_entries_count')}`];
+    if(r.scu > 0) details.push(`${Math.round(r.scu*100)/100} SCU`);
+    if(r.stueck > 0) details.push(`${Math.round(r.stueck*100)/100} ${einheitLabel('Stück')}`);
+    return `<div class="user-row">
+      <div class="user-info">
+        <span>${idx+1}. ${userDot(r.person)}${escapeHtml(r.person)}</span>
+        <span style="color:var(--ink-soft);font-size:11px;">${details.join(' · ')}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 async function renderDashboard(){
   if(!currentUser) return;
   const statsContainer = document.getElementById('dashboardStats');
+  renderContributorLeaderboard();
 
   const materialarten = new Set(entries.map(e=>e.material)).size;
   const lagerorte = new Set(entries.map(e=>e.lagerort)).size;
@@ -4444,6 +6211,24 @@ async function renderDashboard(){
     return !covered && (n.prioritaet==='Kritisch' || n.prioritaet==='Hoch');
   }).length;
 
+  // Eigene, deutlich sichtbare Warnleiste ausschließlich für Priorität
+  // "Kritisch" (nicht "Hoch") — nennt die betroffenen Materialien direkt
+  // beim Namen, damit sie nicht in der bloßen Zählung der Kachel untergehen.
+  const nurKritisch = needs.filter(n=>{
+    const avail = stockAmount(n.material, undefined, n.einheit);
+    return avail < n.menge && n.prioritaet==='Kritisch';
+  });
+  const criticalBanner = document.getElementById('criticalNeedsBanner');
+  if(criticalBanner){
+    if(nurKritisch.length > 0){
+      const items = nurKritisch.map(n=>`<strong>${escapeHtml(n.material)}</strong> ${t('label_critical_needs_for')} ${escapeHtml(n.user)}`).join(' · ');
+      criticalBanner.innerHTML = `<div style="font-family:'Orbitron', sans-serif;font-size:12px;letter-spacing:1px;color:var(--low);margin-bottom:4px;">${t('label_critical_needs_title')}</div><div style="font-family:'Share Tech Mono', monospace;font-size:12.5px;color:var(--ink);">${items}</div>`;
+      criticalBanner.style.display = '';
+    } else {
+      criticalBanner.style.display = 'none';
+    }
+  }
+
   const sammelobjekteGesamt = collectibles.reduce((s,c)=>s+c.anzahl, 0);
 
   const tiles = [
@@ -4466,13 +6251,13 @@ async function renderDashboard(){
 
   const logPanel = document.getElementById('dashboardLogPanel');
   const historyPanel = document.getElementById('dashboardHistoryPanel');
-  if(currentUser.role === 'admin'){
+  if(roleAtLeast(currentUser.role, 'admin')){
     logPanel.style.display = '';
     historyPanel.style.display = '';
     const logContainer = document.getElementById('dashboardLogContainer');
     logContainer.innerHTML = `<div class="empty">Lade …</div>`;
     try{
-      const res = await window.storage.get(LOG_KEY, true);
+      const res = await window.storage.get(orgKey(LOG_KEY), true);
       const log = res && res.value ? JSON.parse(res.value) : [];
 
       const recent = [...log].reverse().slice(0, 8);
@@ -4580,7 +6365,7 @@ function renderLineChart(containerId, points){
 
 async function save(){
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(entries), true);
+    await window.storage.set(orgKey(STORAGE_KEY), JSON.stringify(entries), true);
   }catch(e){
     setStatus(t('msg_save_failed_local'));
   }
@@ -4593,22 +6378,40 @@ function setStatus(msg){
 
 function uid(){ return 'e' + Date.now() + Math.random().toString(36).slice(2,7); }
 
+// Grenzwerte für Qualität und Menge — fängt Tippfehler wie eine
+// versehentlich fünfstellige Qualität oder eine negative/fehlende Menge
+// ab, bevor sie in den Bestand, Bedarf oder Privatbestand gelangen.
+// Wird an jeder Stelle verwendet, an der Qualität/Menge eingetragen oder
+// bearbeitet werden (Formulare, Bearbeiten-Zeilen, Massen-Eingabe).
+const QUALITY_MIN = 0, QUALITY_MAX = 1000;
+function validateQualityAndMenge(qualitaet, menge){
+  if(isNaN(qualitaet) || qualitaet < QUALITY_MIN || qualitaet > QUALITY_MAX) return t('val_quality_range');
+  if(isNaN(menge) || menge <= 0) return t('val_menge_positive');
+  return null;
+}
+
 document.getElementById('btnAdd').addEventListener('click', async ()=>{
   const material = document.getElementById('f-material').value.trim();
   const qualitaetRaw = document.getElementById('f-qualitaet').value;
   const menge = document.getElementById('f-menge').value;
   const einheit = document.getElementById('f-einheit').value;
   const lagerort = document.getElementById('f-lagerort').value.trim();
-  const person = document.getElementById('f-person').value.trim();
+  const person = currentUser.username;
   const projekt = document.getElementById('f-projekt').value;
 
-  if(!material || qualitaetRaw === '' || !menge || !lagerort || !person){
+  if(!material || qualitaetRaw === '' || !menge || !lagerort){
     setStatus(t('val_bestand_required'));
     return;
   }
 
   const qualitaet = parseFloat(qualitaetRaw);
   const mengeNum = parseFloat(menge);
+
+  const validationError = validateQualityAndMenge(qualitaet, mengeNum);
+  if(validationError){
+    setStatus(validationError);
+    return;
+  }
 
   // Passenden bestehenden Eintrag suchen (gleiches Material, gleiche
   // Qualität, gleicher Lagerort, gleiche Einheit, gleiches Projektziel)
@@ -4630,7 +6433,8 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
       id: uid(),
       material, qualitaet,
       menge: mengeNum, einheit,
-      lagerort, person, projekt
+      lagerort, person, projekt,
+      createdAt: new Date().toISOString()
     });
     logDetail = `${material}, ${mengeNum} ${einheit} @ ${lagerort}${projekt ? ' [Projekt: '+projekt+']' : ''}`;
   }
@@ -4639,9 +6443,9 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
   document.getElementById('f-qualitaet').value='';
   document.getElementById('f-menge').value='';
   document.getElementById('f-lagerort').value='';
-  document.getElementById('f-person').value='';
   document.getElementById('f-projekt').value='';
 
+  setStatus(t('msg_saving'));
   await save();
   await logAction('Bestand hinzugefügt', logDetail);
   render();
@@ -4659,12 +6463,117 @@ document.getElementById('btnToggleGroupByLocation').addEventListener('click', ()
   render();
 });
 
+// ============================================================
+// Tabellarische Massen-Eingabe (Alternative zur CSV-Text-Eingabe):
+// Lagerort, Verantwortlicher und Projekt gelten für die ganze Tabelle,
+// jede Zeile hat nur Material (Dropdown), Qualität und Menge. Gemeinsame
+// Funktionen für Bestand und Privatbestand über den isPrivate-Parameter,
+// analog zum bestehenden Muster der CSV-Massen-Eingabe.
+// ============================================================
+function renderBulkTableSharedFields(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  document.getElementById(prefix+'bulkTableLagerortWrap').innerHTML = buildLocationSelectHTML(prefix+'bulkTableLagerort', '', '');
+  document.getElementById(prefix+'bulkTableProjektWrap').innerHTML = buildProjectZielSelectHTML(prefix+'bulkTableProjekt', '', '');
+}
+
+function addBulkTableRow(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  const tbody = document.getElementById(prefix+'bulkTableBody');
+  const rowId = 'r' + Date.now() + Math.random().toString(36).slice(2,6);
+  const tr = document.createElement('tr');
+  tr.dataset.rowId = rowId;
+  tr.innerHTML = `
+    <td>${buildMaterialSelectHTML(prefix+'bulk-mat-'+rowId, '', 'edit-input')}</td>
+    <td><input class="edit-input" id="${prefix}bulk-qual-${rowId}" type="number" step="0.01" style="width:90px;"></td>
+    <td><input class="edit-input" id="${prefix}bulk-menge-${rowId}" type="number" step="0.01" style="width:90px;"></td>
+    <td><button type="button" class="btn-icon danger" data-remove-row="${rowId}" title="${t('btn_delete')}">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  tr.querySelector('[data-remove-row]').addEventListener('click', ()=>{ tr.remove(); });
+}
+
+// Beim ersten Öffnen des Massen-Eingabe-Bereichs die Dropdowns befüllen
+// und eine leere Startzeile anlegen — bei erneutem Öffnen (Zu-/Aufklappen)
+// bleibt der bisherige Bearbeitungsstand dagegen erhalten.
+function initBulkTableIfEmpty(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  const tbody = document.getElementById(prefix+'bulkTableBody');
+  if(tbody.children.length === 0){
+    renderBulkTableSharedFields(isPrivate);
+    addBulkTableRow(isPrivate);
+  }
+}
+
+async function submitBulkTable(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  const statusEl = document.getElementById(prefix+'bulkAddStatus');
+  const lagerort = document.getElementById(prefix+'bulkTableLagerort').value;
+  const person = currentUser.username;
+  const projekt = document.getElementById(prefix+'bulkTableProjekt').value;
+
+  if(!lagerort){
+    statusEl.textContent = t('val_bestand_required');
+    return;
+  }
+
+  const rows = Array.from(document.getElementById(prefix+'bulkTableBody').querySelectorAll('tr'));
+  let added = 0, skipped = 0;
+
+  rows.forEach(tr=>{
+    const rowId = tr.dataset.rowId;
+    const material = document.getElementById(prefix+'bulk-mat-'+rowId).value;
+    const qualitaet = parseFloat(document.getElementById(prefix+'bulk-qual-'+rowId).value);
+    const menge = parseFloat(document.getElementById(prefix+'bulk-menge-'+rowId).value);
+    if(!material || validateQualityAndMenge(qualitaet, menge)){ skipped++; return; }
+    if(isPrivate){
+      privateEntries.push({ id: privateUid(), material, qualitaet, menge, einheit:'SCU', lagerort, person, projekt: projekt||'', owner: currentUser.username });
+    } else {
+      entries.push({ id: uid(), material, qualitaet, menge, einheit:'SCU', lagerort, person, projekt: projekt||'', createdAt: new Date().toISOString() });
+    }
+    added++;
+  });
+
+  if(added === 0){
+    statusEl.textContent = t('val_no_valid_bulk_rows');
+    return;
+  }
+
+  statusEl.textContent = t('msg_saving');
+  if(isPrivate){
+    await savePrivateEntries();
+    await logAction('Privatbestand per Tabellen-Massen-Eingabe hinzugefügt', `${added} Einträge, Lagerort: ${lagerort}`);
+    renderPrivate();
+  } else {
+    await save();
+    await logAction('Bestand per Tabellen-Massen-Eingabe hinzugefügt', `${added} Einträge, Lagerort: ${lagerort}`);
+    render();
+    updateProjectAvailability();
+    renderProjects();
+    renderNeeds();
+    scheduleRenderDashboard();
+  }
+
+  document.getElementById(prefix+'bulkTableBody').innerHTML = '';
+  addBulkTableRow(isPrivate);
+  statusEl.textContent = skipped>0
+    ? t('msg_bulk_table_added_with_skipped').replace('{count}', added).replace('{skipped}', skipped)
+    : t('msg_bulk_table_added').replace('{count}', added);
+}
+
+document.getElementById('btnAddBulkTableRow').addEventListener('click', ()=>{ addBulkTableRow(false); });
+document.getElementById('btnSubmitBulkTable').addEventListener('click', ()=>{ submitBulkTable(false); });
+document.getElementById('priv-btnAddBulkTableRow').addEventListener('click', ()=>{ addBulkTableRow(true); });
+document.getElementById('priv-btnSubmitBulkTable').addEventListener('click', ()=>{ submitBulkTable(true); });
+
 document.getElementById('btnToggleBulk').addEventListener('click', ()=>{
   const c = document.getElementById('bulkAddContainer');
   const btn = document.getElementById('btnToggleBulk');
   const visible = c.style.display !== 'none';
   c.style.display = visible ? 'none' : '';
   btn.textContent = visible ? t('btn_show_bulk') : t('btn_hide_bulk');
+  if(!visible && !BULK_CSV_MODE_ENABLED){
+    initBulkTableIfEmpty(false);
+  }
 });
 
 document.getElementById('btnSubmitBulk').addEventListener('click', async ()=>{
@@ -4689,14 +6598,15 @@ document.getElementById('btnSubmitBulk').addEventListener('click', async ()=>{
     const qualitaet = parseFloat(qualitaetRaw);
     const menge = parseFloat(mengeRaw);
     const einheit = einheitRaw==='Stück' ? 'Stück' : 'SCU';
-    if(!material || isNaN(qualitaet) || isNaN(menge) || !lagerort || !person){
+    if(!material || !lagerort || !person || validateQualityAndMenge(qualitaet, menge)){
       errors.push(line);
       return;
     }
     entries.push({
       id: uid(),
       material, qualitaet, menge, einheit,
-      lagerort, person, projekt: projekt || ''
+      lagerort, person, projekt: projekt || '',
+      createdAt: new Date().toISOString()
     });
     added++;
   });
@@ -4725,6 +6635,9 @@ document.getElementById('priv-btnToggleBulk').addEventListener('click', ()=>{
   const visible = c.style.display !== 'none';
   c.style.display = visible ? 'none' : '';
   btn.textContent = visible ? t('btn_show_bulk') : t('btn_hide_bulk');
+  if(!visible && !BULK_CSV_MODE_ENABLED){
+    initBulkTableIfEmpty(true);
+  }
 });
 
 document.getElementById('priv-btnSubmitBulk').addEventListener('click', async ()=>{
@@ -4749,7 +6662,7 @@ document.getElementById('priv-btnSubmitBulk').addEventListener('click', async ()
     const qualitaet = parseFloat(qualitaetRaw);
     const menge = parseFloat(mengeRaw);
     const einheit = einheitRaw==='Stück' ? 'Stück' : 'SCU';
-    if(!material || isNaN(qualitaet) || isNaN(menge) || !lagerort || !person){
+    if(!material || !lagerort || !person || validateQualityAndMenge(qualitaet, menge)){
       errors.push(line);
       return;
     }
@@ -4766,7 +6679,6 @@ document.getElementById('priv-btnSubmitBulk').addEventListener('click', async ()
     await savePrivateEntries();
     await logAction('Privatbestand per Massen-Eingabe hinzugefügt', `${added} Einträge`);
     renderPrivate();
-    updateTabBadges();
   }
 
   document.getElementById('priv-bulkAddText').value = errors.join('\n');
@@ -5368,16 +7280,19 @@ document.getElementById('priv-bulkAddText').addEventListener('input', ()=>{
 
 document.getElementById('filterLagerort').addEventListener('change', render);
 document.getElementById('filterQualitaet').addEventListener('change', render);
+document.getElementById('filterOnlyUnassigned').addEventListener('change', render);
 
 function getFiltered(){
   const q = document.getElementById('search').value.toLowerCase();
   const loc = document.getElementById('filterLagerort').value;
   const qual = document.getElementById('filterQualitaet').value;
+  const onlyUnassigned = document.getElementById('filterOnlyUnassigned').checked;
   let list = entries.filter(e=>{
     const matchesSearch = !q || [e.material, e.lagerort, e.person].join(' ').toLowerCase().includes(q);
     const matchesLoc = !loc || e.lagerort === loc;
     const matchesQual = qual === '' || e.qualitaet >= parseFloat(qual);
-    return matchesSearch && matchesLoc && matchesQual;
+    const matchesUnassigned = !onlyUnassigned || !e.projekt;
+    return matchesSearch && matchesLoc && matchesQual && matchesUnassigned;
   });
   if(sortKey){
     list.sort((a,b)=>{
@@ -5576,6 +7491,25 @@ function updateTabBadges(){
     privBadge.textContent = privateCount;
     privBadge.style.display = privateCount>0 ? '' : 'none';
   }
+
+  // Anzahl der Materialien, die (über alle Qualitätsstufen hinweg
+  // zusammengezählt) unter ihrem festgelegten Sollbestand liegen.
+  const groups = {};
+  entries.forEach(e=>{
+    const key = e.material + '||' + e.einheit;
+    if(!groups[key]) groups[key] = 0;
+    groups[key] += e.menge;
+  });
+  const underMinCount = Object.keys(groups).filter(key=>{
+    const material = key.split('||')[0];
+    const matDef = MATERIALS.find(m=>m.name===material);
+    return matDef && matDef.minStock!=null && groups[key] < matDef.minStock;
+  }).length;
+  const bestandBadge = document.getElementById('tabBadge-bestand');
+  if(bestandBadge){
+    bestandBadge.textContent = underMinCount;
+    bestandBadge.style.display = underMinCount>0 ? '' : 'none';
+  }
 }
 
 function escapeHtml(s){
@@ -5596,7 +7530,7 @@ const TRASH_MAX_AGE_DAYS = 7;
 
 async function loadTrash(){
   try{
-    const res = await window.storage.get(TRASH_KEY, true);
+    const res = await window.storage.get(orgKey(TRASH_KEY), true);
     trash = res && res.value ? JSON.parse(res.value) : [];
   }catch(e){
     trash = [];
@@ -5606,7 +7540,7 @@ async function saveTrash(){
   const cutoff = Date.now() - TRASH_MAX_AGE_DAYS*24*60*60*1000;
   trash = trash.filter(t=> new Date(t.deletedAt).getTime() > cutoff);
   try{
-    await window.storage.set(TRASH_KEY, JSON.stringify(trash), true);
+    await window.storage.set(orgKey(TRASH_KEY), JSON.stringify(trash), true);
     return true;
   }catch(e){
     return false;
@@ -5745,12 +7679,53 @@ function renderSummary(){
       <td><div class="sum-cell ${r.med===0?'zero':''}"><span class="sum-dot" style="background:#FFC93C"></span>${fmt(r.med)}</div></td>
       <td><div class="sum-cell ${r.high===0?'zero':''}"><span class="sum-dot" style="background:#2CFFA0"></span>${fmt(r.high)}</div></td>
       <td class="sum-total">${fmt(total)}</td>
-      <td>${minStock!=null ? `<span class="badge ${underMin?'low':'high'}">${underMin ? 'Unter Soll ('+minStock+')' : 'OK ('+minStock+')'}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
+      <td>${minStock!=null ? `<span class="badge ${underMin?'low':'high'}">${underMin ? t('label_under_min_stock')+' ('+minStock+')' : t('label_ok_min_stock')+' ('+minStock+')'}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
     </tr>`;
   });
 
   html += '</tbody></table>';
   container.innerHTML = html;
+}
+
+// Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) entsprechend der aktuellen
+// Mehrfachauswahl aktualisieren.
+function updateBulkActionsBar(){
+  const bar = document.getElementById('bulkActionsBar');
+  const count = selectedEntryIds.size;
+  bar.style.display = count>0 ? 'flex' : 'none';
+  document.getElementById('bulkActionsCount').textContent = t('label_selected_count').replace('{count}', count);
+}
+
+const btnBulkDeleteEntries = document.getElementById('btnBulkDeleteEntries');
+btnBulkDeleteEntries.addEventListener('click', ()=>{
+  armConfirm(btnBulkDeleteEntries, async ()=>{
+    // Sicherheitsnetz: nur tatsächlich berechtigte Einträge löschen, auch
+    // falls die Auswahl aus irgendeinem Grund einen nicht (mehr) erlaubten
+    // Eintrag enthalten sollte (z. B. Rollenwechsel während der Auswahl).
+    const idsToDelete = entries.filter(en=>selectedEntryIds.has(en.id) && canManageEntry(en)).map(en=>en.id);
+    const deletedEntries = entries.filter(en=>idsToDelete.includes(en.id));
+    entries = entries.filter(en=>!idsToDelete.includes(en.id));
+    await save();
+    for(const deleted of deletedEntries){
+      await logAction('Bestand gelöscht', `${deleted.material}, ${deleted.menge} ${deleted.einheit} @ ${deleted.lagerort}${deleted.projekt ? ' [Projekt: '+deleted.projekt+']' : ''}`);
+      await moveToTrash(deleted);
+    }
+    selectedEntryIds.clear();
+    render();
+    updateProjectAvailability();
+    renderProjects();
+    renderNeeds();
+    scheduleRenderDashboard();
+    setStatus(t('msg_bulk_deleted').replace('{count}', deletedEntries.length));
+  });
+});
+
+// Ein Bestandseintrag darf nur von der Person bearbeitet/gelöscht werden,
+// die ihn ursprünglich angelegt hat, oder von Administrator aufwärts
+// (Administrator, Organisations-Administrator, Besitzer) — nicht von
+// einem beliebigen anderen Editor.
+function canManageEntry(entry){
+  return currentUser.username === entry.person || roleAtLeast(currentUser.role, 'admin');
 }
 
 function render(){
@@ -5800,6 +7775,9 @@ function render(){
   }
 
   let html = '<table><thead><tr>';
+  if(currentUser.role!=='viewer'){
+    html += `<th style="width:28px;"><input type="checkbox" id="selectAllEntries"></th>`;
+  }
   cols.forEach(([key,label])=>{
     const arrow = sortKey===key ? (sortDir===1?' ▲':' ▼') : '';
     html += `<th data-sort="${key}">${label}${arrow}</th>`;
@@ -5808,14 +7786,15 @@ function render(){
 
   displayList.forEach(e=>{
     if(groupByLocation && groupHeaderIds.has(e.id)){
-      html += `<tr><td colspan="7" style="background:rgba(0,216,255,0.06);padding:8px 10px;">
+      html += `<tr><td colspan="${currentUser.role!=='viewer'?8:7}" style="background:rgba(0,216,255,0.06);padding:8px 10px;">
         <div style="display:flex;align-items:center;">${locationDot(e.lagerort)}<span class="th" style="font-family:'Orbitron', sans-serif;font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(e.lagerort)}</span>
-        <span style="margin-left:auto;color:var(--ink-soft);font-size:11px;" class="qty-cell">Zwischensumme: ${Math.round(groupSubtotals[e.id]*100)/100}</span></div>
+        <span style="margin-left:auto;color:var(--ink-soft);font-size:11px;" class="qty-cell">${t('label_zwischensumme')}: ${Math.round(groupSubtotals[e.id]*100)/100}</span></div>
       </td></tr>`;
     }
     if(editingId === e.id){
       html += `<tr>
-        <td data-label="Material">${buildMaterialSelectHTML('edit-material', e.material, 'edit-input')}</td>
+        ${currentUser.role!=='viewer' ? '<td></td>' : ''}
+        <td data-label="${t('col_material')}">${buildMaterialSelectHTML('edit-material', e.material, 'edit-input')}</td>
         <td data-label="${t('label_qualitaet')}">
           <input class="edit-input" id="edit-qualitaet" type="number" step="0.01" value="${e.qualitaet}">
         </td>
@@ -5827,9 +7806,9 @@ function render(){
             </select>
           </div>
         </td>
-        <td data-label="Lagerort">${buildLocationSelectHTML('edit-lagerort', e.lagerort, 'edit-input')}</td>
-        <td data-label="Verantwortlicher"><input class="edit-input" id="edit-person" value="${escapeHtml(e.person)}"></td>
-        <td data-label="Projekt">${buildProjectZielSelectHTML('edit-projekt', e.projekt||'', 'edit-input')}</td>
+        <td data-label="${t('col_lagerort')}">${buildLocationSelectHTML('edit-lagerort', e.lagerort, 'edit-input')}</td>
+        <td data-label="${t('col_verantwortlicher')}"><span style="display:inline-flex;align-items:center;color:var(--ink-soft);">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
+        <td data-label="${t('col_projekt')}">${buildProjectZielSelectHTML('edit-projekt', e.projekt||'', 'edit-input')}</td>
         <td class="actions-cell">
           <button class="btn-icon" id="saveEdit" title="${t('btn_save')}">✓</button>
           <button class="btn-icon danger" id="cancelEdit" title="${t('btn_cancel')}">✕</button>
@@ -5837,18 +7816,20 @@ function render(){
       </tr>`;
     } else {
       const pct = Math.min(100, Math.round((e.menge/max)*100));
+      const canManage = currentUser.role!=='viewer' && canManageEntry(e);
       html += `<tr>
-        <td data-label="Material">${escapeHtml(e.material)}</td>
+        ${currentUser.role!=='viewer' ? `<td>${canManage ? `<input type="checkbox" class="entry-select-cb" data-id="${e.id}" ${selectedEntryIds.has(e.id)?'checked':''}>` : ''}</td>` : ''}
+        <td data-label="${t('col_material')}">${escapeHtml(e.material)}</td>
         <td data-label="${t('label_qualitaet')}"><span class="badge ${badgeClass(e.qualitaet)}">${e.qualitaet}</span></td>
         <td data-label="${t('label_menge')}">
           <div class="qty-cell">${e.menge} ${escapeHtml(einheitLabel(e.einheit))}</div>
           <div class="gauge"><div class="gauge-fill" style="width:${pct}%;background:${gaugeColor(e.qualitaet)}"></div></div>
         </td>
-        <td data-label="Lagerort"><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(e.lagerort)}</span></td>
-        <td data-label="Verantwortlicher"><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
-        <td data-label="Projekt">${e.projekt ? escapeHtml(e.projekt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
+        <td data-label="${t('col_lagerort')}"><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(e.lagerort)}</span></td>
+        <td data-label="${t('col_verantwortlicher')}"><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
+        <td data-label="${t('col_projekt')}">${e.projekt ? `<span class="badge project-reserved" title="${escapeHtml(t('tooltip_reserved_for'))} ${escapeHtml(e.projekt)}">📌 ${escapeHtml(e.projekt)}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td class="actions-cell">
-          ${currentUser.role!=='viewer' ? `<button class="btn-icon" data-action="edit" data-id="${e.id}" title="${t('btn_edit')}">✎</button>
+          ${canManage ? `<button class="btn-icon" data-action="edit" data-id="${e.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon danger" data-action="delete" data-id="${e.id}" title="${t('btn_delete')}">🗑</button>` : ''}
         </td>
       </tr>`;
@@ -5882,24 +7863,55 @@ function render(){
       });
     });
   });
+
+  // Mehrfachauswahl: einzelne Kontrollkästchen merken sich die Auswahl
+  // anhand der Eintrags-ID (überlebt daher auch ein Neu-Sortieren/Filtern),
+  // "Alle auswählen" bezieht sich bewusst nur auf die aktuell sichtbare
+  // (gefilterte) Liste, nicht auf den gesamten Bestand.
+  container.querySelectorAll('.entry-select-cb').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) selectedEntryIds.add(cb.dataset.id);
+      else selectedEntryIds.delete(cb.dataset.id);
+      updateBulkActionsBar();
+    });
+  });
+  const selectAllCb = document.getElementById('selectAllEntries');
+  if(selectAllCb){
+    const manageableList = displayList.filter(e=>canManageEntry(e));
+    selectAllCb.checked = manageableList.length>0 && manageableList.every(e=>selectedEntryIds.has(e.id));
+    selectAllCb.addEventListener('change', ()=>{
+      if(selectAllCb.checked) manageableList.forEach(e=>selectedEntryIds.add(e.id));
+      else manageableList.forEach(e=>selectedEntryIds.delete(e.id));
+      render();
+    });
+  }
+  updateBulkActionsBar();
+
   const saveBtn = document.getElementById('saveEdit');
   if(saveBtn){
     saveBtn.addEventListener('click', async ()=>{
       const idx = entries.findIndex(e=>e.id===editingId);
       if(idx>-1){
+        const newQualitaet = parseFloat(document.getElementById('edit-qualitaet').value);
+        const newMenge = parseFloat(document.getElementById('edit-menge').value);
+        const validationError = validateQualityAndMenge(newQualitaet, newMenge);
+        if(validationError){
+          setStatus(validationError);
+          return;
+        }
         entries[idx] = {
           ...entries[idx],
           material: document.getElementById('edit-material').value.trim(),
-          qualitaet: parseFloat(document.getElementById('edit-qualitaet').value)||0,
-          menge: parseFloat(document.getElementById('edit-menge').value)||0,
+          qualitaet: newQualitaet,
+          menge: newMenge,
           einheit: document.getElementById('edit-einheit').value,
           lagerort: document.getElementById('edit-lagerort').value.trim(),
-          person: document.getElementById('edit-person').value.trim(),
           projekt: document.getElementById('edit-projekt').value
         };
         await logAction('Bestand bearbeitet', `${entries[idx].material}, ${entries[idx].menge} ${entries[idx].einheit} @ ${entries[idx].lagerort}${entries[idx].projekt ? ' [Projekt: '+entries[idx].projekt+']' : ''}`);
       }
       editingId = null;
+      setStatus(t('msg_saving'));
       await save();
       render();
       updateProjectAvailability();
@@ -5937,7 +7949,7 @@ let privateSortDir = 1;
 
 async function loadPrivateEntries(){
   try{
-    const res = await window.storage.get(PRIVATE_STORAGE_KEY, true);
+    const res = await window.storage.get(orgKey(PRIVATE_STORAGE_KEY), true);
     privateEntries = res && res.value ? JSON.parse(res.value) : [];
   }catch(e){
     privateEntries = [];
@@ -5945,7 +7957,7 @@ async function loadPrivateEntries(){
 }
 async function savePrivateEntries(){
   try{
-    await window.storage.set(PRIVATE_STORAGE_KEY, JSON.stringify(privateEntries), true);
+    await window.storage.set(orgKey(PRIVATE_STORAGE_KEY), JSON.stringify(privateEntries), true);
     return true;
   }catch(e){
     setPrivateStatus(t('msg_save_failed_local'));
@@ -5968,18 +7980,26 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
   const menge = document.getElementById('priv-menge').value;
   const einheit = document.getElementById('priv-einheit').value;
   const lagerort = document.getElementById('priv-lagerort').value.trim();
-  const person = document.getElementById('priv-person').value.trim();
+  const person = currentUser.username;
   const projekt = document.getElementById('priv-projekt').value;
 
-  if(!material || qualitaetRaw === '' || !menge || !lagerort || !person){
+  if(!material || qualitaetRaw === '' || !menge || !lagerort){
     setPrivateStatus(t('val_bestand_required'));
+    return;
+  }
+
+  const privQualitaet = parseFloat(qualitaetRaw);
+  const privMenge = parseFloat(menge);
+  const privValidationError = validateQualityAndMenge(privQualitaet, privMenge);
+  if(privValidationError){
+    setPrivateStatus(privValidationError);
     return;
   }
 
   privateEntries.push({
     id: privateUid(),
-    material, qualitaet: parseFloat(qualitaetRaw),
-    menge: parseFloat(menge), einheit,
+    material, qualitaet: privQualitaet,
+    menge: privMenge, einheit,
     lagerort, person, projekt,
     owner: currentUser.username
   });
@@ -5988,9 +8008,9 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
   document.getElementById('priv-qualitaet').value='';
   document.getElementById('priv-menge').value='';
   document.getElementById('priv-lagerort').value='';
-  document.getElementById('priv-person').value='';
   document.getElementById('priv-projekt').value='';
 
+  setPrivateStatus(t('msg_saving'));
   await savePrivateEntries();
   await logAction('Privatbestand hinzugefügt', `${material}, ${menge} ${einheit} @ ${lagerort}${projekt ? ' [Projekt: '+projekt+']' : ''}`);
   renderPrivate();
@@ -6095,7 +8115,8 @@ async function transferPrivateEntry(id){
       id: uid(),
       material: e.material, qualitaet: e.qualitaet,
       menge: e.menge, einheit: e.einheit,
-      lagerort: e.lagerort, person: e.person, projekt: e.projekt
+      lagerort: e.lagerort, person: e.person, projekt: e.projekt,
+      createdAt: new Date().toISOString()
     });
     logDetail = `${e.material}, ${e.menge} ${e.einheit} @ ${e.lagerort} (neuer Eintrag)`;
   }
@@ -6149,7 +8170,7 @@ function renderPrivate(){
   list.forEach(e=>{
     if(editingPrivateId === e.id){
       html += `<tr>
-        <td data-label="Material">${buildMaterialSelectHTML('edit-priv-material', e.material, 'edit-input')}</td>
+        <td data-label="${t('col_material')}">${buildMaterialSelectHTML('edit-priv-material', e.material, 'edit-input')}</td>
         <td data-label="${t('label_qualitaet')}">
           <input class="edit-input" id="edit-priv-qualitaet" type="number" step="0.01" value="${e.qualitaet}">
         </td>
@@ -6161,9 +8182,9 @@ function renderPrivate(){
             </select>
           </div>
         </td>
-        <td data-label="Lagerort">${buildLocationSelectHTML('edit-priv-lagerort', e.lagerort, 'edit-input')}</td>
-        <td data-label="Verantwortlicher"><input class="edit-input" id="edit-priv-person" value="${escapeHtml(e.person)}"></td>
-        <td data-label="Projekt">${buildProjectZielSelectHTML('edit-priv-projekt', e.projekt||'', 'edit-input')}</td>
+        <td data-label="${t('col_lagerort')}">${buildLocationSelectHTML('edit-priv-lagerort', e.lagerort, 'edit-input')}</td>
+        <td data-label="${t('col_verantwortlicher')}"><span style="display:inline-flex;align-items:center;color:var(--ink-soft);">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
+        <td data-label="${t('col_projekt')}">${buildProjectZielSelectHTML('edit-priv-projekt', e.projekt||'', 'edit-input')}</td>
         <td class="actions-cell">
           <button class="btn-icon" id="savePrivateEdit" title="${t('btn_save')}">✓</button>
           <button class="btn-icon danger" id="cancelPrivateEdit" title="${t('btn_cancel')}">✕</button>
@@ -6172,15 +8193,15 @@ function renderPrivate(){
     } else {
       const pct = Math.min(100, Math.round((e.menge/max)*100));
       html += `<tr>
-        <td data-label="Material">${escapeHtml(e.material)}</td>
+        <td data-label="${t('col_material')}">${escapeHtml(e.material)}</td>
         <td data-label="${t('label_qualitaet')}"><span class="badge ${badgeClass(e.qualitaet)}">${e.qualitaet}</span></td>
         <td data-label="${t('label_menge')}">
           <div class="qty-cell">${e.menge} ${escapeHtml(einheitLabel(e.einheit))}</div>
           <div class="gauge"><div class="gauge-fill" style="width:${pct}%;background:${gaugeColor(e.qualitaet)}"></div></div>
         </td>
-        <td data-label="Lagerort"><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(e.lagerort)}</span></td>
-        <td data-label="Verantwortlicher"><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
-        <td data-label="Projekt">${e.projekt ? escapeHtml(e.projekt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
+        <td data-label="${t('col_lagerort')}"><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(e.lagerort)}</span></td>
+        <td data-label="${t('col_verantwortlicher')}"><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
+        <td data-label="${t('col_projekt')}">${e.projekt ? escapeHtml(e.projekt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td class="actions-cell">
           <button class="btn-icon" data-action="transfer-private" data-id="${e.id}" title="${t('tooltip_transfer_entry')}">⇥</button>
           <button class="btn-icon" data-action="edit-private" data-id="${e.id}" title="${t('btn_edit')}">✎</button>
@@ -6217,19 +8238,26 @@ function renderPrivate(){
     savePrivBtn.addEventListener('click', async ()=>{
       const idx = privateEntries.findIndex(e=>e.id===editingPrivateId);
       if(idx>-1){
+        const newPrivQualitaet = parseFloat(document.getElementById('edit-priv-qualitaet').value);
+        const newPrivMenge = parseFloat(document.getElementById('edit-priv-menge').value);
+        const privEditValidationError = validateQualityAndMenge(newPrivQualitaet, newPrivMenge);
+        if(privEditValidationError){
+          setPrivateStatus(privEditValidationError);
+          return;
+        }
         privateEntries[idx] = {
           ...privateEntries[idx],
           material: document.getElementById('edit-priv-material').value.trim(),
-          qualitaet: parseFloat(document.getElementById('edit-priv-qualitaet').value)||0,
-          menge: parseFloat(document.getElementById('edit-priv-menge').value)||0,
+          qualitaet: newPrivQualitaet,
+          menge: newPrivMenge,
           einheit: document.getElementById('edit-priv-einheit').value,
           lagerort: document.getElementById('edit-priv-lagerort').value.trim(),
-          person: document.getElementById('edit-priv-person').value.trim(),
           projekt: document.getElementById('edit-priv-projekt').value
         };
         await logAction('Privatbestand bearbeitet', `${privateEntries[idx].material}, ${privateEntries[idx].menge} ${privateEntries[idx].einheit} @ ${privateEntries[idx].lagerort}`);
       }
       editingPrivateId = null;
+      setPrivateStatus(t('msg_saving'));
       await savePrivateEntries();
       renderPrivate();
       setPrivateStatus(t('msg_entry_updated'));
