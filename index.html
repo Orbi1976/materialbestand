@@ -6680,9 +6680,22 @@ async function fetchCommodityPrices(force){
     if(payload.status !== 'ok' || !Array.isArray(payload.data)) throw new Error('Unerwartetes Antwortformat');
 
     const grouped = {};
+    // UEX haengt an die meisten Rohstoff-Namen einen Klammerzusatz an
+    // (z.B. "iron (ore)", "aslarite (raw)"), waehrend unser Katalog nur
+    // "Iron"/"Aslarite" fuehrt -- daher wird dieser Zusatz vor dem
+    // Abgleich entfernt. Bekannte, abweichende Schreibweisen (die auch
+    // nach Entfernen des Klammerzusatzes nicht uebereinstimmen) werden
+    // zusaetzlich ueber eine kleine Alias-Tabelle gemappt.
+    const COMMODITY_NAME_ALIASES = {
+      'quantainium': 'quantanium', // UEX-Schreibweise -> Katalog-Schreibweise
+      'ice': 'pressurized ice',    // vom Nutzer bestaetigt: dieselbe Handelsware
+    };
     payload.data.forEach(row=>{
-      const key = (row.commodity_name || '').toLowerCase().trim();
+      let key = (row.commodity_name || '')
+        .replace(/\s*\([^)]*\)\s*$/, '') // trailing "(...)"-Zusatz entfernen
+        .toLowerCase().trim();
       if(!key) return;
+      if(COMMODITY_NAME_ALIASES[key]) key = COMMODITY_NAME_ALIASES[key];
       if(!grouped[key]) grouped[key] = { sellBest: null, sellTerminal: null, buyBest: null, buyTerminal: null };
       const g = grouped[key];
       if(row.price_sell != null && row.price_sell > 0 && (g.sellBest === null || row.price_sell > g.sellBest)){
