@@ -5094,7 +5094,35 @@ setupTabReordering();
 // Reihenfolge der sichtbaren Reiter, nicht einer festen Ausgangsordnung —
 // Taste "2" springt also immer zu dem, was gerade tatsächlich an zweiter
 // Stelle angezeigt wird.
+//
+// WICHTIG: Die Erkennung der geheimen Wasserzeichen-Sequenz (siehe weiter
+// unten im Code fuer WATERMARK_TRIGGER) laeuft bewusst GANZ OBEN in
+// DIESEM selben Listener, statt in einem eigenen, unabhaengigen
+// Listener. Grund: Bei zwei getrennten Listenern haengt die Reihenfolge
+// von Browser-internen Capturing/Bubbling-Feinheiten ab, die sich als
+// nicht zuverlaessig genug erwiesen haben (Ziffern der geheimen Sequenz
+// loesten trotzdem sichtbar einen Tab-Wechsel aus). Innerhalb EINES
+// Listeners ist die Reihenfolge hingegen durch normalen, synchronen
+// JavaScript-Code garantiert.
 document.addEventListener('keydown', (e)=>{
+  if(e.key.length === 1){
+    const candidate = (watermarkKeyBuffer + e.key).slice(-WATERMARK_TRIGGER.length);
+    if(isWatermarkTriggerPrefix(candidate)){
+      watermarkKeyBuffer = candidate;
+      if(watermarkKeyBuffer === WATERMARK_TRIGGER){
+        watermarkKeyBuffer = '';
+        document.getElementById('watermarkModalId').textContent = WATERMARK_ID;
+        document.getElementById('watermarkModal').style.display = 'flex';
+      }
+      // Mitten in (oder am Ziel von) der geheimen Sequenz — alle
+      // anderen Tastenkuerzel fuer GENAU diesen Tastendruck ueberspringen,
+      // damit z.B. Ziffern der Sequenz keinen sichtbaren Tab-Wechsel
+      // ausloesen und die Eingabe damit verraten.
+      return;
+    }
+    watermarkKeyBuffer = '';
+  }
+
   if(!currentUser) return;
   const tag = document.activeElement ? document.activeElement.tagName : '';
   const isTyping = tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT';
@@ -5320,29 +5348,11 @@ function isWatermarkTriggerPrefix(buffer){
   return false;
 }
 
-// Bewusst in der CAPTURING-Phase registriert (dritter Parameter "true"),
-// damit dieser Listener vor allen anderen document-Tastenkuerzeln
-// (z.B. Zifferntasten fuer den Tab-Wechsel, siehe weiter oben) zum Zug
-// kommt. Nur so kann er per stopImmediatePropagation() zuverlaessig
-// verhindern, dass ein Zeichen der geheimen Sequenz gleichzeitig ein
-// anderes Tastenkuerzel ausloest.
-document.addEventListener('keydown', (e)=>{
-  if(e.key.length !== 1) return;
-  const candidate = (watermarkKeyBuffer + e.key).slice(-WATERMARK_TRIGGER.length);
-  if(!isWatermarkTriggerPrefix(candidate)){
-    watermarkKeyBuffer = '';
-    return;
-  }
-  watermarkKeyBuffer = candidate;
-  if(watermarkKeyBuffer === WATERMARK_TRIGGER){
-    watermarkKeyBuffer = '';
-    document.getElementById('watermarkModalId').textContent = WATERMARK_ID;
-    document.getElementById('watermarkModal').style.display = 'flex';
-  }
-  // Mitten in (oder am Ziel von) der geheimen Sequenz — andere
-  // Tastenkuerzel fuer genau diesen Tastendruck unterdruecken.
-  e.stopImmediatePropagation();
-}, true);
+// Die eigentliche Erkennung der Sequenz UND die Unterdrueckung anderer
+// Tastenkuerzel laufen jetzt gemeinsam im Tastenkuerzel-Listener weiter
+// oben im Code (siehe Kommentar dort) -- ein frueherer, separater
+// Listener mit Capturing-Phase-Trick hat sich als nicht zuverlaessig
+// genug erwiesen und wurde entfernt.
 
 document.getElementById('btnCloseWatermark').addEventListener('click', ()=>{
   document.getElementById('watermarkModal').style.display = 'none';
