@@ -1155,6 +1155,17 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 </div>
 
+<div id="needEscalationModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:245;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:26px 28px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 0 40px var(--cyan-glow);">
+    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 8px;">⏳ <span data-i18n="modal_need_escalation_title">Länger offene eigene Bedarfe</span></h3>
+    <p style="font-family:'Rajdhani', sans-serif;font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin:0 0 18px;" data-i18n="modal_need_escalation_hint">Diese von dir gemeldeten Bedarfe sind seit mindestens einer Woche offen und noch nicht gedeckt. Priorität erhöhen, oder den Eintrag löschen, falls er nicht mehr aktuell ist:</p>
+    <div id="needEscalationList"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:18px;">
+      <button class="btn-ghost" id="btnCloseNeedEscalation" data-i18n="btn_spaeter">Später</button>
+    </div>
+  </div>
+</div>
+
 <div id="undoToast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:50;background:#0D141C;border:1px solid var(--panel-border);border-radius:var(--radius);padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,0.5);align-items:center;gap:14px;font-family:'Rajdhani', sans-serif;font-size:14px;color:var(--ink);">
   <span id="undoToastText">Eintrag gelöscht.</span>
   <button class="btn-primary" id="btnUndoToast" style="padding:6px 14px;font-size:11px;">Rückgängig</button>
@@ -2211,6 +2222,13 @@ const I18N = {
   "label_prioritaet": "Priorität",
   "col_benutzer": "Benutzer",
   "col_status": "Status",
+  "col_gemeldet": "Gemeldet",
+  "btn_prioritaet_erhoehen": "Erhöhen",
+  "tooltip_prioritaet_erhoehen": "Seit über einer Woche offen und noch nicht gedeckt — Priorität erhöhen?",
+  "label_heute": "heute",
+  "label_vor_1_tag": "vor 1 Tag",
+  "label_vor_n_tagen": "vor {days} Tagen",
+
   "status_gedeckt": "Gedeckt",
   "status_nicht_gedeckt": "Nicht gedeckt",
   "prio_niedrig": "Niedrig",
@@ -2352,6 +2370,10 @@ const I18N = {
   "empty_leaderboard": "Noch keine Bestandseinträge vorhanden.",
   "btn_restart_tour": "Kurze Einführungs-Tour erneut starten",
   "tour_btn_skip": "Überspringen",
+  "modal_need_escalation_title": "Länger offene eigene Bedarfe",
+  "modal_need_escalation_hint": "Diese von dir gemeldeten Bedarfe sind seit mindestens einer Woche offen und noch nicht gedeckt. Priorität erhöhen, oder den Eintrag löschen, falls er nicht mehr aktuell ist:",
+  "btn_spaeter": "Später",
+  "label_unbekanntes_alter": "unbekanntes Alter",
   "tour_btn_back": "Zurück",
   "tour_btn_next": "Weiter",
   "tour_btn_finish": "Los geht's",
@@ -2671,6 +2693,13 @@ const I18N = {
   "label_prioritaet": "Priority",
   "col_benutzer": "User",
   "col_status": "Status",
+  "col_gemeldet": "Reported",
+  "btn_prioritaet_erhoehen": "Raise",
+  "tooltip_prioritaet_erhoehen": "Open for over a week and still not covered — raise priority?",
+  "label_heute": "today",
+  "label_vor_1_tag": "1 day ago",
+  "label_vor_n_tagen": "{days} days ago",
+
   "status_gedeckt": "Covered",
   "status_nicht_gedeckt": "Not covered",
   "prio_niedrig": "Low",
@@ -2812,6 +2841,10 @@ const I18N = {
   "empty_leaderboard": "No inventory entries yet.",
   "btn_restart_tour": "Restart the short intro tour",
   "tour_btn_skip": "Skip",
+  "modal_need_escalation_title": "Long-open needs you reported",
+  "modal_need_escalation_hint": "These needs you reported have been open for at least a week and are still not covered. Raise the priority, or delete the entry if it's no longer relevant:",
+  "btn_spaeter": "Later",
+  "label_unbekanntes_alter": "unknown age",
   "tour_btn_back": "Back",
   "tour_btn_next": "Next",
   "tour_btn_finish": "Let's go",
@@ -3131,6 +3164,13 @@ const I18N = {
   "label_prioritaet": "Priorité",
   "col_benutzer": "Utilisateur",
   "col_status": "Statut",
+  "col_gemeldet": "Signalé",
+  "btn_prioritaet_erhoehen": "Augmenter",
+  "tooltip_prioritaet_erhoehen": "Ouvert depuis plus d'une semaine et toujours non couvert — augmenter la priorité ?",
+  "label_heute": "aujourd'hui",
+  "label_vor_1_tag": "il y a 1 jour",
+  "label_vor_n_tagen": "il y a {days} jours",
+
   "status_gedeckt": "Couvert",
   "status_nicht_gedeckt": "Non couvert",
   "prio_niedrig": "Faible",
@@ -3272,6 +3312,10 @@ const I18N = {
   "empty_leaderboard": "Aucune entrée de stock pour le moment.",
   "btn_restart_tour": "Relancer la visite guidée rapide",
   "tour_btn_skip": "Ignorer",
+  "modal_need_escalation_title": "Vos besoins ouverts depuis longtemps",
+  "modal_need_escalation_hint": "Ces besoins que vous avez signalés sont ouverts depuis au moins une semaine et toujours non couverts. Augmentez la priorité, ou supprimez l'entrée si elle n'est plus d'actualité :",
+  "btn_spaeter": "Plus tard",
+  "label_unbekanntes_alter": "âge inconnu",
   "tour_btn_back": "Retour",
   "tour_btn_next": "Suivant",
   "tour_btn_finish": "C'est parti",
@@ -4465,7 +4509,56 @@ function applyOrgBranding(){
     wolfSvg.style.display = '';
     applyOrgSymbol(org ? org.symbol : 'wolf');
   }
+  syncNestedWatermarks();
 }
+
+// Verschachtelt zusaetzlich zum einen grossen globalen Hintergrund-
+// Wasserzeichen ein kleines, kaum wahrnehmbares Wasserzeichen-Fragment in
+// JEDES Panel sowie die Login-/Passwort-Bildschirme. Ziel: die
+// Kennzeichnung laesst sich nicht durch simples Entfernen des einen
+// globalen Elements vollstaendig tilgen. Beruecksichtigt sowohl das
+// Standard-Wolf-Symbol als auch ein per Organisation hinterlegtes eigenes
+// Emblem und bleibt bei Markenwechsel automatisch synchron (wird aus
+// applyOrgBranding() erneut aufgerufen). Groesse, Ecke und Rotation
+// variieren bewusst leicht je Element, damit kein einheitliches, auf
+// Anhieb erkennbares Muster entsteht.
+function syncNestedWatermarks(){
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  const useEmblem = !!(org && org.emblem);
+  const wolfSvg = document.getElementById('wolfWatermark');
+  const targets = document.querySelectorAll('.panel, #loginScreen, #forcedPwScreen, #forgotPwScreen');
+
+  targets.forEach((el, i)=>{
+    let nested = el.querySelector(':scope > .nested-watermark');
+    if(!nested){
+      nested = document.createElement('div');
+      nested.className = 'nested-watermark';
+      const size = 34 + (i % 5) * 5;
+      const corner = i % 4;
+      const positions = ['top:6px;right:8px;','bottom:6px;left:8px;','top:6px;left:8px;','bottom:6px;right:8px;'];
+      nested.style.cssText = `position:absolute;${positions[corner]}width:${size}px;height:${size}px;opacity:0.03;pointer-events:none;color:var(--ink-soft);transform:rotate(${(i*37)%360}deg);z-index:0;overflow:hidden;`;
+      if(getComputedStyle(el).position === 'static') el.style.position = 'relative';
+      el.appendChild(nested);
+    }
+    if(useEmblem){
+      nested.innerHTML = `<img src="${org.emblem}" style="width:100%;height:100%;object-fit:contain;" aria-hidden="true">`;
+    } else if(wolfSvg){
+      const clone = wolfSvg.cloneNode(true);
+      clone.removeAttribute('id');
+      clone.removeAttribute('style');
+      clone.style.cssText = 'width:100%;height:100%;';
+      nested.innerHTML = '';
+      nested.appendChild(clone);
+    }
+  });
+}
+// Bereits beim allerersten Seitenaufruf ausfuehren (noch vor jedem Login),
+// damit auch der Login-/Start-Bildschirm sofort das verschachtelte
+// Wasserzeichen traegt. Faellt mangels geladener Organisationsdaten an
+// dieser Stelle automatisch auf das Standard-Wolf-Symbol zurueck; wird
+// nach dem Login (siehe applyOrgBranding) bei Bedarf mit dem echten
+// Organisations-Emblem aktualisiert.
+syncNestedWatermarks();
 
 function renderOrgAccentSwatches(currentPreset){
   selectedAccentPreset = ORG_ACCENT_PRESETS[currentPreset] ? currentPreset : 'cyan';
@@ -4921,7 +5014,10 @@ function completeLogin(user){
   if(isOrgAdminOrAbove){ renderOrgBrandingForm(); renderExportReminder(); }
   switchTab('uebersicht');
   if(isOrgAdminOrAbove){ buildNewUserRoleOptions(); renderUserList(); }
-  load().then(()=>{ if(isAdminOrAbove) renderCatalogLists(); });
+  load().then(()=>{
+    if(isAdminOrAbove) renderCatalogLists();
+    if(user.role !== 'viewer') checkNeedEscalationModal();
+  });
   if(!user.tourSeen) openOnboardingTour();
 }
 
@@ -5061,8 +5157,6 @@ const WATERMARK_ID = 'Neorob1976 · 69126';
 const WATERMARK_TRIGGER = [73,53,111,110,116,106,116,97,50,52,53,37].map(c=>String.fromCharCode(c)).join('');
 let watermarkKeyBuffer = '';
 document.addEventListener('keydown', (e)=>{
-  const loginScreenEl = document.getElementById('loginScreen');
-  if(!loginScreenEl || loginScreenEl.style.display === 'none') return;
   if(e.key.length !== 1) return;
   watermarkKeyBuffer = (watermarkKeyBuffer + e.key).slice(-WATERMARK_TRIGGER.length);
   if(watermarkKeyBuffer === WATERMARK_TRIGGER){
@@ -6352,6 +6446,102 @@ function formatImportTimestamp(iso){
   }
 }
 
+// Formatiert einen ISO-Zeitstempel als relative Altersangabe ("heute",
+// "vor 1 Tag", "vor 5 Tagen") — genutzt in der Bedarf-Liste, um auf einen
+// Blick zu zeigen, wie alt ein gemeldeter Bedarf ist.
+function formatRelativeAge(iso){
+  try{
+    const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    if(days <= 0) return t('label_heute');
+    if(days === 1) return t('label_vor_1_tag');
+    return t('label_vor_n_tagen').replace('{days}', days);
+  }catch(e){
+    return '';
+  }
+}
+
+// Ermittelt alle EIGENEN, noch ungedeckten Bedarfe mit Priorität unter
+// "Kritisch", die seit mindestens 7 Tagen offen sind — Grundlage sowohl
+// für den "⬆ Erhöhen"-Button in der Bedarf-Tabelle als auch für das
+// Erinnerungs-Modal nach dem Login.
+function getEscalationCandidates(){
+  if(!currentUser) return [];
+  return needs.filter(n=>{
+    if(n.user !== currentUser.username || n.prioritaet === 'Kritisch') return false;
+    const avail = stockAmount(n.material, undefined, n.einheit);
+    if(avail >= n.menge) return false; // bereits gedeckt
+    const ageDays = n.createdAt ? Math.floor((Date.now() - new Date(n.createdAt).getTime()) / 86400000) : Infinity;
+    return ageDays >= 7;
+  });
+}
+
+// Zeigt nach dem Login das Erinnerungs-Modal, sofern es mindestens einen
+// eigenen, seit ueber einer Woche offenen und noch ungedeckten Bedarf
+// gibt (siehe getEscalationCandidates). Wird pro Login neu geprueft —
+// kein "nicht mehr anzeigen"-Merker, da sich der Bedarfsstatus laufend
+// aendern kann.
+function checkNeedEscalationModal(){
+  const candidates = getEscalationCandidates();
+  if(candidates.length === 0) return;
+  renderNeedEscalationModal();
+  document.getElementById('needEscalationModal').style.display = 'flex';
+}
+
+function renderNeedEscalationModal(){
+  const candidates = getEscalationCandidates();
+  const modal = document.getElementById('needEscalationModal');
+  const list = document.getElementById('needEscalationList');
+  if(candidates.length === 0){
+    modal.style.display = 'none';
+    return;
+  }
+  list.innerHTML = candidates.map(n=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line);">
+      <div>
+        <div style="font-weight:600;">${escapeHtml(n.material)} <span class="qty-cell">${n.menge} ${escapeHtml(einheitLabel(n.einheit))}</span></div>
+        <div style="font-size:11.5px;color:var(--ink-soft);">
+          <span class="badge ${PRIORITY_CLASS[n.prioritaet]}">${escapeHtml(prioLabel(n.prioritaet))}</span>
+          · ${n.createdAt ? formatRelativeAge(n.createdAt) : t('label_unbekanntes_alter')}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn-ghost" data-action="modal-escalate-need" data-id="${n.id}" style="font-size:11px;padding:5px 10px;">⬆ ${t('btn_prioritaet_erhoehen')}</button>
+        <button class="btn-icon danger" data-action="modal-delete-need" data-id="${n.id}" title="${t('btn_delete')}">🗑</button>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-action="modal-escalate-need"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const n = needs.find(nd=>nd.id === btn.dataset.id);
+      if(!n) return;
+      const nextPrio = { Niedrig:'Mittel', Mittel:'Hoch', Hoch:'Kritisch' }[n.prioritaet];
+      if(!nextPrio) return;
+      const oldPrio = n.prioritaet;
+      n.prioritaet = nextPrio;
+      await saveNeeds();
+      await logAction('Bedarf-Priorität erhöht', `${n.material}: ${oldPrio} → ${nextPrio} (${n.user}, seit über einer Woche offen)`);
+      renderNeedEscalationModal();
+      if(document.getElementById('needTableContainer')) renderNeeds();
+    });
+  });
+  list.querySelectorAll('[data-action="modal-delete-need"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      armConfirm(btn, async ()=>{
+        const n = needs.find(nd=>nd.id === btn.dataset.id);
+        needs = needs.filter(nd=>nd.id !== btn.dataset.id);
+        await saveNeeds();
+        if(n) await logAction('Bedarf gelöscht', `${n.material}, ${n.menge} ${n.einheit} (${n.user}, aus Erinnerung entfernt)`);
+        renderNeedEscalationModal();
+        if(document.getElementById('needTableContainer')) renderNeeds();
+      });
+    });
+  });
+}
+document.getElementById('btnCloseNeedEscalation').addEventListener('click', ()=>{
+  document.getElementById('needEscalationModal').style.display = 'none';
+});
+
 // Extrahiert eine optionale Versions-Kennzeichnung aus der ersten Zeile
 // einer Import-Datei, falls diese mit "#" beginnt (z. B.
 // "# Stand: 2026-08-02 | 833/856 Rezepte mit Mengen"). Gibt
@@ -7335,7 +7525,8 @@ document.getElementById('btnAddNeed').addEventListener('click', async ()=>{
     user: currentUser.username,
     material, qualitaet: needQualitaet,
     menge: needMenge, einheit,
-    prioritaet
+    prioritaet,
+    createdAt: new Date().toISOString()
   });
 
   document.getElementById('need-material').value = '';
@@ -7361,10 +7552,17 @@ function renderNeeds(){
     return;
   }
 
-  const list = [...needs].sort((a,b)=> PRIORITY_ORDER[a.prioritaet]-PRIORITY_ORDER[b.prioritaet] || a.material.localeCompare(b.material));
+  // Sortierung: primär nach Priorität (Kritisch zuerst), innerhalb einer
+  // Prioritätsstufe nach Alter (der aelteste gemeldete Bedarf zuerst).
+  // Bedarfe ohne Zeitstempel (vor dieser Funktion angelegt) gelten als
+  // unbekannt alt und werden konservativ ganz nach vorne sortiert.
+  const list = [...needs].sort((a,b)=>
+    PRIORITY_ORDER[a.prioritaet]-PRIORITY_ORDER[b.prioritaet]
+    || (a.createdAt || '') .localeCompare(b.createdAt || '')
+  );
 
   let html = `<table><thead><tr>
-    <th>${t('col_benutzer')}</th><th>${t('label_material')}</th><th>${t('label_mind_qualitaet')}</th><th>${t('label_menge')}</th><th>${t('label_prioritaet')}</th><th>${t('col_status')}</th><th></th>
+    <th>${t('col_benutzer')}</th><th>${t('label_material')}</th><th>${t('label_mind_qualitaet')}</th><th>${t('label_menge')}</th><th>${t('label_prioritaet')}</th><th>${t('col_gemeldet')}</th><th>${t('col_status')}</th><th></th>
   </tr></thead><tbody>`;
 
   list.forEach(n=>{
@@ -7387,6 +7585,7 @@ function renderNeeds(){
             ${['Niedrig','Mittel','Hoch','Kritisch'].map(p=>`<option value="${p}" ${p===n.prioritaet?'selected':''}>${escapeHtml(prioLabel(p))}</option>`).join('')}
           </select>
         </td>
+        <td data-label="${t('col_gemeldet')}"><span style="color:var(--ink-soft);">—</span></td>
         <td data-label="${t('col_status')}"><span style="color:var(--ink-soft);">—</span></td>
         <td class="actions-cell">
           <button class="btn-icon" data-action="save-need" data-id="${n.id}" title="${t('btn_save')}">✓</button>
@@ -7396,12 +7595,18 @@ function renderNeeds(){
     } else {
       const avail = stockAmount(n.material, undefined, n.einheit);
       const covered = avail >= n.menge;
+      const ageDays = n.createdAt ? Math.floor((Date.now() - new Date(n.createdAt).getTime()) / 86400000) : null;
+      const isOwnUnescalated = n.user===currentUser.username && n.prioritaet!=='Kritisch' && !covered && (ageDays===null || ageDays>=7);
       html += `<tr>
         <td data-label="${t('col_benutzer')}"><span style="display:inline-flex;align-items:center;">${userDot(n.user)}${escapeHtml(n.user)}${n.user===currentUser.username?' <span style="color:var(--ink-soft);font-size:11px;">(Du)</span>':''}</span></td>
         <td data-label="${t('col_material')}">${escapeHtml(n.material)}</td>
         <td data-label="${t('label_mind_qualitaet')}">${n.qualitaet}</td>
         <td data-label="${t('label_menge')}" class="qty-cell">${n.menge} ${escapeHtml(einheitLabel(n.einheit))}</td>
-        <td data-label="${t('label_prioritaet')}"><span class="badge ${PRIORITY_CLASS[n.prioritaet]}">${escapeHtml(prioLabel(n.prioritaet))}</span></td>
+        <td data-label="${t('label_prioritaet')}">
+          <span class="badge ${PRIORITY_CLASS[n.prioritaet]}">${escapeHtml(prioLabel(n.prioritaet))}</span>
+          ${isOwnUnescalated ? `<button class="btn-ghost" data-action="escalate-need" data-id="${n.id}" title="${t('tooltip_prioritaet_erhoehen')}" style="font-size:10.5px;padding:3px 8px;margin-left:6px;">⬆ ${t('btn_prioritaet_erhoehen')}</button>` : ''}
+        </td>
+        <td data-label="${t('col_gemeldet')}" title="${n.createdAt ? formatImportTimestamp(n.createdAt) : ''}">${n.createdAt ? formatRelativeAge(n.createdAt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td data-label="${t('col_status')}" title="Bestand: ${avail} ${escapeHtml(n.einheit)}"><span class="badge ${covered?'high':'low'}">${statusLabel(covered)}</span></td>
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit-need" data-id="${n.id}" title="${t('btn_edit')}">✎</button>
@@ -7418,6 +7623,19 @@ function renderNeeds(){
   });
   container.querySelectorAll('[data-action="cancel-need"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingNeedId = null; renderNeeds(); });
+  });
+  container.querySelectorAll('[data-action="escalate-need"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const n = needs.find(nd=>nd.id === btn.dataset.id);
+      if(!n) return;
+      const nextPrio = { Niedrig:'Mittel', Mittel:'Hoch', Hoch:'Kritisch' }[n.prioritaet];
+      if(!nextPrio) return;
+      const oldPrio = n.prioritaet;
+      n.prioritaet = nextPrio;
+      await saveNeeds();
+      await logAction('Bedarf-Priorität erhöht', `${n.material}: ${oldPrio} → ${nextPrio} (${n.user}, seit über einer Woche offen)`);
+      renderNeeds();
+    });
   });
   container.querySelectorAll('[data-action="delete-need"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
