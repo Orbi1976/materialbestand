@@ -2300,6 +2300,8 @@ const I18N = {
   "col_geschaetzter_wert": "Geschätzter Wert",
   "tooltip_wert_basis": "Berechnungsgrundlage",
   "label_gesamtwert_bestand": "Geschätzter Gesamtwert des Bestands",
+  "label_verkaufsorte": "Beste bekannte Verkaufsorte",
+  "empty_no_sell_locations": "Keine Verkaufsorte bekannt.",
   "msg_marktpreise_fehler": "Marktpreise konnten nicht geladen werden",
   "label_marktpreise_stand": "Marktpreise-Stand",
   "msg_marktpreise_laedt": "Marktpreise werden geladen…",
@@ -2790,6 +2792,8 @@ const I18N = {
   "col_geschaetzter_wert": "Est. value",
   "tooltip_wert_basis": "Calculation basis",
   "label_gesamtwert_bestand": "Estimated total stock value",
+  "label_verkaufsorte": "Best known sell locations",
+  "empty_no_sell_locations": "No sell locations known.",
   "msg_marktpreise_fehler": "Market prices could not be loaded",
   "label_marktpreise_stand": "Market prices as of",
   "msg_marktpreise_laedt": "Loading market prices…",
@@ -3280,6 +3284,8 @@ const I18N = {
   "col_geschaetzter_wert": "Valeur estimée",
   "tooltip_wert_basis": "Base de calcul",
   "label_gesamtwert_bestand": "Valeur totale estimée du stock",
+  "label_verkaufsorte": "Meilleurs lieux de vente connus",
+  "empty_no_sell_locations": "Aucun lieu de vente connu.",
   "msg_marktpreise_fehler": "Impossible de charger les prix du marché",
   "label_marktpreise_stand": "Prix du marché au",
   "msg_marktpreise_laedt": "Chargement des prix du marché…",
@@ -6696,11 +6702,14 @@ async function fetchCommodityPrices(force){
         .toLowerCase().trim();
       if(!key) return;
       if(COMMODITY_NAME_ALIASES[key]) key = COMMODITY_NAME_ALIASES[key];
-      if(!grouped[key]) grouped[key] = { sellBest: null, sellTerminal: null, buyBest: null, buyTerminal: null };
+      if(!grouped[key]) grouped[key] = { sellBest: null, sellTerminal: null, buyBest: null, buyTerminal: null, sellLocations: [] };
       const g = grouped[key];
-      if(row.price_sell != null && row.price_sell > 0 && (g.sellBest === null || row.price_sell > g.sellBest)){
-        g.sellBest = row.price_sell;
-        g.sellTerminal = row.terminal_name;
+      if(row.price_sell != null && row.price_sell > 0){
+        g.sellLocations.push({ terminal: row.terminal_name, price: row.price_sell });
+        if(g.sellBest === null || row.price_sell > g.sellBest){
+          g.sellBest = row.price_sell;
+          g.sellTerminal = row.terminal_name;
+        }
       }
       if(row.price_buy != null && row.price_buy > 0 && (g.buyBest === null || row.price_buy < g.buyBest)){
         g.buyBest = row.price_buy;
@@ -6724,6 +6733,22 @@ function getCommodityPrice(material){
   return commodityPrices[(material||'').toLowerCase().trim()] || null;
 }
 
+// Baut den Mouse-over-Tooltip fuer den "Geschaetzter Wert"-Preis: zeigt
+// die (bis zu 5) besten bekannten Verkaufsorte fuer dieses Material,
+// absteigend nach Preis sortiert.
+function buildSellLocationTooltipHTML(price){
+  const locations = [...(price.sellLocations||[])].sort((a,b)=> b.price - a.price).slice(0, 5);
+  let html = `<div class="stock-hover-title">${t('label_verkaufsorte')}</div>`;
+  if(locations.length === 0){
+    html += `<div class="usage-empty">${t('empty_no_sell_locations')}</div>`;
+  } else {
+    html += `<ul class="usage-list">` + locations.map(l=>`
+      <li>${escapeHtml(l.terminal||'?')} — <span class="qty-cell">${Math.round(l.price*100)/100} aUEC/SCU</span></li>
+    `).join('') + `</ul>`;
+  }
+  return html;
+}
+
 // Zeigt Status der Marktpreis-Anbindung an (zuletzt aktualisiert / Fehler)
 // und einen manuellen Aktualisieren-Button neben dem Zusammenfassung-Titel.
 function renderCommodityPriceStatus(){
@@ -6743,6 +6768,7 @@ function renderCommodityPriceStatus(){
     el.innerHTML = `<span>${t('msg_marktpreise_laedt')}</span>`;
     await fetchCommodityPrices(true);
     renderSummary();
+    renderPrivateSummary();
     renderCommodityPriceStatus();
   });
 }
@@ -8482,6 +8508,7 @@ async function load(){
   // betroffenen Ansichten erst, sobald das Ergebnis da ist.
   fetchCommodityPrices().then(()=>{
     renderSummary();
+    renderPrivateSummary();
     renderCommodityPriceStatus();
   });
 }
@@ -10185,7 +10212,7 @@ function renderSummary(){
       <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${fmt(r.reserviert)}</span>` : `<span style="color:var(--ink-soft);">${fmt(0)}</span>`}</td>
       <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${fmt(frei)}</span></td>
       <td>${minStock!=null ? `<span class="badge ${underMin?'low':'high'}">${underMin ? t('label_under_min_stock')+' ('+minStock+')' : t('label_ok_min_stock')+' ('+minStock+')'}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
-      <td>${estValue!=null ? `<span class="qty-cell" title="${t('tooltip_wert_basis')}: ${fmt(price.sellBest)} aUEC/SCU @ ${escapeHtml(price.sellTerminal||'')}">${fmt(estValue)} aUEC</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
+      <td>${estValue!=null ? `<span class="qty-cell stock-hover-wrap">${fmt(estValue)} aUEC<span class="stock-hover-tooltip">${buildSellLocationTooltipHTML(price)}</span></span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
     </tr>`;
     if(isExpanded){
       html += `<tr><td colspan="10" style="padding:0;">${buildUsageBreakdownHTML(r.material)}</td></tr>`;
@@ -10615,11 +10642,18 @@ function renderPrivateSummary(){
   const fmt = n => Math.round(n*100)/100;
 
   let html = `<table class="summary-table"><thead><tr>
-    <th>${t('label_material')}</th><th>${t('col_einheit')}</th><th>${t('col_rot')}</th><th>${t('col_gelb')}</th><th>${t('col_gruen')}</th><th>${t('col_gesamt')}</th><th>${t('col_reserviert')}</th><th>${t('col_frei_verfuegbar')}</th>
+    <th>${t('label_material')}</th><th>${t('col_einheit')}</th><th>${t('col_rot')}</th><th>${t('col_gelb')}</th><th>${t('col_gruen')}</th><th>${t('col_gesamt')}</th><th>${t('col_reserviert')}</th><th>${t('col_frei_verfuegbar')}</th><th>${t('col_geschaetzter_wert')}</th>
   </tr></thead><tbody>`;
+
+  let totalValue = 0;
+  let anyPriceFound = false;
+
   rows.forEach(r=>{
     const total = r.low + r.med + r.high;
     const frei = total - r.reserviert;
+    const price = r.einheit === 'SCU' ? getCommodityPrice(r.material) : null;
+    const estValue = (price && price.sellBest != null) ? total * price.sellBest : null;
+    if(estValue != null){ totalValue += estValue; anyPriceFound = true; }
     html += `<tr>
       <td class="material-name">${escapeHtml(r.material)}</td>
       <td>${escapeHtml(r.einheit)}</td>
@@ -10629,8 +10663,17 @@ function renderPrivateSummary(){
       <td class="sum-total">${fmt(total)}</td>
       <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${fmt(r.reserviert)}</span>` : `<span style="color:var(--ink-soft);">${fmt(0)}</span>`}</td>
       <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${fmt(frei)}</span></td>
+      <td>${estValue!=null ? `<span class="qty-cell stock-hover-wrap">${fmt(estValue)} aUEC<span class="stock-hover-tooltip">${buildSellLocationTooltipHTML(price)}</span></span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
     </tr>`;
   });
+
+  if(anyPriceFound){
+    html += `<tr style="border-top:2px solid var(--panel-border);">
+      <td colspan="8" style="text-align:right;font-weight:700;color:var(--ink);">${t('label_gesamtwert_bestand')}</td>
+      <td class="sum-total" style="color:var(--cyan);">${fmt(totalValue)} aUEC</td>
+    </tr>`;
+  }
+
   html += '</tbody></table>';
   container.innerHTML = html;
 }
