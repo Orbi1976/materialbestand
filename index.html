@@ -482,6 +482,24 @@ h1{
   box-shadow:0 0 0 1px rgba(0,0,0,0.4), 0 12px 28px rgba(0,0,0,0.35);
   clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
 }
+/* Der clip-path oben schneidet jeden Inhalt ab, der ueber die Panel-
+   Breite hinausgeht (unabhaengig von "overflow") -- betrifft vor allem
+   breiter werdende Tabellen (z.B. durch neue Spalten). Direkte Kind-Divs
+   eines Panels, die eine Tabelle enthalten, bekommen deshalb systemweit
+   ein eigenes horizontales Scrollen, damit sie innerhalb der sichtbaren
+   Panel-Flaeche bleiben statt abgeschnitten zu werden. Per :has() greift
+   das automatisch fuer JEDE Tabelle in JEDEM Panel, ohne dass jeder
+   Container einzeln angepasst werden muss.
+   Hinweis: dadurch koennen absolut positionierte Elemente INNERHALB
+   dieser Container (z.B. der Mouse-over-Tooltip bei "Vorhanden" im
+   Projekte-Tab) am Rand des sichtbaren Bereichs mit abgeschnitten
+   werden -- Kompromiss, aber deutlich besser als vollstaendig
+   abgeschnittener Tabelleninhalt.
+*/
+.panel > div:has(> table){
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
   .panel{background:#0D141C;}
 }
