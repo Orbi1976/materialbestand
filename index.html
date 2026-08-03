@@ -5156,15 +5156,44 @@ async function submitForcedPassword(){
 const WATERMARK_ID = 'Neorob1976 · 69126';
 const WATERMARK_TRIGGER = [73,53,111,110,116,106,116,97,50,52,53,37].map(c=>String.fromCharCode(c)).join('');
 let watermarkKeyBuffer = '';
+
+// Prueft, ob 'buffer' (Endstueck der zuletzt getippten Zeichen) mit einem
+// Praefix von WATERMARK_TRIGGER uebereinstimmt -- d.h. ob gerade mitten in
+// der Eingabe des geheimen Codes getippt wird. Noetig, um waehrend dieser
+// Eingabe andere Tastenkuerzel (z.B. Zifferntasten fuer den Tab-Wechsel)
+// gezielt zu unterdruecken, statt dass diese sichtbar auf die getippten
+// Zeichen reagieren und die Eingabe des Codes damit verraten wuerden.
+function isWatermarkTriggerPrefix(buffer){
+  for(let len = Math.min(buffer.length, WATERMARK_TRIGGER.length); len > 0; len--){
+    if(buffer.slice(-len) === WATERMARK_TRIGGER.slice(0, len)) return true;
+  }
+  return false;
+}
+
+// Bewusst in der CAPTURING-Phase registriert (dritter Parameter "true"),
+// damit dieser Listener vor allen anderen document-Tastenkuerzeln
+// (z.B. Zifferntasten fuer den Tab-Wechsel, siehe weiter oben) zum Zug
+// kommt. Nur so kann er per stopImmediatePropagation() zuverlaessig
+// verhindern, dass ein Zeichen der geheimen Sequenz gleichzeitig ein
+// anderes Tastenkuerzel ausloest.
 document.addEventListener('keydown', (e)=>{
   if(e.key.length !== 1) return;
-  watermarkKeyBuffer = (watermarkKeyBuffer + e.key).slice(-WATERMARK_TRIGGER.length);
+  const candidate = (watermarkKeyBuffer + e.key).slice(-WATERMARK_TRIGGER.length);
+  if(!isWatermarkTriggerPrefix(candidate)){
+    watermarkKeyBuffer = '';
+    return;
+  }
+  watermarkKeyBuffer = candidate;
   if(watermarkKeyBuffer === WATERMARK_TRIGGER){
     watermarkKeyBuffer = '';
     document.getElementById('watermarkModalId').textContent = WATERMARK_ID;
     document.getElementById('watermarkModal').style.display = 'flex';
   }
-});
+  // Mitten in (oder am Ziel von) der geheimen Sequenz — andere
+  // Tastenkuerzel fuer genau diesen Tastendruck unterdruecken.
+  e.stopImmediatePropagation();
+}, true);
+
 document.getElementById('btnCloseWatermark').addEventListener('click', ()=>{
   document.getElementById('watermarkModal').style.display = 'none';
 });
