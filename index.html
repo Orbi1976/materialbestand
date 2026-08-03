@@ -10286,8 +10286,8 @@ function render(){
   updateFilterOptions();
   renderSummary();
   updateTabBadges();
-  renderRecentChips('f-material-recent-chips', 'f-material', getRecentDistinctValues(entries, 'material', 5));
-  renderRecentChips('f-lagerort-recent-chips', 'f-lagerort', getRecentDistinctValues(entries, 'lagerort', 5));
+  renderRecentChips('f-material-recent-chips', 'f-material', getRecentDistinctValues(entries, 'material', 1));
+  renderRecentChips('f-lagerort-recent-chips', 'f-lagerort', getRecentDistinctValues(entries, 'lagerort', 1));
   const list = getFiltered();
   document.getElementById('statCount').textContent = entries.length;
   document.getElementById('statLocations').textContent = new Set(entries.map(e=>e.lagerort)).size;
@@ -10730,8 +10730,8 @@ function renderPrivate(){
   updateTabBadges();
   renderPrivateProjects();
   const mine = myPrivateEntries();
-  renderRecentChips('priv-material-recent-chips', 'priv-material', getRecentDistinctValues(mine, 'material', 5));
-  renderRecentChips('priv-lagerort-recent-chips', 'priv-lagerort', getRecentDistinctValues(mine, 'lagerort', 5));
+  renderRecentChips('priv-material-recent-chips', 'priv-material', getRecentDistinctValues(mine, 'material', 1));
+  renderRecentChips('priv-lagerort-recent-chips', 'priv-lagerort', getRecentDistinctValues(mine, 'lagerort', 1));
   const list = getFilteredPrivate();
   const container = document.getElementById('privateTableContainer');
 
