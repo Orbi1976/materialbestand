@@ -5110,6 +5110,13 @@ document.addEventListener('keydown', (e)=>{
     const candidate = (watermarkKeyBuffer + e.key).slice(-WATERMARK_TRIGGER.length);
     if(isWatermarkTriggerPrefix(candidate)){
       watermarkKeyBuffer = candidate;
+      // Standardverhalten dieser Tastenkombination unterdruecken, soweit
+      // der Browser das ueberhaupt zulaesst (z.B. seiteneigene
+      // Alt-Zugriffstasten). Echte, vom Browser/Betriebssystem fest
+      // reservierte Kombinationen (Strg+W, Alt+F4, F11 usw.) lassen sich
+      // aus einer Webseite heraus grundsaetzlich NICHT unterdruecken --
+      // das ist von den Browserherstellern bewusst so eingeschraenkt.
+      e.preventDefault();
       if(watermarkKeyBuffer === WATERMARK_TRIGGER){
         watermarkKeyBuffer = '';
         document.getElementById('watermarkModalId').textContent = WATERMARK_ID;
