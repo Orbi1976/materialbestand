@@ -383,6 +383,40 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
 }
 .usage-project-name:hover{ color:var(--ink); }
 .usage-empty{ color:var(--ink-soft); font-size:12.5px; padding:4px 0; }
+
+/* Schnellauswahl-Chips "zuletzt verwendet" ueber Material-/Lagerort-
+   Dropdowns in den Eingabeformularen. */
+.recent-chips{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:5px;
+  margin-top:6px;
+  min-height:1px;
+}
+.recent-chips:empty{ margin-top:0; }
+.recent-chips-label{
+  font-size:10.5px;
+  color:var(--ink-soft);
+  margin-right:2px;
+  white-space:nowrap;
+}
+.recent-chip{
+  font-family:'Share Tech Mono', monospace;
+  font-size:11px;
+  padding:3px 9px;
+  border-radius:20px;
+  background:rgba(0,216,255,0.08);
+  border:1px solid var(--panel-border);
+  color:var(--ink-soft);
+  cursor:pointer;
+  transition:background 0.15s, color 0.15s, border-color 0.15s;
+}
+.recent-chip:hover{
+  background:rgba(0,216,255,0.16);
+  color:var(--cyan);
+  border-color:var(--cyan);
+}
 .usage-search-heading{
   font-family:'Orbitron', sans-serif;
   font-size:13px;
@@ -1475,7 +1509,14 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="panel">
-    <h2 data-i18n="panel_leaderboard">Beitragende (gesamt)</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+      <h2 style="margin:0;" data-i18n="panel_leaderboard">Beitragende</h2>
+      <select id="leaderboardTimeframe" style="width:auto;">
+        <option value="all" data-i18n="filter_zeitraum_gesamt">Gesamt</option>
+        <option value="month" data-i18n="filter_zeitraum_monat">Dieser Monat</option>
+        <option value="week" data-i18n="filter_zeitraum_woche">Diese Woche</option>
+      </select>
+    </div>
     <div id="contributorLeaderboard"></div>
   </div>
 
@@ -1523,6 +1564,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <div class="field">
         <label for="f-material" data-i18n="label_material">Material</label>
         <div id="f-material-wrap"></div>
+        <div id="f-material-recent-chips" class="recent-chips"></div>
       </div>
       <div class="field">
         <label for="f-qualitaet" data-i18n="label_qualitaet">Qualität</label>
@@ -1541,6 +1583,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <div class="field">
         <label for="f-lagerort" data-i18n="label_lagerort">Lagerort</label>
         <div id="f-lagerort-wrap"></div>
+        <div id="f-lagerort-recent-chips" class="recent-chips"></div>
       </div>
       <div class="field">
         <label for="f-projekt" data-i18n="label_projektziel">Projektziel</label>
@@ -1615,7 +1658,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="panel">
-    <h2 data-i18n="panel_zusammenfassung">Zusammenfassung nach Material</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+      <h2 style="margin:0;" data-i18n="panel_zusammenfassung">Zusammenfassung nach Material</h2>
+      <div id="commodityPriceStatus" style="font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;"></div>
+    </div>
     <div id="summaryContainer"></div>
   </div>
 
@@ -1658,6 +1704,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <div class="field">
         <label for="priv-material" data-i18n="label_material">Material</label>
         <div id="priv-material-wrap"></div>
+        <div id="priv-material-recent-chips" class="recent-chips"></div>
       </div>
       <div class="field">
         <label for="priv-qualitaet" data-i18n="label_qualitaet">Qualität</label>
@@ -1676,6 +1723,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <div class="field">
         <label for="priv-lagerort" data-i18n="label_lagerort">Lagerort</label>
         <div id="priv-lagerort-wrap"></div>
+        <div id="priv-lagerort-recent-chips" class="recent-chips"></div>
       </div>
       <div class="field">
         <label for="priv-projekt" data-i18n="label_projektziel">Projektziel</label>
@@ -1794,6 +1842,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </div>
       <div class="status-msg" id="privProjectStatus"></div>
     </div>
+    <div id="privProjectBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="privProjectBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-icon danger" id="btnBulkDeletePrivProjects" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+    </div>
     <div id="privProjectTableContainer" style="margin-top:14px;"></div>
   </div>
 
@@ -1822,6 +1874,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </div>
     </div>
     <div class="status-msg" id="privateCollectibleStatus"></div>
+    <div id="privCollectibleBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="privCollectibleBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-icon danger" id="btnBulkDeletePrivCollectibles" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+    </div>
     <div id="privateCollectibleTableContainer" style="margin-top:14px;"></div>
 
     <h3 data-i18n="panel_zusammenfassung_objekt_privat" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px 0;color:var(--steel);">Zusammenfassung nach Objekt (Privat)</h3>
@@ -1868,6 +1924,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </div>
     </div>
     <div class="status-msg" id="needStatus"></div>
+    <div id="needBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="needBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-icon danger" id="btnBulkDeleteNeeds" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+    </div>
     <div id="needTableContainer" style="margin-top:14px;"></div>
   </div>
   </div>
@@ -1905,6 +1965,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </div>
       <div class="status-msg" id="projectStatus"></div>
     </div>
+    <div id="projectBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="projectBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-icon danger" id="btnBulkDeleteProjects" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+    </div>
     <div id="projectTableContainer" style="margin-top:14px;"></div>
   </div>
   </div>
@@ -1938,6 +2002,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         </div>
       </div>
       <div class="status-msg" id="collectibleStatus"></div>
+    </div>
+    <div id="collectibleBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="collectibleBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-icon danger" id="btnBulkDeleteCollectibles" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
     </div>
     <div id="collectibleTableContainer" style="margin-top:14px;"></div>
 
@@ -2198,6 +2266,7 @@ const I18N = {
   "panel_neuer_eintrag": "Neuer Eintrag",
   "panel_neuer_eintrag_privat": "Neuer Eintrag (Privat)",
   "label_material": "Material",
+  "label_zuletzt_verwendet": "Zuletzt verwendet",
   "label_qualitaet": "Qualität",
   "label_menge": "Menge",
   "label_lagerort": "Lagerort",
@@ -2210,6 +2279,14 @@ const I18N = {
   "hint_papierkorb": "Gelöschte Bestandseinträge der letzten 24 Stunden können hier wiederhergestellt werden.",
   "btn_show_trash": "Papierkorb anzeigen",
   "col_sollbestand": "Sollbestand",
+  "col_geschaetzter_wert": "Geschätzter Wert",
+  "tooltip_wert_basis": "Berechnungsgrundlage",
+  "label_gesamtwert_bestand": "Geschätzter Gesamtwert des Bestands",
+  "msg_marktpreise_fehler": "Marktpreise konnten nicht geladen werden",
+  "label_marktpreise_stand": "Marktpreise-Stand",
+  "msg_marktpreise_laedt": "Marktpreise werden geladen…",
+  "btn_aktualisieren": "Aktualisieren",
+  "label_guenstigster_kaufort": "Günstigster bekannter Kaufort",
   "btn_group_by_location": "Nach Lagerort gruppieren",
   "placeholder_search": "Suche nach Material, Lagerort, Person …",
   "filter_alle_lagerorte": "Alle Lagerorte",
@@ -2218,6 +2295,7 @@ const I18N = {
   "label_mind_qualitaet": "Mind. Qualität",
   "placeholder_mindestqualitaet": "Mind. Qualität (opt.)",
   "tooltip_projekt_mindestqualitaet": "Optional: Materialien unter dieser Qualität werden beim Zuordnen zu diesem Projekt mit einem Hinweis markiert",
+  "tooltip_projekt_erneut_anlegen": "Dieses Projekt (Ziel + Materialien) erneut als neues Projekt anlegen",
   "warn_quality_below_project": "Achtung: Qualität liegt unter der für „{material}“ im Projekt „{projekt}“ geforderten Mindestqualität von {min}.",
   "label_prioritaet": "Priorität",
   "col_benutzer": "Benutzer",
@@ -2304,9 +2382,11 @@ const I18N = {
   "label_aktive_projekte": "Aktive Projekte",
   "empty_no_active_projects_for_item": "Wird derzeit von keinem aktiven Projekt benötigt.",
   "label_rezepte_vorlagen": "Rezepte & Vorlagen",
+  "label_verlauf_zugaenge": "Verlauf (Bestandszugänge)",
   "empty_no_templates_for_item": "Kommt in keinem Rezept oder keiner Vorlage vor.",
   "tooltip_rueckwaertssuche": "Zeigen, wo dieses Material/Objekt verwendet wird",
   "btn_bedarf_eintragen": "+ Bedarf eintragen",
+  "btn_alle_bedarfe_eintragen": "Alle fehlenden Mengen als Bedarf eintragen",
   "placeholder_pw_vergessen_hint": "für Passwort-vergessen-Funktion",
   "heading_material_hinzufuegen": "Material hinzufügen",
   "heading_lagerort_hinzufuegen": "Lagerort hinzufügen",
@@ -2366,7 +2446,10 @@ const I18N = {
   "placeholder_usage_search": "z. B. Titanium",
   "hint_usage_search_no_exact_match": "Kein exakter Treffer — bitte einen Eintrag aus der Vorschlagsliste wählen.",
   "hint_projekt_erinnerung": "Aktive Projekte mit noch fehlenden Materialien, zur schnellen Erinnerung.",
-  "panel_leaderboard": "Beitragende (gesamt)",
+  "panel_leaderboard": "Beitragende",
+  "filter_zeitraum_gesamt": "Gesamt",
+  "filter_zeitraum_monat": "Dieser Monat",
+  "filter_zeitraum_woche": "Diese Woche",
   "empty_leaderboard": "Noch keine Bestandseinträge vorhanden.",
   "btn_restart_tour": "Kurze Einführungs-Tour erneut starten",
   "tour_btn_skip": "Überspringen",
@@ -2434,6 +2517,7 @@ const I18N = {
   "msg_org_renamed": "Organisation umbenannt.",
   "val_min_one_owner": "Es muss mindestens ein Besitzer bestehen bleiben.",
   "val_no_permission_role": "Du darfst diese Rolle nicht vergeben.",
+  "val_nur_owner": "Strukturelle Änderungen am Katalog (Materialien, Lagerorte) sind nur der Rolle Besitzer vorbehalten.",
   "panel_org_branding": "Organisation anpassen",
   "label_org_motto": "Motto / Untertitel (optional)",
   "label_org_accent": "Akzentfarbe",
@@ -2577,6 +2661,9 @@ const I18N = {
   "unit_stueck": "Stück",
   "msg_save_failed_local": "Speichern fehlgeschlagen — Änderung nur lokal sichtbar.",
   "val_bestand_required": "Bitte Material, Qualität, Menge, Lagerort und Verantwortlichen angeben.",
+  "val_kategorie_nicht_erlaubt": "Diese Material-Kategorie ist für dich nicht freigeschaltet.",
+  "label_kategorie_beschraenkung": "Kategorie-Beschränkung (optional)",
+  "tooltip_kategorie_beschraenkung": "Nur relevant für die Rolle Editor. Wird mindestens eine Kategorie angehakt, kann diese Person im Bestand nur bei den ausgewählten Kategorien Einträge anlegen/bearbeiten/löschen (andere bleiben sichtbar, aber nicht bearbeitbar). Keine Auswahl = uneingeschränkter Zugriff wie bisher.",
   "msg_stock_extended": "Bestehender Bestand um die Menge erweitert.",
   "msg_undo_success": "Löschen rückgängig gemacht.",
   "msg_stock_extended_private": "Bestehenden öffentlichen Bestand um die Menge erweitert.",
@@ -2669,6 +2756,7 @@ const I18N = {
   "panel_neuer_eintrag": "New entry",
   "panel_neuer_eintrag_privat": "New entry (Private)",
   "label_material": "Material",
+  "label_zuletzt_verwendet": "Recently used",
   "label_qualitaet": "Quality",
   "label_menge": "Quantity",
   "label_lagerort": "Location",
@@ -2681,6 +2769,14 @@ const I18N = {
   "hint_papierkorb": "Deleted inventory entries from the last 24 hours can be restored here.",
   "btn_show_trash": "Show recycle bin",
   "col_sollbestand": "Target stock",
+  "col_geschaetzter_wert": "Est. value",
+  "tooltip_wert_basis": "Calculation basis",
+  "label_gesamtwert_bestand": "Estimated total stock value",
+  "msg_marktpreise_fehler": "Market prices could not be loaded",
+  "label_marktpreise_stand": "Market prices as of",
+  "msg_marktpreise_laedt": "Loading market prices…",
+  "btn_aktualisieren": "Refresh",
+  "label_guenstigster_kaufort": "Cheapest known buy location",
   "btn_group_by_location": "Group by location",
   "placeholder_search": "Search by material, location, person …",
   "filter_alle_lagerorte": "All locations",
@@ -2689,6 +2785,7 @@ const I18N = {
   "label_mind_qualitaet": "Min. quality",
   "placeholder_mindestqualitaet": "Min. quality (opt.)",
   "tooltip_projekt_mindestqualitaet": "Optional: materials below this quality are flagged with a warning when assigned to this project",
+  "tooltip_projekt_erneut_anlegen": "Set up this project (target + materials) again as a new project",
   "warn_quality_below_project": "Warning: quality is below the minimum quality of {min} required for \"{material}\" in project \"{projekt}\".",
   "label_prioritaet": "Priority",
   "col_benutzer": "User",
@@ -2775,9 +2872,11 @@ const I18N = {
   "label_aktive_projekte": "Active projects",
   "empty_no_active_projects_for_item": "Not currently needed by any active project.",
   "label_rezepte_vorlagen": "Recipes & templates",
+  "label_verlauf_zugaenge": "History (stock additions)",
   "empty_no_templates_for_item": "Does not appear in any recipe or template.",
   "tooltip_rueckwaertssuche": "Show where this material/item is used",
   "btn_bedarf_eintragen": "+ Add as need",
+  "btn_alle_bedarfe_eintragen": "Add all missing amounts as needs",
   "placeholder_pw_vergessen_hint": "for the forgot-password feature",
   "heading_material_hinzufuegen": "Add material",
   "heading_lagerort_hinzufuegen": "Add location",
@@ -2837,7 +2936,10 @@ const I18N = {
   "placeholder_usage_search": "e.g. Titanium",
   "hint_usage_search_no_exact_match": "No exact match — please pick an entry from the suggestion list.",
   "hint_projekt_erinnerung": "Active projects with materials still missing, as a quick reminder.",
-  "panel_leaderboard": "Contributors (total)",
+  "panel_leaderboard": "Contributors",
+  "filter_zeitraum_gesamt": "Total",
+  "filter_zeitraum_monat": "This month",
+  "filter_zeitraum_woche": "This week",
   "empty_leaderboard": "No inventory entries yet.",
   "btn_restart_tour": "Restart the short intro tour",
   "tour_btn_skip": "Skip",
@@ -2905,6 +3007,7 @@ const I18N = {
   "msg_org_renamed": "Organization renamed.",
   "val_min_one_owner": "At least one owner must remain.",
   "val_no_permission_role": "You are not allowed to assign this role.",
+  "val_nur_owner": "Structural catalog changes (materials, locations) are reserved for the Owner role.",
   "panel_org_branding": "Customize organization",
   "label_org_motto": "Motto / subtitle (optional)",
   "label_org_accent": "Accent color",
@@ -3048,6 +3151,9 @@ const I18N = {
   "unit_stueck": "Piece",
   "msg_save_failed_local": "Save failed — change is only visible locally.",
   "val_bestand_required": "Please enter material, quality, quantity, location and responsible person.",
+  "val_kategorie_nicht_erlaubt": "This material category is not enabled for you.",
+  "label_kategorie_beschraenkung": "Category restriction (optional)",
+  "tooltip_kategorie_beschraenkung": "Only relevant for the Editor role. If at least one category is checked, this person can only add/edit/delete inventory entries for the selected categories (others remain visible but not editable). No selection = unrestricted access as before.",
   "msg_stock_extended": "Existing stock increased by the amount.",
   "msg_undo_success": "Deletion undone.",
   "msg_stock_extended_private": "Existing public stock increased by the amount.",
@@ -3140,6 +3246,7 @@ const I18N = {
   "panel_neuer_eintrag": "Nouvelle entrée",
   "panel_neuer_eintrag_privat": "Nouvelle entrée (Privé)",
   "label_material": "Matériau",
+  "label_zuletzt_verwendet": "Récemment utilisé",
   "label_qualitaet": "Qualité",
   "label_menge": "Quantité",
   "label_lagerort": "Emplacement",
@@ -3152,6 +3259,14 @@ const I18N = {
   "hint_papierkorb": "Les entrées de stock supprimées au cours des dernières 24 heures peuvent être restaurées ici.",
   "btn_show_trash": "Afficher la corbeille",
   "col_sollbestand": "Stock cible",
+  "col_geschaetzter_wert": "Valeur estimée",
+  "tooltip_wert_basis": "Base de calcul",
+  "label_gesamtwert_bestand": "Valeur totale estimée du stock",
+  "msg_marktpreise_fehler": "Impossible de charger les prix du marché",
+  "label_marktpreise_stand": "Prix du marché au",
+  "msg_marktpreise_laedt": "Chargement des prix du marché…",
+  "btn_aktualisieren": "Actualiser",
+  "label_guenstigster_kaufort": "Lieu d'achat le moins cher connu",
   "btn_group_by_location": "Grouper par emplacement",
   "placeholder_search": "Rechercher par matériau, emplacement, personne…",
   "filter_alle_lagerorte": "Tous les emplacements",
@@ -3160,6 +3275,7 @@ const I18N = {
   "label_mind_qualitaet": "Qualité min.",
   "placeholder_mindestqualitaet": "Qualité min. (opt.)",
   "tooltip_projekt_mindestqualitaet": "Optionnel : les matériaux en dessous de cette qualité sont signalés par un avertissement lorsqu'ils sont affectés à ce projet",
+  "tooltip_projekt_erneut_anlegen": "Ce projet (objectif + matériaux) à nouveau créer comme nouveau projet",
   "warn_quality_below_project": "Attention : la qualité est inférieure à la qualité minimale de {min} requise pour « {material} » dans le projet « {projekt} ».",
   "label_prioritaet": "Priorité",
   "col_benutzer": "Utilisateur",
@@ -3246,9 +3362,11 @@ const I18N = {
   "label_aktive_projekte": "Projets actifs",
   "empty_no_active_projects_for_item": "N'est actuellement requis par aucun projet actif.",
   "label_rezepte_vorlagen": "Recettes et modèles",
+  "label_verlauf_zugaenge": "Historique (entrées de stock)",
   "empty_no_templates_for_item": "N'apparaît dans aucune recette ni aucun modèle.",
   "tooltip_rueckwaertssuche": "Afficher où ce matériau/objet est utilisé",
   "btn_bedarf_eintragen": "+ Ajouter comme besoin",
+  "btn_alle_bedarfe_eintragen": "Ajouter toutes les quantités manquantes comme besoins",
   "placeholder_pw_vergessen_hint": "pour la fonction mot de passe oublié",
   "heading_material_hinzufuegen": "Ajouter un matériau",
   "heading_lagerort_hinzufuegen": "Ajouter un emplacement",
@@ -3308,7 +3426,10 @@ const I18N = {
   "placeholder_usage_search": "p. ex. Titanium",
   "hint_usage_search_no_exact_match": "Aucune correspondance exacte — veuillez choisir une entrée dans la liste de suggestions.",
   "hint_projekt_erinnerung": "Projets actifs avec des matériaux encore manquants, en guise de rappel rapide.",
-  "panel_leaderboard": "Contributeurs (total)",
+  "panel_leaderboard": "Contributeurs",
+  "filter_zeitraum_gesamt": "Total",
+  "filter_zeitraum_monat": "Ce mois-ci",
+  "filter_zeitraum_woche": "Cette semaine",
   "empty_leaderboard": "Aucune entrée de stock pour le moment.",
   "btn_restart_tour": "Relancer la visite guidée rapide",
   "tour_btn_skip": "Ignorer",
@@ -3376,6 +3497,7 @@ const I18N = {
   "msg_org_renamed": "Organisation renommée.",
   "val_min_one_owner": "Il doit rester au moins un propriétaire.",
   "val_no_permission_role": "Vous n'êtes pas autorisé à attribuer ce rôle.",
+  "val_nur_owner": "Les modifications structurelles du catalogue (matériaux, emplacements) sont réservées au rôle Propriétaire.",
   "panel_org_branding": "Personnaliser l'organisation",
   "label_org_motto": "Devise / sous-titre (facultatif)",
   "label_org_accent": "Couleur d'accent",
@@ -3519,6 +3641,9 @@ const I18N = {
   "unit_stueck": "Pièce",
   "msg_save_failed_local": "Échec de l'enregistrement — la modification n'est visible que localement.",
   "val_bestand_required": "Veuillez indiquer le matériau, la qualité, la quantité, l'emplacement et le responsable.",
+  "val_kategorie_nicht_erlaubt": "Cette catégorie de matériau n'est pas activée pour vous.",
+  "label_kategorie_beschraenkung": "Restriction de catégorie (optionnel)",
+  "tooltip_kategorie_beschraenkung": "Pertinent uniquement pour le rôle Éditeur. Si au moins une catégorie est cochée, cette personne ne peut ajouter/modifier/supprimer des entrées de stock que pour les catégories sélectionnées (les autres restent visibles mais non modifiables). Aucune sélection = accès illimité comme auparavant.",
   "msg_stock_extended": "Le stock existant a été augmenté de la quantité.",
   "msg_undo_success": "Suppression annulée.",
   "msg_stock_extended_private": "Le stock public existant a été augmenté de la quantité.",
@@ -3644,6 +3769,11 @@ let editingId = null;
 // Zusammenfassungen unabhängig voneinander aufklappbar sein sollen.
 let expandedUsageMaterial = null;
 let expandedUsageCollectible = null;
+let selectedNeedIds = new Set();
+let selectedProjectIds = new Set();
+let selectedCollectibleIds = new Set();
+let selectedPrivCollectibleIds = new Set();
+let selectedPrivProjectIds = new Set();
 let selectedEntryIds = new Set();
 let sortKey = null;
 let sortDir = 1;
@@ -3876,11 +4006,24 @@ function renderUserList(){
   container.innerHTML = visibleUsers.map((u)=>{
     const idx = USERS.indexOf(u);
     if(editingUserIndex === idx){
+      const userCats = [...new Set(MATERIALS.map(m=>m.category))];
+      const currentRestriction = u.categoryRestriction || [];
       return `<div class="user-row">
         <div class="user-info">
           <input class="edit-input" id="edit-user-name-${idx}" value="${escapeHtml(u.username)}" style="max-width:150px;">
           <input class="edit-input" id="edit-user-email-${idx}" type="email" placeholder="E-Mail (optional)" value="${escapeHtml(u.email||'')}">
           <select class="edit-input" id="edit-user-role-${idx}">${buildRoleOptionsHTML(u.role, currentUser.role)}</select>
+        </div>
+        <div style="width:100%;margin-top:8px;padding:10px 12px;background:rgba(0,216,255,0.04);border-left:2px solid var(--cyan);">
+          <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">${t('label_kategorie_beschraenkung')} <span title="${t('tooltip_kategorie_beschraenkung')}" style="cursor:help;">ⓘ</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            ${userCats.map(cat=>`
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;">
+                <input type="checkbox" class="edit-user-category-cb" data-idx="${idx}" value="${escapeHtml(cat)}" ${currentRestriction.includes(cat)?'checked':''}>
+                ${escapeHtml(cat)}
+              </label>
+            `).join('')}
+          </div>
         </div>
         <div class="actions-cell">
           <button class="btn-icon" data-action="save-user" data-idx="${idx}" title="${t('btn_save')}">✓</button>
@@ -3895,6 +4038,7 @@ function renderUserList(){
         ${isOwner ? `<span style="color:var(--ink-soft);font-size:11px;">${escapeHtml(getOrgName(u.organizationId))}</span>` : ''}
         <span style="color:var(--ink-soft);font-size:11px;">${t('label_last_active')}: ${u.lastActive ? new Date(u.lastActive).toLocaleString('de-DE') : t('label_never_active')}</span>
         <span class="role-tag ${roleAtLeast(u.role,'admin')?'admin':''}">${roleLabel(u.role)}</span>
+        ${u.categoryRestriction && u.categoryRestriction.length>0 ? `<span class="badge project-reserved" title="${t('label_kategorie_beschraenkung')}">🔒 ${u.categoryRestriction.map(escapeHtml).join(', ')}</span>` : ''}
       </div>
       <div class="actions-cell">
         <button class="btn-icon" data-action="edit-user" data-idx="${idx}" title="${t('btn_edit')}">✎</button>
@@ -3995,7 +4139,8 @@ async function saveUserEdit(idx){
   // organizationId bewusst aus dem bestehenden Datensatz übernehmen, statt
   // das gesamte Objekt zu ersetzen — sonst würde die Organisationszuordnung
   // bei jeder Bearbeitung stillschweigend verloren gehen.
-  USERS[idx] = {...USERS[idx], username:newUsername, role:newRole, email:newEmail};
+  const selectedCategories = Array.from(document.querySelectorAll(`.edit-user-category-cb[data-idx="${idx}"]:checked`)).map(cb=>cb.value);
+  USERS[idx] = {...USERS[idx], username:newUsername, role:newRole, email:newEmail, categoryRestriction: selectedCategories.length>0 ? selectedCategories : undefined};
   editingUserIndex = null;
   statusEl.textContent = t('msg_saving');
   await saveUsers();
@@ -4009,7 +4154,7 @@ async function saveUserEdit(idx){
     document.getElementById('badgeRole').textContent = roleLabel(newRole);
     document.getElementById('badgeRole').className = 'role ' + (isAdminOrAbove ? 'admin' : '');
     document.getElementById('adminPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
-    document.getElementById('catalogPanel').style.display = isAdminOrAbove ? '' : 'none';
+    document.getElementById('catalogPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('logPanel').style.display = isAdminOrAbove ? '' : 'none';
     document.getElementById('orgManagementPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('templateImportPanel').style.display = newRole==='owner' ? '' : 'none';
@@ -4998,7 +5143,7 @@ function completeLogin(user){
   document.getElementById('adminPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   document.getElementById('orgBrandingPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   document.getElementById('orgExportPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
-  document.getElementById('catalogPanel').style.display = isAdminOrAbove ? '' : 'none';
+  document.getElementById('catalogPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('logPanel').style.display = isAdminOrAbove ? '' : 'none';
   document.getElementById('entryFormPanel').style.display = user.role==='viewer' ? 'none' : '';
   document.getElementById('needFormGrid').style.display = user.role==='viewer' ? 'none' : '';
@@ -5038,6 +5183,11 @@ document.getElementById('orgSwitcher').addEventListener('change', (e)=>{
 // neu — inklusive Zurücksetzen der "bereits geladen"-Merker für Material-
 // und Lagerort-Katalog, die sonst ein erneutes Laden verhindern würden.
 async function switchOrganization(newOrgId){
+  // Zusaetzliche Absicherung direkt in der Funktion (nicht nur ueber die
+  // Sichtbarkeit des Dropdowns), damit unter keinen Umstaenden jemand
+  // unterhalb der Rolle "owner" die Organisation wechseln und dadurch
+  // Einblick in Daten/Protokolle einer anderen Organisation erhalten kann.
+  if(currentUser.role !== 'owner') return;
   if(newOrgId === currentOrgId) return;
   currentOrgId = newOrgId;
   materialsLoaded = false;
@@ -5398,8 +5548,14 @@ let MATERIALS = [
   {category:'Non-Ship Mineables', name:'Janalite (Hand Mining)'}
 ];
 
-function buildMaterialSelectHTML(id, selected, extraClass){
-  const cats = [...new Set(MATERIALS.map(m=>m.category))];
+// restrictCategories (optional): Array von Kategorie-Namen — wenn gesetzt,
+// werden nur Materialien aus diesen Kategorien angeboten. Genutzt fuer die
+// optionale Kategorie-Beschraenkung von Editoren im (geteilten) Bestand.
+function buildMaterialSelectHTML(id, selected, extraClass, restrictCategories){
+  const allCats = [...new Set(MATERIALS.map(m=>m.category))];
+  const cats = restrictCategories && restrictCategories.length > 0
+    ? allCats.filter(c=>restrictCategories.includes(c))
+    : allCats;
   let html = `<select id="${id}" class="${extraClass||''}"><option value="">${t('placeholder_select')}</option>`;
   cats.forEach(cat=>{
     html += `<optgroup label="${escapeHtml(cat)}">`;
@@ -5410,6 +5566,15 @@ function buildMaterialSelectHTML(id, selected, extraClass){
   });
   html += `</select>`;
   return html;
+}
+
+// Liefert die Kategorie-Beschraenkung des aktuellen Nutzers, sofern
+// gesetzt (nur fuer die Rolle "Editor" relevant), sonst null (= voller
+// Zugriff, unveraendertes Standardverhalten).
+function getUserCategoryRestriction(){
+  return (currentUser && currentUser.categoryRestriction && currentUser.categoryRestriction.length > 0)
+    ? currentUser.categoryRestriction
+    : null;
 }
 
 function locLabel(loc){ return loc.code + ' – ' + loc.name; }
@@ -5565,6 +5730,7 @@ function renderCollectibles(){
   const sorted = [...collectibles].sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
 
   let html = `<table><thead><tr>
+    <th style="width:28px;"><input type="checkbox" id="selectAllCollectibles"></th>
     <th>${t('col_kategorie')}</th><th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_lagerort')}</th><th>${t('label_anzahl')}</th><th>${t('col_besitzer')}</th><th></th>
   </tr></thead><tbody>`;
 
@@ -5573,6 +5739,7 @@ function renderCollectibles(){
       const item = findCollectible(c.objekt);
       const tiers = item ? item.tiers : [];
       html += `<tr>
+        <td></td>
         <td data-label="${t('col_kategorie')}">${escapeHtml(c.kategorie)}</td>
         <td data-label="${t('col_objekt')}">${buildCollectibleSelectHTML('edit-coll-item', c.objekt, 'edit-input')}</td>
         <td data-label="${t('col_qualitaet_stufe2')}">${tiers.length>0 ? buildTierSelectHTML('edit-coll-tier', tiers, c.tier, 'edit-input') : '<span style="color:var(--ink-soft);">—</span>'}</td>
@@ -5586,6 +5753,7 @@ function renderCollectibles(){
       </tr>`;
     } else {
       html += `<tr>
+        <td>${canManage ? `<input type="checkbox" class="collectible-select-cb" data-id="${c.id}" ${selectedCollectibleIds.has(c.id)?'checked':''}>` : ''}</td>
         <td data-label="${t('col_kategorie')}">${escapeHtml(c.kategorie)}</td>
         <td data-label="${t('col_objekt')}">${escapeHtml(c.objekt)}</td>
         <td data-label="${t('col_qualitaet_stufe2')}">${c.tier ? escapeHtml(c.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
@@ -5621,6 +5789,26 @@ function renderCollectibles(){
       });
     });
   });
+
+  container.querySelectorAll('.collectible-select-cb').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) selectedCollectibleIds.add(cb.dataset.id);
+      else selectedCollectibleIds.delete(cb.dataset.id);
+      updateCollectibleBulkActionsBar();
+    });
+  });
+  const selectAllCollectiblesCb = document.getElementById('selectAllCollectibles');
+  if(selectAllCollectiblesCb){
+    selectAllCollectiblesCb.style.visibility = canManage ? 'visible' : 'hidden';
+    selectAllCollectiblesCb.checked = canManage && sorted.length>0 && sorted.every(c=>selectedCollectibleIds.has(c.id));
+    selectAllCollectiblesCb.addEventListener('change', ()=>{
+      if(!canManage) return;
+      if(selectAllCollectiblesCb.checked) sorted.forEach(c=>selectedCollectibleIds.add(c.id));
+      else sorted.forEach(c=>selectedCollectibleIds.delete(c.id));
+      renderCollectibles();
+    });
+  }
+  updateCollectibleBulkActionsBar();
   const saveBtn = container.querySelector('[data-action="save-collectible"]');
   if(saveBtn){
     saveBtn.addEventListener('click', async ()=>{
@@ -5835,6 +6023,7 @@ function renderPrivateCollectibles(){
   const sorted = [...mine].sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
 
   let html = `<table><thead><tr>
+    <th style="width:28px;"><input type="checkbox" id="selectAllPrivCollectibles"></th>
     <th>${t('col_kategorie')}</th><th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_lagerort')}</th><th>${t('label_anzahl')}</th><th></th>
   </tr></thead><tbody>`;
 
@@ -5843,6 +6032,7 @@ function renderPrivateCollectibles(){
       const item = findCollectible(c.objekt);
       const tiers = item ? item.tiers : [];
       html += `<tr>
+        <td></td>
         <td data-label="${t('col_kategorie')}">${escapeHtml(c.kategorie)}</td>
         <td data-label="${t('col_objekt')}">${buildCollectibleSelectHTML('edit-priv-coll-item', c.objekt, 'edit-input')}</td>
         <td data-label="${t('col_qualitaet_stufe2')}">${tiers.length>0 ? buildTierSelectHTML('edit-priv-coll-tier', tiers, c.tier, 'edit-input') : '<span style="color:var(--ink-soft);">—</span>'}</td>
@@ -5855,6 +6045,7 @@ function renderPrivateCollectibles(){
       </tr>`;
     } else {
       html += `<tr>
+        <td><input type="checkbox" class="priv-collectible-select-cb" data-id="${c.id}" ${selectedPrivCollectibleIds.has(c.id)?'checked':''}></td>
         <td data-label="${t('col_kategorie')}">${escapeHtml(c.kategorie)}</td>
         <td data-label="${t('col_objekt')}">${escapeHtml(c.objekt)}</td>
         <td data-label="${t('col_qualitaet_stufe2')}">${c.tier ? escapeHtml(c.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
@@ -5893,6 +6084,24 @@ function renderPrivateCollectibles(){
       });
     });
   });
+
+  container.querySelectorAll('.priv-collectible-select-cb').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) selectedPrivCollectibleIds.add(cb.dataset.id);
+      else selectedPrivCollectibleIds.delete(cb.dataset.id);
+      updatePrivCollectibleBulkActionsBar();
+    });
+  });
+  const selectAllPrivCollectiblesCb = document.getElementById('selectAllPrivCollectibles');
+  if(selectAllPrivCollectiblesCb){
+    selectAllPrivCollectiblesCb.checked = sorted.length>0 && sorted.every(c=>selectedPrivCollectibleIds.has(c.id));
+    selectAllPrivCollectiblesCb.addEventListener('change', ()=>{
+      if(selectAllPrivCollectiblesCb.checked) sorted.forEach(c=>selectedPrivCollectibleIds.add(c.id));
+      else sorted.forEach(c=>selectedPrivCollectibleIds.delete(c.id));
+      renderPrivateCollectibles();
+    });
+  }
+  updatePrivCollectibleBulkActionsBar();
   const saveBtn = container.querySelector('[data-action="save-priv-collectible"]');
   if(saveBtn){
     saveBtn.addEventListener('click', async ()=>{
@@ -6044,7 +6253,7 @@ function renderCatalogLists(){
 }
 
 async function refreshCatalogDropdowns(){
-  document.getElementById('f-material-wrap').innerHTML = buildMaterialSelectHTML('f-material', '');
+  document.getElementById('f-material-wrap').innerHTML = buildMaterialSelectHTML('f-material', '', '', getUserCategoryRestriction());
   document.getElementById('need-material-wrap').innerHTML = buildMaterialSelectHTML('need-material', '');
   document.getElementById('f-lagerort-wrap').innerHTML = buildLocationSelectHTML('f-lagerort', '');
   document.getElementById('priv-material-wrap').innerHTML = buildMaterialSelectHTML('priv-material', '');
@@ -6086,6 +6295,15 @@ async function addMaterial(){
   const nameInput = document.getElementById('newMatName');
   const minStockInput = document.getElementById('newMatMinStock');
   const statusEl = document.getElementById('matFormStatus');
+
+  // Strukturelle Aenderungen am Katalog sind ausschliesslich der Rolle
+  // "owner" vorbehalten (nicht nur ueber die Panel-Sichtbarkeit, sondern
+  // auch direkt hier abgesichert).
+  if(currentUser.role !== 'owner'){
+    statusEl.textContent = t('val_nur_owner');
+    return;
+  }
+
   const category = catInput.value.trim();
   const name = nameInput.value.trim();
   const minStock = minStockInput.value !== '' ? parseFloat(minStockInput.value) : null;
@@ -6114,6 +6332,7 @@ async function addMaterial(){
 }
 
 async function deleteMaterial(idx){
+  if(currentUser.role !== 'owner') return;
   const item = MATERIALS[idx];
   MATERIALS.splice(idx,1);
   await saveMaterials();
@@ -6127,6 +6346,12 @@ async function addLocation(){
   const codeInput = document.getElementById('newLocCode');
   const nameInput = document.getElementById('newLocName');
   const statusEl = document.getElementById('locFormStatus');
+
+  if(currentUser.role !== 'owner'){
+    statusEl.textContent = t('val_nur_owner');
+    return;
+  }
+
   const system = sysInput.value.trim();
   const code = codeInput.value.trim();
   const name = nameInput.value.trim();
@@ -6155,6 +6380,7 @@ async function addLocation(){
 }
 
 async function deleteLocation(idx){
+  if(currentUser.role !== 'owner') return;
   const item = LOCATIONS[idx];
   LOCATIONS.splice(idx,1);
   await saveLocations();
@@ -6189,6 +6415,47 @@ async function saveProjects(){
 }
 
 function projectUid(){ return 'p' + Date.now() + Math.random().toString(36).slice(2,7); }
+
+// Ermittelt die zuletzt verwendeten, eindeutigen Werte eines Feldes aus
+// einer Eintragsliste (neuester Eintrag zuerst, keine Duplikate) --
+// Grundlage fuer die Schnellauswahl-Chips "zuletzt verwendet" ueber den
+// Material-/Lagerort-Dropdowns. Faellt bei fehlendem Zeitstempel auf die
+// bestehende Array-Reihenfolge zurueck.
+function getRecentDistinctValues(list, field, limit){
+  const seen = new Set();
+  const result = [];
+  const sorted = [...list].sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
+  for(const item of sorted){
+    const val = item[field];
+    if(val && !seen.has(val)){
+      seen.add(val);
+      result.push(val);
+      if(result.length >= limit) break;
+    }
+  }
+  return result;
+}
+
+// Rendert die Schnellauswahl-Chips in den angegebenen Container und
+// verdrahtet den Klick: setzt den Wert im Ziel-Dropdown und loest ein
+// 'change'-Event aus (damit z.B. die Mindestqualitaets-Warnung korrekt
+// reagiert).
+function renderRecentChips(containerId, selectId, values){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  if(!values || values.length === 0){ el.innerHTML = ''; return; }
+  el.innerHTML = `<span class="recent-chips-label">${t('label_zuletzt_verwendet')}:</span>` +
+    values.map(v=>`<button type="button" class="recent-chip" data-value="${escapeHtml(v)}">${escapeHtml(v)}</button>`).join('');
+  el.querySelectorAll('.recent-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const sel = document.getElementById(selectId);
+      if(sel){
+        sel.value = btn.dataset.value;
+        sel.dispatchEvent(new Event('change'));
+      }
+    });
+  });
+}
 
 // Rueckwaerts-Suche: findet zu einem Material- oder Sammelobjekt-Namen
 // alle aktiven (geteilten) Projekte, die es benoetigen, sowie alle
@@ -6233,6 +6500,13 @@ function buildUsageBreakdownHTML(itemName, isPrivate){
       <li>${escapeHtml(tpl.name)} <span style="color:var(--ink-soft);font-size:11px;">(${escapeHtml(tpl.category)})</span></li>
     `).join('') + `</ul>`;
   }
+
+  const price = getCommodityPrice(itemName);
+  if(price && price.buyBest != null){
+    html += `<div class="usage-section-title" style="margin-top:10px;">${t('label_guenstigster_kaufort')}</div>
+      <div style="font-size:12.5px;">${escapeHtml(price.buyTerminal||'?')} — <span class="qty-cell">${Math.round(price.buyBest*100)/100} aUEC/SCU</span></div>`;
+  }
+
   html += `</div>`;
   return html;
 }
@@ -6261,6 +6535,24 @@ function populateUsageSearchOptions(){
 // (unabhaengig von Groß-/Kleinschreibung) gegen die bekannten Material-/
 // Sammelobjekt-Namen wird die Aufschluesselung angezeigt, sonst ein
 // dezenter Hinweis bzw. bei leerem Feld gar nichts.
+// Kumulierter Bestandszugang eines bestimmten Materials über die Zeit,
+// auf Basis der Zeitstempel der aktuell im Bestand befindlichen Einträge
+// (aeltere, zwischenzeitlich entfernte Mengen sind darin nicht enthalten
+// -- zeigt bewusst "Zugaenge", nicht eine exakte historische Bestands-
+// kurve, da fuer Letzteres keine verlaesslich strukturierten Log-Daten
+// vorliegen). Genutzt fuer den Mini-Verlaufs-Chart in der Rueckwaerts-
+// Suche.
+function buildMaterialQuantityHistory(material, isPrivate){
+  const source = isPrivate ? myPrivateEntries() : entries;
+  const relevant = source.filter(e=>e.material===material && e.createdAt)
+    .sort((a,b)=> new Date(a.createdAt) - new Date(b.createdAt));
+  let cum = 0;
+  return relevant.map(e=>{
+    cum += e.menge;
+    return { ts: e.createdAt, value: Math.round(cum*100)/100 };
+  });
+}
+
 function handleUsageSearchInput(inputId, resultId, isPrivate){
   const input = document.getElementById(inputId);
   const result = document.getElementById(resultId);
@@ -6271,7 +6563,15 @@ function handleUsageSearchInput(inputId, resultId, isPrivate){
   const names = getAllKnownItemNames();
   const exact = names.find(n=>n.toLowerCase() === query.toLowerCase());
   if(exact){
-    result.innerHTML = `<div class="usage-search-heading">${escapeHtml(exact)}</div>` + buildUsageBreakdownHTML(exact, isPrivate);
+    const history = buildMaterialQuantityHistory(exact, isPrivate);
+    const chartId = resultId + '-chart';
+    const chartSection = history.length > 0
+      ? `<div class="usage-section-title" style="margin-top:10px;">${t('label_verlauf_zugaenge')}</div><div id="${chartId}"></div>`
+      : '';
+    result.innerHTML = `<div class="usage-search-heading">${escapeHtml(exact)}</div>`
+      + buildUsageBreakdownHTML(exact, isPrivate)
+      + chartSection;
+    if(history.length > 0) renderLineChart(chartId, history);
   } else {
     result.innerHTML = `<div class="usage-empty">${t('hint_usage_search_no_exact_match')}</div>`;
   }
@@ -6310,6 +6610,91 @@ function buildStockBreakdownHTML(material, projekt){
     body += `</tbody></table>`;
   }
   return `<div class="stock-hover-title">${t('label_beitraege_aufschluesselung')}</div>${body}`;
+}
+
+// ============================================================
+// Marktpreis-Anbindung (UEX Corp API, https://uexcorp.space) — liefert
+// oeffentlich, ohne API-Schluessel zugaengliche Rohstoff-Handelspreise
+// (Endpunkt commodities_raw_prices_all, kein Auth noetig, stuendlich
+// aktualisiert). Wird genutzt fuer den geschaetzten Bestandswert und den
+// guenstigsten bekannten Kaufort je Material.
+//
+// WICHTIGER HINWEIS: Ob der Browser den Cross-Origin-Zugriff erlaubt
+// (CORS), konnte im Vorfeld nicht 100%ig verifiziert werden -- die Logik
+// ist daher bewusst defensiv: schlaegt der Abruf fehl, wird das sauber
+// abgefangen und dem Nutzer ein klarer Hinweis angezeigt, statt die App
+// zu stoeren. Ergebnis wird lokal zwischengespeichert (Cache TTL passend
+// zur stuendlichen Aktualisierung der Quelle), um nicht bei jedem
+// Seitenaufruf neu abzufragen.
+// ============================================================
+let commodityPrices = {};        // { 'iron': {sellBest, sellTerminal, buyBest, buyTerminal} }
+let commodityPricesFetchedAt = null;
+let commodityPricesError = null;
+const COMMODITY_PRICES_CACHE_MS = 60 * 60 * 1000; // 1 Stunde, passend zur Quelle
+
+async function fetchCommodityPrices(force){
+  if(!force && commodityPricesFetchedAt && (Date.now() - commodityPricesFetchedAt) < COMMODITY_PRICES_CACHE_MS){
+    return; // noch aktuell genug, keine erneute Abfrage
+  }
+  try{
+    const resp = await fetch('https://api.uexcorp.space/2.0/commodities_raw_prices_all');
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const payload = await resp.json();
+    if(payload.status !== 'ok' || !Array.isArray(payload.data)) throw new Error('Unerwartetes Antwortformat');
+
+    const grouped = {};
+    payload.data.forEach(row=>{
+      const key = (row.commodity_name || '').toLowerCase().trim();
+      if(!key) return;
+      if(!grouped[key]) grouped[key] = { sellBest: null, sellTerminal: null, buyBest: null, buyTerminal: null };
+      const g = grouped[key];
+      if(row.price_sell != null && row.price_sell > 0 && (g.sellBest === null || row.price_sell > g.sellBest)){
+        g.sellBest = row.price_sell;
+        g.sellTerminal = row.terminal_name;
+      }
+      if(row.price_buy != null && row.price_buy > 0 && (g.buyBest === null || row.price_buy < g.buyBest)){
+        g.buyBest = row.price_buy;
+        g.buyTerminal = row.terminal_name;
+      }
+    });
+
+    commodityPrices = grouped;
+    commodityPricesFetchedAt = Date.now();
+    commodityPricesError = null;
+  }catch(e){
+    commodityPricesError = e.message || String(e);
+    // Alte, evtl. noch brauchbare Daten NICHT verwerfen -- lieber mit
+    // veralteten Preisen weiterarbeiten als mit gar keinen.
+  }
+}
+
+// Liefert die Preisdaten fuer ein Material (case-insensitiver Name-
+// Abgleich mit UEX), oder null falls kein Treffer.
+function getCommodityPrice(material){
+  return commodityPrices[(material||'').toLowerCase().trim()] || null;
+}
+
+// Zeigt Status der Marktpreis-Anbindung an (zuletzt aktualisiert / Fehler)
+// und einen manuellen Aktualisieren-Button neben dem Zusammenfassung-Titel.
+function renderCommodityPriceStatus(){
+  const el = document.getElementById('commodityPriceStatus');
+  if(!el) return;
+  let text;
+  if(commodityPricesError && !commodityPricesFetchedAt){
+    text = `<span style="color:var(--low);">${t('msg_marktpreise_fehler')}</span>`;
+  } else if(commodityPricesFetchedAt){
+    text = `${t('label_marktpreise_stand')}: ${formatImportTimestamp(new Date(commodityPricesFetchedAt).toISOString())}` +
+      (commodityPricesError ? ` <span style="color:var(--low);" title="${escapeHtml(commodityPricesError)}">⚠</span>` : '');
+  } else {
+    text = t('msg_marktpreise_laedt');
+  }
+  el.innerHTML = `<span>${text}</span><button class="btn-ghost" id="btnRefreshCommodityPrices" style="font-size:10.5px;padding:3px 9px;">↻ ${t('btn_aktualisieren')}</button>`;
+  document.getElementById('btnRefreshCommodityPrices').addEventListener('click', async ()=>{
+    el.innerHTML = `<span>${t('msg_marktpreise_laedt')}</span>`;
+    await fetchCommodityPrices(true);
+    renderSummary();
+    renderCommodityPriceStatus();
+  });
 }
 
 // Reine Zahl statt formatiertem Text — für Fortschrittsberechnungen und
@@ -7107,6 +7492,7 @@ function renderProjects(){
   const canManage = roleAtLeast(currentUser.role, 'admin');
 
   let html = `<table><thead><tr>
+    <th style="width:28px;"><input type="checkbox" id="selectAllProjects"></th>
     <th>${t('label_ziel')}</th><th>${t('label_anzahl')}</th><th>${t('col_ressourcen')}</th><th></th>
   </tr></thead><tbody>`;
 
@@ -7114,6 +7500,7 @@ function renderProjects(){
     const resources = p.resources.map(normalizeResource);
     if(editingProjectId === p.id){
       html += `<tr>
+        <td></td>
         <td data-label="${t('col_ziel')}"><input class="edit-input" id="edit-proj-ziel" value="${escapeHtml(p.ziel)}"></td>
         <td data-label="${t('col_anzahl')}"><input class="edit-input" id="edit-proj-anzahl" type="number" step="1" value="${p.anzahl}" style="width:70px;"></td>
         <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" colspan="2">
@@ -7135,25 +7522,34 @@ function renderProjects(){
         </td>
       </tr>`;
     } else {
+      const resourceDetails = resources.map(r=>{
+        const avail = stockAmount(r.material, p.ziel);
+        const fehlend = (r.menge!=null && r.menge>avail) ? Math.round((r.menge-avail)*100)/100 : 0;
+        return { ...r, avail, fehlend };
+      });
+      const missingResources = resourceDetails.filter(r=>r.fehlend>0);
+      const bulkNeedButton = missingResources.length > 1
+        ? `<button class="btn-ghost" data-action="need-all-from-project" data-id="${p.id}" style="font-size:10.5px;padding:4px 10px;margin-bottom:8px;">${t('btn_alle_bedarfe_eintragen')} (${missingResources.length})</button><br>`
+        : '';
       const resourceList = resources.length
-        ? resources.map(r=>{
-            const avail = stockAmount(r.material, p.ziel);
-            const pct = (r.menge!=null && r.menge>0) ? Math.min(100, Math.round((avail/r.menge)*100)) : null;
+        ? bulkNeedButton + resourceDetails.map(r=>{
+            const pct = (r.menge!=null && r.menge>0) ? Math.min(100, Math.round((r.avail/r.menge)*100)) : null;
             const barColor = pct===null ? 'var(--steel)' : (pct>=100 ? '#2CFFA0' : pct>=50 ? '#FFC93C' : '#FF3B5C');
-            const fehlend = (r.menge!=null && r.menge>avail) ? Math.round((r.menge-avail)*100)/100 : 0;
             return `<div style="margin-bottom:6px;">
               <div>${escapeHtml(r.material)} — ${t('label_benoetigt')}: <span class="qty-cell">${r.menge!=null ? r.menge : '–'}</span> / ${t('label_vorhanden')}: <span class="qty-cell stock-hover-wrap">${escapeHtml(stockForMaterial(r.material, p.ziel))}<span class="stock-hover-tooltip">${buildStockBreakdownHTML(r.material, p.ziel)}</span></span>${r.mindestqualitaet!=null ? ` · <span style="color:var(--ink-soft);">${t('label_mind_qualitaet')}: ${r.mindestqualitaet}</span>` : ''}</div>
               ${pct!==null ? `<div class="gauge" style="width:140px;margin-top:4px;"><div class="gauge-fill" style="width:${pct}%;background:${barColor};"></div></div><div style="font-size:10px;color:var(--ink-soft);margin-top:2px;">${pct}%</div>` : ''}
-              ${fehlend>0 ? `<button class="btn-ghost" data-action="need-from-project" data-material="${escapeHtml(r.material)}" data-menge="${fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;">${t('btn_bedarf_eintragen')} (${fehlend} ${t('label_fehlt')})</button>` : ''}
+              ${r.fehlend>0 ? `<button class="btn-ghost" data-action="need-from-project" data-material="${escapeHtml(r.material)}" data-menge="${r.fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;">${t('btn_bedarf_eintragen')} (${r.fehlend} ${t('label_fehlt')})</button>` : ''}
             </div>`;
           }).join('')
         : '<span style="color:var(--ink-soft);">—</span>';
       html += `<tr>
+        <td>${canManage ? `<input type="checkbox" class="project-select-cb" data-id="${p.id}" ${selectedProjectIds.has(p.id)?'checked':''}>` : ''}</td>
         <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
         <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" colspan="2">${resourceList}</td>
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
+          <button class="btn-icon" data-action="reapply-project" data-id="${p.id}" title="${t('tooltip_projekt_erneut_anlegen')}">🔁</button>
           <button class="btn-icon danger" data-action="delete-project" data-id="${p.id}" title="${t('btn_delete')}">🗑</button>` : ''}
         </td>
       </tr>`;
@@ -7172,7 +7568,8 @@ function renderProjects(){
         user: currentUser.username,
         material, qualitaet: 0,
         menge, einheit: 'SCU',
-        prioritaet: 'Hoch'
+        prioritaet: 'Hoch',
+        createdAt: new Date().toISOString()
       });
       await saveNeeds();
       await logAction('Bedarf hinzugefügt', `${material}, ${menge} SCU (Hoch) — aus Projekt „${ziel}“`);
@@ -7182,8 +7579,53 @@ function renderProjects(){
     });
   });
 
+  container.querySelectorAll('[data-action="need-all-from-project"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const p = projects.find(pr=>pr.id === btn.dataset.id);
+      if(!p) return;
+      const resources = p.resources.map(normalizeResource);
+      let addedCount = 0;
+      for(const r of resources){
+        const avail = stockAmount(r.material, p.ziel);
+        const fehlend = (r.menge!=null && r.menge>avail) ? Math.round((r.menge-avail)*100)/100 : 0;
+        if(fehlend > 0){
+          needs.push({
+            id: needUid(),
+            user: currentUser.username,
+            material: r.material, qualitaet: 0,
+            menge: fehlend, einheit: 'SCU',
+            prioritaet: 'Hoch',
+            createdAt: new Date().toISOString()
+          });
+          addedCount++;
+        }
+      }
+      if(addedCount > 0){
+        await saveNeeds();
+        await logAction('Bedarf hinzugefügt (Sammel)', `${addedCount} Materialien aus Projekt „${p.ziel}“`);
+        renderNeeds();
+      }
+      btn.textContent = t('msg_added_as_need');
+      btn.disabled = true;
+    });
+  });
+
   container.querySelectorAll('[data-action="edit-project"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingProjectId = btn.dataset.id; renderProjects(); });
+  });
+  container.querySelectorAll('[data-action="reapply-project"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const p = projects.find(pr=>pr.id === btn.dataset.id);
+      if(!p) return;
+      const resources = p.resources.map(normalizeResource);
+      const pseudoTpl = {
+        name: p.ziel,
+        category: '',
+        materials: resources.map(r=>({name: r.material, menge: r.menge}))
+      };
+      await applyProjectTemplate(false, pseudoTpl);
+      document.getElementById('proj-ziel').scrollIntoView({behavior:'smooth', block:'center'});
+    });
   });
   container.querySelectorAll('[data-action="cancel-project"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingProjectId = null; renderProjects(); });
@@ -7200,6 +7642,26 @@ function renderProjects(){
       });
     });
   });
+
+  container.querySelectorAll('.project-select-cb').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) selectedProjectIds.add(cb.dataset.id);
+      else selectedProjectIds.delete(cb.dataset.id);
+      updateProjectBulkActionsBar();
+    });
+  });
+  const selectAllProjectsCb = document.getElementById('selectAllProjects');
+  if(selectAllProjectsCb){
+    selectAllProjectsCb.style.visibility = canManage ? 'visible' : 'hidden';
+    selectAllProjectsCb.checked = canManage && projects.length>0 && projects.every(p=>selectedProjectIds.has(p.id));
+    selectAllProjectsCb.addEventListener('change', ()=>{
+      if(!canManage) return;
+      if(selectAllProjectsCb.checked) projects.forEach(p=>selectedProjectIds.add(p.id));
+      else projects.forEach(p=>selectedProjectIds.delete(p.id));
+      renderProjects();
+    });
+  }
+  updateProjectBulkActionsBar();
   container.querySelectorAll('[data-remove-resource]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ btn.closest('.proj-resource-row').remove(); });
   });
@@ -7380,6 +7842,7 @@ function renderPrivateProjects(){
   }
 
   let html = `<table><thead><tr>
+    <th style="width:28px;"><input type="checkbox" id="selectAllPrivProjects"></th>
     <th>${t('label_ziel')}</th><th>${t('label_anzahl')}</th><th>${t('col_ressourcen')}</th><th></th>
   </tr></thead><tbody>`;
 
@@ -7387,6 +7850,7 @@ function renderPrivateProjects(){
     const resources = p.resources.map(normalizeResource);
     if(editingPrivateProjectId === p.id){
       html += `<tr>
+        <td></td>
         <td data-label="${t('col_ziel')}"><input class="edit-input" id="edit-priv-proj-ziel" value="${escapeHtml(p.ziel)}"></td>
         <td data-label="${t('col_anzahl')}"><input class="edit-input" id="edit-priv-proj-anzahl" type="number" step="1" value="${p.anzahl}" style="width:70px;"></td>
         <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" colspan="2">
@@ -7420,11 +7884,13 @@ function renderPrivateProjects(){
           }).join('')
         : '<span style="color:var(--ink-soft);">—</span>';
       html += `<tr>
+        <td><input type="checkbox" class="priv-project-select-cb" data-id="${p.id}" ${selectedPrivProjectIds.has(p.id)?'checked':''}></td>
         <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
         <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" colspan="2">${resourceList}</td>
         <td class="actions-cell">
           <button class="btn-icon" data-action="edit-priv-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
+          <button class="btn-icon" data-action="reapply-priv-project" data-id="${p.id}" title="${t('tooltip_projekt_erneut_anlegen')}">🔁</button>
           <button class="btn-icon danger" data-action="delete-priv-project" data-id="${p.id}" title="${t('btn_delete')}">🗑</button>
         </td>
       </tr>`;
@@ -7435,6 +7901,20 @@ function renderPrivateProjects(){
 
   container.querySelectorAll('[data-action="edit-priv-project"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingPrivateProjectId = btn.dataset.id; renderPrivateProjects(); });
+  });
+  container.querySelectorAll('[data-action="reapply-priv-project"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const p = privateProjects.find(pr=>pr.id === btn.dataset.id);
+      if(!p) return;
+      const resources = p.resources.map(normalizeResource);
+      const pseudoTpl = {
+        name: p.ziel,
+        category: '',
+        materials: resources.map(r=>({name: r.material, menge: r.menge}))
+      };
+      await applyProjectTemplate(true, pseudoTpl);
+      document.getElementById('priv-proj-ziel').scrollIntoView({behavior:'smooth', block:'center'});
+    });
   });
   container.querySelectorAll('[data-action="cancel-priv-project"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingPrivateProjectId = null; renderPrivateProjects(); });
@@ -7450,6 +7930,24 @@ function renderPrivateProjects(){
       });
     });
   });
+
+  container.querySelectorAll('.priv-project-select-cb').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) selectedPrivProjectIds.add(cb.dataset.id);
+      else selectedPrivProjectIds.delete(cb.dataset.id);
+      updatePrivProjectBulkActionsBar();
+    });
+  });
+  const selectAllPrivProjectsCb = document.getElementById('selectAllPrivProjects');
+  if(selectAllPrivProjectsCb){
+    selectAllPrivProjectsCb.checked = mine.length>0 && mine.every(p=>selectedPrivProjectIds.has(p.id));
+    selectAllPrivProjectsCb.addEventListener('change', ()=>{
+      if(selectAllPrivProjectsCb.checked) mine.forEach(p=>selectedPrivProjectIds.add(p.id));
+      else mine.forEach(p=>selectedPrivProjectIds.delete(p.id));
+      renderPrivateProjects();
+    });
+  }
+  updatePrivProjectBulkActionsBar();
   container.querySelectorAll('[data-remove-resource]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ btn.closest('.proj-resource-row').remove(); });
   });
@@ -7591,6 +8089,7 @@ function renderNeeds(){
   );
 
   let html = `<table><thead><tr>
+    <th style="width:28px;"><input type="checkbox" id="selectAllNeeds"></th>
     <th>${t('col_benutzer')}</th><th>${t('label_material')}</th><th>${t('label_mind_qualitaet')}</th><th>${t('label_menge')}</th><th>${t('label_prioritaet')}</th><th>${t('col_gemeldet')}</th><th>${t('col_status')}</th><th></th>
   </tr></thead><tbody>`;
 
@@ -7598,6 +8097,7 @@ function renderNeeds(){
     const canManage = roleAtLeast(currentUser.role, 'admin') || (currentUser.role!=='viewer' && n.user===currentUser.username);
     if(editingNeedId === n.id){
       html += `<tr>
+        <td></td>
         <td data-label="${t('col_benutzer')}">${escapeHtml(n.user)}</td>
         <td data-label="${t('col_material')}">${buildMaterialSelectHTML('edit-need-material', n.material, 'edit-input')}</td>
         <td data-label="${t('label_mind_qualitaet')}"><input class="edit-input" id="edit-need-qualitaet" type="number" step="0.01" value="${n.qualitaet}"></td>
@@ -7627,6 +8127,7 @@ function renderNeeds(){
       const ageDays = n.createdAt ? Math.floor((Date.now() - new Date(n.createdAt).getTime()) / 86400000) : null;
       const isOwnUnescalated = n.user===currentUser.username && n.prioritaet!=='Kritisch' && !covered && (ageDays===null || ageDays>=7);
       html += `<tr>
+        <td>${canManage ? `<input type="checkbox" class="need-select-cb" data-id="${n.id}" ${selectedNeedIds.has(n.id)?'checked':''}>` : ''}</td>
         <td data-label="${t('col_benutzer')}"><span style="display:inline-flex;align-items:center;">${userDot(n.user)}${escapeHtml(n.user)}${n.user===currentUser.username?' <span style="color:var(--ink-soft);font-size:11px;">(Du)</span>':''}</span></td>
         <td data-label="${t('col_material')}">${escapeHtml(n.material)}</td>
         <td data-label="${t('label_mind_qualitaet')}">${n.qualitaet}</td>
@@ -7646,6 +8147,25 @@ function renderNeeds(){
   });
   html += '</tbody></table>';
   container.innerHTML = html;
+
+  container.querySelectorAll('.need-select-cb').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) selectedNeedIds.add(cb.dataset.id);
+      else selectedNeedIds.delete(cb.dataset.id);
+      updateNeedBulkActionsBar();
+    });
+  });
+  const selectAllNeedsCb = document.getElementById('selectAllNeeds');
+  if(selectAllNeedsCb){
+    const manageableNeeds = list.filter(n=>roleAtLeast(currentUser.role, 'admin') || (currentUser.role!=='viewer' && n.user===currentUser.username));
+    selectAllNeedsCb.checked = manageableNeeds.length>0 && manageableNeeds.every(n=>selectedNeedIds.has(n.id));
+    selectAllNeedsCb.addEventListener('change', ()=>{
+      if(selectAllNeedsCb.checked) manageableNeeds.forEach(n=>selectedNeedIds.add(n.id));
+      else manageableNeeds.forEach(n=>selectedNeedIds.delete(n.id));
+      renderNeeds();
+    });
+  }
+  updateNeedBulkActionsBar();
 
   container.querySelectorAll('[data-action="edit-need"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingNeedId = btn.dataset.id; renderNeeds(); });
@@ -7707,6 +8227,140 @@ function renderNeeds(){
   }
 }
 
+// Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) fuer die Bedarf-Mehrfach-
+// auswahl entsprechend aktualisieren.
+function updateNeedBulkActionsBar(){
+  const bar = document.getElementById('needBulkActionsBar');
+  if(!bar) return;
+  const count = selectedNeedIds.size;
+  bar.style.display = count>0 ? 'flex' : 'none';
+  document.getElementById('needBulkActionsCount').textContent = t('label_selected_count').replace('{count}', count);
+}
+
+const btnBulkDeleteNeeds = document.getElementById('btnBulkDeleteNeeds');
+btnBulkDeleteNeeds.addEventListener('click', ()=>{
+  armConfirm(btnBulkDeleteNeeds, async ()=>{
+    // Sicherheitsnetz: nur tatsaechlich berechtigte Bedarfe loeschen, auch
+    // falls die Auswahl aus irgendeinem Grund einen nicht (mehr) erlaubten
+    // Eintrag enthalten sollte (z.B. Rollenwechsel waehrend der Auswahl).
+    const canManageNeed = n => roleAtLeast(currentUser.role, 'admin') || (currentUser.role!=='viewer' && n.user===currentUser.username);
+    const toDelete = needs.filter(n=>selectedNeedIds.has(n.id) && canManageNeed(n));
+    needs = needs.filter(n=>!(selectedNeedIds.has(n.id) && canManageNeed(n)));
+    await saveNeeds();
+    for(const n of toDelete){
+      await logAction('Bedarf gelöscht', `${n.material}, ${n.menge} ${n.einheit} (${n.user}, Sammel-Löschung)`);
+    }
+    selectedNeedIds.clear();
+    renderNeeds();
+    const statusEl = document.getElementById('needStatus');
+    if(statusEl){
+      statusEl.textContent = t('msg_bulk_deleted').replace('{count}', toDelete.length);
+      setTimeout(()=>{ statusEl.textContent=''; }, 2500);
+    }
+  });
+});
+
+// Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) fuer die Projekt-
+// Mehrfachauswahl entsprechend aktualisieren.
+function updateProjectBulkActionsBar(){
+  const bar = document.getElementById('projectBulkActionsBar');
+  if(!bar) return;
+  const count = selectedProjectIds.size;
+  bar.style.display = count>0 ? 'flex' : 'none';
+  document.getElementById('projectBulkActionsCount').textContent = t('label_selected_count').replace('{count}', count);
+}
+
+const btnBulkDeleteProjects = document.getElementById('btnBulkDeleteProjects');
+btnBulkDeleteProjects.addEventListener('click', ()=>{
+  armConfirm(btnBulkDeleteProjects, async ()=>{
+    if(!roleAtLeast(currentUser.role, 'admin')) return;
+    const toDelete = projects.filter(p=>selectedProjectIds.has(p.id));
+    projects = projects.filter(p=>!selectedProjectIds.has(p.id));
+    await saveProjects();
+    for(const p of toDelete){
+      await logAction('Projekt gelöscht', `${p.ziel} (Sammel-Löschung)`);
+    }
+    selectedProjectIds.clear();
+    renderProjects();
+    scheduleRenderDashboard();
+  });
+});
+
+// Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) fuer die Sammelobjekte-
+// Mehrfachauswahl entsprechend aktualisieren.
+function updateCollectibleBulkActionsBar(){
+  const bar = document.getElementById('collectibleBulkActionsBar');
+  if(!bar) return;
+  const count = selectedCollectibleIds.size;
+  bar.style.display = count>0 ? 'flex' : 'none';
+  document.getElementById('collectibleBulkActionsCount').textContent = t('label_selected_count').replace('{count}', count);
+}
+
+const btnBulkDeleteCollectibles = document.getElementById('btnBulkDeleteCollectibles');
+btnBulkDeleteCollectibles.addEventListener('click', ()=>{
+  armConfirm(btnBulkDeleteCollectibles, async ()=>{
+    if(currentUser.role==='viewer') return;
+    const toDelete = collectibles.filter(c=>selectedCollectibleIds.has(c.id));
+    collectibles = collectibles.filter(c=>!selectedCollectibleIds.has(c.id));
+    await saveCollectibles();
+    for(const c of toDelete){
+      await logAction('Sammelobjekt gelöscht', `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''} — ${c.anzahl}x (${c.besitzer||'–'}, Sammel-Löschung)`);
+    }
+    selectedCollectibleIds.clear();
+    renderCollectibles();
+    renderCollectibleSummary();
+    scheduleRenderDashboard();
+  });
+});
+
+// Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) fuer die private
+// Sammelobjekte-Mehrfachauswahl entsprechend aktualisieren.
+function updatePrivCollectibleBulkActionsBar(){
+  const bar = document.getElementById('privCollectibleBulkActionsBar');
+  if(!bar) return;
+  const count = selectedPrivCollectibleIds.size;
+  bar.style.display = count>0 ? 'flex' : 'none';
+  document.getElementById('privCollectibleBulkActionsCount').textContent = t('label_selected_count').replace('{count}', count);
+}
+
+const btnBulkDeletePrivCollectibles = document.getElementById('btnBulkDeletePrivCollectibles');
+btnBulkDeletePrivCollectibles.addEventListener('click', ()=>{
+  armConfirm(btnBulkDeletePrivCollectibles, async ()=>{
+    const toDelete = privateCollectibles.filter(c=>selectedPrivCollectibleIds.has(c.id));
+    privateCollectibles = privateCollectibles.filter(c=>!selectedPrivCollectibleIds.has(c.id));
+    await savePrivateCollectibles();
+    for(const c of toDelete){
+      await logAction('Privates Sammelobjekt gelöscht', `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''} — ${c.anzahl}x (Sammel-Löschung)`);
+    }
+    selectedPrivCollectibleIds.clear();
+    renderPrivateCollectibles();
+  });
+});
+
+// Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) fuer die private Projekt-
+// Mehrfachauswahl entsprechend aktualisieren.
+function updatePrivProjectBulkActionsBar(){
+  const bar = document.getElementById('privProjectBulkActionsBar');
+  if(!bar) return;
+  const count = selectedPrivProjectIds.size;
+  bar.style.display = count>0 ? 'flex' : 'none';
+  document.getElementById('privProjectBulkActionsCount').textContent = t('label_selected_count').replace('{count}', count);
+}
+
+const btnBulkDeletePrivProjects = document.getElementById('btnBulkDeletePrivProjects');
+btnBulkDeletePrivProjects.addEventListener('click', ()=>{
+  armConfirm(btnBulkDeletePrivProjects, async ()=>{
+    const toDelete = privateProjects.filter(p=>selectedPrivProjectIds.has(p.id));
+    privateProjects = privateProjects.filter(p=>!selectedPrivProjectIds.has(p.id));
+    await savePrivateProjects();
+    for(const p of toDelete){
+      await logAction('Privates Projekt gelöscht', `${p.ziel} (Sammel-Löschung)`);
+    }
+    selectedPrivProjectIds.clear();
+    renderPrivateProjects();
+  });
+});
+
 async function load(){
   // Alle unabhängigen Speicher-Abfragen parallel statt nacheinander laden —
   // das reduziert die Wartezeit von "Summe aller Abfragen" auf "langsamste Abfrage".
@@ -7739,7 +8393,7 @@ async function load(){
   ]);
 
   // Dropdowns aufbauen — erst jetzt, da sie MATERIALS/LOCATIONS/projects benötigen.
-  document.getElementById('f-material-wrap').innerHTML = buildMaterialSelectHTML('f-material', '');
+  document.getElementById('f-material-wrap').innerHTML = buildMaterialSelectHTML('f-material', '', '', getUserCategoryRestriction());
   document.getElementById('f-lagerort-wrap').innerHTML = buildLocationSelectHTML('f-lagerort', '');
   document.getElementById('need-material-wrap').innerHTML = buildMaterialSelectHTML('need-material', '');
   document.getElementById('priv-material-wrap').innerHTML = buildMaterialSelectHTML('priv-material', '');
@@ -7772,6 +8426,14 @@ async function load(){
       if(tab !== activeTabName) renderTabContent(tab);
     });
   }, 0);
+
+  // Marktpreise bewusst NICHT blockierend abrufen (externe API, unbekannte
+  // Latenz/Zuverlaessigkeit) -- laeuft im Hintergrund, aktualisiert die
+  // betroffenen Ansichten erst, sobald das Ergebnis da ist.
+  fetchCommodityPrices().then(()=>{
+    renderSummary();
+    renderCommodityPriceStatus();
+  });
 }
 
 function renderTabContent(tab){
@@ -7795,15 +8457,30 @@ function scheduleRenderDashboard(){
 // Rangliste der Beitragenden — bewusst nach Anzahl der Einträge sortiert,
 // nicht nach reiner Mengensumme, da SCU und Stück nicht sinnvoll addierbar
 // sind. Zeigt die jeweiligen Mengen je Einheit zusätzlich als Detail an.
+let leaderboardTimeframe = 'all';
+
+// Grenzt entries anhand des gewaehlten Zeitraums ein (Woche/Monat/Gesamt).
+// Eintraege ohne Zeitstempel (aeltere Datenbestaende von vor Einfuehrung
+// von createdAt) werden bei einer Zeitraum-Einschraenkung sicherheitshalber
+// ausgeschlossen, da ihr tatsaechliches Alter unbekannt ist -- bei
+// "Gesamt" zaehlen sie hingegen ganz normal mit.
+function filterEntriesByTimeframe(list, timeframe){
+  if(timeframe === 'all') return list;
+  const now = Date.now();
+  const cutoffMs = timeframe === 'week' ? 7*86400000 : 30*86400000;
+  return list.filter(e=> e.createdAt && (now - new Date(e.createdAt).getTime()) <= cutoffMs);
+}
+
 function renderContributorLeaderboard(){
   const container = document.getElementById('contributorLeaderboard');
   if(!container) return;
-  if(entries.length === 0){
+  const scoped = filterEntriesByTimeframe(entries, leaderboardTimeframe);
+  if(scoped.length === 0){
     container.innerHTML = `<div class="empty">${t('empty_leaderboard')}</div>`;
     return;
   }
   const stats = {};
-  entries.forEach(e=>{
+  scoped.forEach(e=>{
     if(!stats[e.person]) stats[e.person] = { count:0, scu:0, stueck:0 };
     stats[e.person].count++;
     if(e.einheit==='Stück') stats[e.person].stueck += e.menge;
@@ -7823,6 +8500,10 @@ function renderContributorLeaderboard(){
     </div>`;
   }).join('');
 }
+document.getElementById('leaderboardTimeframe').addEventListener('change', (e)=>{
+  leaderboardTimeframe = e.target.value;
+  renderContributorLeaderboard();
+});
 
 async function renderDashboard(){
   if(!currentUser) return;
@@ -8148,6 +8829,19 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
     return;
   }
 
+  // Zusaetzliche Absicherung neben der Dropdown-Filterung: verhindert,
+  // dass ein per Kategorie beschraenkter Editor ausserhalb seiner
+  // erlaubten Kategorien etwas eintraegt (z.B. durch manuelle DOM-
+  // Manipulation der Dropdown-Optionen).
+  const categoryRestriction = getUserCategoryRestriction();
+  if(categoryRestriction){
+    const matDef = MATERIALS.find(m=>m.name===material);
+    if(!matDef || !categoryRestriction.includes(matDef.category)){
+      setStatus(t('val_kategorie_nicht_erlaubt'));
+      return;
+    }
+  }
+
   const qualitaet = parseFloat(qualitaetRaw);
   const mengeNum = parseFloat(menge);
 
@@ -8227,7 +8921,7 @@ function addBulkTableRow(isPrivate){
   const tr = document.createElement('tr');
   tr.dataset.rowId = rowId;
   tr.innerHTML = `
-    <td>${buildMaterialSelectHTML(prefix+'bulk-mat-'+rowId, '', 'edit-input')}</td>
+    <td>${buildMaterialSelectHTML(prefix+'bulk-mat-'+rowId, '', 'edit-input', isPrivate ? null : getUserCategoryRestriction())}</td>
     <td><input class="edit-input" id="${prefix}bulk-qual-${rowId}" type="number" step="0.01" style="width:90px;"></td>
     <td><input class="edit-input" id="${prefix}bulk-menge-${rowId}" type="number" step="0.01" style="width:90px;"></td>
     <td><button type="button" class="btn-icon danger" data-remove-row="${rowId}" title="${t('btn_delete')}">✕</button></td>
@@ -8876,7 +9570,8 @@ function renderOcrPreview(rows, cropCanvas, scale){
     const materialSelect = buildMaterialSelectHTML(
       'ocr-prev-material-'+i,
       materialValue,
-      'edit-input ocr-prev-material' + (r.materialConfident ? '' : ' ocr-uncertain')
+      'edit-input ocr-prev-material' + (r.materialConfident ? '' : ' ocr-uncertain'),
+      getUserCategoryRestriction()
     );
     const showRawHint = r.materialRaw && (!r.material || r.materialRaw.toLowerCase() !== r.material.toLowerCase());
     const rawHint = showRawHint
@@ -9414,7 +10109,11 @@ function renderSummary(){
     <th>${t('col_reserviert')}</th>
     <th>${t('col_frei_verfuegbar')}</th>
     <th>${t('col_sollbestand')}</th>
+    <th>${t('col_geschaetzter_wert')}</th>
   </tr></thead><tbody>`;
+
+  let totalValue = 0;
+  let anyPriceFound = false;
 
   rows.forEach(r=>{
     const total = r.low + r.med + r.high;
@@ -9423,6 +10122,9 @@ function renderSummary(){
     const minStock = matDef ? matDef.minStock : null;
     const underMin = minStock!=null && total < minStock;
     const isExpanded = expandedUsageMaterial === r.material;
+    const price = r.einheit === 'SCU' ? getCommodityPrice(r.material) : null;
+    const estValue = (price && price.sellBest != null) ? total * price.sellBest : null;
+    if(estValue != null){ totalValue += estValue; anyPriceFound = true; }
     html += `<tr${underMin ? ' style="background:rgba(255,59,92,0.06);"' : ''}>
       <td class="material-name">${escapeHtml(r.material)}<span class="usage-search-btn${isExpanded?' active':''}" data-action="toggle-usage-material" data-material="${escapeHtml(r.material)}" title="${t('tooltip_rueckwaertssuche')}">🔍</span></td>
       <td>${escapeHtml(r.einheit)}</td>
@@ -9433,11 +10135,19 @@ function renderSummary(){
       <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${fmt(r.reserviert)}</span>` : `<span style="color:var(--ink-soft);">${fmt(0)}</span>`}</td>
       <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${fmt(frei)}</span></td>
       <td>${minStock!=null ? `<span class="badge ${underMin?'low':'high'}">${underMin ? t('label_under_min_stock')+' ('+minStock+')' : t('label_ok_min_stock')+' ('+minStock+')'}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
+      <td>${estValue!=null ? `<span class="qty-cell" title="${t('tooltip_wert_basis')}: ${fmt(price.sellBest)} aUEC/SCU @ ${escapeHtml(price.sellTerminal||'')}">${fmt(estValue)} aUEC</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
     </tr>`;
     if(isExpanded){
-      html += `<tr><td colspan="9" style="padding:0;">${buildUsageBreakdownHTML(r.material)}</td></tr>`;
+      html += `<tr><td colspan="10" style="padding:0;">${buildUsageBreakdownHTML(r.material)}</td></tr>`;
     }
   });
+
+  if(anyPriceFound){
+    html += `<tr style="border-top:2px solid var(--panel-border);">
+      <td colspan="9" style="text-align:right;font-weight:700;color:var(--ink);">${t('label_gesamtwert_bestand')}</td>
+      <td class="sum-total" style="color:var(--cyan);">${fmt(totalValue)} aUEC</td>
+    </tr>`;
+  }
 
   html += '</tbody></table>';
   container.innerHTML = html;
@@ -9481,13 +10191,26 @@ btnBulkDeleteEntries.addEventListener('click', ()=>{
 // (Administrator, Organisations-Administrator, Besitzer) — nicht von
 // einem beliebigen anderen Editor.
 function canManageEntry(entry){
-  return currentUser.username === entry.person || roleAtLeast(currentUser.role, 'admin');
+  const baseAllowed = currentUser.username === entry.person || roleAtLeast(currentUser.role, 'admin');
+  if(!baseAllowed) return false;
+  // Admins/Org-Admins/Owner sind von der Kategorie-Beschraenkung nie
+  // betroffen — diese betrifft ausschliesslich die Rolle "Editor".
+  if(roleAtLeast(currentUser.role, 'admin')) return true;
+  const restriction = getUserCategoryRestriction();
+  if(restriction){
+    const matDef = MATERIALS.find(m=>m.name===entry.material);
+    const cat = matDef ? matDef.category : null;
+    if(!cat || !restriction.includes(cat)) return false;
+  }
+  return true;
 }
 
 function render(){
   updateFilterOptions();
   renderSummary();
   updateTabBadges();
+  renderRecentChips('f-material-recent-chips', 'f-material', getRecentDistinctValues(entries, 'material', 5));
+  renderRecentChips('f-lagerort-recent-chips', 'f-lagerort', getRecentDistinctValues(entries, 'lagerort', 5));
   const list = getFiltered();
   document.getElementById('statCount').textContent = entries.length;
   document.getElementById('statLocations').textContent = new Set(entries.map(e=>e.lagerort)).size;
@@ -9550,7 +10273,7 @@ function render(){
     if(editingId === e.id){
       html += `<tr>
         ${currentUser.role!=='viewer' ? '<td></td>' : ''}
-        <td data-label="${t('col_material')}">${buildMaterialSelectHTML('edit-material', e.material, 'edit-input')}</td>
+        <td data-label="${t('col_material')}">${buildMaterialSelectHTML('edit-material', e.material, 'edit-input', getUserCategoryRestriction())}</td>
         <td data-label="${t('label_qualitaet')}">
           <input class="edit-input" id="edit-qualitaet" type="number" step="0.01" value="${e.qualitaet}">
           <span id="edit-qualitaet-warning" data-style="icon" style="display:none;color:#FFC93C;font-size:14px;margin-left:4px;cursor:help;" title="">⚠</span>
@@ -9657,9 +10380,18 @@ function render(){
           setStatus(validationError);
           return;
         }
+        const newMaterial = document.getElementById('edit-material').value.trim();
+        const categoryRestriction = getUserCategoryRestriction();
+        if(categoryRestriction){
+          const matDef = MATERIALS.find(m=>m.name===newMaterial);
+          if(!matDef || !categoryRestriction.includes(matDef.category)){
+            setStatus(t('val_kategorie_nicht_erlaubt'));
+            return;
+          }
+        }
         entries[idx] = {
           ...entries[idx],
-          material: document.getElementById('edit-material').value.trim(),
+          material: newMaterial,
           qualitaet: newQualitaet,
           menge: newMenge,
           einheit: document.getElementById('edit-einheit').value,
@@ -9905,6 +10637,8 @@ function renderPrivate(){
   updateTabBadges();
   renderPrivateProjects();
   const mine = myPrivateEntries();
+  renderRecentChips('priv-material-recent-chips', 'priv-material', getRecentDistinctValues(mine, 'material', 5));
+  renderRecentChips('priv-lagerort-recent-chips', 'priv-lagerort', getRecentDistinctValues(mine, 'lagerort', 5));
   const list = getFilteredPrivate();
   const container = document.getElementById('privateTableContainer');
 
