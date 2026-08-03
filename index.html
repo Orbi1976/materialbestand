@@ -383,6 +383,15 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
 }
 .usage-project-name:hover{ color:var(--ink); }
 .usage-empty{ color:var(--ink-soft); font-size:12.5px; padding:4px 0; }
+.usage-search-heading{
+  font-family:'Orbitron', sans-serif;
+  font-size:13px;
+  font-weight:700;
+  color:var(--ink);
+  margin-bottom:10px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--panel-border);
+}
 
 /* Mobilgeräte: Tabs horizontal scrollbar statt umbrechend — größere,
    griffige Reiter statt einer gestauchten Zwei-Zeilen-Leiste. */
@@ -1582,6 +1591,19 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="panel">
+    <h2 data-i18n="panel_rueckwaertssuche">Wo wird das gebraucht?</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rueckwaertssuche">Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="flex:1;min-width:220px;margin:0;">
+        <label for="usageSearchInput" data-i18n="label_material_oder_objekt">Material oder Sammelobjekt</label>
+        <input type="text" id="usageSearchInput" list="usageSearchOptions" placeholder="z. B. Titanium" data-i18n-placeholder="placeholder_usage_search" autocomplete="off">
+        <datalist id="usageSearchOptions"></datalist>
+      </div>
+    </div>
+    <div id="usageSearchResult" style="margin-top:14px;"></div>
+  </div>
+
+  <div class="panel">
     <h2 data-i18n="panel_zusammenfassung">Zusammenfassung nach Material</h2>
     <div id="summaryContainer"></div>
   </div>
@@ -1701,6 +1723,19 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div class="status-msg" id="priv-bulkAddStatus"></div>
       </div>
     </div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="panel_rueckwaertssuche">Wo wird das gebraucht?</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rueckwaertssuche">Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="flex:1;min-width:220px;margin:0;">
+        <label for="privUsageSearchInput" data-i18n="label_material_oder_objekt">Material oder Sammelobjekt</label>
+        <input type="text" id="privUsageSearchInput" list="privUsageSearchOptions" placeholder="z. B. Titanium" data-i18n-placeholder="placeholder_usage_search" autocomplete="off">
+        <datalist id="privUsageSearchOptions"></datalist>
+      </div>
+    </div>
+    <div id="privUsageSearchResult" style="margin-top:14px;"></div>
   </div>
 
   <div class="panel">
@@ -2307,6 +2342,11 @@ const I18N = {
   "filter_reservierung_frei": "Nur frei verfügbar",
   "filter_reservierung_reserviert": "Nur reserviert (Projekte)",
   "panel_projekt_erinnerung": "Offene Projekt-Bedarfe",
+  "panel_rueckwaertssuche": "Wo wird das gebraucht?",
+  "hint_rueckwaertssuche": "Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.",
+  "label_material_oder_objekt": "Material oder Sammelobjekt",
+  "placeholder_usage_search": "z. B. Titanium",
+  "hint_usage_search_no_exact_match": "Kein exakter Treffer — bitte einen Eintrag aus der Vorschlagsliste wählen.",
   "hint_projekt_erinnerung": "Aktive Projekte mit noch fehlenden Materialien, zur schnellen Erinnerung.",
   "panel_leaderboard": "Beitragende (gesamt)",
   "empty_leaderboard": "Noch keine Bestandseinträge vorhanden.",
@@ -2762,6 +2802,11 @@ const I18N = {
   "filter_reservierung_frei": "Freely available only",
   "filter_reservierung_reserviert": "Reserved (projects) only",
   "panel_projekt_erinnerung": "Open project needs",
+  "panel_rueckwaertssuche": "Where is this needed?",
+  "hint_rueckwaertssuche": "Search for a material or collectible — even if it doesn't have a stock entry yet — and find all active projects and recipes/templates that need it.",
+  "label_material_oder_objekt": "Material or collectible",
+  "placeholder_usage_search": "e.g. Titanium",
+  "hint_usage_search_no_exact_match": "No exact match — please pick an entry from the suggestion list.",
   "hint_projekt_erinnerung": "Active projects with materials still missing, as a quick reminder.",
   "panel_leaderboard": "Contributors (total)",
   "empty_leaderboard": "No inventory entries yet.",
@@ -3217,6 +3262,11 @@ const I18N = {
   "filter_reservierung_frei": "Uniquement disponible",
   "filter_reservierung_reserviert": "Uniquement réservé (projets)",
   "panel_projekt_erinnerung": "Besoins de projet en attente",
+  "panel_rueckwaertssuche": "Où est-ce nécessaire ?",
+  "hint_rueckwaertssuche": "Recherchez un matériau ou un objet de collection — même s'il n'a pas encore d'entrée de stock — et trouvez tous les projets actifs ainsi que les recettes/modèles qui en ont besoin.",
+  "label_material_oder_objekt": "Matériau ou objet de collection",
+  "placeholder_usage_search": "p. ex. Titanium",
+  "hint_usage_search_no_exact_match": "Aucune correspondance exacte — veuillez choisir une entrée dans la liste de suggestions.",
   "hint_projekt_erinnerung": "Projets actifs avec des matériaux encore manquants, en guise de rappel rapide.",
   "panel_leaderboard": "Contributeurs (total)",
   "empty_leaderboard": "Aucune entrée de stock pour le moment.",
@@ -5876,6 +5926,7 @@ async function refreshCatalogDropdowns(){
   document.getElementById('f-lagerort-wrap').innerHTML = buildLocationSelectHTML('f-lagerort', '');
   document.getElementById('priv-material-wrap').innerHTML = buildMaterialSelectHTML('priv-material', '');
   document.getElementById('priv-lagerort-wrap').innerHTML = buildLocationSelectHTML('priv-lagerort', '');
+  populateUsageSearchOptions();
 
   initProjectResourcesIfEmpty(false);
   refreshProjectResourceOptions(false);
@@ -6021,12 +6072,13 @@ function projectUid(){ return 'p' + Date.now() + Math.random().toString(36).slic
 // Rezepte/Vorlagen (Standard + Wikelo), in denen es vorkommt. Genutzt
 // von der Zusammenfassung nach Material und der Sammelobjekte-
 // Zusammenfassung ueber ein Klick-Icon je Zeile.
-function buildUsageBreakdownHTML(itemName){
-  const activeProjects = projects.map(p=>{
+function buildUsageBreakdownHTML(itemName, isPrivate){
+  const projectSource = isPrivate ? privateProjects : projects;
+  const activeProjects = projectSource.map(p=>{
     const resources = p.resources.map(normalizeResource);
     const match = resources.find(r=>r.material === itemName);
     if(!match) return null;
-    const avail = stockAmount(itemName, p.ziel);
+    const avail = isPrivate ? privateStockAmount(itemName, p.ziel) : stockAmount(itemName, p.ziel);
     const fehlend = (match.menge!=null && match.menge>avail) ? Math.round((match.menge-avail)*100)/100 : 0;
     return { ziel: p.ziel, menge: match.menge, avail, fehlend };
   }).filter(Boolean);
@@ -6042,7 +6094,7 @@ function buildUsageBreakdownHTML(itemName){
   } else {
     html += `<ul class="usage-list">` + activeProjects.map(p=>`
       <li>
-        <span class="usage-project-name" data-goto-project="${escapeHtml(p.ziel)}">${escapeHtml(p.ziel)}</span>
+        <span class="usage-project-name" data-goto-project="${escapeHtml(p.ziel)}" data-private-project="${isPrivate?'1':'0'}">${escapeHtml(p.ziel)}</span>
         — ${t('label_benoetigt')}: <span class="qty-cell">${p.menge!=null?p.menge:'–'}</span>
         / ${t('label_vorhanden')}: <span class="qty-cell">${p.avail}</span>
         ${p.fehlend>0 ? `<span class="badge low">${t('label_fehlt')}: ${p.fehlend}</span>` : `<span class="badge high">${t('label_gedeckt')}</span>`}
@@ -6060,6 +6112,46 @@ function buildUsageBreakdownHTML(itemName){
   }
   html += `</div>`;
   return html;
+}
+
+// Kombinierte, alphabetisch sortierte Liste aller bekannten Material- und
+// Sammelobjekt-Namen (aus den Katalogen, nicht nur bereits eingetragene) —
+// Grundlage fuer die Datalist-Vorschlaege der Rueckwaerts-Suchfelder.
+function getAllKnownItemNames(){
+  const names = new Set([
+    ...MATERIALS.map(m=>m.name),
+    ...COLLECTIBLES.map(c=>c.name)
+  ]);
+  return [...names].sort((a,b)=>a.localeCompare(b));
+}
+
+function populateUsageSearchOptions(){
+  const names = getAllKnownItemNames();
+  const optionsHtml = names.map(n=>`<option value="${escapeHtml(n)}"></option>`).join('');
+  const el1 = document.getElementById('usageSearchOptions');
+  const el2 = document.getElementById('privUsageSearchOptions');
+  if(el1) el1.innerHTML = optionsHtml;
+  if(el2) el2.innerHTML = optionsHtml;
+}
+
+// Wertet die Eingabe eines Rueckwaerts-Suchfelds aus: bei exaktem Treffer
+// (unabhaengig von Groß-/Kleinschreibung) gegen die bekannten Material-/
+// Sammelobjekt-Namen wird die Aufschluesselung angezeigt, sonst ein
+// dezenter Hinweis bzw. bei leerem Feld gar nichts.
+function handleUsageSearchInput(inputId, resultId, isPrivate){
+  const input = document.getElementById(inputId);
+  const result = document.getElementById(resultId);
+  if(!input || !result) return;
+  const query = input.value.trim();
+  if(!query){ result.innerHTML = ''; return; }
+
+  const names = getAllKnownItemNames();
+  const exact = names.find(n=>n.toLowerCase() === query.toLowerCase());
+  if(exact){
+    result.innerHTML = `<div class="usage-search-heading">${escapeHtml(exact)}</div>` + buildUsageBreakdownHTML(exact, isPrivate);
+  } else {
+    result.innerHTML = `<div class="usage-empty">${t('hint_usage_search_no_exact_match')}</div>`;
+  }
 }
 
 // Summiert den aktuellen Bestand für ein Material, getrennt nach Einheit.
@@ -7417,6 +7509,9 @@ async function load(){
   document.getElementById('priv-coll-item').addEventListener('change', updatePrivateCollectibleTierField);
   updatePrivateCollectibleTierField();
   document.getElementById('priv-coll-standort-wrap').innerHTML = buildLocationSelectHTML('priv-coll-standort', '');
+  populateUsageSearchOptions();
+  document.getElementById('usageSearchInput').addEventListener('input', ()=>handleUsageSearchInput('usageSearchInput', 'usageSearchResult', false));
+  document.getElementById('privUsageSearchInput').addEventListener('input', ()=>handleUsageSearchInput('privUsageSearchInput', 'privUsageSearchResult', true));
 
   // Aktiven Tab sofort rendern, damit er ohne Verzögerung sichtbar ist.
   const activeTab = document.querySelector('.tab-btn.active');
@@ -7788,7 +7883,7 @@ document.addEventListener('click', (e)=>{
     return;
   }
   if(e.target.classList.contains('usage-project-name')){
-    switchTab('projekte');
+    switchTab(e.target.dataset.privateProject === '1' ? 'privatbestand' : 'projekte');
   }
 });
 
