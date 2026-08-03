@@ -5097,15 +5097,16 @@ setupTabReordering();
 //
 // WICHTIG: Die Erkennung der geheimen Wasserzeichen-Sequenz (siehe weiter
 // unten im Code fuer WATERMARK_TRIGGER) laeuft bewusst GANZ OBEN in
-// DIESEM selben Listener, statt in einem eigenen, unabhaengigen
-// Listener. Grund: Bei zwei getrennten Listenern haengt die Reihenfolge
-// von Browser-internen Capturing/Bubbling-Feinheiten ab, die sich als
-// nicht zuverlaessig genug erwiesen haben (Ziffern der geheimen Sequenz
-// loesten trotzdem sichtbar einen Tab-Wechsel aus). Innerhalb EINES
-// Listeners ist die Reihenfolge hingegen durch normalen, synchronen
-// JavaScript-Code garantiert.
+// DIESEM selben Listener und erfordert zusaetzlich gehaltenes ALT.
+// Zwei fruehere Ansaetze (Capturing-Phase-Trick, dann ein gemeinsamer
+// Listener ohne Modifikator-Pflicht) haben sich in der Praxis als nicht
+// zuverlaessig genug erwiesen. Mit Alt als Pflicht-Modifikator kann es
+// prinzipiell gar nicht mehr zur Kollision kommen: Die Tab-Switch-Logik
+// weiter unten bricht bei gehaltenem Alt (bzw. Ctrl/Cmd) ohnehin schon
+// immer sofort ab (siehe "if(e.ctrlKey || e.metaKey || e.altKey) return;"),
+// ganz unabhaengig von der Sequenz-Erkennung.
 document.addEventListener('keydown', (e)=>{
-  if(e.key.length === 1){
+  if(e.altKey && !e.ctrlKey && !e.metaKey && e.key.length === 1){
     const candidate = (watermarkKeyBuffer + e.key).slice(-WATERMARK_TRIGGER.length);
     if(isWatermarkTriggerPrefix(candidate)){
       watermarkKeyBuffer = candidate;
@@ -5114,12 +5115,13 @@ document.addEventListener('keydown', (e)=>{
         document.getElementById('watermarkModalId').textContent = WATERMARK_ID;
         document.getElementById('watermarkModal').style.display = 'flex';
       }
-      // Mitten in (oder am Ziel von) der geheimen Sequenz — alle
-      // anderen Tastenkuerzel fuer GENAU diesen Tastendruck ueberspringen,
-      // damit z.B. Ziffern der Sequenz keinen sichtbaren Tab-Wechsel
-      // ausloesen und die Eingabe damit verraten.
       return;
     }
+    watermarkKeyBuffer = '';
+  } else if(!e.altKey){
+    // Alt losgelassen (oder gar nicht erst gehalten) — angefangene
+    // Eingabe verwerfen, damit nicht ueber mehrere, durch Loslassen
+    // unterbrochene Versuche hinweg unbeabsichtigt weitergezaehlt wird.
     watermarkKeyBuffer = '';
   }
 
