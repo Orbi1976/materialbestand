@@ -336,6 +336,54 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
   margin-bottom:6px;
 }
 
+/* Rueckwaerts-Suche: Klick-Icon je Zeile in den Zusammenfassungen (Material
+   & Sammelobjekte), oeffnet eine Detail-Zeile mit aktiven Projekten und
+   Rezepten/Vorlagen, die dieses Material/Objekt benoetigen. */
+.usage-search-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:20px;
+  height:20px;
+  margin-left:6px;
+  border-radius:50%;
+  cursor:pointer;
+  color:var(--ink-soft);
+  font-size:12px;
+  vertical-align:middle;
+  transition:color 0.15s, background 0.15s;
+}
+.usage-search-btn:hover{ color:var(--cyan); background:rgba(0,216,255,0.1); }
+.usage-search-btn.active{ color:var(--cyan); background:rgba(0,216,255,0.15); }
+.usage-breakdown{
+  padding:12px 16px;
+  background:rgba(0,216,255,0.04);
+  border-left:2px solid var(--cyan);
+}
+.usage-section-title{
+  font-family:'Orbitron', sans-serif;
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.8px;
+  color:var(--cyan);
+  margin-bottom:6px;
+}
+.usage-list{ list-style:none; margin:0; padding:0; }
+.usage-list li{
+  padding:5px 0;
+  font-size:12.5px;
+  border-bottom:1px solid var(--line);
+}
+.usage-list li:last-child{ border-bottom:none; }
+.usage-project-name{
+  color:var(--cyan);
+  cursor:pointer;
+  text-decoration:underline dotted;
+}
+.usage-project-name:hover{ color:var(--ink); }
+.usage-empty{ color:var(--ink-soft); font-size:12.5px; padding:4px 0; }
+
 /* Mobilgeräte: Tabs horizontal scrollbar statt umbrechend — größere,
    griffige Reiter statt einer gestauchten Zwei-Zeilen-Leiste. */
 body.device-mobile .tabbar{
@@ -2199,6 +2247,12 @@ const I18N = {
   "label_beitraege_aufschluesselung": "Wer hat beigetragen",
   "empty_no_contributions": "Noch kein Bestand für dieses Material in diesem Projekt.",
   "label_fehlt": "fehlt",
+  "label_gedeckt": "gedeckt",
+  "label_aktive_projekte": "Aktive Projekte",
+  "empty_no_active_projects_for_item": "Wird derzeit von keinem aktiven Projekt benötigt.",
+  "label_rezepte_vorlagen": "Rezepte & Vorlagen",
+  "empty_no_templates_for_item": "Kommt in keinem Rezept oder keiner Vorlage vor.",
+  "tooltip_rueckwaertssuche": "Zeigen, wo dieses Material/Objekt verwendet wird",
   "btn_bedarf_eintragen": "+ Bedarf eintragen",
   "placeholder_pw_vergessen_hint": "für Passwort-vergessen-Funktion",
   "heading_material_hinzufuegen": "Material hinzufügen",
@@ -2283,6 +2337,7 @@ const I18N = {
   "btn_rezepte_importieren": "Importieren",
   "msg_templates_imported": "{count} Vorlagen importiert.",
   "msg_templates_current_count": "Aktuell {count} Vorlagen gespeichert.",
+  "msg_last_imported": "(zuletzt importiert am {date})",
   "val_template_import_empty": "Bitte mindestens eine Zeile im Format Kategorie;Name;Material1,Material2 einfügen.",
   "placeholder_vorlage_suchen": "Vorlage suchen (optional) …",
   "empty_template_search": "Keine passende Vorlage gefunden.",
@@ -2647,6 +2702,12 @@ const I18N = {
   "label_beitraege_aufschluesselung": "Who contributed",
   "empty_no_contributions": "No stock for this material in this project yet.",
   "label_fehlt": "missing",
+  "label_gedeckt": "covered",
+  "label_aktive_projekte": "Active projects",
+  "empty_no_active_projects_for_item": "Not currently needed by any active project.",
+  "label_rezepte_vorlagen": "Recipes & templates",
+  "empty_no_templates_for_item": "Does not appear in any recipe or template.",
+  "tooltip_rueckwaertssuche": "Show where this material/item is used",
   "btn_bedarf_eintragen": "+ Add as need",
   "placeholder_pw_vergessen_hint": "for the forgot-password feature",
   "heading_material_hinzufuegen": "Add material",
@@ -2731,6 +2792,7 @@ const I18N = {
   "btn_rezepte_importieren": "Import",
   "msg_templates_imported": "{count} templates imported.",
   "msg_templates_current_count": "Currently {count} templates saved.",
+  "msg_last_imported": "(last imported on {date})",
   "val_template_import_empty": "Please enter at least one line in the format Category;Name;Material1,Material2.",
   "placeholder_vorlage_suchen": "Search template (optional) …",
   "empty_template_search": "No matching template found.",
@@ -3095,6 +3157,12 @@ const I18N = {
   "label_beitraege_aufschluesselung": "Qui a contribué",
   "empty_no_contributions": "Pas encore de stock pour ce matériau dans ce projet.",
   "label_fehlt": "manquant",
+  "label_gedeckt": "couvert",
+  "label_aktive_projekte": "Projets actifs",
+  "empty_no_active_projects_for_item": "N'est actuellement requis par aucun projet actif.",
+  "label_rezepte_vorlagen": "Recettes et modèles",
+  "empty_no_templates_for_item": "N'apparaît dans aucune recette ni aucun modèle.",
+  "tooltip_rueckwaertssuche": "Afficher où ce matériau/objet est utilisé",
   "btn_bedarf_eintragen": "+ Ajouter comme besoin",
   "placeholder_pw_vergessen_hint": "pour la fonction mot de passe oublié",
   "heading_material_hinzufuegen": "Ajouter un matériau",
@@ -3179,6 +3247,7 @@ const I18N = {
   "btn_rezepte_importieren": "Importer",
   "msg_templates_imported": "{count} modèles importés.",
   "msg_templates_current_count": "Actuellement {count} modèles enregistrés.",
+  "msg_last_imported": "(dernière importation le {date})",
   "val_template_import_empty": "Veuillez saisir au moins une ligne au format Catégorie;Nom;Matériau1,Matériau2.",
   "placeholder_vorlage_suchen": "Rechercher un modèle (facultatif) …",
   "empty_template_search": "Aucun modèle correspondant trouvé.",
@@ -3475,6 +3544,12 @@ async function changeLanguage(lang){
 const STORAGE_KEY = 'entries';
 let entries = [];
 let editingId = null;
+// Zustand der Rückwärts-Suche: Name des Materials bzw. Sammelobjekts,
+// dessen "verwendet in"-Aufschlüsselung gerade aufgeklappt ist (oder
+// null). Getrennt für Materialien und Sammelobjekte, da beide
+// Zusammenfassungen unabhängig voneinander aufklappbar sein sollen.
+let expandedUsageMaterial = null;
+let expandedUsageCollectible = null;
 let selectedEntryIds = new Set();
 let sortKey = null;
 let sortDir = 1;
@@ -5434,12 +5509,16 @@ function renderCollectibleSummary(){
       .sort((a,b)=> b[1]-a[1])
       .map(([name,qty])=>`${escapeHtml(name)}: <span class="qty-cell">${qty}</span>`)
       .join('<br>');
+    const isExpanded = expandedUsageCollectible === r.objekt;
     html += `<tr>
-      <td class="material-name">${escapeHtml(r.objekt)}</td>
+      <td class="material-name">${escapeHtml(r.objekt)}<span class="usage-search-btn${isExpanded?' active':''}" data-action="toggle-usage-collectible" data-objekt="${escapeHtml(r.objekt)}" title="${t('tooltip_rueckwaertssuche')}">🔍</span></td>
       <td>${r.tier ? escapeHtml(r.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
       <td class="sum-total">${r.total}</td>
       <td>${ownerList}</td>
     </tr>`;
+    if(isExpanded){
+      html += `<tr><td colspan="4" style="padding:0;">${buildUsageBreakdownHTML(r.objekt)}</td></tr>`;
+    }
   });
 
   html += '</tbody></table>';
@@ -5937,6 +6016,52 @@ async function saveProjects(){
 
 function projectUid(){ return 'p' + Date.now() + Math.random().toString(36).slice(2,7); }
 
+// Rueckwaerts-Suche: findet zu einem Material- oder Sammelobjekt-Namen
+// alle aktiven (geteilten) Projekte, die es benoetigen, sowie alle
+// Rezepte/Vorlagen (Standard + Wikelo), in denen es vorkommt. Genutzt
+// von der Zusammenfassung nach Material und der Sammelobjekte-
+// Zusammenfassung ueber ein Klick-Icon je Zeile.
+function buildUsageBreakdownHTML(itemName){
+  const activeProjects = projects.map(p=>{
+    const resources = p.resources.map(normalizeResource);
+    const match = resources.find(r=>r.material === itemName);
+    if(!match) return null;
+    const avail = stockAmount(itemName, p.ziel);
+    const fehlend = (match.menge!=null && match.menge>avail) ? Math.round((match.menge-avail)*100)/100 : 0;
+    return { ziel: p.ziel, menge: match.menge, avail, fehlend };
+  }).filter(Boolean);
+
+  const templates = allProjectTemplates().filter(tpl=>
+    tpl.materials.map(normalizeTemplateMaterial).some(m=>m.name === itemName)
+  );
+
+  let html = `<div class="usage-breakdown">`;
+  html += `<div class="usage-section-title">${t('label_aktive_projekte')}</div>`;
+  if(activeProjects.length === 0){
+    html += `<div class="usage-empty">${t('empty_no_active_projects_for_item')}</div>`;
+  } else {
+    html += `<ul class="usage-list">` + activeProjects.map(p=>`
+      <li>
+        <span class="usage-project-name" data-goto-project="${escapeHtml(p.ziel)}">${escapeHtml(p.ziel)}</span>
+        — ${t('label_benoetigt')}: <span class="qty-cell">${p.menge!=null?p.menge:'–'}</span>
+        / ${t('label_vorhanden')}: <span class="qty-cell">${p.avail}</span>
+        ${p.fehlend>0 ? `<span class="badge low">${t('label_fehlt')}: ${p.fehlend}</span>` : `<span class="badge high">${t('label_gedeckt')}</span>`}
+      </li>
+    `).join('') + `</ul>`;
+  }
+
+  html += `<div class="usage-section-title" style="margin-top:10px;">${t('label_rezepte_vorlagen')}</div>`;
+  if(templates.length === 0){
+    html += `<div class="usage-empty">${t('empty_no_templates_for_item')}</div>`;
+  } else {
+    html += `<ul class="usage-list">` + templates.map(tpl=>`
+      <li>${escapeHtml(tpl.name)} <span style="color:var(--ink-soft);font-size:11px;">(${escapeHtml(tpl.category)})</span></li>
+    `).join('') + `</ul>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
 // Summiert den aktuellen Bestand für ein Material, getrennt nach Einheit.
 function stockForMaterial(material, projekt){
   if(!material) return null;
@@ -6071,18 +6196,37 @@ function addEditProjectResourceRow(idPrefix, container){
 // ============================================================
 const PROJECT_TEMPLATES_KEY = 'project-templates';
 let projectTemplates = [];
+let projectTemplatesImportedAt = null;
+let projectTemplatesVersionLabel = null;
 
 async function loadProjectTemplates(){
   try{
     const res = await window.storage.get(orgKey(PROJECT_TEMPLATES_KEY), true);
-    projectTemplates = res && res.value ? JSON.parse(res.value) : [];
+    const parsed = res && res.value ? JSON.parse(res.value) : [];
+    // Abwaertskompatibel: alte Speicherungen waren ein reines Array ohne
+    // Versionsinfos. Neues Format ist {templates, importedAt, versionLabel}.
+    if(Array.isArray(parsed)){
+      projectTemplates = parsed;
+      projectTemplatesImportedAt = null;
+      projectTemplatesVersionLabel = null;
+    } else {
+      projectTemplates = parsed.templates || [];
+      projectTemplatesImportedAt = parsed.importedAt || null;
+      projectTemplatesVersionLabel = parsed.versionLabel || null;
+    }
   }catch(e){
     projectTemplates = [];
+    projectTemplatesImportedAt = null;
+    projectTemplatesVersionLabel = null;
   }
 }
 async function saveProjectTemplates(){
   try{
-    await window.storage.set(orgKey(PROJECT_TEMPLATES_KEY), JSON.stringify(projectTemplates), true);
+    await window.storage.set(orgKey(PROJECT_TEMPLATES_KEY), JSON.stringify({
+      templates: projectTemplates,
+      importedAt: projectTemplatesImportedAt,
+      versionLabel: projectTemplatesVersionLabel
+    }), true);
     return true;
   }catch(e){
     return false;
@@ -6091,7 +6235,42 @@ async function saveProjectTemplates(){
 
 function renderTemplateCount(){
   const el = document.getElementById('templateCountDisplay');
-  if(el) el.textContent = t('msg_templates_current_count').replace('{count}', projectTemplates.length);
+  if(!el) return;
+  let text = t('msg_templates_current_count').replace('{count}', projectTemplates.length);
+  if(projectTemplatesImportedAt){
+    text += ' ' + t('msg_last_imported').replace('{date}', formatImportTimestamp(projectTemplatesImportedAt));
+  }
+  if(projectTemplatesVersionLabel){
+    text += ' — ' + escapeHtml(projectTemplatesVersionLabel);
+  }
+  el.textContent = text;
+}
+
+// Formatiert einen ISO-Zeitstempel als lesbares Datum+Uhrzeit im
+// aktuellen Sprachformat — genutzt fuer die "Zuletzt importiert am"-
+// Anzeige bei Projekt- und Wikelo-Vorlagen.
+function formatImportTimestamp(iso){
+  try{
+    const d = new Date(iso);
+    return d.toLocaleString(currentLang==='de'?'de-DE':currentLang==='fr'?'fr-FR':'en-US', {
+      year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
+    });
+  }catch(e){
+    return iso;
+  }
+}
+
+// Extrahiert eine optionale Versions-Kennzeichnung aus der ersten Zeile
+// einer Import-Datei, falls diese mit "#" beginnt (z. B.
+// "# Stand: 2026-08-02 | 833/856 Rezepte mit Mengen"). Gibt
+// {label, remainingLines} zurueck; die Kommentarzeile wird nicht mit
+// geparst (waere ohnehin durch die Semikolon-Pruefung sicher ignoriert
+// worden, wird hier aber sauber vorher abgetrennt).
+function extractVersionLabel(lines){
+  if(lines.length > 0 && lines[0].trim().startsWith('#')){
+    return { label: lines[0].trim().replace(/^#\s*/, ''), remainingLines: lines.slice(1) };
+  }
+  return { label: null, remainingLines: lines };
 }
 
 // ============================================================
@@ -6103,18 +6282,35 @@ function renderTemplateCount(){
 // ============================================================
 const WIKELO_TEMPLATES_KEY = 'wikelo-templates';
 let wikeloTemplates = [];
+let wikeloTemplatesImportedAt = null;
+let wikeloTemplatesVersionLabel = null;
 
 async function loadWikeloTemplates(){
   try{
     const res = await window.storage.get(orgKey(WIKELO_TEMPLATES_KEY), true);
-    wikeloTemplates = res && res.value ? JSON.parse(res.value) : [];
+    const parsed = res && res.value ? JSON.parse(res.value) : [];
+    if(Array.isArray(parsed)){
+      wikeloTemplates = parsed;
+      wikeloTemplatesImportedAt = null;
+      wikeloTemplatesVersionLabel = null;
+    } else {
+      wikeloTemplates = parsed.templates || [];
+      wikeloTemplatesImportedAt = parsed.importedAt || null;
+      wikeloTemplatesVersionLabel = parsed.versionLabel || null;
+    }
   }catch(e){
     wikeloTemplates = [];
+    wikeloTemplatesImportedAt = null;
+    wikeloTemplatesVersionLabel = null;
   }
 }
 async function saveWikeloTemplates(){
   try{
-    await window.storage.set(orgKey(WIKELO_TEMPLATES_KEY), JSON.stringify(wikeloTemplates), true);
+    await window.storage.set(orgKey(WIKELO_TEMPLATES_KEY), JSON.stringify({
+      templates: wikeloTemplates,
+      importedAt: wikeloTemplatesImportedAt,
+      versionLabel: wikeloTemplatesVersionLabel
+    }), true);
     return true;
   }catch(e){
     return false;
@@ -6122,7 +6318,15 @@ async function saveWikeloTemplates(){
 }
 function renderWikeloCount(){
   const el = document.getElementById('wikeloCountDisplay');
-  if(el) el.textContent = t('msg_wikelo_current_count').replace('{count}', wikeloTemplates.length);
+  if(!el) return;
+  let text = t('msg_wikelo_current_count').replace('{count}', wikeloTemplates.length);
+  if(wikeloTemplatesImportedAt){
+    text += ' ' + t('msg_last_imported').replace('{date}', formatImportTimestamp(wikeloTemplatesImportedAt));
+  }
+  if(wikeloTemplatesVersionLabel){
+    text += ' — ' + escapeHtml(wikeloTemplatesVersionLabel);
+  }
+  el.textContent = text;
 }
 
 // Liefert die Vorlagen aus beiden Quellen zusammengeführt — genutzt von
@@ -6287,14 +6491,20 @@ function parseSimpleTemplateFormat(lines){
 }
 
 document.getElementById('btnImportTemplates').addEventListener('click', async ()=>{
-  const raw = document.getElementById('templateImportText').value;
+  const rawFull = document.getElementById('templateImportText').value;
   const statusEl = document.getElementById('templateImportStatus');
-  const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l);
+  const allLines = rawFull.split('\n').map(l=>l.trim()).filter(l=>l);
 
-  if(lines.length === 0){
+  if(allLines.length === 0){
     statusEl.textContent = t('val_template_import_empty');
     return;
   }
+
+  // Optionale Versions-Kennzeichnung in der ersten Zeile (z. B.
+  // "# Stand: 2026-08-02 | 833/856 Rezepte mit Mengen") erkennen und
+  // abtrennen, bevor der eigentliche Inhalt geparst wird.
+  const { label: versionLabel, remainingLines: lines } = extractVersionLabel(allLines);
+  const raw = lines.join('\n');
 
   // Format automatisch erkennen: enthält die Datei Tabulatoren, wird das
   // rohe scmdb-Exportformat angenommen (inkl. automatischer
@@ -6309,8 +6519,10 @@ document.getElementById('btnImportTemplates').addEventListener('click', async ()
 
   statusEl.textContent = t('msg_saving');
   projectTemplates = parsed;
+  projectTemplatesImportedAt = new Date().toISOString();
+  projectTemplatesVersionLabel = versionLabel;
   await saveProjectTemplates();
-  await logAction('Projekt-Vorlagen importiert', `${parsed.length} Vorlagen`);
+  await logAction('Projekt-Vorlagen importiert', `${parsed.length} Vorlagen${versionLabel ? ' ('+versionLabel+')' : ''}`);
 
   statusEl.textContent = t('msg_templates_imported').replace('{count}', parsed.length);
   renderTemplateCount();
@@ -6340,15 +6552,16 @@ document.getElementById('wikeloFileInput').addEventListener('change', (e)=>{
 });
 
 document.getElementById('btnImportWikelo').addEventListener('click', async ()=>{
-  const raw = document.getElementById('wikeloImportText').value;
+  const rawFull = document.getElementById('wikeloImportText').value;
   const statusEl = document.getElementById('wikeloImportStatus');
-  const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l);
+  const allLines = rawFull.split('\n').map(l=>l.trim()).filter(l=>l);
 
-  if(lines.length === 0){
+  if(allLines.length === 0){
     statusEl.textContent = t('val_wikelo_import_empty');
     return;
   }
 
+  const { label: versionLabel, remainingLines: lines } = extractVersionLabel(allLines);
   const parsed = parseSimpleTemplateFormat(lines);
 
   if(parsed.length === 0){
@@ -6358,8 +6571,10 @@ document.getElementById('btnImportWikelo').addEventListener('click', async ()=>{
 
   statusEl.textContent = t('msg_saving');
   wikeloTemplates = parsed;
+  wikeloTemplatesImportedAt = new Date().toISOString();
+  wikeloTemplatesVersionLabel = versionLabel;
   await saveWikeloTemplates();
-  await logAction('Wikelo-Handelsangebote importiert', `${parsed.length} Angebote`);
+  await logAction('Wikelo-Handelsangebote importiert', `${parsed.length} Angebote${versionLabel ? ' ('+versionLabel+')' : ''}`);
 
   statusEl.textContent = t('msg_wikelo_imported').replace('{count}', parsed.length);
   renderWikeloCount();
@@ -7551,6 +7766,29 @@ document.addEventListener('change', (e)=>{
     // Praefix aus der ID ableiten (z.B. 'edit-priv-material' -> 'edit-priv')
     const prefix = e.target.id.replace('-material','').replace('-projekt','');
     updateQualityWarning(prefix);
+  }
+});
+
+// Rueckwaerts-Suche: Klick-Icons in den Zusammenfassungen (Material &
+// Sammelobjekte) auf-/zuklappen, sowie Klick auf einen Projektnamen
+// innerhalb der aufgeklappten Aufschluesselung zum Projekte-Tab springen.
+document.addEventListener('click', (e)=>{
+  const usageBtn = e.target.closest('[data-action="toggle-usage-material"]');
+  if(usageBtn){
+    const material = usageBtn.dataset.material;
+    expandedUsageMaterial = (expandedUsageMaterial === material) ? null : material;
+    renderSummary();
+    return;
+  }
+  const collUsageBtn = e.target.closest('[data-action="toggle-usage-collectible"]');
+  if(collUsageBtn){
+    const objekt = collUsageBtn.dataset.objekt;
+    expandedUsageCollectible = (expandedUsageCollectible === objekt) ? null : objekt;
+    renderCollectibleSummary();
+    return;
+  }
+  if(e.target.classList.contains('usage-project-name')){
+    switchTab('projekte');
   }
 });
 
@@ -8842,8 +9080,9 @@ function renderSummary(){
     const matDef = MATERIALS.find(m=>m.name===r.material);
     const minStock = matDef ? matDef.minStock : null;
     const underMin = minStock!=null && total < minStock;
+    const isExpanded = expandedUsageMaterial === r.material;
     html += `<tr${underMin ? ' style="background:rgba(255,59,92,0.06);"' : ''}>
-      <td class="material-name">${escapeHtml(r.material)}</td>
+      <td class="material-name">${escapeHtml(r.material)}<span class="usage-search-btn${isExpanded?' active':''}" data-action="toggle-usage-material" data-material="${escapeHtml(r.material)}" title="${t('tooltip_rueckwaertssuche')}">🔍</span></td>
       <td>${escapeHtml(r.einheit)}</td>
       <td><div class="sum-cell ${r.low===0?'zero':''}"><span class="sum-dot" style="background:#FF3B5C"></span>${fmt(r.low)}</div></td>
       <td><div class="sum-cell ${r.med===0?'zero':''}"><span class="sum-dot" style="background:#FFC93C"></span>${fmt(r.med)}</div></td>
@@ -8853,6 +9092,9 @@ function renderSummary(){
       <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${fmt(frei)}</span></td>
       <td>${minStock!=null ? `<span class="badge ${underMin?'low':'high'}">${underMin ? t('label_under_min_stock')+' ('+minStock+')' : t('label_ok_min_stock')+' ('+minStock+')'}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
     </tr>`;
+    if(isExpanded){
+      html += `<tr><td colspan="9" style="padding:0;">${buildUsageBreakdownHTML(r.material)}</td></tr>`;
+    }
   });
 
   html += '</tbody></table>';
