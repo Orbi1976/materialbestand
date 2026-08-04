@@ -1218,6 +1218,24 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 </div>
 
+<div id="releaseAssignmentModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:245;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:26px 28px;max-width:460px;width:100%;box-shadow:0 0 40px var(--cyan-glow);">
+    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 8px;">🔓 <span data-i18n="modal_release_title">Zuordnung aufheben</span></h3>
+    <p id="releaseAssignmentText" style="font-family:'Rajdhani', sans-serif;font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin:0 0 18px;"></p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn-primary" id="btnReleaseToPrivate" style="text-align:left;">
+        <span data-i18n="btn_release_to_private">Zurück in privaten Bestand</span>
+        <div style="font-size:11px;font-weight:400;opacity:0.85;margin-top:2px;" data-i18n="hint_release_to_private">Bleibt dein privater Eintrag, nur die Projekt-Zuordnung wird entfernt.</div>
+      </button>
+      <button class="btn-primary" id="btnReleaseToShared" style="text-align:left;background:var(--steel);">
+        <span data-i18n="btn_release_to_shared">Dem geteilten Bestand zuordnen</span>
+        <div style="font-size:11px;font-weight:400;opacity:0.85;margin-top:2px;" data-i18n="hint_release_to_shared">Wird als freier geteilter Bestand übernommen und aus deinem privaten Bestand entfernt.</div>
+      </button>
+      <button class="btn-ghost" id="btnReleaseCancel" data-i18n="btn_cancel" style="align-self:flex-end;margin-top:4px;">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <div id="undoToast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:50;background:#0D141C;border:1px solid var(--panel-border);border-radius:var(--radius);padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,0.5);align-items:center;gap:14px;font-family:'Rajdhani', sans-serif;font-size:14px;color:var(--ink);">
   <span id="undoToastText">Eintrag gelöscht.</span>
   <button class="btn-primary" id="btnUndoToast" style="padding:6px 14px;font-size:11px;">Rückgängig</button>
@@ -1591,7 +1609,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <div class="field" style="grid-column:span 2;">
         <label for="f-menge" data-i18n="label_menge">Menge</label>
         <div class="qty-row qty-row-lg">
-          <input id="f-menge" type="number" min="0" step="0.01" placeholder="0">
+          <input id="f-menge" type="number" min="0" step="0.001" placeholder="0" style="min-width:0;">
           <select id="f-einheit">
             <option value="SCU" data-i18n="unit_scu">SCU</option>
             <option value="Stück" data-i18n="unit_stueck">Stück</option>
@@ -1731,7 +1749,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <div class="field" style="grid-column:span 2;">
         <label for="priv-menge" data-i18n="label_menge">Menge</label>
         <div class="qty-row qty-row-lg">
-          <input id="priv-menge" type="number" min="0" step="0.01" placeholder="0">
+          <input id="priv-menge" type="number" min="0" step="0.001" placeholder="0" style="min-width:0;">
           <select id="priv-einheit">
             <option value="SCU" data-i18n="unit_scu">SCU</option>
             <option value="Stück" data-i18n="unit_stueck">Stück</option>
@@ -1870,7 +1888,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="panel">
     <h2 data-i18n="panel_sammelobjekte_privat">Sammelobjekte &amp; Artefakte (Privat)</h2>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privat_sammelobjekte">Nur du siehst diese Einträge. Sie fließen nur ein, wenn du sie ausdrücklich in die allgemeinen Sammelobjekte übernimmst.</span></div>
-    <div class="form-grid" style="grid-template-columns:2fr 1.4fr 1.4fr 1fr auto;">
+    <div class="form-grid" style="grid-template-columns:2fr 1.4fr 1.4fr 1fr 1.4fr auto;">
       <div class="field">
         <label for="priv-coll-item" data-i18n="label_objekt">Objekt</label>
         <div id="priv-coll-item-wrap"></div>
@@ -1886,6 +1904,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <div class="field">
         <label for="priv-coll-anzahl" data-i18n="label_anzahl">Anzahl</label>
         <input type="number" id="priv-coll-anzahl" min="0" step="1" placeholder="1">
+      </div>
+      <div class="field">
+        <label for="priv-coll-projekt" data-i18n="label_projekt">Projekt</label>
+        <div id="priv-coll-projekt-wrap"></div>
       </div>
       <div class="field">
         <button class="btn-primary" id="btnAddPrivateCollectible" data-i18n="btn_add">Eintragen</button>
@@ -1921,7 +1943,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <div class="field">
         <label for="need-menge" data-i18n="label_menge">Menge</label>
         <div class="qty-row">
-          <input id="need-menge" type="number" min="0" step="0.01" placeholder="0">
+          <input id="need-menge" type="number" min="0" step="0.001" placeholder="0" style="min-width:0;">
           <select id="need-einheit">
             <option value="SCU" data-i18n="unit_scu">SCU</option>
             <option value="Stück" data-i18n="unit_stueck">Stück</option>
@@ -1998,7 +2020,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-ghost btn-compact" id="btnExportCollectibles" data-i18n="btn_export_csv">Als CSV exportieren</button>
     </div>
     <div id="collectibleAddSection">
-      <div class="form-grid" style="grid-template-columns:2fr 1.4fr 1.4fr 1fr auto;">
+      <div class="form-grid" style="grid-template-columns:2fr 1.4fr 1.4fr 1fr 1.4fr auto;">
         <div class="field">
           <label for="coll-item" data-i18n="label_objekt">Objekt</label>
           <div id="coll-item-wrap"></div>
@@ -2014,6 +2036,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div class="field">
           <label for="coll-anzahl" data-i18n="label_anzahl">Anzahl</label>
           <input type="number" id="coll-anzahl" min="0" step="1" placeholder="1">
+        </div>
+        <div class="field">
+          <label for="coll-projekt" data-i18n="label_projekt">Projekt</label>
+          <div id="coll-projekt-wrap"></div>
         </div>
         <div class="field">
           <button class="btn-primary" id="btnAddCollectible" data-i18n="btn_add">Eintragen</button>
@@ -2355,6 +2381,9 @@ const I18N = {
   "btn_show_log": "Protokoll anzeigen",
   "empty_no_data": "Noch keine Daten",
   "col_projekt": "Projekt",
+  "label_projekt": "Projekt",
+  "label_geteilte_projekte": "Geteilte Projekte",
+  "label_private_projekte": "Private Projekte",
   "col_einheit": "Einheit",
   "col_gesamt": "Gesamt",
   "col_reserviert": "Reserviert",
@@ -2474,6 +2503,12 @@ const I18N = {
   "btn_restart_tour": "Kurze Einführungs-Tour erneut starten",
   "tour_btn_skip": "Überspringen",
   "modal_need_escalation_title": "Länger offene eigene Bedarfe",
+  "modal_release_title": "Zuordnung aufheben",
+  "modal_release_text": "„{item}“ ist aktuell dem Projekt „{project}“ zugeordnet. Wie soll damit verfahren werden?",
+  "btn_release_to_private": "Zurück in privaten Bestand",
+  "hint_release_to_private": "Bleibt dein privater Eintrag, nur die Projekt-Zuordnung wird entfernt.",
+  "btn_release_to_shared": "Dem geteilten Bestand zuordnen",
+  "hint_release_to_shared": "Wird als freier geteilter Bestand übernommen und aus deinem privaten Bestand entfernt.",
   "modal_need_escalation_hint": "Diese von dir gemeldeten Bedarfe sind seit mindestens einer Woche offen und noch nicht gedeckt. Priorität erhöhen, oder den Eintrag löschen, falls er nicht mehr aktuell ist:",
   "btn_spaeter": "Später",
   "label_unbekanntes_alter": "unbekanntes Alter",
@@ -2672,6 +2707,8 @@ const I18N = {
   "ocr_path_copied": "Pfad kopiert!",
   "msg_user_deleted": "Benutzer „{name}“ gelöscht.",
   "tooltip_transfer_collectible": "In öffentliche Sammelobjekte übernehmen — erweitert passenden Eintrag oder legt neuen an, wird danach aus dem Privatbestand entfernt",
+  "label_privat": "privat",
+  "tooltip_zuordnung_aufheben": "Zuordnung zum Projekt aufheben",
   "tooltip_transfer_entry": "In allgemeinen Bestand übernehmen — erweitert passenden Eintrag oder legt neuen an, wird danach aus dem Privatbestand entfernt",
   "tooltip_click_again_confirm": "Nochmal klicken zum Bestätigen",
   "msg_entry_deleted_named": "„{name}“ gelöscht.",
@@ -2847,6 +2884,9 @@ const I18N = {
   "btn_show_log": "Show log",
   "empty_no_data": "No data yet",
   "col_projekt": "Project",
+  "label_projekt": "Project",
+  "label_geteilte_projekte": "Shared projects",
+  "label_private_projekte": "Private projects",
   "col_einheit": "Unit",
   "col_gesamt": "Total",
   "col_reserviert": "Reserved",
@@ -2966,6 +3006,12 @@ const I18N = {
   "btn_restart_tour": "Restart the short intro tour",
   "tour_btn_skip": "Skip",
   "modal_need_escalation_title": "Long-open needs you reported",
+  "modal_release_title": "Remove assignment",
+  "modal_release_text": "\"{item}\" is currently assigned to project \"{project}\". What would you like to do?",
+  "btn_release_to_private": "Back to private stock",
+  "hint_release_to_private": "Stays your private entry, only the project assignment is removed.",
+  "btn_release_to_shared": "Assign to shared stock",
+  "hint_release_to_shared": "Taken over as free shared stock and removed from your private stock.",
   "modal_need_escalation_hint": "These needs you reported have been open for at least a week and are still not covered. Raise the priority, or delete the entry if it's no longer relevant:",
   "btn_spaeter": "Later",
   "label_unbekanntes_alter": "unknown age",
@@ -3164,6 +3210,8 @@ const I18N = {
   "ocr_path_copied": "Path copied!",
   "msg_user_deleted": "User \"{name}\" deleted.",
   "tooltip_transfer_collectible": "Transfer to public collectibles — extends a matching entry or creates a new one, then removed from private stock",
+  "label_privat": "private",
+  "tooltip_zuordnung_aufheben": "Remove project assignment",
   "tooltip_transfer_entry": "Transfer to general inventory — extends a matching entry or creates a new one, then removed from private stock",
   "tooltip_click_again_confirm": "Click again to confirm",
   "msg_entry_deleted_named": "\"{name}\" deleted.",
@@ -3339,6 +3387,9 @@ const I18N = {
   "btn_show_log": "Afficher le journal",
   "empty_no_data": "Pas encore de données",
   "col_projekt": "Projet",
+  "label_projekt": "Projet",
+  "label_geteilte_projekte": "Projets partagés",
+  "label_private_projekte": "Projets privés",
   "col_einheit": "Unité",
   "col_gesamt": "Total",
   "col_reserviert": "Réservé",
@@ -3458,6 +3509,12 @@ const I18N = {
   "btn_restart_tour": "Relancer la visite guidée rapide",
   "tour_btn_skip": "Ignorer",
   "modal_need_escalation_title": "Vos besoins ouverts depuis longtemps",
+  "modal_release_title": "Supprimer l'affectation",
+  "modal_release_text": "« {item} » est actuellement affecté au projet « {project} ». Que souhaitez-vous faire ?",
+  "btn_release_to_private": "Retour au stock privé",
+  "hint_release_to_private": "Reste votre entrée privée, seule l'affectation au projet est supprimée.",
+  "btn_release_to_shared": "Affecter au stock partagé",
+  "hint_release_to_shared": "Repris comme stock partagé libre et retiré de votre stock privé.",
   "modal_need_escalation_hint": "Ces besoins que vous avez signalés sont ouverts depuis au moins une semaine et toujours non couverts. Augmentez la priorité, ou supprimez l'entrée si elle n'est plus d'actualité :",
   "btn_spaeter": "Plus tard",
   "label_unbekanntes_alter": "âge inconnu",
@@ -3656,6 +3713,8 @@ const I18N = {
   "ocr_path_copied": "Chemin copié\u00a0!",
   "msg_user_deleted": "Utilisateur « {name} » supprimé.",
   "tooltip_transfer_collectible": "Transférer vers les objets de collection publics — complète une entrée correspondante ou en crée une nouvelle, puis retire du stock privé",
+  "label_privat": "privé",
+  "tooltip_zuordnung_aufheben": "Supprimer l'affectation au projet",
   "tooltip_transfer_entry": "Transférer vers le stock général — complète une entrée correspondante ou en crée une nouvelle, puis retire du stock privé",
   "tooltip_click_again_confirm": "Cliquer à nouveau pour confirmer",
   "msg_entry_deleted_named": "« {name} » supprimé.",
@@ -4032,21 +4091,23 @@ function renderUserList(){
     if(editingUserIndex === idx){
       const userCats = [...new Set(MATERIALS.map(m=>m.category))];
       const currentRestriction = u.categoryRestriction || [];
-      return `<div class="user-row">
-        <div class="user-info">
-          <input class="edit-input" id="edit-user-name-${idx}" value="${escapeHtml(u.username)}" style="max-width:150px;">
-          <input class="edit-input" id="edit-user-email-${idx}" type="email" placeholder="E-Mail (optional)" value="${escapeHtml(u.email||'')}">
-          <select class="edit-input" id="edit-user-role-${idx}">${buildRoleOptionsHTML(u.role, currentUser.role)}</select>
-        </div>
-        <div style="width:100%;margin-top:8px;padding:10px 12px;background:rgba(0,216,255,0.04);border-left:2px solid var(--cyan);">
-          <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">${t('label_kategorie_beschraenkung')} <span title="${t('tooltip_kategorie_beschraenkung')}" style="cursor:help;">ⓘ</span></div>
-          <div style="display:flex;flex-wrap:wrap;gap:10px;">
-            ${userCats.map(cat=>`
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;">
-                <input type="checkbox" class="edit-user-category-cb" data-idx="${idx}" value="${escapeHtml(cat)}" ${currentRestriction.includes(cat)?'checked':''}>
-                ${escapeHtml(cat)}
-              </label>
-            `).join('')}
+      return `<div class="user-row" style="align-items:flex-start;">
+        <div style="flex:1;min-width:0;">
+          <div class="user-info">
+            <input class="edit-input" id="edit-user-name-${idx}" value="${escapeHtml(u.username)}" style="max-width:150px;">
+            <input class="edit-input" id="edit-user-email-${idx}" type="email" placeholder="E-Mail (optional)" value="${escapeHtml(u.email||'')}">
+            <select class="edit-input" id="edit-user-role-${idx}">${buildRoleOptionsHTML(u.role, currentUser.role)}</select>
+          </div>
+          <div style="margin-top:8px;padding:10px 12px;background:rgba(0,216,255,0.04);border-left:2px solid var(--cyan);">
+            <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">${t('label_kategorie_beschraenkung')} <span title="${t('tooltip_kategorie_beschraenkung')}" style="cursor:help;">ⓘ</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+              ${userCats.map(cat=>`
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;">
+                  <input type="checkbox" class="edit-user-category-cb" data-idx="${idx}" value="${escapeHtml(cat)}" ${currentRestriction.includes(cat)?'checked':''}>
+                  ${escapeHtml(cat)}
+                </label>
+              `).join('')}
+            </div>
           </div>
         </div>
         <div class="actions-cell">
@@ -5721,6 +5782,7 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
   const objekt = document.getElementById('coll-item').value;
   const anzahl = document.getElementById('coll-anzahl').value;
   const standort = document.getElementById('coll-standort').value;
+  const projektAssign = parseProjectAssignmentValue(document.getElementById('coll-projekt').value);
   const besitzer = currentUser.username;
   const item = findCollectible(objekt);
 
@@ -5741,16 +5803,19 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
     objekt, tier,
     anzahl: parseFloat(anzahl),
     standort,
+    projekt: projektAssign.ziel,
+    projektTyp: projektAssign.typ,
     besitzer
   });
 
   statusEl.textContent = t('msg_saving');
   await saveCollectibles();
-  await logAction('Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${anzahl}x (${besitzer})${standort ? ' @ '+standort : ''}`);
+  await logAction('Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${anzahl}x (${besitzer})${standort ? ' @ '+standort : ''}${projektAssign.ziel ? ' [Projekt: '+projektAssign.ziel+']' : ''}`);
 
   document.getElementById('coll-item').value = '';
   document.getElementById('coll-anzahl').value = '';
   document.getElementById('coll-standort').value = '';
+  document.getElementById('coll-projekt').value = '';
   updateCollectibleTierField();
 
   statusEl.textContent = t('msg_entry_saved');
@@ -5774,7 +5839,7 @@ function renderCollectibles(){
 
   let html = `<table><thead><tr>
     <th style="width:28px;"><input type="checkbox" id="selectAllCollectibles"></th>
-    <th>${t('col_kategorie')}</th><th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_lagerort')}</th><th>${t('label_anzahl')}</th><th>${t('col_besitzer')}</th><th></th>
+    <th>${t('col_kategorie')}</th><th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_lagerort')}</th><th>${t('label_anzahl')}</th><th>${t('col_besitzer')}</th><th>${t('col_projekt')}</th><th></th>
   </tr></thead><tbody>`;
 
   sorted.forEach(c=>{
@@ -5789,6 +5854,7 @@ function renderCollectibles(){
         <td data-label="${t('col_lagerort')}">${buildLocationSelectHTML('edit-coll-standort', c.standort||'', 'edit-input')}</td>
         <td data-label="${t('col_anzahl')}"><input class="edit-input" id="edit-coll-anzahl" type="number" step="1" value="${c.anzahl}" style="width:80px;"></td>
         <td data-label="${t('col_besitzer2')}">${escapeHtml(c.besitzer||'')}</td>
+        <td data-label="${t('col_projekt')}">${buildCombinedProjectSelectHTML('edit-coll-projekt', c.projekt||'', c.projektTyp||null, 'edit-input', false)}</td>
         <td class="actions-cell">
           <button class="btn-icon" data-action="save-collectible" data-id="${c.id}" title="${t('btn_save')}">✓</button>
           <button class="btn-icon danger" data-action="cancel-collectible" title="${t('btn_cancel')}">✕</button>
@@ -5803,6 +5869,7 @@ function renderCollectibles(){
         <td data-label="${t('col_lagerort')}"><span style="display:inline-flex;align-items:center;">${c.standort ? locationDot(c.standort)+escapeHtml(c.standort) : '<span style="color:var(--ink-soft);">—</span>'}</span></td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${c.anzahl}</td>
         <td data-label="${t('col_besitzer2')}"><span style="display:inline-flex;align-items:center;">${c.besitzer ? userDot(c.besitzer)+escapeHtml(c.besitzer) : '<span style="color:var(--ink-soft);">—</span>'}</span></td>
+        <td data-label="${t('col_projekt')}">${c.projekt ? `<span class="badge project-reserved">📌 ${escapeHtml(c.projekt)}${c.projektTyp==='private' ? ' ('+t('label_privat')+')' : ''}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit-collectible" data-id="${c.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon danger" data-action="delete-collectible" data-id="${c.id}" title="${t('btn_delete')}">🗑</button>` : ''}
@@ -5861,13 +5928,17 @@ function renderCollectibles(){
         const newItem = findCollectible(newObjekt);
         const tierSel = document.getElementById('edit-coll-tier');
         const standortSel = document.getElementById('edit-coll-standort');
+        const projektSel = document.getElementById('edit-coll-projekt');
+        const projektAssign = projektSel ? parseProjectAssignmentValue(projektSel.value) : { ziel: collectibles[idx].projekt, typ: collectibles[idx].projektTyp };
         collectibles[idx] = {
           ...collectibles[idx],
           kategorie: newItem ? newItem.category : '',
           objekt: newObjekt,
           tier: tierSel ? tierSel.value : null,
           standort: standortSel ? standortSel.value : collectibles[idx].standort,
-          anzahl: parseFloat(document.getElementById('edit-coll-anzahl').value)||0
+          anzahl: parseFloat(document.getElementById('edit-coll-anzahl').value)||0,
+          projekt: projektAssign.ziel,
+          projektTyp: projektAssign.typ
         };
         await logAction('Sammelobjekt bearbeitet', `${collectibles[idx].objekt}${collectibles[idx].tier ? ' ('+collectibles[idx].tier+')' : ''} — ${collectibles[idx].anzahl}x (${collectibles[idx].besitzer||'–'})`);
       }
@@ -5895,9 +5966,10 @@ function renderCollectibleSummary(){
   collectibles.forEach(c=>{
     const key = c.objekt + '||' + (c.tier||'');
     if(!groups[key]){
-      groups[key] = { objekt: c.objekt, tier: c.tier, kategorie: c.kategorie, total: 0, owners: {} };
+      groups[key] = { objekt: c.objekt, tier: c.tier, kategorie: c.kategorie, total: 0, reserviert: 0, owners: {} };
     }
     groups[key].total += c.anzahl;
+    if(c.projekt){ groups[key].reserviert += c.anzahl; }
     const owner = c.besitzer || 'Unbekannt';
     groups[key].owners[owner] = (groups[key].owners[owner] || 0) + c.anzahl;
   });
@@ -5905,7 +5977,7 @@ function renderCollectibleSummary(){
   const rows = Object.values(groups).sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
 
   let html = `<table class="summary-table"><thead><tr>
-    <th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_gesamt')}</th><th>${t('col_besitzer')}</th>
+    <th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_gesamt')}</th><th>${t('col_reserviert')}</th><th>${t('col_frei_verfuegbar')}</th><th>${t('col_besitzer')}</th>
   </tr></thead><tbody>`;
 
   rows.forEach(r=>{
@@ -5913,15 +5985,18 @@ function renderCollectibleSummary(){
       .sort((a,b)=> b[1]-a[1])
       .map(([name,qty])=>`${escapeHtml(name)}: <span class="qty-cell">${qty}</span>`)
       .join('<br>');
+    const frei = r.total - r.reserviert;
     const isExpanded = expandedUsageCollectible === r.objekt;
     html += `<tr>
       <td class="material-name">${escapeHtml(r.objekt)}<span class="usage-search-btn${isExpanded?' active':''}" data-action="toggle-usage-collectible" data-objekt="${escapeHtml(r.objekt)}" title="${t('tooltip_rueckwaertssuche')}">🔍</span></td>
       <td>${r.tier ? escapeHtml(r.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
       <td class="sum-total">${r.total}</td>
+      <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${r.reserviert}</span>` : `<span style="color:var(--ink-soft);">0</span>`}</td>
+      <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${frei}</span></td>
       <td>${ownerList}</td>
     </tr>`;
     if(isExpanded){
-      html += `<tr><td colspan="4" style="padding:0;">${buildUsageBreakdownHTML(r.objekt)}</td></tr>`;
+      html += `<tr><td colspan="6" style="padding:0;">${buildUsageBreakdownHTML(r.objekt)}</td></tr>`;
     }
   });
 
@@ -5981,6 +6056,7 @@ document.getElementById('btnAddPrivateCollectible').addEventListener('click', as
   const objekt = document.getElementById('priv-coll-item').value;
   const anzahl = document.getElementById('priv-coll-anzahl').value;
   const standort = document.getElementById('priv-coll-standort').value;
+  const projektAssign = parseProjectAssignmentValue(document.getElementById('priv-coll-projekt').value);
   const item = findCollectible(objekt);
 
   if(!objekt || anzahl === ''){
@@ -6000,15 +6076,18 @@ document.getElementById('btnAddPrivateCollectible').addEventListener('click', as
     objekt, tier,
     anzahl: parseFloat(anzahl),
     standort,
+    projekt: projektAssign.ziel,
+    projektTyp: projektAssign.typ,
     owner: currentUser.username
   });
 
   await savePrivateCollectibles();
-  await logAction('Privates Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${anzahl}x${standort ? ' @ '+standort : ''}`);
+  await logAction('Privates Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${anzahl}x${standort ? ' @ '+standort : ''}${projektAssign.ziel ? ' [Projekt: '+projektAssign.ziel+']' : ''}`);
 
   document.getElementById('priv-coll-item').value = '';
   document.getElementById('priv-coll-anzahl').value = '';
   document.getElementById('priv-coll-standort').value = '';
+  document.getElementById('priv-coll-projekt').value = '';
   updatePrivateCollectibleTierField();
 
   statusEl.textContent = t('msg_entry_saved');
@@ -6067,7 +6146,7 @@ function renderPrivateCollectibles(){
 
   let html = `<table><thead><tr>
     <th style="width:28px;"><input type="checkbox" id="selectAllPrivCollectibles"></th>
-    <th>${t('col_kategorie')}</th><th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_lagerort')}</th><th>${t('label_anzahl')}</th><th></th>
+    <th>${t('col_kategorie')}</th><th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_lagerort')}</th><th>${t('label_anzahl')}</th><th>${t('col_projekt')}</th><th></th>
   </tr></thead><tbody>`;
 
   sorted.forEach(c=>{
@@ -6081,6 +6160,7 @@ function renderPrivateCollectibles(){
         <td data-label="${t('col_qualitaet_stufe2')}">${tiers.length>0 ? buildTierSelectHTML('edit-priv-coll-tier', tiers, c.tier, 'edit-input') : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td data-label="${t('col_lagerort')}">${buildLocationSelectHTML('edit-priv-coll-standort', c.standort||'', 'edit-input')}</td>
         <td data-label="${t('col_anzahl')}"><input class="edit-input" id="edit-priv-coll-anzahl" type="number" step="1" value="${c.anzahl}" style="width:80px;"></td>
+        <td data-label="${t('col_projekt')}">${buildCombinedProjectSelectHTML('edit-priv-coll-projekt', c.projekt||'', c.projektTyp||null, 'edit-input', true)}</td>
         <td class="actions-cell">
           <button class="btn-icon" data-action="save-priv-collectible" data-id="${c.id}" title="${t('btn_save')}">✓</button>
           <button class="btn-icon danger" data-action="cancel-priv-collectible" title="${t('btn_cancel')}">✕</button>
@@ -6094,7 +6174,9 @@ function renderPrivateCollectibles(){
         <td data-label="${t('col_qualitaet_stufe2')}">${c.tier ? escapeHtml(c.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td data-label="${t('col_lagerort')}"><span style="display:inline-flex;align-items:center;">${c.standort ? locationDot(c.standort)+escapeHtml(c.standort) : '<span style="color:var(--ink-soft);">—</span>'}</span></td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${c.anzahl}</td>
+        <td data-label="${t('col_projekt')}">${c.projekt ? `<span class="badge project-reserved">📌 ${escapeHtml(c.projekt)}${c.projektTyp==='private' ? ' ('+t('label_privat')+')' : ''}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td class="actions-cell">
+          ${c.projekt ? `<button class="btn-icon" data-action="release-priv-collectible" data-id="${c.id}" title="${t('tooltip_zuordnung_aufheben')}">🔓</button>` : ''}
           <button class="btn-icon" data-action="transfer-priv-collectible" data-id="${c.id}" title="${t('tooltip_transfer_collectible')}">⇥</button>
           <button class="btn-icon" data-action="edit-priv-collectible" data-id="${c.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon danger" data-action="delete-priv-collectible" data-id="${c.id}" title="${t('btn_delete')}">🗑</button>
@@ -6110,6 +6192,9 @@ function renderPrivateCollectibles(){
   });
   container.querySelectorAll('[data-action="cancel-priv-collectible"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingPrivateCollectibleId = null; renderPrivateCollectibles(); });
+  });
+  container.querySelectorAll('[data-action="release-priv-collectible"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ openReleaseAssignmentModal('collectible', btn.dataset.id); });
   });
   container.querySelectorAll('[data-action="transfer-priv-collectible"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -6154,13 +6239,17 @@ function renderPrivateCollectibles(){
         const newItem = findCollectible(newObjekt);
         const tierSel = document.getElementById('edit-priv-coll-tier');
         const standortSel = document.getElementById('edit-priv-coll-standort');
+        const projektSel = document.getElementById('edit-priv-coll-projekt');
+        const projektAssign = projektSel ? parseProjectAssignmentValue(projektSel.value) : { ziel: privateCollectibles[idx].projekt, typ: privateCollectibles[idx].projektTyp };
         privateCollectibles[idx] = {
           ...privateCollectibles[idx],
           kategorie: newItem ? newItem.category : '',
           objekt: newObjekt,
           tier: tierSel ? tierSel.value : null,
           standort: standortSel ? standortSel.value : privateCollectibles[idx].standort,
-          anzahl: parseFloat(document.getElementById('edit-priv-coll-anzahl').value)||0
+          anzahl: parseFloat(document.getElementById('edit-priv-coll-anzahl').value)||0,
+          projekt: projektAssign.ziel,
+          projektTyp: projektAssign.typ
         };
         await logAction('Privates Sammelobjekt bearbeitet', `${privateCollectibles[idx].objekt}${privateCollectibles[idx].tier ? ' ('+privateCollectibles[idx].tier+')' : ''} — ${privateCollectibles[idx].anzahl}x`);
       }
@@ -6185,20 +6274,24 @@ function renderPrivateCollectibleSummary(){
   const groups = {};
   mine.forEach(c=>{
     const key = c.objekt + '||' + (c.tier||'');
-    if(!groups[key]) groups[key] = { objekt: c.objekt, tier: c.tier, kategorie: c.kategorie, total: 0 };
+    if(!groups[key]) groups[key] = { objekt: c.objekt, tier: c.tier, kategorie: c.kategorie, total: 0, reserviert: 0 };
     groups[key].total += c.anzahl;
+    if(c.projekt){ groups[key].reserviert += c.anzahl; }
   });
 
   const rows = Object.values(groups).sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
 
   let html = `<table class="summary-table"><thead><tr>
-    <th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_gesamt')}</th>
+    <th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_gesamt')}</th><th>${t('col_reserviert')}</th><th>${t('col_frei_verfuegbar')}</th>
   </tr></thead><tbody>`;
   rows.forEach(r=>{
+    const frei = r.total - r.reserviert;
     html += `<tr>
       <td class="material-name">${escapeHtml(r.objekt)}</td>
       <td>${r.tier ? escapeHtml(r.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
       <td class="sum-total">${r.total}</td>
+      <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${r.reserviert}</span>` : `<span style="color:var(--ink-soft);">0</span>`}</td>
+      <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${frei}</span></td>
     </tr>`;
   });
   html += '</tbody></table>';
@@ -6511,7 +6604,7 @@ function buildUsageBreakdownHTML(itemName, isPrivate){
     const resources = p.resources.map(normalizeResource);
     const match = resources.find(r=>r.material === itemName);
     if(!match) return null;
-    const avail = isPrivate ? privateStockAmount(itemName, p.ziel) : stockAmount(itemName, p.ziel);
+    const avail = isPrivate ? privateStockAmount(itemName, p.ziel, undefined, 'private') : stockAmount(itemName, p.ziel);
     const fehlend = (match.menge!=null && match.menge>avail) ? Math.round((match.menge-avail)*100)/100 : 0;
     return { ziel: p.ziel, menge: match.menge, avail, fehlend };
   }).filter(Boolean);
@@ -6795,6 +6888,52 @@ function buildProjectZielSelectHTML(id, selected, extraClass){
   return html;
 }
 
+// Kombinierte Projekt-Auswahl (geteilt + optional private Projekte des
+// aktuell angemeldeten Benutzers), fuer Formulare, in denen ein privater
+// Bestandseintrag/Sammelobjekt wahlweise einem geteilten ODER einem
+// eigenen privaten Projekt zugeordnet werden koennen soll. Der Options-
+// Wert kodiert Typ+Ziel als "shared::<Ziel>" bzw. "private::<Ziel>", um
+// Namenskollisionen zwischen einem geteilten und einem privaten Projekt
+// mit zufaellig demselben Namen sicher zu vermeiden -- parseProjectAssignmentValue()
+// liest das wieder auseinander.
+function buildCombinedProjectSelectHTML(id, selectedZiel, selectedTyp, extraClass, includePrivate){
+  let html = `<select id="${id}" class="${extraClass||''}"><option value="">${t('placeholder_no_project')}</option>`;
+  const sharedZiele = [...new Set(projects.map(p=>p.ziel))];
+  if(sharedZiele.length > 0){
+    html += `<optgroup label="${escapeHtml(t('label_geteilte_projekte'))}">`;
+    sharedZiele.forEach(z=>{
+      const val = 'shared::'+z;
+      const isSel = selectedTyp==='shared' && selectedZiel===z;
+      html += `<option value="${escapeHtml(val)}" ${isSel?'selected':''}>${escapeHtml(z)}</option>`;
+    });
+    html += `</optgroup>`;
+  }
+  if(includePrivate){
+    const mineZiele = [...new Set(myPrivateProjects().map(p=>p.ziel))];
+    if(mineZiele.length > 0){
+      html += `<optgroup label="${escapeHtml(t('label_private_projekte'))}">`;
+      mineZiele.forEach(z=>{
+        const val = 'private::'+z;
+        const isSel = selectedTyp==='private' && selectedZiel===z;
+        html += `<option value="${escapeHtml(val)}" ${isSel?'selected':''}>${escapeHtml(z)}</option>`;
+      });
+      html += `</optgroup>`;
+    }
+  }
+  html += `</select>`;
+  return html;
+}
+
+// Liest den kodierten Wert ("shared::Ziel" / "private::Ziel") eines
+// buildCombinedProjectSelectHTML-Dropdowns aus und liefert {ziel, typ}
+// (typ ist null, wenn keine Auswahl getroffen wurde).
+function parseProjectAssignmentValue(rawValue){
+  if(!rawValue) return { ziel: '', typ: null };
+  const idx = rawValue.indexOf('::');
+  if(idx === -1) return { ziel: rawValue, typ: 'shared' }; // Abwaertskompatibel falls kein Praefix
+  return { typ: rawValue.slice(0, idx), ziel: rawValue.slice(idx+2) };
+}
+
 // Ältere gespeicherte Projekte hatten Ressourcen als reine Text-Strings
 // statt {material, menge} — hier zur Sicherheit vereinheitlicht.
 function normalizeResource(r){
@@ -6834,7 +6973,7 @@ function addProjectResourceRow(isPrivate, container, prefill){
   const availId = prefix+'proj-avail-'+rowId;
   div.innerHTML = `
     <div style="flex:1;min-width:170px;">${buildMaterialSelectHTML(matId, prefill?prefill.material:'', '')}</div>
-    <input type="number" id="${qtyId}" min="0" step="0.01" value="${prefill&&prefill.menge!=null?prefill.menge:''}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:150px;">
+    <input type="number" id="${qtyId}" min="0" step="0.001" value="${prefill&&prefill.menge!=null?prefill.menge:''}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:170px;">
     <input type="number" id="${qualId}" min="0" max="1000" step="0.01" value="${prefill&&prefill.mindestqualitaet!=null?prefill.mindestqualitaet:''}" placeholder="${t('placeholder_mindestqualitaet')}" title="${t('tooltip_projekt_mindestqualitaet')}" style="width:130px;">
     <div style="font-size:11px;color:var(--ink-soft);white-space:nowrap;">${t('label_vorhanden')}: <span class="qty-cell" id="${availId}">–</span></div>
     <button type="button" class="btn-icon danger" data-remove-resource="${rowId}" title="${t('btn_delete')}">✕</button>
@@ -6855,7 +6994,7 @@ function addEditProjectResourceRow(idPrefix, container){
   div.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
   div.innerHTML = `
     ${buildMaterialSelectHTML(idPrefix+'-res-'+rowId, '', 'edit-input')}
-    <input class="edit-input" id="${idPrefix}-res-qty-${rowId}" type="number" step="0.01" placeholder="${t('placeholder_benoetigte_menge')}" style="width:130px;">
+    <input class="edit-input" id="${idPrefix}-res-qty-${rowId}" type="number" step="0.001" placeholder="${t('placeholder_benoetigte_menge')}" style="width:150px;">
     <input class="edit-input" id="${idPrefix}-res-qual-${rowId}" type="number" min="0" max="1000" step="0.01" placeholder="${t('placeholder_mindestqualitaet')}" title="${t('tooltip_projekt_mindestqualitaet')}" style="width:120px;">
     <button type="button" class="btn-icon danger" data-remove-resource="${rowId}" title="${t('btn_delete')}">✕</button>
   `;
@@ -7030,6 +7169,80 @@ function renderNeedEscalationModal(){
 }
 document.getElementById('btnCloseNeedEscalation').addEventListener('click', ()=>{
   document.getElementById('needEscalationModal').style.display = 'none';
+});
+
+// "Zuordnung aufheben"-Modal: laesst den Nutzer waehlen, ob ein bisher
+// einem Projekt zugeordnetes privates Material/Sammelobjekt zurueck in
+// den eigenen privaten Bestand geht (nur Zuordnung entfernt) oder dem
+// geteilten Bestand zugeordnet wird (vollstaendige Uebernahme, danach
+// aus dem privaten Bestand entfernt -- wie beim bestehenden ⇥-Button,
+// aber OHNE die (evtl. private) Projekt-Zuordnung mit hinueberzunehmen,
+// da der Gegenstand ja gerade bewusst "freigegeben" wird).
+let releaseAssignmentContext = null; // { kind: 'entry'|'collectible', id }
+
+function openReleaseAssignmentModal(kind, id){
+  const item = kind === 'entry' ? privateEntries.find(e=>e.id===id) : privateCollectibles.find(c=>c.id===id);
+  if(!item || !item.projekt) return;
+  releaseAssignmentContext = { kind, id };
+  const label = kind === 'entry' ? item.material : item.objekt;
+  document.getElementById('releaseAssignmentText').textContent =
+    t('modal_release_text').replace('{item}', label).replace('{project}', item.projekt);
+  document.getElementById('releaseAssignmentModal').style.display = 'flex';
+}
+
+document.getElementById('btnReleaseCancel').addEventListener('click', ()=>{
+  releaseAssignmentContext = null;
+  document.getElementById('releaseAssignmentModal').style.display = 'none';
+});
+
+document.getElementById('btnReleaseToPrivate').addEventListener('click', async ()=>{
+  if(!releaseAssignmentContext) return;
+  const { kind, id } = releaseAssignmentContext;
+  if(kind === 'entry'){
+    const idx = privateEntries.findIndex(e=>e.id===id);
+    if(idx>-1){
+      const oldProjekt = privateEntries[idx].projekt;
+      privateEntries[idx].projekt = '';
+      privateEntries[idx].projektTyp = null;
+      await savePrivateEntries();
+      await logAction('Projekt-Zuordnung aufgehoben', `${privateEntries[idx].material} — zurück in privaten Bestand (war: ${oldProjekt})`);
+      renderPrivate();
+    }
+  } else {
+    const idx = privateCollectibles.findIndex(c=>c.id===id);
+    if(idx>-1){
+      const oldProjekt = privateCollectibles[idx].projekt;
+      privateCollectibles[idx].projekt = '';
+      privateCollectibles[idx].projektTyp = null;
+      await savePrivateCollectibles();
+      await logAction('Projekt-Zuordnung aufgehoben', `${privateCollectibles[idx].objekt} — zurück in privaten Bestand (war: ${oldProjekt})`);
+      renderPrivateCollectibles();
+    }
+  }
+  releaseAssignmentContext = null;
+  document.getElementById('releaseAssignmentModal').style.display = 'none';
+});
+
+document.getElementById('btnReleaseToShared').addEventListener('click', async ()=>{
+  if(!releaseAssignmentContext) return;
+  const { kind, id } = releaseAssignmentContext;
+  if(kind === 'entry'){
+    const idx = privateEntries.findIndex(e=>e.id===id);
+    if(idx>-1){
+      privateEntries[idx].projekt = '';
+      privateEntries[idx].projektTyp = null;
+      await transferPrivateEntry(id);
+    }
+  } else {
+    const idx = privateCollectibles.findIndex(c=>c.id===id);
+    if(idx>-1){
+      privateCollectibles[idx].projekt = '';
+      privateCollectibles[idx].projektTyp = null;
+      await transferPrivateCollectible(id);
+    }
+  }
+  releaseAssignmentContext = null;
+  document.getElementById('releaseAssignmentModal').style.display = 'none';
 });
 
 // Extrahiert eine optionale Versions-Kennzeichnung aus der ersten Zeile
@@ -7557,7 +7770,8 @@ function renderProjects(){
   const privProjektWrap = document.getElementById('priv-projekt-wrap');
   if(privProjektWrap){
     const prevPrivSelection = document.getElementById('priv-projekt') ? document.getElementById('priv-projekt').value : '';
-    privProjektWrap.innerHTML = buildProjectZielSelectHTML('priv-projekt', prevPrivSelection);
+    const prevPrivAssign = parseProjectAssignmentValue(prevPrivSelection);
+    privProjektWrap.innerHTML = buildCombinedProjectSelectHTML('priv-projekt', prevPrivAssign.ziel, prevPrivAssign.typ, '', true);
   }
 
   if(projects.length === 0){
@@ -7584,7 +7798,7 @@ function renderProjects(){
             ${resources.map((r,i)=>`
               <div class="proj-resource-row" data-row-id="e${i}" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
                 ${buildMaterialSelectHTML('edit-proj-res-e'+i, r.material, 'edit-input')}
-                <input class="edit-input" id="edit-proj-res-qty-e${i}" type="number" step="0.01" value="${r.menge!=null?r.menge:''}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:130px;">
+                <input class="edit-input" id="edit-proj-res-qty-e${i}" type="number" step="0.001" value="${r.menge!=null?r.menge:''}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:150px;">
                 <input class="edit-input" id="edit-proj-res-qual-e${i}" type="number" min="0" max="1000" step="0.01" value="${r.mindestqualitaet!=null?r.mindestqualitaet:''}" placeholder="${t('placeholder_mindestqualitaet')}" title="${t('tooltip_projekt_mindestqualitaet')}" style="width:120px;">
                 <button type="button" class="btn-icon danger" data-remove-resource="e${i}" title="${t('btn_delete')}">✕</button>
               </div>
@@ -7815,21 +8029,33 @@ function myPrivateProjects(){
   return privateProjects.filter(p=>p.owner===currentUser.username);
 }
 
-function privateStockForMaterial(material, projekt){
+// projektTyp (optional): siehe privateStockAmount weiter unten -- selbe
+// Kollisions-Vermeidung, hier fuer die formatierte Text-Anzeige.
+function privateStockForMaterial(material, projekt, projektTyp){
   if(!material) return null;
   const byUnit = {};
-  myPrivateEntries().filter(e=>e.material===material && (projekt===undefined || (e.projekt||'')===projekt)).forEach(e=>{
+  myPrivateEntries().filter(e=>e.material===material
+    && (projekt===undefined || (e.projekt||'')===projekt)
+    && (projektTyp===undefined || (e.projektTyp||'shared')===projektTyp)
+  ).forEach(e=>{
     byUnit[e.einheit] = (byUnit[e.einheit] || 0) + e.menge;
   });
   const units = Object.keys(byUnit);
   if(units.length === 0) return '0';
   return units.map(u=>`${Math.round(byUnit[u]*100)/100} ${u}`).join(', ');
 }
-function privateStockAmount(material, projekt, einheit){
+// projektTyp (optional): 'shared'|'private' -- verhindert, dass ein
+// privater Bestandseintrag, der einem GETEILTEN Projekt zugeordnet ist,
+// faelschlich als verfuegbar fuer ein PRIVATES Projekt mit zufaellig
+// demselben Namen gezaehlt wird (und umgekehrt). Alte Eintraege ohne
+// projektTyp galten schon vor dieser Erweiterung ausschliesslich als
+// geteilten Projekten zuordenbar und werden daher als 'shared' behandelt.
+function privateStockAmount(material, projekt, einheit, projektTyp){
   if(!material) return 0;
   return myPrivateEntries()
     .filter(e=>e.material===material
       && (projekt===undefined || (e.projekt||'')===projekt)
+      && (projektTyp===undefined || (e.projektTyp||'shared')===projektTyp)
       && (einheit===undefined || e.einheit===einheit))
     .reduce((sum,e)=> sum + e.menge, 0);
 }
@@ -7850,7 +8076,7 @@ function updatePrivateProjectAvailability(){
     const out = document.getElementById('priv-proj-avail-'+rowId);
     if(!sel || !out) return;
     const material = sel.value;
-    out.textContent = material ? privateStockForMaterial(material, ziel || undefined) : '–';
+    out.textContent = material ? privateStockForMaterial(material, ziel || undefined, 'private') : '–';
   });
 }
 
@@ -7934,7 +8160,7 @@ function renderPrivateProjects(){
             ${resources.map((r,i)=>`
               <div class="proj-resource-row" data-row-id="e${i}" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
                 ${buildMaterialSelectHTML('edit-priv-proj-res-e'+i, r.material, 'edit-input')}
-                <input class="edit-input" id="edit-priv-proj-res-qty-e${i}" type="number" step="0.01" value="${r.menge!=null?r.menge:''}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:130px;">
+                <input class="edit-input" id="edit-priv-proj-res-qty-e${i}" type="number" step="0.001" value="${r.menge!=null?r.menge:''}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:150px;">
                 <input class="edit-input" id="edit-priv-proj-res-qual-e${i}" type="number" min="0" max="1000" step="0.01" value="${r.mindestqualitaet!=null?r.mindestqualitaet:''}" placeholder="${t('placeholder_mindestqualitaet')}" title="${t('tooltip_projekt_mindestqualitaet')}" style="width:120px;">
                 <button type="button" class="btn-icon danger" data-remove-resource="e${i}" title="${t('btn_delete')}">✕</button>
               </div>
@@ -7950,11 +8176,11 @@ function renderPrivateProjects(){
     } else {
       const resourceList = resources.length
         ? resources.map(r=>{
-            const avail = privateStockAmount(r.material, p.ziel);
+            const avail = privateStockAmount(r.material, p.ziel, undefined, 'private');
             const pct = (r.menge!=null && r.menge>0) ? Math.min(100, Math.round((avail/r.menge)*100)) : null;
             const barColor = pct===null ? 'var(--steel)' : (pct>=100 ? '#2CFFA0' : pct>=50 ? '#FFC93C' : '#FF3B5C');
             return `<div style="margin-bottom:6px;">
-              <div>${escapeHtml(r.material)} — ${t('label_benoetigt')}: <span class="qty-cell">${r.menge!=null ? r.menge : '–'}</span> / ${t('label_vorhanden')}: <span class="qty-cell">${escapeHtml(privateStockForMaterial(r.material, p.ziel))}</span>${r.mindestqualitaet!=null ? ` · <span style="color:var(--ink-soft);">${t('label_mind_qualitaet')}: ${r.mindestqualitaet}</span>` : ''}</div>
+              <div>${escapeHtml(r.material)} — ${t('label_benoetigt')}: <span class="qty-cell">${r.menge!=null ? r.menge : '–'}</span> / ${t('label_vorhanden')}: <span class="qty-cell">${escapeHtml(privateStockForMaterial(r.material, p.ziel, 'private'))}</span>${r.mindestqualitaet!=null ? ` · <span style="color:var(--ink-soft);">${t('label_mind_qualitaet')}: ${r.mindestqualitaet}</span>` : ''}</div>
               ${pct!==null ? `<div class="gauge" style="width:140px;margin-top:4px;"><div class="gauge-fill" style="width:${pct}%;background:${barColor};"></div></div><div style="font-size:10px;color:var(--ink-soft);margin-top:2px;">${pct}%</div>` : ''}
             </div>`;
           }).join('')
@@ -8179,7 +8405,7 @@ function renderNeeds(){
         <td data-label="${t('label_mind_qualitaet')}"><input class="edit-input" id="edit-need-qualitaet" type="number" step="0.01" value="${n.qualitaet}"></td>
         <td data-label="${t('label_menge')}">
           <div style="display:flex;gap:4px;">
-            <input class="edit-input" id="edit-need-menge" type="number" step="0.01" value="${n.menge}" style="width:70px;">
+            <input class="edit-input" id="edit-need-menge" type="number" step="0.001" value="${n.menge}" style="width:90px;">
             <select class="edit-input" id="edit-need-einheit" style="width:80px;">
               ${['SCU','Stück'].map(u=>`<option value="${u}" ${u===n.einheit?'selected':''}>${einheitLabel(u)}</option>`).join('')}
             </select>
@@ -8482,10 +8708,12 @@ async function load(){
   document.getElementById('coll-item').addEventListener('change', updateCollectibleTierField);
   updateCollectibleTierField();
   document.getElementById('coll-standort-wrap').innerHTML = buildLocationSelectHTML('coll-standort', '');
+  document.getElementById('coll-projekt-wrap').innerHTML = buildCombinedProjectSelectHTML('coll-projekt', '', null, '', false);
   document.getElementById('priv-coll-item-wrap').innerHTML = buildCollectibleSelectHTML('priv-coll-item', '');
   document.getElementById('priv-coll-item').addEventListener('change', updatePrivateCollectibleTierField);
   updatePrivateCollectibleTierField();
   document.getElementById('priv-coll-standort-wrap').innerHTML = buildLocationSelectHTML('priv-coll-standort', '');
+  document.getElementById('priv-coll-projekt-wrap').innerHTML = buildCombinedProjectSelectHTML('priv-coll-projekt', '', null, '', true);
   populateUsageSearchOptions();
   document.getElementById('usageSearchInput').addEventListener('input', ()=>handleUsageSearchInput('usageSearchInput', 'usageSearchResult', false));
   document.getElementById('privUsageSearchInput').addEventListener('input', ()=>handleUsageSearchInput('privUsageSearchInput', 'privUsageSearchResult', true));
@@ -9000,7 +9228,7 @@ function addBulkTableRow(isPrivate){
   tr.innerHTML = `
     <td>${buildMaterialSelectHTML(prefix+'bulk-mat-'+rowId, '', 'edit-input', isPrivate ? null : getUserCategoryRestriction())}</td>
     <td><input class="edit-input" id="${prefix}bulk-qual-${rowId}" type="number" step="0.01" style="width:90px;"></td>
-    <td><input class="edit-input" id="${prefix}bulk-menge-${rowId}" type="number" step="0.01" style="width:90px;"></td>
+    <td><input class="edit-input" id="${prefix}bulk-menge-${rowId}" type="number" step="0.001" style="width:110px;"></td>
     <td><button type="button" class="btn-icon danger" data-remove-row="${rowId}" title="${t('btn_delete')}">✕</button></td>
   `;
   tbody.appendChild(tr);
@@ -9658,7 +9886,7 @@ function renderOcrPreview(rows, cropCanvas, scale){
       <td><img class="ocr-row-snippet" src="${snippetSrc}" alt=""></td>
       <td>${materialSelect}${rawHint}</td>
       <td><input type="number" step="0.01" class="edit-input ocr-prev-quality ${r.qualityConfident?'':'ocr-uncertain'}" data-idx="${i}" value="${r.quality!=null?r.quality:''}" title="${r.qualityConfident?'':t('ocr_uncertain_hint')}"></td>
-      <td><input type="number" step="0.01" class="edit-input ocr-prev-menge ${r.mengeConfident?'':'ocr-uncertain'}" data-idx="${i}" value="${r.menge!=null?r.menge:''}" title="${r.mengeConfident?'':t('ocr_uncertain_hint')}"></td>
+      <td><input type="number" step="0.001" class="edit-input ocr-prev-menge ${r.mengeConfident?'':'ocr-uncertain'}" data-idx="${i}" value="${r.menge!=null?r.menge:''}" title="${r.mengeConfident?'':t('ocr_uncertain_hint')}"></td>
     </tr>`;
   });
   html += '</tbody></table>';
@@ -10357,7 +10585,7 @@ function render(){
         </td>
         <td data-label="${t('label_menge')}">
           <div style="display:flex;gap:4px;">
-            <input class="edit-input" id="edit-menge" type="number" step="0.01" value="${e.menge}" style="width:70px;">
+            <input class="edit-input" id="edit-menge" type="number" step="0.001" value="${e.menge}" style="width:90px;">
             <select class="edit-input" id="edit-einheit" style="width:64px;">
               ${['SCU','Stück'].map(u=>`<option value="${u}" ${u===e.einheit?'selected':''}>${einheitLabel(u)}</option>`).join('')}
             </select>
@@ -10548,7 +10776,9 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
   const einheit = document.getElementById('priv-einheit').value;
   const lagerort = document.getElementById('priv-lagerort').value.trim();
   const person = currentUser.username;
-  const projekt = document.getElementById('priv-projekt').value;
+  const projektAssign = parseProjectAssignmentValue(document.getElementById('priv-projekt').value);
+  const projekt = projektAssign.ziel;
+  const projektTyp = projektAssign.typ;
 
   if(!material || qualitaetRaw === '' || !menge || !lagerort){
     setPrivateStatus(t('val_bestand_required'));
@@ -10567,7 +10797,7 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
     id: privateUid(),
     material, qualitaet: privQualitaet,
     menge: privMenge, einheit,
-    lagerort, person, projekt,
+    lagerort, person, projekt, projektTyp,
     owner: currentUser.username
   });
 
@@ -10767,7 +10997,7 @@ function renderPrivate(){
         </td>
         <td data-label="${t('label_menge')}">
           <div style="display:flex;gap:4px;">
-            <input class="edit-input" id="edit-priv-menge" type="number" step="0.01" value="${e.menge}" style="width:70px;">
+            <input class="edit-input" id="edit-priv-menge" type="number" step="0.001" value="${e.menge}" style="width:90px;">
             <select class="edit-input" id="edit-priv-einheit" style="width:64px;">
               ${['SCU','Stück'].map(u=>`<option value="${u}" ${u===e.einheit?'selected':''}>${einheitLabel(u)}</option>`).join('')}
             </select>
@@ -10775,7 +11005,7 @@ function renderPrivate(){
         </td>
         <td data-label="${t('col_lagerort')}">${buildLocationSelectHTML('edit-priv-lagerort', e.lagerort, 'edit-input')}</td>
         <td data-label="${t('col_verantwortlicher')}"><span style="display:inline-flex;align-items:center;color:var(--ink-soft);">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
-        <td data-label="${t('col_projekt')}">${buildProjectZielSelectHTML('edit-priv-projekt', e.projekt||'', 'edit-input')}</td>
+        <td data-label="${t('col_projekt')}">${buildCombinedProjectSelectHTML('edit-priv-projekt', e.projekt||'', e.projektTyp||null, 'edit-input', true)}</td>
         <td class="actions-cell">
           <button class="btn-icon" id="savePrivateEdit" title="${t('btn_save')}">✓</button>
           <button class="btn-icon danger" id="cancelPrivateEdit" title="${t('btn_cancel')}">✕</button>
@@ -10792,8 +11022,9 @@ function renderPrivate(){
         </td>
         <td data-label="${t('col_lagerort')}"><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(e.lagerort)}</span></td>
         <td data-label="${t('col_verantwortlicher')}"><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
-        <td data-label="${t('col_projekt')}">${e.projekt ? escapeHtml(e.projekt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
+        <td data-label="${t('col_projekt')}">${e.projekt ? `<span class="badge project-reserved">📌 ${escapeHtml(e.projekt)}${e.projektTyp==='private' ? ' ('+t('label_privat')+')' : ''}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td class="actions-cell">
+          ${e.projekt ? `<button class="btn-icon" data-action="release-private" data-id="${e.id}" title="${t('tooltip_zuordnung_aufheben')}">🔓</button>` : ''}
           <button class="btn-icon" data-action="transfer-private" data-id="${e.id}" title="${t('tooltip_transfer_entry')}">⇥</button>
           <button class="btn-icon" data-action="edit-private" data-id="${e.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon danger" data-action="delete-private" data-id="${e.id}" title="${t('btn_delete')}">🗑</button>
@@ -10807,6 +11038,9 @@ function renderPrivate(){
 
   container.querySelectorAll('[data-action="edit-private"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingPrivateId = btn.dataset.id; renderPrivate(); });
+  });
+  container.querySelectorAll('[data-action="release-private"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ openReleaseAssignmentModal('entry', btn.dataset.id); });
   });
   container.querySelectorAll('[data-action="transfer-private"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -10837,6 +11071,7 @@ function renderPrivate(){
           setPrivateStatus(privEditValidationError);
           return;
         }
+        const editProjektAssign = parseProjectAssignmentValue(document.getElementById('edit-priv-projekt').value);
         privateEntries[idx] = {
           ...privateEntries[idx],
           material: document.getElementById('edit-priv-material').value.trim(),
@@ -10844,7 +11079,8 @@ function renderPrivate(){
           menge: newPrivMenge,
           einheit: document.getElementById('edit-priv-einheit').value,
           lagerort: document.getElementById('edit-priv-lagerort').value.trim(),
-          projekt: document.getElementById('edit-priv-projekt').value
+          projekt: editProjektAssign.ziel,
+          projektTyp: editProjektAssign.typ
         };
         await logAction('Privatbestand bearbeitet', `${privateEntries[idx].material}, ${privateEntries[idx].menge} ${privateEntries[idx].einheit} @ ${privateEntries[idx].lagerort}`);
       }
