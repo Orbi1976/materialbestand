@@ -5944,9 +5944,9 @@ function renderCollectibles(){
   const canManage = currentUser.role!=='viewer';
   const sorted = [...collectibles].sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
 
-  let html = `<table><thead><tr>
-    <th style="width:28px;"><input type="checkbox" id="selectAllCollectibles"></th>
-    <th>${t('col_kategorie')}</th><th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_lagerort')}</th><th>${t('label_anzahl')}</th><th>${t('col_besitzer')}</th><th>${t('col_projekt')}</th><th></th>
+  let html = `<table style="table-layout:fixed;"><thead><tr>
+    <th style="width:3%;"><input type="checkbox" id="selectAllCollectibles"></th>
+    <th style="width:14%;">${t('col_kategorie')}</th><th style="width:19%;">${t('label_objekt')}</th><th style="width:10%;">${t('label_qualitaet_stufe')}</th><th style="width:14%;">${t('col_lagerort')}</th><th style="width:7%;">${t('label_anzahl')}</th><th style="width:10%;">${t('col_besitzer')}</th><th style="width:14%;">${t('col_projekt')}</th><th style="width:9%;"></th>
   </tr></thead><tbody>`;
 
   sorted.forEach(c=>{
@@ -6251,9 +6251,9 @@ function renderPrivateCollectibles(){
 
   const sorted = [...mine].sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
 
-  let html = `<table><thead><tr>
-    <th style="width:28px;"><input type="checkbox" id="selectAllPrivCollectibles"></th>
-    <th>${t('col_kategorie')}</th><th>${t('label_objekt')}</th><th>${t('label_qualitaet_stufe')}</th><th>${t('col_lagerort')}</th><th>${t('label_anzahl')}</th><th>${t('col_projekt')}</th><th></th>
+  let html = `<table style="table-layout:fixed;"><thead><tr>
+    <th style="width:3%;"><input type="checkbox" id="selectAllPrivCollectibles"></th>
+    <th style="width:15%;">${t('col_kategorie')}</th><th style="width:22%;">${t('label_objekt')}</th><th style="width:11%;">${t('label_qualitaet_stufe')}</th><th style="width:16%;">${t('col_lagerort')}</th><th style="width:8%;">${t('label_anzahl')}</th><th style="width:16%;">${t('col_projekt')}</th><th style="width:9%;"></th>
   </tr></thead><tbody>`;
 
   sorted.forEach(c=>{
