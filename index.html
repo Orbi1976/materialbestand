@@ -1490,6 +1490,21 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="wikeloImportStatus"></div>
   </div>
 
+  <div class="panel" id="locationImportPanel" style="display:none;">
+    <h2 data-i18n="panel_lagerort_import">Lagerorte importieren</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_lagerort_import">Fügt neue Lagerorte zur bestehenden Liste hinzu — anders als bei Rezepten/Wikelo wird die bestehende Liste dabei NICHT ersetzt, sondern nur ergänzt (bereits vorhandene System+Code-Kombinationen werden übersprungen, nicht überschrieben). Format pro Zeile: System;Code;Name — Zeilen, die mit # beginnen, werden als Kommentar ignoriert. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
+    <div style="margin-bottom:10px;">
+      <button type="button" class="btn-ghost" id="btnSelectLocationFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
+      <input type="file" id="locationFileInput" accept=".txt,.csv" style="display:none;">
+    </div>
+    <textarea id="locationImportText" rows="8" placeholder="Stanton;ARC-L1;Wide Forest Station" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
+    <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button class="btn-primary" id="btnImportLocations" data-i18n="btn_lagerorte_importieren">Hinzufügen</button>
+      <span id="locationCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
+    </div>
+    <div class="status-msg" id="locationImportStatus"></div>
+  </div>
+
   <div class="panel" id="catalogPanel" style="display:none;">
     <h2 data-i18n="panel_materialverwaltung">Materialien &amp; Lagerorte verwalten</h2>
 
@@ -2581,6 +2596,11 @@ const I18N = {
   "msg_file_loaded": "Datei „{name}“ geladen — bitte prüfen und auf „Importieren“ klicken.",
   "val_file_read_error": "Datei konnte nicht gelesen werden.",
   "panel_wikelo_import": "Wikelo-Handelsangebote importieren",
+  "panel_lagerort_import": "Lagerorte importieren",
+  "hint_lagerort_import": "Fügt neue Lagerorte zur bestehenden Liste hinzu — anders als bei Rezepten/Wikelo wird die bestehende Liste dabei NICHT ersetzt, sondern nur ergänzt (bereits vorhandene System+Code-Kombinationen werden übersprungen, nicht überschrieben). Format pro Zeile: System;Code;Name — Zeilen, die mit # beginnen, werden als Kommentar ignoriert. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
+  "btn_lagerorte_importieren": "Hinzufügen",
+  "val_location_import_empty": "Keine gültigen Zeilen im Format System;Code;Name gefunden.",
+  "msg_locations_imported": "{added} neu hinzugefügt, {skipped} bereits vorhanden (übersprungen).",
   "hint_wikelo_import": "Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — optional lässt sich je Gegenstand eine vorgeschlagene Menge anhängen, z. B. \"Gegenstand:15\". Ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
   "msg_wikelo_imported": "{count} Wikelo-Angebote importiert.",
   "msg_wikelo_current_count": "Aktuell {count} Wikelo-Angebote gespeichert.",
@@ -3096,6 +3116,11 @@ const I18N = {
   "msg_file_loaded": "File “{name}” loaded — please review and click “Import”.",
   "val_file_read_error": "Could not read the file.",
   "panel_wikelo_import": "Import Wikelo trades",
+  "panel_lagerort_import": "Import locations",
+  "hint_lagerort_import": "Adds new locations to the existing list — unlike recipes/Wikelo, the existing list is NOT replaced, only extended (existing system+code combinations are skipped, not overwritten). Format per line: System;Code;Name — lines starting with # are treated as comments and ignored. Applies across all organizations (pure game data, not organization-specific).",
+  "btn_lagerorte_importieren": "Add",
+  "val_location_import_empty": "No valid lines found in the System;Code;Name format.",
+  "msg_locations_imported": "{added} newly added, {skipped} already existed (skipped).",
   "hint_wikelo_import": "Separate list of trade offers from the Banu trader Wikelo — importable independently from the other project templates, but appears together with them in the searchable selection when creating a project. Format per line: Category;Name;Item1,Item2,Item3 — each item may optionally carry a suggested quantity, e.g. \"Item:15\". A new import replaces only the Wikelo list, the other templates remain untouched. Applies across all organizations (pure game data, not organization-specific).",
   "msg_wikelo_imported": "{count} Wikelo trades imported.",
   "msg_wikelo_current_count": "Currently {count} Wikelo trades saved.",
@@ -3611,6 +3636,11 @@ const I18N = {
   "msg_file_loaded": "Fichier « {name} » chargé — veuillez vérifier puis cliquer sur « Importer ».",
   "val_file_read_error": "Impossible de lire le fichier.",
   "panel_wikelo_import": "Importer les échanges Wikelo",
+  "panel_lagerort_import": "Importer des lieux",
+  "hint_lagerort_import": "Ajoute de nouveaux lieux à la liste existante — contrairement aux recettes/Wikelo, la liste existante n'est PAS remplacée, seulement complétée (les combinaisons système+code déjà existantes sont ignorées, pas écrasées). Format par ligne : Système;Code;Nom — les lignes commençant par # sont traitées comme des commentaires et ignorées. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
+  "btn_lagerorte_importieren": "Ajouter",
+  "val_location_import_empty": "Aucune ligne valide trouvée au format Système;Code;Nom.",
+  "msg_locations_imported": "{added} nouveaux ajoutés, {skipped} déjà existants (ignorés).",
   "hint_wikelo_import": "Liste séparée des offres d’échange du marchand Banu Wikelo — importable indépendamment des autres modèles de projet, mais apparaît avec eux dans la sélection consultable lors de la création d’un projet. Format par ligne : Catégorie;Nom;Objet1,Objet2,Objet3 — chaque objet peut porter une quantité suggérée facultative, ex. « Objet:15 ». Une nouvelle importation ne remplace que la liste Wikelo, les autres modèles restent inchangés. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
   "msg_wikelo_imported": "{count} échanges Wikelo importés.",
   "msg_wikelo_current_count": "Actuellement {count} échanges Wikelo enregistrés.",
@@ -4305,6 +4335,7 @@ async function saveUserEdit(idx){
     document.getElementById('orgManagementPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('templateImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('wikeloImportPanel').style.display = newRole==='owner' ? '' : 'none';
+    document.getElementById('locationImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('orgSwitcherWrap').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('tabBtn-verwaltung').style.display = isAdminOrAbove ? '' : 'none';
     if(!isAdminOrAbove && document.getElementById('tabBtn-verwaltung').classList.contains('active')) switchTab('uebersicht');
@@ -4983,11 +5014,11 @@ const LEGACY_ORG_ID = 'nightwolf';
 // Skript deklariert werden — wird erst bei tatsächlichem Aufruf beim Login
 // ausgewertet, also lange nachdem das gesamte Skript geladen wurde.
 function getOrgScopedKeys(){
-  // PROJECT_TEMPLATES_KEY und WIKELO_TEMPLATES_KEY sind bewusst NICHT
-  // enthalten -- diese beiden werden seit ihrer Umstellung auf globale
-  // Speicherung (siehe loadProjectTemplates/loadWikeloTemplates) nicht
-  // mehr pro Organisation getrennt gefuehrt.
-  return [STORAGE_KEY, NEEDS_KEY, PROJECTS_KEY, COLLECTIBLES_KEY, PRIVATE_STORAGE_KEY, PRIVATE_COLLECTIBLES_KEY, PRIVATE_PROJECTS_KEY, MATERIALS_KEY, LOCATIONS_KEY, LOG_KEY, TRASH_KEY];
+  // PROJECT_TEMPLATES_KEY, WIKELO_TEMPLATES_KEY, MATERIALS_KEY und
+  // LOCATIONS_KEY sind bewusst NICHT enthalten -- diese werden seit
+  // ihrer Umstellung auf globale Speicherung (siehe jeweilige
+  // load...()-Funktionen) nicht mehr pro Organisation getrennt gefuehrt.
+  return [STORAGE_KEY, NEEDS_KEY, PROJECTS_KEY, COLLECTIBLES_KEY, PRIVATE_STORAGE_KEY, PRIVATE_COLLECTIBLES_KEY, PRIVATE_PROJECTS_KEY, LOG_KEY, TRASH_KEY];
 }
 
 async function runOrgMigrationIfNeeded(){
@@ -5340,6 +5371,7 @@ function completeLogin(user){
   document.getElementById('orgManagementPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('templateImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('wikeloImportPanel').style.display = user.role==='owner' ? '' : 'none';
+  document.getElementById('locationImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('orgSwitcherWrap').style.display = user.role==='owner' ? '' : 'none';
   if(user.role==='owner'){ renderOrgSwitcher(); renderOrgManagementList(); renderTemplateCount(); renderWikeloCount(); updateBackupRestoreButtons(); }
   applyOrgBranding();
@@ -6365,10 +6397,25 @@ function renderPrivateCollectibleSummary(){
 
 
 
+// WICHTIG: bewusst OHNE orgKey() -- Lagerorte sind reine Spieldaten
+// (Star-Citizen-Stationen, nicht organisationsspezifisch) und werden
+// daher GLOBAL fuer alle Organisationen gemeinsam gespeichert, analog
+// zu den Projekt-Vorlagen/Wikelo-Angeboten (siehe dortiger Kommentar
+// bei loadProjectTemplates fuer die ausfuehrliche Begruendung).
 async function loadLocations(){
   if(locationsLoaded) return;
   try{
-    const res = await window.storage.get(orgKey(LOCATIONS_KEY), true);
+    let res = await window.storage.get(LOCATIONS_KEY, true);
+    // Einmalige Migration: falls global noch nichts hinterlegt ist, aber
+    // unter dem alten, organisationsspezifischen Speicherort bereits
+    // Daten existieren, werden diese uebernommen, statt verloren zu gehen.
+    if((!res || !res.value) && currentOrgId){
+      const legacyRes = await window.storage.get(orgKey(LOCATIONS_KEY), true);
+      if(legacyRes && legacyRes.value){
+        await window.storage.set(LOCATIONS_KEY, legacyRes.value, true);
+        res = legacyRes;
+      }
+    }
     if(res && res.value){
       const parsed = JSON.parse(res.value);
       if(Array.isArray(parsed) && parsed.length) LOCATIONS = parsed;
@@ -6380,17 +6427,26 @@ async function loadLocations(){
 }
 async function saveLocations(){
   try{
-    await window.storage.set(orgKey(LOCATIONS_KEY), JSON.stringify(LOCATIONS), true);
+    await window.storage.set(LOCATIONS_KEY, JSON.stringify(LOCATIONS), true);
     return true;
   }catch(e){
     return false;
   }
 }
 
+// Ebenfalls bewusst OHNE orgKey() -- siehe Kommentar bei loadLocations()
+// weiter oben.
 async function loadMaterials(){
   if(materialsLoaded) return;
   try{
-    const res = await window.storage.get(orgKey(MATERIALS_KEY), true);
+    let res = await window.storage.get(MATERIALS_KEY, true);
+    if((!res || !res.value) && currentOrgId){
+      const legacyRes = await window.storage.get(orgKey(MATERIALS_KEY), true);
+      if(legacyRes && legacyRes.value){
+        await window.storage.set(MATERIALS_KEY, legacyRes.value, true);
+        res = legacyRes;
+      }
+    }
     if(res && res.value){
       const parsed = JSON.parse(res.value);
       if(Array.isArray(parsed) && parsed.length) MATERIALS = parsed;
@@ -6402,7 +6458,7 @@ async function loadMaterials(){
 }
 async function saveMaterials(){
   try{
-    await window.storage.set(orgKey(MATERIALS_KEY), JSON.stringify(MATERIALS), true);
+    await window.storage.set(MATERIALS_KEY, JSON.stringify(MATERIALS), true);
     return true;
   }catch(e){
     return false;
@@ -7790,6 +7846,87 @@ document.getElementById('btnImportWikelo').addEventListener('click', async ()=>{
   openTemplateImportConfirm('wikelo', parsed, versionLabel);
 });
 
+// Lagerort-Import — bewusst ADDITIV statt ueberschreibend (anders als bei
+// Rezepten/Wikelo): neue Lagerorte werden zur bestehenden Liste
+// hinzugefuegt, bereits vorhandene System+Code-Kombinationen werden
+// uebersprungen, nicht ersetzt. Deshalb kein Bestaetigungs-Dialog/Backup
+// noetig -- es wird nichts geloescht oder ueberschrieben.
+document.getElementById('btnSelectLocationFile').addEventListener('click', ()=>{
+  document.getElementById('locationFileInput').click();
+});
+document.getElementById('locationFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0];
+  const statusEl = document.getElementById('locationImportStatus');
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    document.getElementById('locationImportText').value = ev.target.result;
+    statusEl.textContent = t('msg_file_loaded').replace('{name}', file.name);
+  };
+  reader.onerror = ()=>{
+    statusEl.textContent = t('val_file_read_error');
+  };
+  reader.readAsText(file, 'UTF-8');
+  e.target.value = '';
+});
+
+// Parst das einfache "System;Code;Name"-Format, eine Zeile pro Lagerort.
+// Zeilen, die mit "#" beginnen (z.B. Kommentare/Kategorie-Ueberschriften
+// wie in der vom Nutzer aufbereiteten Vorlage), werden uebersprungen.
+function parseLocationImportFormat(lines){
+  const result = [];
+  lines.forEach(line=>{
+    const trimmed = line.trim();
+    if(!trimmed || trimmed.startsWith('#')) return;
+    const parts = trimmed.split(';');
+    if(parts.length < 3) return;
+    const system = parts[0].trim();
+    const code = parts[1].trim();
+    const name = parts[2].trim();
+    if(system && code && name){
+      result.push({ system, code, name });
+    }
+  });
+  return result;
+}
+
+document.getElementById('btnImportLocations').addEventListener('click', async ()=>{
+  const rawFull = document.getElementById('locationImportText').value;
+  const statusEl = document.getElementById('locationImportStatus');
+  const allLines = rawFull.split('\n');
+
+  const parsed = parseLocationImportFormat(allLines);
+  if(parsed.length === 0){
+    statusEl.textContent = t('val_location_import_empty');
+    return;
+  }
+
+  statusEl.textContent = t('msg_saving');
+
+  let addedCount = 0;
+  let skippedCount = 0;
+  parsed.forEach(loc=>{
+    const exists = LOCATIONS.some(l=>l.system===loc.system && l.code===loc.code);
+    if(exists){
+      skippedCount++;
+    } else {
+      LOCATIONS.push(loc);
+      addedCount++;
+    }
+  });
+
+  if(addedCount > 0){
+    await saveLocations();
+    await logAction('Lagerorte importiert', `${addedCount} neu hinzugefügt, ${skippedCount} bereits vorhanden übersprungen (globale Liste)`);
+    await refreshCatalogDropdowns();
+  }
+
+  statusEl.textContent = t('msg_locations_imported').replace('{added}', addedCount).replace('{skipped}', skippedCount);
+  renderCatalogLists();
+  document.getElementById('locationImportText').value = '';
+  setTimeout(()=>{ statusEl.textContent=''; }, 5000);
+});
+
 function initProjectResourcesIfEmpty(isPrivate){
   const container = document.getElementById(isPrivate ? 'privProjResourcesContainer' : 'projResourcesContainer');
   if(container && container.children.length === 0){
@@ -7977,6 +8114,27 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
   setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 });
 
+// Aktualisiert die Projekt-Dropdowns bei Sammelobjekten (geteilt +
+// privat), damit neu angelegte oder geaenderte Projekte sofort zur
+// Auswahl stehen, ohne dass die Seite neu geladen werden muss. Wird
+// sowohl von renderProjects() als auch renderPrivateProjects() aufgerufen,
+// da sich sowohl geteilte als auch private Projekt-Aenderungen auf diese
+// Dropdowns auswirken koennen.
+function refreshCollectibleProjectDropdowns(){
+  const collProjektWrap = document.getElementById('coll-projekt-wrap');
+  if(collProjektWrap){
+    const prevSelection = document.getElementById('coll-projekt') ? document.getElementById('coll-projekt').value : '';
+    const prevAssign = parseProjectAssignmentValue(prevSelection);
+    collProjektWrap.innerHTML = buildCombinedProjectSelectHTML('coll-projekt', prevAssign.ziel, prevAssign.typ, '', false);
+  }
+  const privCollProjektWrap = document.getElementById('priv-coll-projekt-wrap');
+  if(privCollProjektWrap){
+    const prevPrivSelection = document.getElementById('priv-coll-projekt') ? document.getElementById('priv-coll-projekt').value : '';
+    const prevPrivAssign = parseProjectAssignmentValue(prevPrivSelection);
+    privCollProjektWrap.innerHTML = buildCombinedProjectSelectHTML('priv-coll-projekt', prevPrivAssign.ziel, prevPrivAssign.typ, '', true);
+  }
+}
+
 function renderProjects(){
   const container = document.getElementById('projectTableContainer');
   if(!currentUser) return;
@@ -7999,6 +8157,13 @@ function renderProjects(){
     const prevPrivAssign = parseProjectAssignmentValue(prevPrivSelection);
     privProjektWrap.innerHTML = buildCombinedProjectSelectHTML('priv-projekt', prevPrivAssign.ziel, prevPrivAssign.typ, '', true);
   }
+
+  // Auch die Projekt-Dropdowns bei Sammelobjekten (geteilt + privat)
+  // aktualisieren -- diese haengen ebenso von der aktuellen Projektliste
+  // ab, wurden bisher aber nur einmal beim Laden befuellt, wodurch neu
+  // angelegte Projekte dort erst nach einem Neuladen der Seite auswaehlbar
+  // waren.
+  refreshCollectibleProjectDropdowns();
 
   if(projects.length === 0){
     container.innerHTML = `<div class="empty"><div class="big">${t('empty_projects_title')}</div>${t('empty_projects_sub')}</div>`;
@@ -8404,6 +8569,11 @@ document.getElementById('btnAddPrivProject').addEventListener('click', async ()=
 function renderPrivateProjects(){
   const container = document.getElementById('privProjectTableContainer');
   if(!currentUser || !container) return;
+
+  // Siehe Kommentar bei refreshCollectibleProjectDropdowns() -- auch
+  // Aenderungen an privaten Projekten muessen die Sammelobjekt-Dropdowns
+  // aktualisieren, da diese private Projekte ebenfalls zur Auswahl anbieten.
+  refreshCollectibleProjectDropdowns();
 
   const mine = myPrivateProjects();
 
