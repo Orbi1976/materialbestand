@@ -536,7 +536,14 @@ h1{
   gap:10px;
   align-items:end;
 }
-.field{display:flex;flex-direction:column;gap:5px;}
+/* min-width:0 ist entscheidend: CSS-Grid-Elemente schrumpfen per
+   Voreinstellung NICHT unter ihre "natuerliche" Inhaltsbreite (z.B. die
+   Breite eines <select> mit einer laengeren Option), selbst wenn die
+   zugewiesene Rasterspalte schmaler ist -- das fuehrt zu echtem
+   Ueberlappen benachbarter Felder statt zu sauberem Umbruch/Schrumpfen.
+   Das duerfte die eigentliche, gemeinsame Ursache hinter mehreren heute
+   einzeln behobenen Layout-Problemen gewesen sein. */
+.field{display:flex;flex-direction:column;gap:5px;min-width:0;}
 .field label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ink-soft);font-family:'Share Tech Mono', monospace;}
 .field input, .field select{
   font-family:'Rajdhani', sans-serif;
