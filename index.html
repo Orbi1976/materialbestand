@@ -1627,7 +1627,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="tab-content" data-tab="bestand">
   <div class="panel" id="entryFormPanel">
     <h2 data-i18n="panel_neuer_eintrag">Neuer Eintrag</h2>
-    <div class="form-grid">
+    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
       <div class="field">
         <label for="f-material" data-i18n="label_material">Material</label>
         <div id="f-material-wrap"></div>
@@ -1767,7 +1767,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="panel">
     <h2 data-i18n="panel_neuer_eintrag_privat">Neuer Eintrag (Privat)</h2>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privatbestand">Nur du siehst diese Einträge. Sie werden nicht mit anderen Benutzern geteilt und fließen nur ein, wenn du sie ausdrücklich in den allgemeinen Bestand übernimmst.</span></div>
-    <div class="form-grid">
+    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
       <div class="field">
         <label for="priv-material" data-i18n="label_material">Material</label>
         <div id="priv-material-wrap"></div>
@@ -5778,7 +5778,17 @@ function getUserCategoryRestriction(){
     : null;
 }
 
-function locLabel(loc){ return loc.code + ' – ' + loc.name; }
+// Zeigt "Code – Name" nur an, wenn beide sich tatsaechlich unterscheiden
+// (z.B. "ARC-L1 – Wide Forest Station") -- sind Code und Name identisch
+// (z.B. bei Lagerorten ohne eigenen Kurz-Code, wo beide Felder denselben
+// Wert tragen), reicht eine einfache Nennung statt der redundanten
+// Wiederholung ("Lorville – Lorville").
+function locLabel(loc){
+  const code = (loc.code||'').trim();
+  const name = (loc.name||'').trim();
+  if(code.toLowerCase() === name.toLowerCase()) return name || code;
+  return code + ' – ' + name;
+}
 
 // ============================================================
 // Sammelobjekte & Artefakte — Katalog mit Kategorie und optionalen
