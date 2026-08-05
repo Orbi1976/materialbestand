@@ -544,6 +544,25 @@ h1{
    Das duerfte die eigentliche, gemeinsame Ursache hinter mehreren heute
    einzeln behobenen Layout-Problemen gewesen sein. */
 .field{display:flex;flex-direction:column;gap:5px;min-width:0;}
+
+/* Alternative zu .form-grid speziell fuer Formulare mit variabler
+   Feldanzahl (z.B. durch spaeter hinzugekommene Felder wie "Projekt"):
+   Flexbox mit flex-wrap statt CSS-Grid. Flexbox-Umbruch ist deutlich
+   robuster/vorhersagbarer als Grid mit auto-fit -- Felder, die nicht
+   mehr in eine Zeile passen, wandern zuverlaessig in die naechste,
+   OHNE das grid-spezifische "min-width:auto verhindert Schrumpfen"-
+   Verhalten, das trotz mehrerer Grid-Korrekturen weiterhin zu
+   Ueberlappungen fuehrte. */
+.form-grid-flex{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:end;
+}
+.form-grid-flex > .field{
+  flex:1 1 150px;
+  min-width:0;
+}
 .field label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ink-soft);font-family:'Share Tech Mono', monospace;}
 .field input, .field select{
   font-family:'Rajdhani', sans-serif;
@@ -1430,7 +1449,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
   <div class="panel" id="adminPanel" style="display:none;">
     <h2 data-i18n="panel_benutzerverwaltung">Benutzerverwaltung</h2>
-    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
+    <div class="form-grid-flex">
       <div class="field">
         <label for="newUserName" data-i18n="label_benutzername">Benutzername</label>
         <input type="text" id="newUserName" placeholder="z. B. Neuermensch99">
@@ -1523,7 +1542,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <h2 data-i18n="panel_materialverwaltung">Materialien &amp; Lagerorte verwalten</h2>
 
     <h3 data-i18n="heading_material_hinzufuegen" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px 0;color:var(--steel);">Material hinzufügen</h3>
-    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
+    <div class="form-grid-flex">
       <div class="field">
         <label for="newMatCategory" data-i18n="label_kategorie">Kategorie</label>
         <input type="text" id="newMatCategory" list="matCategoryList" placeholder="bestehend wählen oder neu eingeben" data-i18n-placeholder="placeholder_bestehend_oder_neu">
@@ -1545,7 +1564,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="user-list" id="materialListContainer" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
 
     <h3 data-i18n="heading_lagerort_hinzufuegen" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px 0;color:var(--steel);">Lagerort hinzufügen</h3>
-    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
+    <div class="form-grid-flex">
       <div class="field">
         <label for="newLocSystem" data-i18n="label_system">System</label>
         <input type="text" id="newLocSystem" list="locSystemList" placeholder="bestehend wählen oder neu eingeben" data-i18n-placeholder="placeholder_bestehend_oder_neu">
@@ -1641,7 +1660,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="tab-content" data-tab="bestand">
   <div class="panel" id="entryFormPanel">
     <h2 data-i18n="panel_neuer_eintrag">Neuer Eintrag</h2>
-    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
+    <div class="form-grid-flex">
       <div class="field">
         <label for="f-material" data-i18n="label_material">Material</label>
         <div id="f-material-wrap"></div>
@@ -1781,7 +1800,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="panel">
     <h2 data-i18n="panel_neuer_eintrag_privat">Neuer Eintrag (Privat)</h2>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privatbestand">Nur du siehst diese Einträge. Sie werden nicht mit anderen Benutzern geteilt und fließen nur ein, wenn du sie ausdrücklich in den allgemeinen Bestand übernimmst.</span></div>
-    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
+    <div class="form-grid-flex">
       <div class="field">
         <label for="priv-material" data-i18n="label_material">Material</label>
         <div id="priv-material-wrap"></div>
@@ -1933,7 +1952,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="panel">
     <h2 data-i18n="panel_sammelobjekte_privat">Sammelobjekte &amp; Artefakte (Privat)</h2>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privat_sammelobjekte">Nur du siehst diese Einträge. Sie fließen nur ein, wenn du sie ausdrücklich in die allgemeinen Sammelobjekte übernimmst.</span></div>
-    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
+    <div class="form-grid-flex">
       <div class="field">
         <label for="priv-coll-item" data-i18n="label_objekt">Objekt</label>
         <div id="priv-coll-item-wrap"></div>
@@ -1976,7 +1995,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <h2 style="margin:0;" data-i18n="panel_bedarf">Bedarfsprioritäten</h2>
       <button class="btn-ghost btn-compact" id="btnExportNeeds" data-i18n="btn_export_csv">Als CSV exportieren</button>
     </div>
-    <div class="form-grid" id="needFormGrid">
+    <div class="form-grid-flex" id="needFormGrid">
       <div class="field">
         <label for="need-material" data-i18n="label_material">Material</label>
         <div id="need-material-wrap"></div>
@@ -2074,7 +2093,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-ghost btn-compact" id="btnExportCollectibles" data-i18n="btn_export_csv">Als CSV exportieren</button>
     </div>
     <div id="collectibleAddSection">
-      <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
+      <div class="form-grid-flex">
         <div class="field">
           <label for="coll-item" data-i18n="label_objekt">Objekt</label>
           <div id="coll-item-wrap"></div>
