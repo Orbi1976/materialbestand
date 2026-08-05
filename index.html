@@ -8207,7 +8207,7 @@ function renderProjects(){
             ${['Niedrig','Mittel','Hoch','Kritisch'].map(pr=>`<option value="${pr}" ${(p.prioritaet||'Mittel')===pr?'selected':''}>${escapeHtml(prioLabel(pr))}</option>`).join('')}
           </select>
         </td>
-        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" colspan="2">
+        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >
           <div id="editProjResources-${p.id}" style="display:flex;flex-direction:column;gap:6px;">
             ${resources.map((r,i)=>`
               <div class="proj-resource-row" data-row-id="e${i}" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
@@ -8254,7 +8254,7 @@ function renderProjects(){
         <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
         <td data-label="${t('label_prioritaet')}"><span class="badge ${PRIORITY_CLASS[p.prioritaet||'Mittel']}">${escapeHtml(prioLabel(p.prioritaet||'Mittel'))}</span></td>
-        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" colspan="2">${resourceList}</td>
+        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}</td>
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon" data-action="reapply-project" data-id="${p.id}" title="${t('tooltip_projekt_erneut_anlegen')}">🔁</button>
@@ -8609,7 +8609,7 @@ function renderPrivateProjects(){
         <td></td>
         <td data-label="${t('col_ziel')}"><input class="edit-input" id="edit-priv-proj-ziel" value="${escapeHtml(p.ziel)}"></td>
         <td data-label="${t('col_anzahl')}"><input class="edit-input" id="edit-priv-proj-anzahl" type="number" step="1" value="${p.anzahl}" style="width:70px;"></td>
-        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" colspan="2">
+        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >
           <div id="editPrivProjResources-${p.id}" style="display:flex;flex-direction:column;gap:6px;">
             ${resources.map((r,i)=>`
               <div class="proj-resource-row" data-row-id="e${i}" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
@@ -8655,7 +8655,7 @@ function renderPrivateProjects(){
         <td><input type="checkbox" class="priv-project-select-cb" data-id="${p.id}" ${selectedPrivProjectIds.has(p.id)?'checked':''}></td>
         <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
-        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" colspan="2">${resourceList}</td>
+        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}</td>
         <td class="actions-cell">
           <button class="btn-icon" data-action="edit-priv-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon" data-action="reapply-priv-project" data-id="${p.id}" title="${t('tooltip_projekt_erneut_anlegen')}">🔁</button>
