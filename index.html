@@ -524,7 +524,15 @@ h1{
 
 .form-grid{
   display:grid;
-  grid-template-columns:repeat(6,1fr);
+  /* Automatisch umbrechendes Raster als Standard (statt starrer 6
+     Spalten) -- verhindert systematisch die Art von Verschiebungs-
+     Fehlern, die heute mehrfach in einzelnen Formularen auftraten,
+     sobald ein Feld hinzukam/wegfiel, ohne dass die Spaltenzahl
+     entsprechend nachgezogen wurde. Betrifft nur Formulare OHNE eigene
+     grid-template-columns-Angabe (Inline-Styles haben Vorrang) --
+     aktuell ausschliesslich das Bedarf-Formular.
+  */
+  grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
   gap:10px;
   align-items:end;
 }
@@ -766,7 +774,6 @@ body.device-mobile .form-grid{
   grid-template-columns:1fr !important;
   gap:14px;
 }
-body.device-mobile .field[style*="grid-column:span 2"]{grid-column:span 1 !important;}
 body.device-mobile button,
 body.device-mobile .field input,
 body.device-mobile .field select,
@@ -1637,7 +1644,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <label for="f-qualitaet" data-i18n="label_qualitaet">Qualität</label>
         <input id="f-qualitaet" type="number" step="0.01" placeholder="z. B. 62.5">
       </div>
-      <div class="field" style="grid-column:span 2;">
+      <div class="field">
         <label for="f-menge" data-i18n="label_menge">Menge</label>
         <div class="qty-row qty-row-lg">
           <input id="f-menge" type="number" min="0" step="0.001" placeholder="0" style="min-width:0;">
@@ -1777,7 +1784,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <label for="priv-qualitaet" data-i18n="label_qualitaet">Qualität</label>
         <input id="priv-qualitaet" type="number" step="0.01" placeholder="z. B. 62.5">
       </div>
-      <div class="field" style="grid-column:span 2;">
+      <div class="field">
         <label for="priv-menge" data-i18n="label_menge">Menge</label>
         <div class="qty-row qty-row-lg">
           <input id="priv-menge" type="number" min="0" step="0.001" placeholder="0" style="min-width:0;">
