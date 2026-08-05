@@ -1236,6 +1236,20 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 </div>
 
+<div id="templateImportConfirmModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:245;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid var(--low);border-radius:var(--radius);padding:26px 28px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 0 40px rgba(255,59,92,0.25);">
+    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--low);margin:0 0 8px;">⚠ <span data-i18n="modal_import_confirm_title">Globale Vorlagen überschreiben?</span></h3>
+    <p id="templateImportConfirmText" style="font-family:'Rajdhani', sans-serif;font-size:13.5px;color:var(--ink);line-height:1.5;margin:0 0 16px;"></p>
+    <div style="background:rgba(255,59,92,0.08);border:1px solid var(--low);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--ink-soft);margin-bottom:16px;" data-i18n="hint_import_global_warning">Diese Liste gilt organisationsübergreifend — der Import ersetzt die Vorlagen für ALLE Organisationen, nicht nur die aktuell ausgewählte.</div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;" data-i18n="label_formatvorlage">Formatvorlage (je eine Zeile pro Eintrag)</div>
+    <pre id="templateImportConfirmFormat" style="background:rgba(0,10,16,0.6);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;font-family:'Share Tech Mono', monospace;font-size:11.5px;color:var(--cyan);white-space:pre-wrap;word-break:break-word;margin:0 0 18px;"></pre>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-ghost" id="btnTemplateImportCancel" data-i18n="btn_cancel">Abbrechen</button>
+      <button class="btn-primary" id="btnTemplateImportConfirm" style="background:var(--low);" data-i18n="btn_trotzdem_importieren">Trotzdem importieren</button>
+    </div>
+  </div>
+</div>
+
 <div id="undoToast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:50;background:#0D141C;border:1px solid var(--panel-border);border-radius:var(--radius);padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,0.5);align-items:center;gap:14px;font-family:'Rajdhani', sans-serif;font-size:14px;color:var(--ink);">
   <span id="undoToastText">Eintrag gelöscht.</span>
   <button class="btn-primary" id="btnUndoToast" style="padding:6px 14px;font-size:11px;">Rückgängig</button>
@@ -1402,7 +1416,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
   <div class="panel" id="adminPanel" style="display:none;">
     <h2 data-i18n="panel_benutzerverwaltung">Benutzerverwaltung</h2>
-    <div class="form-grid" style="grid-template-columns:1.4fr 1.8fr 1.2fr 1.4fr auto;">
+    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
       <div class="field">
         <label for="newUserName" data-i18n="label_benutzername">Benutzername</label>
         <input type="text" id="newUserName" placeholder="z. B. Neuermensch99">
@@ -1446,7 +1460,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
   <div class="panel" id="templateImportPanel" style="display:none;">
     <h2 data-i18n="panel_rezepte_import">Projekt-Vorlagen importieren</h2>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rezepte_import">Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Format pro Zeile: Kategorie;Name;Material1,Material2,Material3 — ein erneuter Import ersetzt die komplette bisherige Liste.</span></div>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rezepte_import">Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Format pro Zeile: Kategorie;Name;Material1,Material2,Material3 — optional lässt sich je Material eine vorgeschlagene Menge anhängen, z. B. "Material:15". Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
     <div style="margin-bottom:10px;">
       <button type="button" class="btn-ghost" id="btnSelectTemplateFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
       <input type="file" id="templateFileInput" accept=".txt,.csv" style="display:none;">
@@ -1454,6 +1468,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <textarea id="templateImportText" rows="8" placeholder="Rüstungsteile;ADP Arms;Ouratite,Aslarite" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
     <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <button class="btn-primary" id="btnImportTemplates" data-i18n="btn_rezepte_importieren">Importieren</button>
+      <button class="btn-ghost" id="btnRestoreTemplatesBackup" style="display:none;font-size:11px;" data-i18n="btn_vorherige_version_wiederherstellen">↺ Vorherige Version wiederherstellen</button>
       <span id="templateCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
     </div>
     <div class="status-msg" id="templateImportStatus"></div>
@@ -1461,7 +1476,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
   <div class="panel" id="wikeloImportPanel" style="display:none;">
     <h2 data-i18n="panel_wikelo_import">Wikelo-Handelsangebote importieren</h2>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_wikelo_import">Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt.</span></div>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_wikelo_import">Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — optional lässt sich je Gegenstand eine vorgeschlagene Menge anhängen, z. B. "Gegenstand:15". Ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
     <div style="margin-bottom:10px;">
       <button type="button" class="btn-ghost" id="btnSelectWikeloFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
       <input type="file" id="wikeloFileInput" accept=".txt,.csv" style="display:none;">
@@ -1469,6 +1484,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <textarea id="wikeloImportText" rows="8" placeholder="Kampf;Guardian;Wikelo Favor (MS/CS/C/P),Irradiated Valakkar Pearl (Grade AA),Ace Interceptor Helmet,Tevarin War Service Marker" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
     <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <button class="btn-primary" id="btnImportWikelo" data-i18n="btn_rezepte_importieren">Importieren</button>
+      <button class="btn-ghost" id="btnRestoreWikeloBackup" style="display:none;font-size:11px;" data-i18n="btn_vorherige_version_wiederherstellen">↺ Vorherige Version wiederherstellen</button>
       <span id="wikeloCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
     </div>
     <div class="status-msg" id="wikeloImportStatus"></div>
@@ -1478,7 +1494,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <h2 data-i18n="panel_materialverwaltung">Materialien &amp; Lagerorte verwalten</h2>
 
     <h3 data-i18n="heading_material_hinzufuegen" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px 0;color:var(--steel);">Material hinzufügen</h3>
-    <div class="form-grid" style="grid-template-columns:1.2fr 1.4fr 0.9fr auto;">
+    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
       <div class="field">
         <label for="newMatCategory" data-i18n="label_kategorie">Kategorie</label>
         <input type="text" id="newMatCategory" list="matCategoryList" placeholder="bestehend wählen oder neu eingeben" data-i18n-placeholder="placeholder_bestehend_oder_neu">
@@ -1500,7 +1516,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="user-list" id="materialListContainer" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
 
     <h3 data-i18n="heading_lagerort_hinzufuegen" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px 0;color:var(--steel);">Lagerort hinzufügen</h3>
-    <div class="form-grid" style="grid-template-columns:1fr 1fr 1.2fr auto;">
+    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
       <div class="field">
         <label for="newLocSystem" data-i18n="label_system">System</label>
         <input type="text" id="newLocSystem" list="locSystemList" placeholder="bestehend wählen oder neu eingeben" data-i18n-placeholder="placeholder_bestehend_oder_neu">
@@ -1888,7 +1904,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="panel">
     <h2 data-i18n="panel_sammelobjekte_privat">Sammelobjekte &amp; Artefakte (Privat)</h2>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privat_sammelobjekte">Nur du siehst diese Einträge. Sie fließen nur ein, wenn du sie ausdrücklich in die allgemeinen Sammelobjekte übernimmst.</span></div>
-    <div class="form-grid" style="grid-template-columns:2fr 1.4fr 1.4fr 1fr 1.4fr auto;">
+    <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
       <div class="field">
         <label for="priv-coll-item" data-i18n="label_objekt">Objekt</label>
         <div id="priv-coll-item-wrap"></div>
@@ -1984,7 +2000,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <input type="text" id="proj-template-search" placeholder="Vorlage suchen (optional) …" data-i18n-placeholder="placeholder_vorlage_suchen" autocomplete="off">
         <div id="proj-template-dropdown" class="template-dropdown"></div>
       </div>
-      <div class="form-grid" style="grid-template-columns:1.4fr 0.8fr;">
+      <div class="form-grid" style="grid-template-columns:1.4fr 0.8fr 0.8fr;">
         <div class="field">
           <label for="proj-ziel" data-i18n="label_ziel">Ziel</label>
           <input type="text" id="proj-ziel" list="projZielList" placeholder="z. B. Idris-P bauen">
@@ -1993,6 +2009,15 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div class="field">
           <label for="proj-anzahl" data-i18n="label_anzahl">Anzahl</label>
           <input type="number" id="proj-anzahl" min="0" step="1" placeholder="1">
+        </div>
+        <div class="field">
+          <label for="proj-prioritaet" data-i18n="label_prioritaet">Priorität</label>
+          <select id="proj-prioritaet">
+            <option value="Niedrig" data-i18n="prio_niedrig">Niedrig</option>
+            <option value="Mittel" selected data-i18n="prio_mittel">Mittel</option>
+            <option value="Hoch" data-i18n="prio_hoch">Hoch</option>
+            <option value="Kritisch" data-i18n="prio_kritisch">Kritisch</option>
+          </select>
         </div>
       </div>
       <div style="margin-top:12px;">
@@ -2020,7 +2045,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-ghost btn-compact" id="btnExportCollectibles" data-i18n="btn_export_csv">Als CSV exportieren</button>
     </div>
     <div id="collectibleAddSection">
-      <div class="form-grid" style="grid-template-columns:2fr 1.4fr 1.4fr 1fr 1.4fr auto;">
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
         <div class="field">
           <label for="coll-item" data-i18n="label_objekt">Objekt</label>
           <div id="coll-item-wrap"></div>
@@ -2504,6 +2529,15 @@ const I18N = {
   "tour_btn_skip": "Überspringen",
   "modal_need_escalation_title": "Länger offene eigene Bedarfe",
   "modal_release_title": "Zuordnung aufheben",
+  "modal_import_confirm_title": "Globale Vorlagen überschreiben?",
+  "modal_import_confirm_text_rezepte": "Du bist dabei, {count} Projekt-Vorlagen zu importieren. Dieser Import ersetzt die komplette bisherige Rezepte-Liste.",
+  "modal_import_confirm_text_wikelo": "Du bist dabei, {count} Wikelo-Handelsangebote zu importieren. Dieser Import ersetzt die komplette bisherige Wikelo-Liste.",
+  "hint_import_global_warning": "Diese Liste gilt organisationsübergreifend — der Import ersetzt die Vorlagen für ALLE Organisationen, nicht nur die aktuell ausgewählte.",
+  "label_formatvorlage": "Formatvorlage (je eine Zeile pro Eintrag)",
+  "btn_trotzdem_importieren": "Trotzdem importieren",
+  "btn_vorherige_version_wiederherstellen": "↺ Vorherige Version wiederherstellen",
+  "msg_backup_restored": "Vorherige Version wiederhergestellt ({count} Einträge).",
+  "msg_backup_restore_failed": "Es liegt kein wiederherstellbares Backup vor.",
   "modal_release_text": "„{item}“ ist aktuell dem Projekt „{project}“ zugeordnet. Wie soll damit verfahren werden?",
   "btn_release_to_private": "Zurück in privaten Bestand",
   "hint_release_to_private": "Bleibt dein privater Eintrag, nur die Projekt-Zuordnung wird entfernt.",
@@ -2533,7 +2567,7 @@ const I18N = {
   "empty_private_projects_title": "Noch keine privaten Projekte",
   "empty_private_projects_sub": "Leg dein erstes Vorhaben an, um den Fortschritt anhand deines Privatbestands zu verfolgen.",
   "panel_rezepte_import": "Projekt-Vorlagen importieren",
-  "hint_rezepte_import": "Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Format pro Zeile: Kategorie;Name;Material1,Material2,Material3 — optional lässt sich je Material eine vorgeschlagene Menge anhängen, z. B. \"Material:15\". Ein erneuter Import ersetzt die komplette bisherige Liste.",
+  "hint_rezepte_import": "Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Format pro Zeile: Kategorie;Name;Material1,Material2,Material3 — optional lässt sich je Material eine vorgeschlagene Menge anhängen, z. B. \"Material:15\". Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
   "btn_rezepte_importieren": "Importieren",
   "msg_templates_imported": "{count} Vorlagen importiert.",
   "msg_templates_current_count": "Aktuell {count} Vorlagen gespeichert.",
@@ -2547,7 +2581,7 @@ const I18N = {
   "msg_file_loaded": "Datei „{name}“ geladen — bitte prüfen und auf „Importieren“ klicken.",
   "val_file_read_error": "Datei konnte nicht gelesen werden.",
   "panel_wikelo_import": "Wikelo-Handelsangebote importieren",
-  "hint_wikelo_import": "Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — optional lässt sich je Gegenstand eine vorgeschlagene Menge anhängen, z. B. \"Gegenstand:15\". Ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt.",
+  "hint_wikelo_import": "Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — optional lässt sich je Gegenstand eine vorgeschlagene Menge anhängen, z. B. \"Gegenstand:15\". Ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
   "msg_wikelo_imported": "{count} Wikelo-Angebote importiert.",
   "msg_wikelo_current_count": "Aktuell {count} Wikelo-Angebote gespeichert.",
   "val_wikelo_import_empty": "Bitte mindestens eine Zeile im Format Kategorie;Name;Gegenstand1,Gegenstand2 einfügen.",
@@ -2728,6 +2762,9 @@ const I18N = {
   "msg_transferred_to_general_collectibles": "In öffentliche Sammelobjekte übernommen.",
   "btn_hide_log": "Protokoll ausblenden",
   "msg_added_as_need": "Als Bedarf eingetragen ✓",
+  "msg_need_updated": "Bestehender Bedarf aktualisiert ✓",
+  "btn_bedarf_aktualisieren": "↺ Bedarf aktualisieren",
+  "tooltip_bedarf_bereits_verknuepft": "Für dieses Material existiert bereits ein mit diesem Projekt verknüpfter Bedarf — ein Klick aktualisiert dessen Menge statt einen zweiten Bedarf anzulegen.",
   "btn_ungroup_location": "Gruppierung aufheben",
   "btn_show_bulk": "Massen-Eingabe anzeigen",
   "btn_hide_bulk": "Massen-Eingabe ausblenden",
@@ -3007,6 +3044,15 @@ const I18N = {
   "tour_btn_skip": "Skip",
   "modal_need_escalation_title": "Long-open needs you reported",
   "modal_release_title": "Remove assignment",
+  "modal_import_confirm_title": "Overwrite global templates?",
+  "modal_import_confirm_text_rezepte": "You are about to import {count} project templates. This import replaces the entire existing recipe list.",
+  "modal_import_confirm_text_wikelo": "You are about to import {count} Wikelo trade offers. This import replaces the entire existing Wikelo list.",
+  "hint_import_global_warning": "This list applies across all organizations — the import replaces the templates for ALL organizations, not just the currently selected one.",
+  "label_formatvorlage": "Format template (one line per entry)",
+  "btn_trotzdem_importieren": "Import anyway",
+  "btn_vorherige_version_wiederherstellen": "↺ Restore previous version",
+  "msg_backup_restored": "Previous version restored ({count} entries).",
+  "msg_backup_restore_failed": "No restorable backup available.",
   "modal_release_text": "\"{item}\" is currently assigned to project \"{project}\". What would you like to do?",
   "btn_release_to_private": "Back to private stock",
   "hint_release_to_private": "Stays your private entry, only the project assignment is removed.",
@@ -3036,7 +3082,7 @@ const I18N = {
   "empty_private_projects_title": "No private projects yet",
   "empty_private_projects_sub": "Add your first plan to track progress based on your private stock.",
   "panel_rezepte_import": "Import project templates",
-  "hint_rezepte_import": "Adds a list of ready-made project templates that become searchable when creating a project (shared or private). Format per line: Category;Name;Material1,Material2,Material3 — each material may optionally carry a suggested quantity, e.g. \"Material:15\". A new import replaces the entire existing list.",
+  "hint_rezepte_import": "Adds a list of ready-made project templates that become searchable when creating a project (shared or private). Format per line: Category;Name;Material1,Material2,Material3 — each material may optionally carry a suggested quantity, e.g. \"Material:15\". A new import replaces the entire existing list. Applies across all organizations (pure game data, not organization-specific).",
   "btn_rezepte_importieren": "Import",
   "msg_templates_imported": "{count} templates imported.",
   "msg_templates_current_count": "Currently {count} templates saved.",
@@ -3050,7 +3096,7 @@ const I18N = {
   "msg_file_loaded": "File “{name}” loaded — please review and click “Import”.",
   "val_file_read_error": "Could not read the file.",
   "panel_wikelo_import": "Import Wikelo trades",
-  "hint_wikelo_import": "Separate list of trade offers from the Banu trader Wikelo — importable independently from the other project templates, but appears together with them in the searchable selection when creating a project. Format per line: Category;Name;Item1,Item2,Item3 — each item may optionally carry a suggested quantity, e.g. \"Item:15\". A new import replaces only the Wikelo list, the other templates remain untouched.",
+  "hint_wikelo_import": "Separate list of trade offers from the Banu trader Wikelo — importable independently from the other project templates, but appears together with them in the searchable selection when creating a project. Format per line: Category;Name;Item1,Item2,Item3 — each item may optionally carry a suggested quantity, e.g. \"Item:15\". A new import replaces only the Wikelo list, the other templates remain untouched. Applies across all organizations (pure game data, not organization-specific).",
   "msg_wikelo_imported": "{count} Wikelo trades imported.",
   "msg_wikelo_current_count": "Currently {count} Wikelo trades saved.",
   "val_wikelo_import_empty": "Please enter at least one line in the format Category;Name;Item1,Item2.",
@@ -3231,6 +3277,9 @@ const I18N = {
   "msg_transferred_to_general_collectibles": "Transferred to public collectibles.",
   "btn_hide_log": "Hide log",
   "msg_added_as_need": "Added as need ✓",
+  "msg_need_updated": "Existing need updated ✓",
+  "btn_bedarf_aktualisieren": "↺ Update need",
+  "tooltip_bedarf_bereits_verknuepft": "A need linked to this project already exists for this material — clicking updates its quantity instead of creating a second one.",
   "btn_ungroup_location": "Ungroup",
   "btn_show_bulk": "Show bulk entry",
   "btn_hide_bulk": "Hide bulk entry",
@@ -3510,6 +3559,15 @@ const I18N = {
   "tour_btn_skip": "Ignorer",
   "modal_need_escalation_title": "Vos besoins ouverts depuis longtemps",
   "modal_release_title": "Supprimer l'affectation",
+  "modal_import_confirm_title": "Écraser les modèles globaux ?",
+  "modal_import_confirm_text_rezepte": "Vous êtes sur le point d'importer {count} modèles de projet. Cette importation remplace l'intégralité de la liste de recettes existante.",
+  "modal_import_confirm_text_wikelo": "Vous êtes sur le point d'importer {count} offres d'échange Wikelo. Cette importation remplace l'intégralité de la liste Wikelo existante.",
+  "hint_import_global_warning": "Cette liste s'applique à toutes les organisations — l'importation remplace les modèles pour TOUTES les organisations, pas seulement celle actuellement sélectionnée.",
+  "label_formatvorlage": "Modèle de format (une ligne par entrée)",
+  "btn_trotzdem_importieren": "Importer quand même",
+  "btn_vorherige_version_wiederherstellen": "↺ Restaurer la version précédente",
+  "msg_backup_restored": "Version précédente restaurée ({count} entrées).",
+  "msg_backup_restore_failed": "Aucune sauvegarde restaurable disponible.",
   "modal_release_text": "« {item} » est actuellement affecté au projet « {project} ». Que souhaitez-vous faire ?",
   "btn_release_to_private": "Retour au stock privé",
   "hint_release_to_private": "Reste votre entrée privée, seule l'affectation au projet est supprimée.",
@@ -3539,7 +3597,7 @@ const I18N = {
   "empty_private_projects_title": "Aucun projet privé pour le moment",
   "empty_private_projects_sub": "Ajoutez votre premier projet pour suivre la progression selon votre stock privé.",
   "panel_rezepte_import": "Importer des modèles de projet",
-  "hint_rezepte_import": "Ajoute une liste de modèles de projet prêts à l'emploi, consultables lors de la création d'un projet (partagé ou privé). Deux formats sont détectés automatiquement : soit le format simple Catégorie;Nom;Matériau1,Matériau2,Matériau3 (chaque matériau peut porter une quantité suggérée facultative, ex. « Matériau:15 »), soit l'export brut et non modifié de la table scmdb.net (les variantes de couleur sont automatiquement fusionnées en un seul modèle de base). Une nouvelle importation remplace la liste existante.",
+  "hint_rezepte_import": "Ajoute une liste de modèles de projet prêts à l'emploi, consultables lors de la création d'un projet (partagé ou privé). Deux formats sont détectés automatiquement : soit le format simple Catégorie;Nom;Matériau1,Matériau2,Matériau3 (chaque matériau peut porter une quantité suggérée facultative, ex. « Matériau:15 »), soit l'export brut et non modifié de la table scmdb.net (les variantes de couleur sont automatiquement fusionnées en un seul modèle de base). Une nouvelle importation remplace la liste existante. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
   "btn_rezepte_importieren": "Importer",
   "msg_templates_imported": "{count} modèles importés.",
   "msg_templates_current_count": "Actuellement {count} modèles enregistrés.",
@@ -3553,7 +3611,7 @@ const I18N = {
   "msg_file_loaded": "Fichier « {name} » chargé — veuillez vérifier puis cliquer sur « Importer ».",
   "val_file_read_error": "Impossible de lire le fichier.",
   "panel_wikelo_import": "Importer les échanges Wikelo",
-  "hint_wikelo_import": "Liste séparée des offres d’échange du marchand Banu Wikelo — importable indépendamment des autres modèles de projet, mais apparaît avec eux dans la sélection consultable lors de la création d’un projet. Format par ligne : Catégorie;Nom;Objet1,Objet2,Objet3 — chaque objet peut porter une quantité suggérée facultative, ex. « Objet:15 ». Une nouvelle importation ne remplace que la liste Wikelo, les autres modèles restent inchangés.",
+  "hint_wikelo_import": "Liste séparée des offres d’échange du marchand Banu Wikelo — importable indépendamment des autres modèles de projet, mais apparaît avec eux dans la sélection consultable lors de la création d’un projet. Format par ligne : Catégorie;Nom;Objet1,Objet2,Objet3 — chaque objet peut porter une quantité suggérée facultative, ex. « Objet:15 ». Une nouvelle importation ne remplace que la liste Wikelo, les autres modèles restent inchangés. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
   "msg_wikelo_imported": "{count} échanges Wikelo importés.",
   "msg_wikelo_current_count": "Actuellement {count} échanges Wikelo enregistrés.",
   "val_wikelo_import_empty": "Veuillez saisir au moins une ligne au format Catégorie;Nom;Objet1,Objet2.",
@@ -3734,6 +3792,9 @@ const I18N = {
   "msg_transferred_to_general_collectibles": "Transféré vers les objets de collection publics.",
   "btn_hide_log": "Masquer le journal",
   "msg_added_as_need": "Ajouté comme besoin ✓",
+  "msg_need_updated": "Besoin existant mis à jour ✓",
+  "btn_bedarf_aktualisieren": "↺ Mettre à jour le besoin",
+  "tooltip_bedarf_bereits_verknuepft": "Un besoin lié à ce projet existe déjà pour ce matériau — cliquer met à jour sa quantité au lieu d'en créer un second.",
   "btn_ungroup_location": "Dégrouper",
   "btn_show_bulk": "Afficher la saisie groupée",
   "btn_hide_bulk": "Masquer la saisie groupée",
@@ -4922,7 +4983,11 @@ const LEGACY_ORG_ID = 'nightwolf';
 // Skript deklariert werden — wird erst bei tatsächlichem Aufruf beim Login
 // ausgewertet, also lange nachdem das gesamte Skript geladen wurde.
 function getOrgScopedKeys(){
-  return [STORAGE_KEY, NEEDS_KEY, PROJECTS_KEY, COLLECTIBLES_KEY, PRIVATE_STORAGE_KEY, PRIVATE_COLLECTIBLES_KEY, PRIVATE_PROJECTS_KEY, PROJECT_TEMPLATES_KEY, WIKELO_TEMPLATES_KEY, MATERIALS_KEY, LOCATIONS_KEY, LOG_KEY, TRASH_KEY];
+  // PROJECT_TEMPLATES_KEY und WIKELO_TEMPLATES_KEY sind bewusst NICHT
+  // enthalten -- diese beiden werden seit ihrer Umstellung auf globale
+  // Speicherung (siehe loadProjectTemplates/loadWikeloTemplates) nicht
+  // mehr pro Organisation getrennt gefuehrt.
+  return [STORAGE_KEY, NEEDS_KEY, PROJECTS_KEY, COLLECTIBLES_KEY, PRIVATE_STORAGE_KEY, PRIVATE_COLLECTIBLES_KEY, PRIVATE_PROJECTS_KEY, MATERIALS_KEY, LOCATIONS_KEY, LOG_KEY, TRASH_KEY];
 }
 
 async function runOrgMigrationIfNeeded(){
@@ -5276,7 +5341,7 @@ function completeLogin(user){
   document.getElementById('templateImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('wikeloImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('orgSwitcherWrap').style.display = user.role==='owner' ? '' : 'none';
-  if(user.role==='owner'){ renderOrgSwitcher(); renderOrgManagementList(); renderTemplateCount(); renderWikeloCount(); }
+  if(user.role==='owner'){ renderOrgSwitcher(); renderOrgManagementList(); renderTemplateCount(); renderWikeloCount(); updateBackupRestoreButtons(); }
   applyOrgBranding();
   if(isOrgAdminOrAbove){ renderOrgBrandingForm(); renderExportReminder(); }
   switchTab('uebersicht');
@@ -7014,9 +7079,26 @@ let projectTemplates = [];
 let projectTemplatesImportedAt = null;
 let projectTemplatesVersionLabel = null;
 
+// WICHTIG: bewusst OHNE orgKey() -- Rezept-Vorlagen sind reine Spieldaten
+// (Star-Citizen-Rezepte, nicht organisationsspezifisch) und werden daher
+// GLOBAL fuer alle Organisationen gemeinsam gespeichert. Importiert eine
+// Person mit Rolle "owner" eine neue Vorlagenliste, steht sie dadurch
+// automatisch allen Organisationen zur Verfuegung, nicht nur der gerade
+// ausgewaehlten.
 async function loadProjectTemplates(){
   try{
-    const res = await window.storage.get(orgKey(PROJECT_TEMPLATES_KEY), true);
+    let res = await window.storage.get(PROJECT_TEMPLATES_KEY, true);
+    // Einmalige Migration: falls global noch nichts hinterlegt ist, aber
+    // unter dem alten, organisationsspezifischen Speicherort (aus der
+    // Zeit vor der Umstellung auf globale Vorlagen) bereits Daten
+    // existieren, werden diese uebernommen, statt verloren zu gehen.
+    if((!res || !res.value) && currentOrgId){
+      const legacyRes = await window.storage.get(orgKey(PROJECT_TEMPLATES_KEY), true);
+      if(legacyRes && legacyRes.value){
+        await window.storage.set(PROJECT_TEMPLATES_KEY, legacyRes.value, true);
+        res = legacyRes;
+      }
+    }
     const parsed = res && res.value ? JSON.parse(res.value) : [];
     // Abwaertskompatibel: alte Speicherungen waren ein reines Array ohne
     // Versionsinfos. Neues Format ist {templates, importedAt, versionLabel}.
@@ -7037,7 +7119,7 @@ async function loadProjectTemplates(){
 }
 async function saveProjectTemplates(){
   try{
-    await window.storage.set(orgKey(PROJECT_TEMPLATES_KEY), JSON.stringify({
+    await window.storage.set(PROJECT_TEMPLATES_KEY, JSON.stringify({
       templates: projectTemplates,
       importedAt: projectTemplatesImportedAt,
       versionLabel: projectTemplatesVersionLabel
@@ -7046,6 +7128,29 @@ async function saveProjectTemplates(){
   }catch(e){
     return false;
   }
+}
+
+// Backup der GLOBALEN Vorlagenliste vor einem ueberschreibenden Import --
+// da der Import organisationsuebergreifend wirkt, bekommt der/die
+// importierende Person (Rolle "owner") im Fehlerfall die Moeglichkeit,
+// die vorherige Version wiederherzustellen. Wird IMMER vor dem
+// eigentlichen Ueberschreiben aufgerufen, sichert also stets genau den
+// direkt vorherigen Stand (kein tieferer Verlauf).
+const PROJECT_TEMPLATES_BACKUP_KEY = 'project-templates-backup';
+async function backupProjectTemplatesBeforeImport(){
+  try{
+    const current = await window.storage.get(PROJECT_TEMPLATES_KEY, true);
+    if(current && current.value){
+      await window.storage.set(PROJECT_TEMPLATES_BACKUP_KEY, current.value, true);
+    }
+  }catch(e){ /* Backup ist ein Sicherheitsnetz -- ein Fehlschlag hier soll den eigentlichen Import nicht blockieren */ }
+}
+async function restoreProjectTemplatesBackup(){
+  const backup = await window.storage.get(PROJECT_TEMPLATES_BACKUP_KEY, true);
+  if(!backup || !backup.value) return false;
+  await window.storage.set(PROJECT_TEMPLATES_KEY, backup.value, true);
+  await loadProjectTemplates();
+  return true;
 }
 
 function renderTemplateCount(){
@@ -7270,9 +7375,22 @@ let wikeloTemplates = [];
 let wikeloTemplatesImportedAt = null;
 let wikeloTemplatesVersionLabel = null;
 
+// Ebenfalls bewusst OHNE orgKey() -- siehe Kommentar bei
+// loadProjectTemplates() weiter oben: Wikelo-Handelsangebote sind
+// ebenso reine Spieldaten und werden global fuer alle Organisationen
+// gemeinsam gespeichert.
 async function loadWikeloTemplates(){
   try{
-    const res = await window.storage.get(orgKey(WIKELO_TEMPLATES_KEY), true);
+    let res = await window.storage.get(WIKELO_TEMPLATES_KEY, true);
+    // Einmalige Migration -- siehe ausfuehrlicher Kommentar bei
+    // loadProjectTemplates() weiter oben.
+    if((!res || !res.value) && currentOrgId){
+      const legacyRes = await window.storage.get(orgKey(WIKELO_TEMPLATES_KEY), true);
+      if(legacyRes && legacyRes.value){
+        await window.storage.set(WIKELO_TEMPLATES_KEY, legacyRes.value, true);
+        res = legacyRes;
+      }
+    }
     const parsed = res && res.value ? JSON.parse(res.value) : [];
     if(Array.isArray(parsed)){
       wikeloTemplates = parsed;
@@ -7291,7 +7409,7 @@ async function loadWikeloTemplates(){
 }
 async function saveWikeloTemplates(){
   try{
-    await window.storage.set(orgKey(WIKELO_TEMPLATES_KEY), JSON.stringify({
+    await window.storage.set(WIKELO_TEMPLATES_KEY, JSON.stringify({
       templates: wikeloTemplates,
       importedAt: wikeloTemplatesImportedAt,
       versionLabel: wikeloTemplatesVersionLabel
@@ -7301,6 +7419,69 @@ async function saveWikeloTemplates(){
     return false;
   }
 }
+
+const WIKELO_TEMPLATES_BACKUP_KEY = 'wikelo-templates-backup';
+async function backupWikeloTemplatesBeforeImport(){
+  try{
+    const current = await window.storage.get(WIKELO_TEMPLATES_KEY, true);
+    if(current && current.value){
+      await window.storage.set(WIKELO_TEMPLATES_BACKUP_KEY, current.value, true);
+    }
+  }catch(e){ /* siehe Kommentar bei backupProjectTemplatesBeforeImport() */ }
+}
+async function restoreWikeloTemplatesBackup(){
+  const backup = await window.storage.get(WIKELO_TEMPLATES_BACKUP_KEY, true);
+  if(!backup || !backup.value) return false;
+  await window.storage.set(WIKELO_TEMPLATES_KEY, backup.value, true);
+  await loadWikeloTemplates();
+  return true;
+}
+
+// Blendet die "Vorherige Version wiederherstellen"-Buttons nur ein, wenn
+// tatsaechlich ein Backup vorhanden ist (d.h. schon mindestens einmal
+// importiert wurde) -- verhindert einen wirkungslosen Klick ins Leere.
+async function updateBackupRestoreButtons(){
+  const [projBackup, wikeloBackup] = await Promise.all([
+    window.storage.get(PROJECT_TEMPLATES_BACKUP_KEY, true),
+    window.storage.get(WIKELO_TEMPLATES_BACKUP_KEY, true)
+  ]);
+  const projBtn = document.getElementById('btnRestoreTemplatesBackup');
+  const wikeloBtn = document.getElementById('btnRestoreWikeloBackup');
+  if(projBtn) projBtn.style.display = (projBackup && projBackup.value) ? '' : 'none';
+  if(wikeloBtn) wikeloBtn.style.display = (wikeloBackup && wikeloBackup.value) ? '' : 'none';
+}
+
+document.getElementById('btnRestoreTemplatesBackup').addEventListener('click', ()=>{
+  armConfirm(document.getElementById('btnRestoreTemplatesBackup'), async ()=>{
+    const statusEl = document.getElementById('templateImportStatus');
+    statusEl.textContent = t('msg_saving');
+    const ok = await restoreProjectTemplatesBackup();
+    if(ok){
+      await logAction('Projekt-Vorlagen wiederhergestellt', `${projectTemplates.length} Vorlagen (vorherige globale Version)`);
+      statusEl.textContent = t('msg_backup_restored').replace('{count}', projectTemplates.length);
+      renderTemplateCount();
+    } else {
+      statusEl.textContent = t('msg_backup_restore_failed');
+    }
+    setTimeout(()=>{ statusEl.textContent=''; }, 4000);
+  });
+});
+
+document.getElementById('btnRestoreWikeloBackup').addEventListener('click', ()=>{
+  armConfirm(document.getElementById('btnRestoreWikeloBackup'), async ()=>{
+    const statusEl = document.getElementById('wikeloImportStatus');
+    statusEl.textContent = t('msg_saving');
+    const ok = await restoreWikeloTemplatesBackup();
+    if(ok){
+      await logAction('Wikelo-Handelsangebote wiederhergestellt', `${wikeloTemplates.length} Angebote (vorherige globale Version)`);
+      statusEl.textContent = t('msg_backup_restored').replace('{count}', wikeloTemplates.length);
+      renderWikeloCount();
+    } else {
+      statusEl.textContent = t('msg_backup_restore_failed');
+    }
+    setTimeout(()=>{ statusEl.textContent=''; }, 4000);
+  });
+});
 function renderWikeloCount(){
   const el = document.getElementById('wikeloCountDisplay');
   if(!el) return;
@@ -7475,6 +7656,66 @@ function parseSimpleTemplateFormat(lines){
   return parsed;
 }
 
+// Gemeinsamer Zustand für das Bestätigungs-Modal vor einem globalen,
+// ueberschreibenden Vorlagen-Import (Rezepte ODER Wikelo).
+let pendingTemplateImport = null; // { kind: 'rezepte'|'wikelo', parsed, versionLabel }
+
+function openTemplateImportConfirm(kind, parsed, versionLabel){
+  pendingTemplateImport = { kind, parsed, versionLabel };
+  const isWikelo = kind === 'wikelo';
+  document.getElementById('templateImportConfirmText').textContent =
+    t(isWikelo ? 'modal_import_confirm_text_wikelo' : 'modal_import_confirm_text_rezepte').replace('{count}', parsed.length);
+  document.getElementById('templateImportConfirmFormat').textContent =
+    isWikelo
+      ? 'Kategorie;Name;Gegenstand1,Gegenstand2:5,Gegenstand3'
+      : 'Kategorie;Name;Material1,Material2:12,Material3';
+  document.getElementById('templateImportConfirmModal').style.display = 'flex';
+}
+
+document.getElementById('btnTemplateImportCancel').addEventListener('click', ()=>{
+  pendingTemplateImport = null;
+  document.getElementById('templateImportConfirmModal').style.display = 'none';
+});
+
+document.getElementById('btnTemplateImportConfirm').addEventListener('click', async ()=>{
+  if(!pendingTemplateImport) return;
+  const { kind, parsed, versionLabel } = pendingTemplateImport;
+  document.getElementById('templateImportConfirmModal').style.display = 'none';
+
+  if(kind === 'rezepte'){
+    const statusEl = document.getElementById('templateImportStatus');
+    statusEl.textContent = t('msg_saving');
+    await backupProjectTemplatesBeforeImport();
+    projectTemplates = parsed;
+    projectTemplatesImportedAt = new Date().toISOString();
+    projectTemplatesVersionLabel = versionLabel;
+    await saveProjectTemplates();
+    await logAction('Projekt-Vorlagen importiert', `${parsed.length} Vorlagen${versionLabel ? ' ('+versionLabel+')' : ''} (globale Liste, vorherige Version gesichert)`);
+
+    statusEl.textContent = t('msg_templates_imported').replace('{count}', parsed.length);
+    renderTemplateCount();
+    updateBackupRestoreButtons();
+    document.getElementById('templateImportText').value = '';
+    setTimeout(()=>{ statusEl.textContent=''; }, 4000);
+  } else {
+    const statusEl = document.getElementById('wikeloImportStatus');
+    statusEl.textContent = t('msg_saving');
+    await backupWikeloTemplatesBeforeImport();
+    wikeloTemplates = parsed;
+    wikeloTemplatesImportedAt = new Date().toISOString();
+    wikeloTemplatesVersionLabel = versionLabel;
+    await saveWikeloTemplates();
+    await logAction('Wikelo-Handelsangebote importiert', `${parsed.length} Angebote${versionLabel ? ' ('+versionLabel+')' : ''} (globale Liste, vorherige Version gesichert)`);
+
+    statusEl.textContent = t('msg_wikelo_imported').replace('{count}', parsed.length);
+    renderWikeloCount();
+    updateBackupRestoreButtons();
+    document.getElementById('wikeloImportText').value = '';
+    setTimeout(()=>{ statusEl.textContent=''; }, 4000);
+  }
+  pendingTemplateImport = null;
+});
+
 document.getElementById('btnImportTemplates').addEventListener('click', async ()=>{
   const rawFull = document.getElementById('templateImportText').value;
   const statusEl = document.getElementById('templateImportStatus');
@@ -7502,17 +7743,9 @@ document.getElementById('btnImportTemplates').addEventListener('click', async ()
     return;
   }
 
-  statusEl.textContent = t('msg_saving');
-  projectTemplates = parsed;
-  projectTemplatesImportedAt = new Date().toISOString();
-  projectTemplatesVersionLabel = versionLabel;
-  await saveProjectTemplates();
-  await logAction('Projekt-Vorlagen importiert', `${parsed.length} Vorlagen${versionLabel ? ' ('+versionLabel+')' : ''}`);
-
-  statusEl.textContent = t('msg_templates_imported').replace('{count}', parsed.length);
-  renderTemplateCount();
-  document.getElementById('templateImportText').value = '';
-  setTimeout(()=>{ statusEl.textContent=''; }, 4000);
+  // Statt sofort zu speichern: Bestätigungs-Dialog zeigen, da der Import
+  // die GLOBALE, organisationsuebergreifende Liste ueberschreibt.
+  openTemplateImportConfirm('rezepte', parsed, versionLabel);
 });
 
 // Wikelo-Import — bewusst eigenständig, damit ein Import hier NICHT die
@@ -7554,17 +7787,7 @@ document.getElementById('btnImportWikelo').addEventListener('click', async ()=>{
     return;
   }
 
-  statusEl.textContent = t('msg_saving');
-  wikeloTemplates = parsed;
-  wikeloTemplatesImportedAt = new Date().toISOString();
-  wikeloTemplatesVersionLabel = versionLabel;
-  await saveWikeloTemplates();
-  await logAction('Wikelo-Handelsangebote importiert', `${parsed.length} Angebote${versionLabel ? ' ('+versionLabel+')' : ''}`);
-
-  statusEl.textContent = t('msg_wikelo_imported').replace('{count}', parsed.length);
-  renderWikeloCount();
-  document.getElementById('wikeloImportText').value = '';
-  setTimeout(()=>{ statusEl.textContent=''; }, 4000);
+  openTemplateImportConfirm('wikelo', parsed, versionLabel);
 });
 
 function initProjectResourcesIfEmpty(isPrivate){
@@ -7711,6 +7934,7 @@ document.getElementById('btnAddProjResource').addEventListener('click', ()=>{
 document.getElementById('btnAddProject').addEventListener('click', async ()=>{
   const ziel = document.getElementById('proj-ziel').value.trim();
   const anzahl = document.getElementById('proj-anzahl').value;
+  const prioritaet = document.getElementById('proj-prioritaet').value;
   const statusEl = document.getElementById('projectStatus');
   const resContainer = document.getElementById('projResourcesContainer');
   const resources = Array.from(resContainer.querySelectorAll('.proj-resource-row')).map(row=>{
@@ -7733,15 +7957,17 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
   projects.push({
     id: projectUid(),
     ziel, anzahl: parseFloat(anzahl),
-    resources
+    resources,
+    prioritaet
   });
 
   statusEl.textContent = t('msg_saving');
   await saveProjects();
-  await logAction('Projekt angelegt', `${ziel} (${anzahl}x)`);
+  await logAction('Projekt angelegt', `${ziel} (${anzahl}x, Priorität: ${prioritaet})`);
 
   document.getElementById('proj-ziel').value = '';
   document.getElementById('proj-anzahl').value = '';
+  document.getElementById('proj-prioritaet').value = 'Mittel';
   resContainer.innerHTML = '';
   for(let i=0;i<3;i++) addProjectResourceRow(false, resContainer);
   scheduleRenderDashboard();
@@ -7783,16 +8009,29 @@ function renderProjects(){
 
   let html = `<table><thead><tr>
     <th style="width:28px;"><input type="checkbox" id="selectAllProjects"></th>
-    <th>${t('label_ziel')}</th><th>${t('label_anzahl')}</th><th>${t('col_ressourcen')}</th><th></th>
+    <th>${t('label_ziel')}</th><th>${t('label_anzahl')}</th><th>${t('label_prioritaet')}</th><th>${t('col_ressourcen')}</th><th></th>
   </tr></thead><tbody>`;
 
-  projects.forEach(p=>{
+  // Sortiert nach Prioritaet (Kritisch zuerst) — Projekte ohne gesetzte
+  // Prioritaet (aeltere Datenbestaende von vor Einfuehrung dieses
+  // Merkmals) gelten dabei als "Mittel", damit sie weder unbegruendet
+  // ganz oben noch ganz unten einsortiert werden.
+  const sortedProjects = [...projects].sort((a,b)=>
+    PRIORITY_ORDER[a.prioritaet||'Mittel'] - PRIORITY_ORDER[b.prioritaet||'Mittel']
+  );
+
+  sortedProjects.forEach(p=>{
     const resources = p.resources.map(normalizeResource);
     if(editingProjectId === p.id){
       html += `<tr>
         <td></td>
         <td data-label="${t('col_ziel')}"><input class="edit-input" id="edit-proj-ziel" value="${escapeHtml(p.ziel)}"></td>
         <td data-label="${t('col_anzahl')}"><input class="edit-input" id="edit-proj-anzahl" type="number" step="1" value="${p.anzahl}" style="width:70px;"></td>
+        <td data-label="${t('label_prioritaet')}">
+          <select class="edit-input" id="edit-proj-prioritaet">
+            ${['Niedrig','Mittel','Hoch','Kritisch'].map(pr=>`<option value="${pr}" ${(p.prioritaet||'Mittel')===pr?'selected':''}>${escapeHtml(prioLabel(pr))}</option>`).join('')}
+          </select>
+        </td>
         <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" colspan="2">
           <div id="editProjResources-${p.id}" style="display:flex;flex-direction:column;gap:6px;">
             ${resources.map((r,i)=>`
@@ -7828,7 +8067,10 @@ function renderProjects(){
             return `<div style="margin-bottom:6px;">
               <div>${escapeHtml(r.material)} — ${t('label_benoetigt')}: <span class="qty-cell">${r.menge!=null ? r.menge : '–'}</span> / ${t('label_vorhanden')}: <span class="qty-cell stock-hover-wrap">${escapeHtml(stockForMaterial(r.material, p.ziel))}<span class="stock-hover-tooltip">${buildStockBreakdownHTML(r.material, p.ziel)}</span></span>${r.mindestqualitaet!=null ? ` · <span style="color:var(--ink-soft);">${t('label_mind_qualitaet')}: ${r.mindestqualitaet}</span>` : ''}</div>
               ${pct!==null ? `<div class="gauge" style="width:140px;margin-top:4px;"><div class="gauge-fill" style="width:${pct}%;background:${barColor};"></div></div><div style="font-size:10px;color:var(--ink-soft);margin-top:2px;">${pct}%</div>` : ''}
-              ${r.fehlend>0 ? `<button class="btn-ghost" data-action="need-from-project" data-material="${escapeHtml(r.material)}" data-menge="${r.fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;">${t('btn_bedarf_eintragen')} (${r.fehlend} ${t('label_fehlt')})</button>` : ''}
+              ${r.fehlend>0 ? (needs.some(n=>n.material===r.material && n.sourceProjekt===p.ziel && (n.sourceProjektTyp||'shared')==='shared')
+                ? `<button class="btn-ghost" data-action="need-from-project" data-material="${escapeHtml(r.material)}" data-menge="${r.fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;" title="${t('tooltip_bedarf_bereits_verknuepft')}">${t('btn_bedarf_aktualisieren')} (${r.fehlend} ${t('label_fehlt')})</button>`
+                : `<button class="btn-ghost" data-action="need-from-project" data-material="${escapeHtml(r.material)}" data-menge="${r.fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;">${t('btn_bedarf_eintragen')} (${r.fehlend} ${t('label_fehlt')})</button>`
+              ) : ''}
             </div>`;
           }).join('')
         : '<span style="color:var(--ink-soft);">—</span>';
@@ -7836,6 +8078,7 @@ function renderProjects(){
         <td>${canManage ? `<input type="checkbox" class="project-select-cb" data-id="${p.id}" ${selectedProjectIds.has(p.id)?'checked':''}>` : ''}</td>
         <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
+        <td data-label="${t('label_prioritaet')}"><span class="badge ${PRIORITY_CLASS[p.prioritaet||'Mittel']}">${escapeHtml(prioLabel(p.prioritaet||'Mittel'))}</span></td>
         <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" colspan="2">${resourceList}</td>
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
@@ -7853,18 +8096,34 @@ function renderProjects(){
       const material = btn.dataset.material;
       const menge = parseFloat(btn.dataset.menge);
       const ziel = btn.dataset.ziel;
-      needs.push({
-        id: needUid(),
-        user: currentUser.username,
-        material, qualitaet: 0,
-        menge, einheit: 'SCU',
-        prioritaet: 'Hoch',
-        createdAt: new Date().toISOString()
-      });
-      await saveNeeds();
-      await logAction('Bedarf hinzugefügt', `${material}, ${menge} SCU (Hoch) — aus Projekt „${ziel}“`);
-      renderNeeds();
-      btn.textContent = t('msg_added_as_need');
+      // Erst pruefen, ob bereits ein Bedarf existiert, der ueber genau
+      // dasselbe Material + Projekt-Ziel verknuepft ist (sourceProjekt) --
+      // wenn ja, dessen Menge aktualisieren statt einen zweiten,
+      // doppelten Bedarfseintrag anzulegen.
+      const existing = needs.find(n=>n.material===material && n.sourceProjekt===ziel && (n.sourceProjektTyp||'shared')==='shared');
+      if(existing){
+        const oldMenge = existing.menge;
+        existing.menge = menge;
+        await saveNeeds();
+        await logAction('Bedarf aktualisiert', `${material}: ${oldMenge} → ${menge} SCU — aus Projekt „${ziel}“ (verknüpfter Bedarf angepasst statt Duplikat)`);
+        renderNeeds();
+        btn.textContent = t('msg_need_updated');
+      } else {
+        needs.push({
+          id: needUid(),
+          user: currentUser.username,
+          material, qualitaet: 0,
+          menge, einheit: 'SCU',
+          prioritaet: 'Hoch',
+          createdAt: new Date().toISOString(),
+          sourceProjekt: ziel,
+          sourceProjektTyp: 'shared'
+        });
+        await saveNeeds();
+        await logAction('Bedarf hinzugefügt', `${material}, ${menge} SCU (Hoch) — aus Projekt „${ziel}“`);
+        renderNeeds();
+        btn.textContent = t('msg_added_as_need');
+      }
       btn.disabled = true;
     });
   });
@@ -7875,24 +8134,36 @@ function renderProjects(){
       if(!p) return;
       const resources = p.resources.map(normalizeResource);
       let addedCount = 0;
+      let updatedCount = 0;
       for(const r of resources){
         const avail = stockAmount(r.material, p.ziel);
         const fehlend = (r.menge!=null && r.menge>avail) ? Math.round((r.menge-avail)*100)/100 : 0;
         if(fehlend > 0){
-          needs.push({
-            id: needUid(),
-            user: currentUser.username,
-            material: r.material, qualitaet: 0,
-            menge: fehlend, einheit: 'SCU',
-            prioritaet: 'Hoch',
-            createdAt: new Date().toISOString()
-          });
-          addedCount++;
+          const existing = needs.find(n=>n.material===r.material && n.sourceProjekt===p.ziel && (n.sourceProjektTyp||'shared')==='shared');
+          if(existing){
+            existing.menge = fehlend;
+            updatedCount++;
+          } else {
+            needs.push({
+              id: needUid(),
+              user: currentUser.username,
+              material: r.material, qualitaet: 0,
+              menge: fehlend, einheit: 'SCU',
+              prioritaet: 'Hoch',
+              createdAt: new Date().toISOString(),
+              sourceProjekt: p.ziel,
+              sourceProjektTyp: 'shared'
+            });
+            addedCount++;
+          }
         }
       }
-      if(addedCount > 0){
+      if(addedCount > 0 || updatedCount > 0){
         await saveNeeds();
-        await logAction('Bedarf hinzugefügt (Sammel)', `${addedCount} Materialien aus Projekt „${p.ziel}“`);
+        const parts = [];
+        if(addedCount>0) parts.push(`${addedCount} neu`);
+        if(updatedCount>0) parts.push(`${updatedCount} aktualisiert (verknüpft statt Duplikat)`);
+        await logAction('Bedarf hinzugefügt (Sammel)', `${parts.join(', ')} aus Projekt „${p.ziel}“`);
         renderNeeds();
       }
       btn.textContent = t('msg_added_as_need');
@@ -7914,6 +8185,8 @@ function renderProjects(){
         materials: resources.map(r=>({name: r.material, menge: r.menge}))
       };
       await applyProjectTemplate(false, pseudoTpl);
+      const prioSel = document.getElementById('proj-prioritaet');
+      if(prioSel) prioSel.value = p.prioritaet || 'Mittel';
       document.getElementById('proj-ziel').scrollIntoView({behavior:'smooth', block:'center'});
     });
   });
@@ -7982,6 +8255,7 @@ function renderProjects(){
           ...projects[idx],
           ziel: document.getElementById('edit-proj-ziel').value.trim(),
           anzahl: parseFloat(document.getElementById('edit-proj-anzahl').value)||0,
+          prioritaet: document.getElementById('edit-proj-prioritaet').value,
           resources
         };
         await logAction('Projekt bearbeitet', projects[idx].ziel);
@@ -8174,14 +8448,26 @@ function renderPrivateProjects(){
         </td>
       </tr>`;
     } else {
+      const resourceDetails = resources.map(r=>{
+        const avail = privateStockAmount(r.material, p.ziel, undefined, 'private');
+        const fehlend = (r.menge!=null && r.menge>avail) ? Math.round((r.menge-avail)*100)/100 : 0;
+        return { ...r, avail, fehlend };
+      });
+      const missingPrivResources = resourceDetails.filter(r=>r.fehlend>0);
+      const bulkNeedButtonPriv = missingPrivResources.length > 1
+        ? `<button class="btn-ghost" data-action="need-all-from-priv-project" data-id="${p.id}" style="font-size:10.5px;padding:4px 10px;margin-bottom:8px;">${t('btn_alle_bedarfe_eintragen')} (${missingPrivResources.length})</button><br>`
+        : '';
       const resourceList = resources.length
-        ? resources.map(r=>{
-            const avail = privateStockAmount(r.material, p.ziel, undefined, 'private');
-            const pct = (r.menge!=null && r.menge>0) ? Math.min(100, Math.round((avail/r.menge)*100)) : null;
+        ? bulkNeedButtonPriv + resourceDetails.map(r=>{
+            const pct = (r.menge!=null && r.menge>0) ? Math.min(100, Math.round((r.avail/r.menge)*100)) : null;
             const barColor = pct===null ? 'var(--steel)' : (pct>=100 ? '#2CFFA0' : pct>=50 ? '#FFC93C' : '#FF3B5C');
             return `<div style="margin-bottom:6px;">
               <div>${escapeHtml(r.material)} — ${t('label_benoetigt')}: <span class="qty-cell">${r.menge!=null ? r.menge : '–'}</span> / ${t('label_vorhanden')}: <span class="qty-cell">${escapeHtml(privateStockForMaterial(r.material, p.ziel, 'private'))}</span>${r.mindestqualitaet!=null ? ` · <span style="color:var(--ink-soft);">${t('label_mind_qualitaet')}: ${r.mindestqualitaet}</span>` : ''}</div>
               ${pct!==null ? `<div class="gauge" style="width:140px;margin-top:4px;"><div class="gauge-fill" style="width:${pct}%;background:${barColor};"></div></div><div style="font-size:10px;color:var(--ink-soft);margin-top:2px;">${pct}%</div>` : ''}
+              ${r.fehlend>0 ? (needs.some(n=>n.material===r.material && n.sourceProjekt===p.ziel && n.sourceProjektTyp==='private')
+                ? `<button class="btn-ghost" data-action="need-from-priv-project" data-material="${escapeHtml(r.material)}" data-menge="${r.fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;" title="${t('tooltip_bedarf_bereits_verknuepft')}">${t('btn_bedarf_aktualisieren')} (${r.fehlend} ${t('label_fehlt')})</button>`
+                : `<button class="btn-ghost" data-action="need-from-priv-project" data-material="${escapeHtml(r.material)}" data-menge="${r.fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;">${t('btn_bedarf_eintragen')} (${r.fehlend} ${t('label_fehlt')})</button>`
+              ) : ''}
             </div>`;
           }).join('')
         : '<span style="color:var(--ink-soft);">—</span>';
@@ -8203,6 +8489,84 @@ function renderPrivateProjects(){
 
   container.querySelectorAll('[data-action="edit-priv-project"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingPrivateProjectId = btn.dataset.id; renderPrivateProjects(); });
+  });
+  container.querySelectorAll('[data-action="need-from-priv-project"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const material = btn.dataset.material;
+      const menge = parseFloat(btn.dataset.menge);
+      const ziel = btn.dataset.ziel;
+      // Wie bei geteilten Projekten: bestehenden, verknuepften Bedarf
+      // aktualisieren statt einen zweiten anzulegen. sourceProjektTyp
+      // 'private' verhindert eine Verwechslung mit einem GETEILTEN
+      // Projekt zufaellig gleichen Namens.
+      const existing = needs.find(n=>n.material===material && n.sourceProjekt===ziel && n.sourceProjektTyp==='private');
+      if(existing){
+        const oldMenge = existing.menge;
+        existing.menge = menge;
+        await saveNeeds();
+        await logAction('Bedarf aktualisiert', `${material}: ${oldMenge} → ${menge} SCU — aus privatem Projekt „${ziel}“ (verknüpfter Bedarf angepasst statt Duplikat)`);
+        renderNeeds();
+        btn.textContent = t('msg_need_updated');
+      } else {
+        needs.push({
+          id: needUid(),
+          user: currentUser.username,
+          material, qualitaet: 0,
+          menge, einheit: 'SCU',
+          prioritaet: 'Hoch',
+          createdAt: new Date().toISOString(),
+          sourceProjekt: ziel,
+          sourceProjektTyp: 'private'
+        });
+        await saveNeeds();
+        await logAction('Bedarf hinzugefügt', `${material}, ${menge} SCU (Hoch) — aus privatem Projekt „${ziel}“`);
+        renderNeeds();
+        btn.textContent = t('msg_added_as_need');
+      }
+      btn.disabled = true;
+    });
+  });
+  container.querySelectorAll('[data-action="need-all-from-priv-project"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const p = myPrivateProjects().find(pr=>pr.id === btn.dataset.id);
+      if(!p) return;
+      const resources = p.resources.map(normalizeResource);
+      let addedCount = 0;
+      let updatedCount = 0;
+      for(const r of resources){
+        const avail = privateStockAmount(r.material, p.ziel, undefined, 'private');
+        const fehlend = (r.menge!=null && r.menge>avail) ? Math.round((r.menge-avail)*100)/100 : 0;
+        if(fehlend > 0){
+          const existing = needs.find(n=>n.material===r.material && n.sourceProjekt===p.ziel && n.sourceProjektTyp==='private');
+          if(existing){
+            existing.menge = fehlend;
+            updatedCount++;
+          } else {
+            needs.push({
+              id: needUid(),
+              user: currentUser.username,
+              material: r.material, qualitaet: 0,
+              menge: fehlend, einheit: 'SCU',
+              prioritaet: 'Hoch',
+              createdAt: new Date().toISOString(),
+              sourceProjekt: p.ziel,
+              sourceProjektTyp: 'private'
+            });
+            addedCount++;
+          }
+        }
+      }
+      if(addedCount > 0 || updatedCount > 0){
+        await saveNeeds();
+        const parts = [];
+        if(addedCount>0) parts.push(`${addedCount} neu`);
+        if(updatedCount>0) parts.push(`${updatedCount} aktualisiert (verknüpft statt Duplikat)`);
+        await logAction('Bedarf hinzugefügt (Sammel)', `${parts.join(', ')} aus privatem Projekt „${p.ziel}“`);
+        renderNeeds();
+      }
+      btn.textContent = t('msg_added_as_need');
+      btn.disabled = true;
+    });
   });
   container.querySelectorAll('[data-action="reapply-priv-project"]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
@@ -8872,14 +9236,15 @@ async function renderDashboard(){
         const fehlend = Math.round((r.menge - avail) * 100) / 100;
         return { material: r.material, fehlend, menge: r.menge, avail };
       }).filter(g=>g.fehlend > 0);
-      return { ziel: p.ziel, anzahl: p.anzahl, gaps };
-    }).filter(p=>p.gaps.length > 0);
+      return { ziel: p.ziel, anzahl: p.anzahl, prioritaet: p.prioritaet||'Mittel', gaps };
+    }).filter(p=>p.gaps.length > 0)
+      .sort((a,b)=> PRIORITY_ORDER[a.prioritaet] - PRIORITY_ORDER[b.prioritaet]);
 
     if(projectsWithGaps.length > 0){
       reminderPanel.style.display = '';
       reminderContainer.innerHTML = projectsWithGaps.map(p=>`
         <div style="margin-bottom:16px;padding:12px 14px;background:rgba(255,255,255,0.02);border:1px solid var(--panel-border);border-radius:var(--radius);">
-          <div style="font-family:'Orbitron', sans-serif;font-size:12.5px;letter-spacing:0.5px;color:var(--ink);margin-bottom:8px;cursor:pointer;" data-goto-project="${escapeHtml(p.ziel)}">${escapeHtml(p.ziel)} <span style="color:var(--ink-soft);font-weight:400;">(${p.anzahl}x)</span></div>
+          <div style="font-family:'Orbitron', sans-serif;font-size:12.5px;letter-spacing:0.5px;color:var(--ink);margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:8px;" data-goto-project="${escapeHtml(p.ziel)}">${escapeHtml(p.ziel)} <span style="color:var(--ink-soft);font-weight:400;">(${p.anzahl}x)</span><span class="badge ${PRIORITY_CLASS[p.prioritaet]}">${escapeHtml(prioLabel(p.prioritaet))}</span></div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;">
             ${p.gaps.map(g=>`<span style="font-family:'Share Tech Mono', monospace;font-size:11.5px;padding:3px 9px;background:var(--low-bg);color:var(--low);border-radius:20px;">${escapeHtml(g.material)}: ${t('label_fehlt')} ${g.fehlend}</span>`).join('')}
           </div>
