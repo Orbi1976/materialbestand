@@ -5945,8 +5945,8 @@ function renderCollectibles(){
   const sorted = [...collectibles].sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
 
   let html = `<table style="table-layout:fixed;"><thead><tr>
-    <th style="width:3%;"><input type="checkbox" id="selectAllCollectibles"></th>
-    <th style="width:14%;">${t('col_kategorie')}</th><th style="width:19%;">${t('label_objekt')}</th><th style="width:10%;">${t('label_qualitaet_stufe')}</th><th style="width:14%;">${t('col_lagerort')}</th><th style="width:7%;">${t('label_anzahl')}</th><th style="width:10%;">${t('col_besitzer')}</th><th style="width:14%;">${t('col_projekt')}</th><th style="width:9%;"></th>
+    <th style="width:3%;white-space:normal;"><input type="checkbox" id="selectAllCollectibles"></th>
+    <th style="width:14%;white-space:normal;">${t('col_kategorie')}</th><th style="width:19%;white-space:normal;">${t('label_objekt')}</th><th style="width:10%;white-space:normal;">${t('label_qualitaet_stufe')}</th><th style="width:14%;white-space:normal;">${t('col_lagerort')}</th><th style="width:7%;white-space:normal;">${t('label_anzahl')}</th><th style="width:10%;white-space:normal;">${t('col_besitzer')}</th><th style="width:14%;white-space:normal;">${t('col_projekt')}</th><th style="width:9%;white-space:normal;"></th>
   </tr></thead><tbody>`;
 
   sorted.forEach(c=>{
@@ -6252,8 +6252,8 @@ function renderPrivateCollectibles(){
   const sorted = [...mine].sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
 
   let html = `<table style="table-layout:fixed;"><thead><tr>
-    <th style="width:3%;"><input type="checkbox" id="selectAllPrivCollectibles"></th>
-    <th style="width:15%;">${t('col_kategorie')}</th><th style="width:22%;">${t('label_objekt')}</th><th style="width:11%;">${t('label_qualitaet_stufe')}</th><th style="width:16%;">${t('col_lagerort')}</th><th style="width:8%;">${t('label_anzahl')}</th><th style="width:16%;">${t('col_projekt')}</th><th style="width:9%;"></th>
+    <th style="width:3%;white-space:normal;"><input type="checkbox" id="selectAllPrivCollectibles"></th>
+    <th style="width:15%;white-space:normal;">${t('col_kategorie')}</th><th style="width:22%;white-space:normal;">${t('label_objekt')}</th><th style="width:11%;white-space:normal;">${t('label_qualitaet_stufe')}</th><th style="width:16%;white-space:normal;">${t('col_lagerort')}</th><th style="width:8%;white-space:normal;">${t('label_anzahl')}</th><th style="width:16%;white-space:normal;">${t('col_projekt')}</th><th style="width:9%;white-space:normal;"></th>
   </tr></thead><tbody>`;
 
   sorted.forEach(c=>{
@@ -8182,9 +8182,9 @@ function renderProjects(){
 
   const canManage = roleAtLeast(currentUser.role, 'admin');
 
-  let html = `<table><thead><tr>
-    <th style="width:28px;"><input type="checkbox" id="selectAllProjects"></th>
-    <th>${t('label_ziel')}</th><th>${t('label_anzahl')}</th><th>${t('label_prioritaet')}</th><th>${t('col_ressourcen')}</th><th></th>
+  let html = `<table style="table-layout:fixed;"><thead><tr>
+    <th style="width:4%;white-space:normal;"><input type="checkbox" id="selectAllProjects"></th>
+    <th style="width:16%;white-space:normal;">${t('label_ziel')}</th><th style="width:8%;white-space:normal;">${t('label_anzahl')}</th><th style="width:10%;white-space:normal;">${t('label_prioritaet')}</th><th style="width:50%;white-space:normal;">${t('col_ressourcen')}</th><th style="width:12%;white-space:normal;"></th>
   </tr></thead><tbody>`;
 
   // Sortiert nach Prioritaet (Kritisch zuerst) — Projekte ohne gesetzte
@@ -8597,9 +8597,9 @@ function renderPrivateProjects(){
     return;
   }
 
-  let html = `<table><thead><tr>
-    <th style="width:28px;"><input type="checkbox" id="selectAllPrivProjects"></th>
-    <th>${t('label_ziel')}</th><th>${t('label_anzahl')}</th><th>${t('col_ressourcen')}</th><th></th>
+  let html = `<table style="table-layout:fixed;"><thead><tr>
+    <th style="width:4%;white-space:normal;"><input type="checkbox" id="selectAllPrivProjects"></th>
+    <th style="width:18%;white-space:normal;">${t('label_ziel')}</th><th style="width:9%;white-space:normal;">${t('label_anzahl')}</th><th style="width:55%;white-space:normal;">${t('col_ressourcen')}</th><th style="width:14%;white-space:normal;"></th>
   </tr></thead><tbody>`;
 
   mine.forEach(p=>{
