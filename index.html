@@ -393,6 +393,18 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
   gap:5px;
   margin-top:6px;
   min-height:1px;
+  /* Wie .field selbst ist auch DIESER Container ein Flex-Kind (von
+     .field) und unterliegt daher demselben "schrumpft nicht unter die
+     eigene Inhaltsbreite"-Verhalten -- ohne min-width:0 konnte dieser
+     Container sein Elternfeld (.field) ueber dessen zugewiesene Breite
+     hinaus aufspreizen und dadurch in das naechste Formularfeld
+     hineinueberlappen. Betraf ausschliesslich Material- und
+     Lagerort-Feld, da nur diese ueberhaupt einen Chip-Container haben.
+     width:100% zusaetzlich, damit er sich nie breiter als sein
+     Elternfeld darstellt, auch wenn der Inhalt (z.B. ein langer
+     Material-/Lagerort-Name im Chip) an sich mehr Platz haette. */
+  min-width:0;
+  width:100%;
 }
 .recent-chips:empty{ margin-top:0; }
 .recent-chips-label{
