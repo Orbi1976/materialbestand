@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.002 -->
+<!-- Version: 0.003 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2487,6 +2487,7 @@ const I18N = {
   "label_private_projekte": "Private Projekte",
   "col_einheit": "Einheit",
   "col_gesamt": "Gesamt",
+  "label_gesamt_klein": "gesamt",
   "col_reserviert": "Reserviert",
   "col_frei_verfuegbar": "Frei verfügbar",
   "col_zeit": "Zeit",
@@ -3007,6 +3008,7 @@ const I18N = {
   "label_private_projekte": "Private projects",
   "col_einheit": "Unit",
   "col_gesamt": "Total",
+  "label_gesamt_klein": "total",
   "col_reserviert": "Reserved",
   "col_frei_verfuegbar": "Freely available",
   "col_zeit": "Time",
@@ -3527,6 +3529,7 @@ const I18N = {
   "label_private_projekte": "Projets privés",
   "col_einheit": "Unité",
   "col_gesamt": "Total",
+  "label_gesamt_klein": "total",
   "col_reserviert": "Réservé",
   "col_frei_verfuegbar": "Disponible",
   "col_zeit": "Heure",
@@ -7182,16 +7185,52 @@ function addProjectResourceRow(isPrivate, container, prefill){
   const qtyId = prefix+'proj-res-qty-'+rowId;
   const qualId = prefix+'proj-res-qual-'+rowId;
   const availId = prefix+'proj-avail-'+rowId;
+  const totalId = prefix+'proj-total-'+rowId;
   div.innerHTML = `
     <div style="flex:1;min-width:170px;">${buildMaterialSelectHTML(matId, prefill?prefill.material:'', '')}</div>
     <input type="number" id="${qtyId}" min="0" step="0.001" value="${prefill&&prefill.menge!=null?prefill.menge:''}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:170px;">
+    <span id="${totalId}" style="font-size:11px;color:var(--cyan);white-space:nowrap;min-width:90px;"></span>
     <input type="number" id="${qualId}" min="0" max="1000" step="0.01" value="${prefill&&prefill.mindestqualitaet!=null?prefill.mindestqualitaet:''}" placeholder="${t('placeholder_mindestqualitaet')}" title="${t('tooltip_projekt_mindestqualitaet')}" style="width:130px;">
     <div style="font-size:11px;color:var(--ink-soft);white-space:nowrap;">${t('label_vorhanden')}: <span class="qty-cell" id="${availId}">–</span></div>
     <button type="button" class="btn-icon danger" data-remove-resource="${rowId}" title="${t('btn_delete')}">✕</button>
   `;
   container.appendChild(div);
   document.getElementById(matId).addEventListener('change', ()=>{ isPrivate ? updatePrivateProjectAvailability() : updateProjectAvailability(); });
+  // Live-Gesamtmengen-Vorschau: aktualisiert sich sofort bei jeder
+  // Eingabe in DIESES Mengenfeld (Menge pro Einheit x aktuelle Anzahl),
+  // ohne dass das Projekt erst angelegt werden muss.
+  document.getElementById(qtyId).addEventListener('input', ()=>{ updateProjectResourceTotals(isPrivate); });
   div.querySelector('[data-remove-resource]').addEventListener('click', ()=>{ div.remove(); });
+  updateProjectResourceTotals(isPrivate);
+}
+
+// Aktualisiert die Live-Gesamtmengen-Anzeige (Menge pro Einheit x
+// Anzahl) fuer JEDE Ressourcen-Zeile im Anlege-Formular -- wird sowohl
+// beim Tippen in ein einzelnes Mengenfeld als auch bei jeder Aenderung
+// des Anzahl-Felds selbst aufgerufen, damit die Vorschau immer den
+// aktuellen Stand zeigt, ohne dass das Projekt erst angelegt werden
+// muss (siehe Nutzerwunsch vom 6. August 2026).
+function updateProjectResourceTotals(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  const anzahlInput = document.getElementById(prefix+'proj-anzahl');
+  const containerEl = document.getElementById(isPrivate ? 'privProjResourcesContainer' : 'projResourcesContainer');
+  if(!containerEl) return;
+  const anzahl = anzahlInput && anzahlInput.value !== '' ? parseFloat(anzahlInput.value) : null;
+  containerEl.querySelectorAll('.proj-resource-row').forEach(row=>{
+    const rowId = row.dataset.rowId;
+    const qtyInput = document.getElementById(prefix+'proj-res-qty-'+rowId);
+    const totalSpan = document.getElementById(prefix+'proj-total-'+rowId);
+    if(!qtyInput || !totalSpan) return;
+    const menge = qtyInput.value !== '' ? parseFloat(qtyInput.value) : null;
+    if(menge==null || isNaN(menge) || anzahl==null || isNaN(anzahl) || anzahl===1){
+      // Bei Anzahl 1 (oder fehlender Eingabe) entspricht die Gesamtmenge
+      // ohnehin der Menge pro Einheit -- kein zusaetzlicher Hinweis noetig.
+      totalSpan.textContent = '';
+    } else {
+      const total = Math.round(menge * anzahl * 1000) / 1000;
+      totalSpan.textContent = `= ${total} ${t('label_gesamt_klein')}`;
+    }
+  });
 }
 
 // Einfachere Variante speziell für den Bearbeiten-Kontext einer bestehenden
@@ -8157,6 +8196,12 @@ setupTemplatePicker(true);
 document.getElementById('btnAddProjResource').addEventListener('click', ()=>{
   addProjectResourceRow(false, document.getElementById('projResourcesContainer'));
 });
+
+// Live-Aktualisierung ALLER Ressourcen-Zeilen, sobald sich die Anzahl
+// selbst aendert -- ergaenzt die einzelne Zeilen-Aktualisierung beim
+// Tippen in ein Mengenfeld (siehe addProjectResourceRow).
+document.getElementById('proj-anzahl').addEventListener('input', ()=>{ updateProjectResourceTotals(false); });
+document.getElementById('priv-proj-anzahl').addEventListener('input', ()=>{ updateProjectResourceTotals(true); });
 
 document.getElementById('btnAddProject').addEventListener('click', async ()=>{
   const ziel = document.getElementById('proj-ziel').value.trim();
