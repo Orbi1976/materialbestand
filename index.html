@@ -569,11 +569,30 @@ h1{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
-  align-items:end;
+  /* WICHTIG: "start" statt "end" -- Material/Lagerort sind durch die
+     "Zuletzt verwendet"-Chip-Zeile hoeher als die anderen Felder in
+     derselben Zeile. Mit "end" (Ausrichtung an der Unterkante) rutschten
+     die kuerzeren Nachbarfelder (Qualitaet/Projektziel) inkl. ihrer
+     Labels weit nach unten, wodurch sie optisch mit dem hoeheren
+     Nachbarfeld ueberlappten -- kein Breiten-, sondern ein
+     Hoehen-/Ausrichtungsproblem, das die vorherigen breitenbezogenen
+     Korrekturen deshalb nicht beheben konnten. Mit "start" richten sich
+     alle Labels zuverlaessig an der Oberkante aus, unabhaengig davon,
+     wie viel zusaetzlicher Inhalt (z.B. Chips) darunter folgt.
+  */
+  align-items:start;
 }
 .form-grid-flex > .field{
   flex:1 1 150px;
   min-width:0;
+}
+/* Der "Eintragen"/"Anlegen"-Button hat kein Label ueber sich -- bei
+   einheitlicher Ausrichtung an der Oberkante (siehe align-items:start
+   oben) wuerde er sonst oben statt auf Hoehe der Eingabefelder
+   schweben. Gezielt fuer Felder, deren einziges bzw. direktes Kind ein
+   Button ist, daher weiterhin an der Unterkante ausgerichtet. */
+.form-grid-flex > .field:has(> button){
+  align-self:flex-end;
 }
 .field label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ink-soft);font-family:'Share Tech Mono', monospace;}
 .field input, .field select{
