@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Version: 0.002 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -6795,9 +6796,10 @@ function buildUsageBreakdownHTML(itemName, isPrivate){
     const resources = p.resources.map(normalizeResource);
     const match = resources.find(r=>r.material === itemName);
     if(!match) return null;
+    const effMenge = effectiveResourceMenge(p, match);
     const avail = isPrivate ? privateStockAmount(itemName, p.ziel, undefined, 'private') : stockAmount(itemName, p.ziel);
-    const fehlend = (match.menge!=null && match.menge>avail) ? Math.round((match.menge-avail)*100)/100 : 0;
-    return { ziel: p.ziel, menge: match.menge, avail, fehlend };
+    const fehlend = (effMenge!=null && effMenge>avail) ? Math.round((effMenge-avail)*100)/100 : 0;
+    return { ziel: p.ziel, menge: effMenge, avail, fehlend };
   }).filter(Boolean);
 
   const templates = allProjectTemplates().filter(tpl=>
@@ -7130,6 +7132,24 @@ function parseProjectAssignmentValue(rawValue){
 function normalizeResource(r){
   if(typeof r === 'string') return {material:r, menge:null};
   return r;
+}
+
+// Liefert die tatsaechlich benoetigte Gesamtmenge einer Projekt-Ressource.
+// Bei Projekten mit gesetztem perUnit-Kennzeichen (ab 5. August 2026 fuer
+// neu angelegte Projekte) ist die im Ressourcen-Feld hinterlegte Menge als
+// "pro Einheit" zu verstehen (z.B. "pro Idris-P werden 50 Titanium
+// benoetigt") -- die tatsaechliche Gesamtmenge ergibt sich dann aus
+// Menge x Projekt-Anzahl. Aeltere Projekte OHNE dieses Kennzeichen
+// (perUnit nicht gesetzt) behalten bewusst ihre bisherige Bedeutung bei:
+// die hinterlegte Menge WAR bereits die Gesamtmenge, unabhaengig von der
+// Projekt-Anzahl -- keine rueckwirkende Neuinterpretation bestehender
+// Projekte.
+function effectiveResourceMenge(project, resource){
+  if(resource.menge == null) return null;
+  if(project && project.perUnit){
+    return Math.round(resource.menge * (project.anzahl || 1) * 1000) / 1000;
+  }
+  return resource.menge;
 }
 
 // Liefert die im Projekt hinterlegte Mindestqualität fuer ein bestimmtes
@@ -8165,7 +8185,14 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
     id: projectUid(),
     ziel, anzahl: parseFloat(anzahl),
     resources,
-    prioritaet
+    prioritaet,
+    // Ab 5. August 2026: neu angelegte Projekte interpretieren die pro
+    // Material eingegebene Menge als "pro Einheit" -- die tatsaechlich
+    // benoetigte Gesamtmenge ergibt sich aus Menge x Anzahl (siehe
+    // effectiveResourceMenge()). Aeltere Projekte ohne dieses
+    // Kennzeichen behalten bewusst ihre bisherige Bedeutung
+    // (Menge = bereits die Gesamtmenge).
+    perUnit: true
   });
 
   statusEl.textContent = t('msg_saving');
@@ -8287,9 +8314,10 @@ function renderProjects(){
       </tr>`;
     } else {
       const resourceDetails = resources.map(r=>{
+        const effMenge = effectiveResourceMenge(p, r);
         const avail = stockAmount(r.material, p.ziel);
-        const fehlend = (r.menge!=null && r.menge>avail) ? Math.round((r.menge-avail)*100)/100 : 0;
-        return { ...r, avail, fehlend };
+        const fehlend = (effMenge!=null && effMenge>avail) ? Math.round((effMenge-avail)*100)/100 : 0;
+        return { ...r, effMenge, avail, fehlend };
       });
       const missingResources = resourceDetails.filter(r=>r.fehlend>0);
       const bulkNeedButton = missingResources.length > 1
@@ -8297,10 +8325,10 @@ function renderProjects(){
         : '';
       const resourceList = resources.length
         ? bulkNeedButton + resourceDetails.map(r=>{
-            const pct = (r.menge!=null && r.menge>0) ? Math.min(100, Math.round((r.avail/r.menge)*100)) : null;
+            const pct = (r.effMenge!=null && r.effMenge>0) ? Math.min(100, Math.round((r.avail/r.effMenge)*100)) : null;
             const barColor = pct===null ? 'var(--steel)' : (pct>=100 ? '#2CFFA0' : pct>=50 ? '#FFC93C' : '#FF3B5C');
             return `<div style="margin-bottom:6px;">
-              <div>${escapeHtml(r.material)} — ${t('label_benoetigt')}: <span class="qty-cell">${r.menge!=null ? r.menge : '–'}</span> / ${t('label_vorhanden')}: <span class="qty-cell stock-hover-wrap">${escapeHtml(stockForMaterial(r.material, p.ziel))}<span class="stock-hover-tooltip">${buildStockBreakdownHTML(r.material, p.ziel)}</span></span>${r.mindestqualitaet!=null ? ` · <span style="color:var(--ink-soft);">${t('label_mind_qualitaet')}: ${r.mindestqualitaet}</span>` : ''}</div>
+              <div>${escapeHtml(r.material)} — ${t('label_benoetigt')}: <span class="qty-cell">${r.effMenge!=null ? r.effMenge : '–'}</span>${p.perUnit && r.menge!=null ? ` <span style="color:var(--ink-soft);font-size:10.5px;">(${r.menge} × ${p.anzahl})</span>` : ''} / ${t('label_vorhanden')}: <span class="qty-cell stock-hover-wrap">${escapeHtml(stockForMaterial(r.material, p.ziel))}<span class="stock-hover-tooltip">${buildStockBreakdownHTML(r.material, p.ziel)}</span></span>${r.mindestqualitaet!=null ? ` · <span style="color:var(--ink-soft);">${t('label_mind_qualitaet')}: ${r.mindestqualitaet}</span>` : ''}</div>
               ${pct!==null ? `<div class="gauge" style="width:140px;margin-top:4px;"><div class="gauge-fill" style="width:${pct}%;background:${barColor};"></div></div><div style="font-size:10px;color:var(--ink-soft);margin-top:2px;">${pct}%</div>` : ''}
               ${r.fehlend>0 ? (needs.some(n=>n.material===r.material && n.sourceProjekt===p.ziel && (n.sourceProjektTyp||'shared')==='shared')
                 ? `<button class="btn-ghost" data-action="need-from-project" data-material="${escapeHtml(r.material)}" data-menge="${r.fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;" title="${t('tooltip_bedarf_bereits_verknuepft')}">${t('btn_bedarf_aktualisieren')} (${r.fehlend} ${t('label_fehlt')})</button>`
@@ -8371,8 +8399,9 @@ function renderProjects(){
       let addedCount = 0;
       let updatedCount = 0;
       for(const r of resources){
+        const effMenge = effectiveResourceMenge(p, r);
         const avail = stockAmount(r.material, p.ziel);
-        const fehlend = (r.menge!=null && r.menge>avail) ? Math.round((r.menge-avail)*100)/100 : 0;
+        const fehlend = (effMenge!=null && effMenge>avail) ? Math.round((effMenge-avail)*100)/100 : 0;
         if(fehlend > 0){
           const existing = needs.find(n=>n.material===r.material && n.sourceProjekt===p.ziel && (n.sourceProjektTyp||'shared')==='shared');
           if(existing){
@@ -8619,7 +8648,9 @@ document.getElementById('btnAddPrivProject').addEventListener('click', async ()=
     id: privateProjectUid(),
     ziel, anzahl: parseFloat(anzahl),
     resources,
-    owner: currentUser.username
+    owner: currentUser.username,
+    // Siehe Kommentar bei der geteilten Projekt-Anlage weiter oben.
+    perUnit: true
   });
 
   statusEl.textContent = t('msg_saving');
@@ -8689,9 +8720,10 @@ function renderPrivateProjects(){
       </tr>`;
     } else {
       const resourceDetails = resources.map(r=>{
+        const effMenge = effectiveResourceMenge(p, r);
         const avail = privateStockAmount(r.material, p.ziel, undefined, 'private');
-        const fehlend = (r.menge!=null && r.menge>avail) ? Math.round((r.menge-avail)*100)/100 : 0;
-        return { ...r, avail, fehlend };
+        const fehlend = (effMenge!=null && effMenge>avail) ? Math.round((effMenge-avail)*100)/100 : 0;
+        return { ...r, effMenge, avail, fehlend };
       });
       const missingPrivResources = resourceDetails.filter(r=>r.fehlend>0);
       const bulkNeedButtonPriv = missingPrivResources.length > 1
@@ -8699,10 +8731,10 @@ function renderPrivateProjects(){
         : '';
       const resourceList = resources.length
         ? bulkNeedButtonPriv + resourceDetails.map(r=>{
-            const pct = (r.menge!=null && r.menge>0) ? Math.min(100, Math.round((r.avail/r.menge)*100)) : null;
+            const pct = (r.effMenge!=null && r.effMenge>0) ? Math.min(100, Math.round((r.avail/r.effMenge)*100)) : null;
             const barColor = pct===null ? 'var(--steel)' : (pct>=100 ? '#2CFFA0' : pct>=50 ? '#FFC93C' : '#FF3B5C');
             return `<div style="margin-bottom:6px;">
-              <div>${escapeHtml(r.material)} — ${t('label_benoetigt')}: <span class="qty-cell">${r.menge!=null ? r.menge : '–'}</span> / ${t('label_vorhanden')}: <span class="qty-cell">${escapeHtml(privateStockForMaterial(r.material, p.ziel, 'private'))}</span>${r.mindestqualitaet!=null ? ` · <span style="color:var(--ink-soft);">${t('label_mind_qualitaet')}: ${r.mindestqualitaet}</span>` : ''}</div>
+              <div>${escapeHtml(r.material)} — ${t('label_benoetigt')}: <span class="qty-cell">${r.effMenge!=null ? r.effMenge : '–'}</span>${p.perUnit && r.menge!=null ? ` <span style="color:var(--ink-soft);font-size:10.5px;">(${r.menge} × ${p.anzahl})</span>` : ''} / ${t('label_vorhanden')}: <span class="qty-cell">${escapeHtml(privateStockForMaterial(r.material, p.ziel, 'private'))}</span>${r.mindestqualitaet!=null ? ` · <span style="color:var(--ink-soft);">${t('label_mind_qualitaet')}: ${r.mindestqualitaet}</span>` : ''}</div>
               ${pct!==null ? `<div class="gauge" style="width:140px;margin-top:4px;"><div class="gauge-fill" style="width:${pct}%;background:${barColor};"></div></div><div style="font-size:10px;color:var(--ink-soft);margin-top:2px;">${pct}%</div>` : ''}
               ${r.fehlend>0 ? (needs.some(n=>n.material===r.material && n.sourceProjekt===p.ziel && n.sourceProjektTyp==='private')
                 ? `<button class="btn-ghost" data-action="need-from-priv-project" data-material="${escapeHtml(r.material)}" data-menge="${r.fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;" title="${t('tooltip_bedarf_bereits_verknuepft')}">${t('btn_bedarf_aktualisieren')} (${r.fehlend} ${t('label_fehlt')})</button>`
@@ -8774,8 +8806,9 @@ function renderPrivateProjects(){
       let addedCount = 0;
       let updatedCount = 0;
       for(const r of resources){
+        const effMenge = effectiveResourceMenge(p, r);
         const avail = privateStockAmount(r.material, p.ziel, undefined, 'private');
-        const fehlend = (r.menge!=null && r.menge>avail) ? Math.round((r.menge-avail)*100)/100 : 0;
+        const fehlend = (effMenge!=null && effMenge>avail) ? Math.round((effMenge-avail)*100)/100 : 0;
         if(fehlend > 0){
           const existing = needs.find(n=>n.material===r.material && n.sourceProjekt===p.ziel && n.sourceProjektTyp==='private');
           if(existing){
@@ -9429,8 +9462,9 @@ async function renderDashboard(){
     projects.forEach(p=>{
       const resources = p.resources.map(normalizeResource).filter(r=>r.menge!=null && r.menge>0);
       resources.forEach(r=>{
+        const effMenge = effectiveResourceMenge(p, r);
         const avail = stockAmount(r.material, p.ziel);
-        percentages.push(Math.min(100, Math.round((avail/r.menge)*100)));
+        percentages.push(Math.min(100, Math.round((avail/effMenge)*100)));
       });
     });
     if(percentages.length > 0){
@@ -9472,9 +9506,10 @@ async function renderDashboard(){
     const projectsWithGaps = projects.map(p=>{
       const resources = p.resources.map(normalizeResource).filter(r=>r.material && r.menge!=null && r.menge>0);
       const gaps = resources.map(r=>{
+        const effMenge = effectiveResourceMenge(p, r);
         const avail = stockAmount(r.material, p.ziel);
-        const fehlend = Math.round((r.menge - avail) * 100) / 100;
-        return { material: r.material, fehlend, menge: r.menge, avail };
+        const fehlend = Math.round((effMenge - avail) * 100) / 100;
+        return { material: r.material, fehlend, menge: effMenge, avail };
       }).filter(g=>g.fehlend > 0);
       return { ziel: p.ziel, anzahl: p.anzahl, prioritaet: p.prioritaet||'Mittel', gaps };
     }).filter(p=>p.gaps.length > 0)
