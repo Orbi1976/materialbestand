@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.003 -->
+<!-- Version: 0.004 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -605,6 +605,19 @@ h1{
   border-radius:var(--radius);
   background:rgba(0,10,16,0.6);
   color:var(--ink);
+  /* WICHTIG: Ohne explizites width:100% halten sich <select>-Elemente
+     (und teilweise auch <input>) nicht zuverlaessig an die Breite ihres
+     Elternfelds, sondern koennen sich an ihrem eigenen Inhalt (z.B. der
+     laengsten Option) orientieren -- das Elternfeld (.field) wird dann
+     zwar korrekt schmal berechnet, das SELECT darin ragt aber trotzdem
+     ueber die Feldgrenze hinaus in das naechste Formularfeld hinein.
+     min-width:0 verhindert zusaetzlich, dass das Element selbst sich
+     weigert, unter seine Inhaltsbreite zu schrumpfen. box-sizing stellt
+     sicher, dass Padding/Rahmen in die 100%-Breite eingerechnet werden,
+     statt sie zu ueberschreiten. */
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
 }
 .field input::placeholder{color:rgba(110,143,160,0.55);}
 .field input:focus, .field select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan), 0 0 10px var(--cyan-glow);}
