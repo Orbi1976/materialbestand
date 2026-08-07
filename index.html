@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.015 -->
+<!-- Version: 0.016 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -372,8 +372,15 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
      table-layout:fixed sichtbar in die Nachbarspalte hinein und
      ueberlappte dort mit deren Ueberschrift. Siehe Nutzerwunsch vom
      6. August 2026 (Screenshot mit ineinander verschobenen Kopfzeilen).
+     Zusaetzlich Schriftgroesse verkleinert und Buchstabenabstand
+     entfernt (beides von der globalen Regel geerbt) -- zusaetzliche
+     Sicherheitsmarge, da bereits eine kuerzere Spaltenbezeichnung
+     ("Benutzer" statt "Verantwortlicher") allein nicht zuverlaessig
+     ausreichte.
   */
   white-space:normal;
+  font-size:9px;
+  letter-spacing:0;
 }
 .stock-hover-tooltip thead th:hover{ color:var(--ink-soft); }
 .stock-hover-tooltip tbody td{ padding:5px 6px; }
@@ -7203,7 +7210,7 @@ function buildStockBreakdownHTML(material, projekt){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
     const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
-    body = `<table><thead><tr><th>${t('col_verantwortlicher')}</th><th>${t('col_lagerort')}</th><th>${t('label_menge')}</th></tr></thead><tbody>`;
+    body = `<table><thead><tr><th style="width:34%;">${t('col_benutzer')}</th><th style="width:44%;">${t('col_lagerort')}</th><th style="width:22%;">${t('label_menge')}</th></tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
@@ -7228,7 +7235,7 @@ function buildTotalStockBreakdownHTML(material){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
     const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
-    body = `<table><thead><tr><th>${t('col_verantwortlicher')}</th><th>${t('col_lagerort')}</th><th>${t('col_projekt')}</th><th>${t('label_menge')}</th></tr></thead><tbody>`;
+    body = `<table><thead><tr><th style="width:24%;">${t('col_benutzer')}</th><th style="width:28%;">${t('col_lagerort')}</th><th style="width:30%;">${t('col_projekt')}</th><th style="width:18%;">${t('label_menge')}</th></tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
@@ -7265,7 +7272,7 @@ function buildNeedCoverageBreakdownHTML(need){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
     const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
-    body = `<table><thead><tr><th>${t('col_verantwortlicher')}</th><th>${t('col_lagerort')}</th><th>${t('col_projekt')}</th><th>${t('label_menge')}</th></tr></thead><tbody>`;
+    body = `<table><thead><tr><th style="width:24%;">${t('col_benutzer')}</th><th style="width:28%;">${t('col_lagerort')}</th><th style="width:30%;">${t('col_projekt')}</th><th style="width:18%;">${t('label_menge')}</th></tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
