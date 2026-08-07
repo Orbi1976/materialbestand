@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.004 -->
+<!-- Version: 0.005 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2500,6 +2500,7 @@ const I18N = {
   "label_private_projekte": "Private Projekte",
   "col_einheit": "Einheit",
   "col_gesamt": "Gesamt",
+  "label_pro_einheit": "pro Einheit",
   "label_gesamt_klein": "gesamt",
   "col_reserviert": "Reserviert",
   "col_frei_verfuegbar": "Frei verfügbar",
@@ -3021,6 +3022,7 @@ const I18N = {
   "label_private_projekte": "Private projects",
   "col_einheit": "Unit",
   "col_gesamt": "Total",
+  "label_pro_einheit": "per unit",
   "label_gesamt_klein": "total",
   "col_reserviert": "Reserved",
   "col_frei_verfuegbar": "Freely available",
@@ -3542,6 +3544,7 @@ const I18N = {
   "label_private_projekte": "Projets privés",
   "col_einheit": "Unité",
   "col_gesamt": "Total",
+  "label_pro_einheit": "par unité",
   "label_gesamt_klein": "total",
   "col_reserviert": "Réservé",
   "col_frei_verfuegbar": "Disponible",
@@ -7187,6 +7190,17 @@ function getProjectMinQuality(projektName, materialName){
 // Parameter gemeinsam für geteilte und private Projekte nutzbar, analog
 // zum Muster der Massen-Eingabe-Tabelle.
 // ============================================================
+// Liefert die aktuell im Anzahl-Feld eingetragene Anzahl, mit 1 als
+// sicherem Rueckfallwert (leer, 0, ungueltig) -- so entspricht die
+// Basis-Menge bei fehlender/ungueltiger Anzahl automatisch der
+// Gesamtmenge, ohne Division durch 0 zu riskieren.
+function getEffectiveProjectAnzahl(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  const anzahlInput = document.getElementById(prefix+'proj-anzahl');
+  const val = anzahlInput && anzahlInput.value !== '' ? parseFloat(anzahlInput.value) : null;
+  return (val!=null && !isNaN(val) && val>0) ? val : 1;
+}
+
 function addProjectResourceRow(isPrivate, container, prefill){
   const prefix = isPrivate ? 'priv-' : '';
   const rowId = 'r' + Date.now() + Math.random().toString(36).slice(2,6);
@@ -7198,50 +7212,92 @@ function addProjectResourceRow(isPrivate, container, prefill){
   const qtyId = prefix+'proj-res-qty-'+rowId;
   const qualId = prefix+'proj-res-qual-'+rowId;
   const availId = prefix+'proj-avail-'+rowId;
-  const totalId = prefix+'proj-total-'+rowId;
+  const hintId = prefix+'proj-hint-'+rowId;
+
+  // prefill.menge ist immer die BASIS (Menge pro Einheit) -- so wie sie
+  // in gespeicherten Projekten hinterlegt ist. Der im Feld angezeigte
+  // Wert ist davon abgeleitet (Basis x aktuell im Anzahl-Feld stehende
+  // Anzahl), damit Vorlagen/Wiederholung eines Projekts korrekt mit der
+  // schon eingetragenen Anzahl uebereinstimmen.
+  const baseMenge = prefill && prefill.menge!=null ? prefill.menge : null;
+  const anzahlNow = getEffectiveProjectAnzahl(isPrivate);
+  const displayValue = baseMenge!=null ? Math.round(baseMenge * anzahlNow * 1000) / 1000 : '';
+
   div.innerHTML = `
     <div style="flex:1;min-width:170px;">${buildMaterialSelectHTML(matId, prefill?prefill.material:'', '')}</div>
-    <input type="number" id="${qtyId}" min="0" step="0.001" value="${prefill&&prefill.menge!=null?prefill.menge:''}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:170px;">
-    <span id="${totalId}" style="font-size:11px;color:var(--cyan);white-space:nowrap;min-width:90px;"></span>
+    <input type="number" id="${qtyId}" min="0" step="0.001" value="${displayValue}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:170px;">
+    <span id="${hintId}" style="font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:110px;"></span>
     <input type="number" id="${qualId}" min="0" max="1000" step="0.01" value="${prefill&&prefill.mindestqualitaet!=null?prefill.mindestqualitaet:''}" placeholder="${t('placeholder_mindestqualitaet')}" title="${t('tooltip_projekt_mindestqualitaet')}" style="width:130px;">
     <div style="font-size:11px;color:var(--ink-soft);white-space:nowrap;">${t('label_vorhanden')}: <span class="qty-cell" id="${availId}">–</span></div>
     <button type="button" class="btn-icon danger" data-remove-resource="${rowId}" title="${t('btn_delete')}">✕</button>
   `;
   container.appendChild(div);
+
+  const qtyInput = document.getElementById(qtyId);
+  // data-base-menge haelt die tatsaechliche Basis (Menge pro Einheit)
+  // fest -- unabhaengig davon, was gerade im sichtbaren Feld steht.
+  // Dies ist der Wert, der beim Anlegen des Projekts gespeichert wird.
+  qtyInput.dataset.baseMenge = baseMenge!=null ? baseMenge : '';
+  updateProjectResourceHint(qtyInput, isPrivate);
+
   document.getElementById(matId).addEventListener('change', ()=>{ isPrivate ? updatePrivateProjectAvailability() : updateProjectAvailability(); });
-  // Live-Gesamtmengen-Vorschau: aktualisiert sich sofort bei jeder
-  // Eingabe in DIESES Mengenfeld (Menge pro Einheit x aktuelle Anzahl),
-  // ohne dass das Projekt erst angelegt werden muss.
-  document.getElementById(qtyId).addEventListener('input', ()=>{ updateProjectResourceTotals(isPrivate); });
+
+  // WICHTIG: Dieser Listener feuert AUSSCHLIESSLICH bei echter
+  // Nutzereingabe (Tippen/Scroll-Pfeile) -- nicht, wenn der Wert weiter
+  // unten (bei Anzahl-Aenderung, siehe updateProjectResourceTotals)
+  // programmatisch per JS gesetzt wird. Das ist eingebautes
+  // Browser-Verhalten (element.value=X loest kein 'input'-Event aus)
+  // und verhindert zuverlaessig eine kaskadierende Multiplikation bei
+  // wiederholten Anzahl-Aenderungen: Tippt der Nutzer direkt ins Feld,
+  // wird der eingegebene Wert als NEUE GESAMTMENGE fuer die aktuelle
+  // Anzahl interpretiert, und die Basis wird daraus zurueckgerechnet.
+  qtyInput.addEventListener('input', ()=>{
+    const anzahl = getEffectiveProjectAnzahl(isPrivate);
+    const typedTotal = qtyInput.value !== '' ? parseFloat(qtyInput.value) : null;
+    qtyInput.dataset.baseMenge = (typedTotal==null || isNaN(typedTotal)) ? '' : Math.round((typedTotal / anzahl) * 1000) / 1000;
+    updateProjectResourceHint(qtyInput, isPrivate);
+  });
   div.querySelector('[data-remove-resource]').addEventListener('click', ()=>{ div.remove(); });
-  updateProjectResourceTotals(isPrivate);
 }
 
-// Aktualisiert die Live-Gesamtmengen-Anzeige (Menge pro Einheit x
-// Anzahl) fuer JEDE Ressourcen-Zeile im Anlege-Formular -- wird sowohl
-// beim Tippen in ein einzelnes Mengenfeld als auch bei jeder Aenderung
-// des Anzahl-Felds selbst aufgerufen, damit die Vorschau immer den
-// aktuellen Stand zeigt, ohne dass das Projekt erst angelegt werden
-// muss (siehe Nutzerwunsch vom 6. August 2026).
+// Zeigt einen kleinen Hinweistext neben dem Mengenfeld, welche
+// Basis-Menge (pro Einheit) hinter dem aktuell angezeigten Gesamtwert
+// steckt -- nur wenn Anzahl != 1, da Basis und Anzeige sonst ohnehin
+// identisch sind.
+function updateProjectResourceHint(qtyInput, isPrivate){
+  const row = qtyInput.closest('.proj-resource-row');
+  if(!row) return;
+  const prefix = isPrivate ? 'priv-' : '';
+  const hintSpan = document.getElementById(prefix+'proj-hint-'+row.dataset.rowId);
+  if(!hintSpan) return;
+  const anzahl = getEffectiveProjectAnzahl(isPrivate);
+  const base = qtyInput.dataset.baseMenge !== '' ? parseFloat(qtyInput.dataset.baseMenge) : null;
+  if(base==null || isNaN(base) || anzahl===1){
+    hintSpan.textContent = '';
+  } else {
+    hintSpan.textContent = `(${t('label_pro_einheit')}: ${base})`;
+  }
+}
+
+// Wird bei jeder Aenderung der Anzahl aufgerufen -- setzt fuer JEDE
+// Ressourcen-Zeile den SICHTBAREN Feldwert direkt auf Basis x neue
+// Anzahl. Da dies ein programmatisches Setzen von .value ist (kein
+// echtes Tippen), loest es NICHT den 'input'-Listener der einzelnen
+// Felder aus -- die gespeicherte Basis bleibt dadurch stabil, auch bei
+// mehrfach hintereinander geaenderter Anzahl (siehe Nutzerwunsch vom
+// 6. August 2026 zur direkten Feldaktualisierung ohne Kaskadierung).
 function updateProjectResourceTotals(isPrivate){
   const prefix = isPrivate ? 'priv-' : '';
-  const anzahlInput = document.getElementById(prefix+'proj-anzahl');
   const containerEl = document.getElementById(isPrivate ? 'privProjResourcesContainer' : 'projResourcesContainer');
   if(!containerEl) return;
-  const anzahl = anzahlInput && anzahlInput.value !== '' ? parseFloat(anzahlInput.value) : null;
+  const anzahl = getEffectiveProjectAnzahl(isPrivate);
   containerEl.querySelectorAll('.proj-resource-row').forEach(row=>{
     const rowId = row.dataset.rowId;
     const qtyInput = document.getElementById(prefix+'proj-res-qty-'+rowId);
-    const totalSpan = document.getElementById(prefix+'proj-total-'+rowId);
-    if(!qtyInput || !totalSpan) return;
-    const menge = qtyInput.value !== '' ? parseFloat(qtyInput.value) : null;
-    if(menge==null || isNaN(menge) || anzahl==null || isNaN(anzahl) || anzahl===1){
-      // Bei Anzahl 1 (oder fehlender Eingabe) entspricht die Gesamtmenge
-      // ohnehin der Menge pro Einheit -- kein zusaetzlicher Hinweis noetig.
-      totalSpan.textContent = '';
-    } else {
-      const total = Math.round(menge * anzahl * 1000) / 1000;
-      totalSpan.textContent = `= ${total} ${t('label_gesamt_klein')}`;
+    if(!qtyInput) return;
+    const base = qtyInput.dataset.baseMenge !== '' ? parseFloat(qtyInput.dataset.baseMenge) : null;
+    if(base!=null && !isNaN(base)){
+      qtyInput.value = Math.round(base * anzahl * 1000) / 1000;
     }
   });
 }
@@ -8229,7 +8285,7 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
     const qualEl = document.getElementById('proj-res-qual-'+rowId);
     return {
       material: matEl.value,
-      menge: qtyEl.value !== '' ? parseFloat(qtyEl.value) : null,
+      menge: qtyEl.dataset.baseMenge !== '' && qtyEl.dataset.baseMenge != null ? parseFloat(qtyEl.dataset.baseMenge) : null,
       mindestqualitaet: qualEl && qualEl.value !== '' ? parseFloat(qualEl.value) : null
     };
   }).filter(r=>r.material);
@@ -8692,7 +8748,7 @@ document.getElementById('btnAddPrivProject').addEventListener('click', async ()=
     const qualEl = document.getElementById('priv-proj-res-qual-'+rowId);
     return {
       material: matEl.value,
-      menge: qtyEl.value !== '' ? parseFloat(qtyEl.value) : null,
+      menge: qtyEl.dataset.baseMenge !== '' && qtyEl.dataset.baseMenge != null ? parseFloat(qtyEl.dataset.baseMenge) : null,
       mindestqualitaet: qualEl && qualEl.value !== '' ? parseFloat(qualEl.value) : null
     };
   }).filter(r=>r.material);
