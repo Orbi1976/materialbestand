@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.013 -->
+<!-- Version: 0.014 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -328,8 +328,18 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
   */
   top:calc(100% + 8px);
   z-index:60;
-  min-width:240px;
-  max-width:360px;
+  /* min/max-width erweitert (vorher 240/360px) -- die neueren
+     Aufschluesselungen (Bedarf-Deckung, Gesamt-Spalte im Bestand) haben
+     vier statt drei Spalten (zusaetzliche Projekt-Spalte), wodurch die
+     bisherige Maximalbreite bei laengeren Projekt-/Benutzernamen zu
+     gestauchtem, schwer lesbarem Text fuehrte. table-layout:fixed auf
+     der inneren Tabelle (siehe .stock-hover-tooltip table) sorgt
+     weiterhin dafuer, dass auch bei dieser groesseren Maximalbreite
+     nichts über den Tooltip-Rand hinausragen kann. Siehe Nutzerwunsch
+     vom 6. August 2026.
+  */
+  min-width:260px;
+  max-width:460px;
   background:rgba(9,11,16,0.98);
   border:1px solid var(--panel-border);
   border-radius:var(--radius);
