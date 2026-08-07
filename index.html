@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.006 -->
+<!-- Version: 0.007 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -7030,6 +7030,35 @@ function buildStockBreakdownHTML(material, projekt){
   return `<div class="stock-hover-title">${t('label_beitraege_aufschluesselung')}</div>${body}`;
 }
 
+// Aehnlich zu buildStockBreakdownHTML(), aber OHNE Projekt-Filter --
+// zeigt ALLE Bestand-Eintraege eines Materials (unabhaengig von einer
+// etwaigen Projekt-Zuordnung), passend zur Einheit. Nutzt exakt dieselbe
+// Filterlogik wie stockAmount() bei der "gedeckt"-Pruefung im Bedarf, so
+// dass die angezeigte Summe der Aufschluesselung immer mit der Zahl
+// uebereinstimmt, die als "verfuegbar" fuer die Deckung herangezogen
+// wurde. Genutzt fuer die Deckungs-Aufschluesselung im Bedarf-Tab (wer,
+// wieviel, wo -- siehe Nutzerwunsch vom 6. August 2026).
+function buildNeedCoverageBreakdownHTML(material, einheit){
+  const matching = entries.filter(e=>e.material===material && (einheit===undefined || e.einheit===einheit));
+  let body;
+  if(matching.length === 0){
+    body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
+  } else {
+    const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
+    body = `<table><thead><tr><th>${t('col_verantwortlicher')}</th><th>${t('col_lagerort')}</th><th>${t('col_projekt')}</th><th>${t('label_menge')}</th></tr></thead><tbody>`;
+    sorted.forEach(e=>{
+      body += `<tr>
+        <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
+        <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(e.lagerort)}</span></td>
+        <td>${e.projekt ? escapeHtml(e.projekt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
+        <td class="qty-cell">${Math.round(e.menge*100)/100} ${e.einheit}</td>
+      </tr>`;
+    });
+    body += `</tbody></table>`;
+  }
+  return `<div class="stock-hover-title">${t('label_beitraege_aufschluesselung')}</div>${body}`;
+}
+
 // ============================================================
 // Marktpreis-Anbindung (UEX Corp API, https://uexcorp.space) — liefert
 // oeffentlich, ohne API-Schluessel zugaengliche Rohstoff-Handelspreise
@@ -9260,7 +9289,10 @@ function renderNeeds(){
           ${isOwnUnescalated ? `<button class="btn-ghost" data-action="escalate-need" data-id="${n.id}" title="${t('tooltip_prioritaet_erhoehen')}" style="font-size:10.5px;padding:3px 8px;margin-left:6px;">⬆ ${t('btn_prioritaet_erhoehen')}</button>` : ''}
         </td>
         <td data-label="${t('col_gemeldet')}" title="${n.createdAt ? formatImportTimestamp(n.createdAt) : ''}">${n.createdAt ? formatRelativeAge(n.createdAt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
-        <td data-label="${t('col_status')}" title="Bestand: ${avail} ${escapeHtml(n.einheit)}"><span class="badge ${covered?'high':'low'}">${statusLabel(covered)}</span></td>
+        <td data-label="${t('col_status')}" title="${covered ? '' : `Bestand: ${avail} ${escapeHtml(n.einheit)}`}">${covered
+          ? `<span class="stock-hover-wrap"><span class="badge high" style="cursor:help;">${statusLabel(covered)}</span><span class="stock-hover-tooltip">${buildNeedCoverageBreakdownHTML(n.material, n.einheit)}</span></span>`
+          : `<span class="badge low">${statusLabel(covered)}</span>`
+        }</td>
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit-need" data-id="${n.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon danger" data-action="delete-need" data-id="${n.id}" title="${t('btn_delete')}">🗑</button>` : ''}
