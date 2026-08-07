@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.016 -->
+<!-- Version: 0.017 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -7200,6 +7200,19 @@ function stockForMaterial(material, projekt){
   return units.map(u=>`${Math.round(byUnit[u]*100)/100} ${u}`).join(', ');
 }
 
+// Kuerzt einen Lagerort-Namen fuer die Anzeige in den kleinen
+// Mouse-over-Aufschluesselungs-Fenstern (Bedarf-Deckung, Gesamt-Spalte
+// im Bestand, Projekt-Ressourcen "Vorhanden") auf den reinen Code-Teil,
+// z.B. "ARC-L1 – Wide Forest Station" -> "ARC-L1". Betrifft AUSSCHLIESSLICH
+// diese Hilfsfenster -- ueberall sonst in der Anwendung (Dropdowns,
+// Haupttabellen, CSV-Export) bleibt der vollstaendige Name mit Station
+// unveraendert erhalten. Siehe Nutzerwunsch vom 6. August 2026.
+function shortLocLabel(fullLabel){
+  if(!fullLabel) return fullLabel;
+  const sepIdx = fullLabel.indexOf(' – ');
+  return sepIdx > -1 ? fullLabel.slice(0, sepIdx) : fullLabel;
+}
+
 // Baut die tabellarische Mouse-over-Aufschluesselung fuer ein Material
 // (im Kontext eines Projekts): wer hat wieviel beigetragen, und wo lagert
 // es. Genutzt in der Projekt-Uebersicht bei "Vorhanden".
@@ -7210,11 +7223,11 @@ function buildStockBreakdownHTML(material, projekt){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
     const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
-    body = `<table><thead><tr><th style="width:34%;">${t('col_benutzer')}</th><th style="width:44%;">${t('col_lagerort')}</th><th style="width:22%;">${t('label_menge')}</th></tr></thead><tbody>`;
+    body = `<table><thead><tr><th style="width:34%;">Owner</th><th style="width:44%;">Loc</th><th style="width:22%;">${t('label_menge')}</th></tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
-        <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(e.lagerort)}</span></td>
+        <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(shortLocLabel(e.lagerort))}</span></td>
         <td class="qty-cell">${Math.round(e.menge*100)/100} ${e.einheit}</td>
       </tr>`;
     });
@@ -7235,11 +7248,11 @@ function buildTotalStockBreakdownHTML(material){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
     const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
-    body = `<table><thead><tr><th style="width:24%;">${t('col_benutzer')}</th><th style="width:28%;">${t('col_lagerort')}</th><th style="width:30%;">${t('col_projekt')}</th><th style="width:18%;">${t('label_menge')}</th></tr></thead><tbody>`;
+    body = `<table><thead><tr><th style="width:24%;">Owner</th><th style="width:28%;">Loc</th><th style="width:30%;">${t('col_projekt')}</th><th style="width:18%;">${t('label_menge')}</th></tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
-        <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(e.lagerort)}</span></td>
+        <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(shortLocLabel(e.lagerort))}</span></td>
         <td>${e.projekt ? escapeHtml(e.projekt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td class="qty-cell">${Math.round(e.menge*100)/100} ${e.einheit}</td>
       </tr>`;
@@ -7272,11 +7285,11 @@ function buildNeedCoverageBreakdownHTML(need){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
     const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
-    body = `<table><thead><tr><th style="width:24%;">${t('col_benutzer')}</th><th style="width:28%;">${t('col_lagerort')}</th><th style="width:30%;">${t('col_projekt')}</th><th style="width:18%;">${t('label_menge')}</th></tr></thead><tbody>`;
+    body = `<table><thead><tr><th style="width:24%;">Owner</th><th style="width:28%;">Loc</th><th style="width:30%;">${t('col_projekt')}</th><th style="width:18%;">${t('label_menge')}</th></tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
-        <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(e.lagerort)}</span></td>
+        <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(shortLocLabel(e.lagerort))}</span></td>
         <td>${e.projekt ? escapeHtml(e.projekt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td class="qty-cell">${Math.round(e.menge*100)/100} ${e.einheit}</td>
       </tr>`;
