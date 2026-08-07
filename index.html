@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.009 -->
+<!-- Version: 0.012 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -338,7 +338,20 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
   white-space:normal;
 }
 .stock-hover-wrap:hover .stock-hover-tooltip{ display:block; }
-.stock-hover-tooltip table{ font-size:12px; }
+.stock-hover-tooltip table{
+  font-size:12px;
+  /* width:100% + table-layout:fixed zwingt die Tabelle, sich strikt an
+     die Breite des Tooltip-Containers (max-width:360px) zu halten,
+     statt sich bei vielen/langen Eintraegen (lange Benutzer-/Projekt-
+     namen) eigenmaechtig breiter darzustellen und dadurch ueber den
+     rechten Rand hinauszuragen. Lange Inhalte brechen dadurch bei
+     Bedarf um, statt die Tabelle zu sprengen. */
+  width:100%;
+  table-layout:fixed;
+}
+.stock-hover-tooltip td, .stock-hover-tooltip th{
+  overflow-wrap:break-word;
+}
 .stock-hover-tooltip thead th{ padding:4px 6px; cursor:default; }
 .stock-hover-tooltip thead th:hover{ color:var(--ink-soft); }
 .stock-hover-tooltip tbody td{ padding:5px 6px; }
@@ -2567,6 +2580,8 @@ const I18N = {
   "label_benoetigt": "benötigt",
   "label_vorhanden": "vorhanden",
   "label_beitraege_aufschluesselung": "Wer hat beigetragen",
+  "label_konkurrierende_bedarfe": "Konkurrierende Bedarfe (dasselbe Material)",
+  "label_konkurriert_mit": "konkurriert mit {count} weiterem Bedarf/Bedarfen",
   "empty_no_contributions": "Noch kein Bestand für dieses Material in diesem Projekt.",
   "label_fehlt": "fehlt",
   "label_gedeckt": "gedeckt",
@@ -2867,6 +2882,8 @@ const I18N = {
   "tooltip_zuordnung_aufheben": "Zuordnung zum Projekt aufheben",
   "tooltip_transfer_entry": "In allgemeinen Bestand übernehmen — erweitert passenden Eintrag oder legt neuen an, wird danach aus dem Privatbestand entfernt",
   "tooltip_click_again_confirm": "Nochmal klicken zum Bestätigen",
+  "tooltip_projekt_loeschen_betroffen": "Achtung: {count} Eintrag/Eintraege (Bestand/Sammelobjekte/Bedarf) sind diesem Projekt zugeordnet — die Zuordnung wird beim Löschen aufgehoben. Nochmal klicken zum Bestätigen.",
+  "tooltip_material_loeschen_betroffen": "Achtung: {count} Eintrag/Einträge verwenden dieses Material/diesen Lagerort — diese werden beim Löschen mitgelöscht, nicht nur die Zuordnung aufgehoben. Nochmal klicken zum Bestätigen.",
   "msg_entry_deleted_named": "„{name}“ gelöscht.",
   "msg_material_added": "„{name}“ zu „{category}“ hinzugefügt.",
   "msg_location_added": "„{name}“ zu „{system}“ hinzugefügt.",
@@ -3091,6 +3108,8 @@ const I18N = {
   "label_benoetigt": "needed",
   "label_vorhanden": "available",
   "label_beitraege_aufschluesselung": "Who contributed",
+  "label_konkurrierende_bedarfe": "Competing needs (same material)",
+  "label_konkurriert_mit": "competes with {count} other need(s)",
   "empty_no_contributions": "No stock for this material in this project yet.",
   "label_fehlt": "missing",
   "label_gedeckt": "covered",
@@ -3391,6 +3410,8 @@ const I18N = {
   "tooltip_zuordnung_aufheben": "Remove project assignment",
   "tooltip_transfer_entry": "Transfer to general inventory — extends a matching entry or creates a new one, then removed from private stock",
   "tooltip_click_again_confirm": "Click again to confirm",
+  "tooltip_projekt_loeschen_betroffen": "Warning: {count} entries (stock/collectibles/needs) are linked to this project — the link will be removed when deleted. Click again to confirm.",
+  "tooltip_material_loeschen_betroffen": "Warning: {count} entries use this material/location — they will be deleted entirely, not just unlinked. Click again to confirm.",
   "msg_entry_deleted_named": "\"{name}\" deleted.",
   "msg_material_added": "\"{name}\" added to \"{category}\".",
   "msg_location_added": "\"{name}\" added to \"{system}\".",
@@ -3615,6 +3636,8 @@ const I18N = {
   "label_benoetigt": "nécessaire",
   "label_vorhanden": "disponible",
   "label_beitraege_aufschluesselung": "Qui a contribué",
+  "label_konkurrierende_bedarfe": "Besoins concurrents (même matériau)",
+  "label_konkurriert_mit": "entre en concurrence avec {count} autre(s) besoin(s)",
   "empty_no_contributions": "Pas encore de stock pour ce matériau dans ce projet.",
   "label_fehlt": "manquant",
   "label_gedeckt": "couvert",
@@ -3915,6 +3938,8 @@ const I18N = {
   "tooltip_zuordnung_aufheben": "Supprimer l'affectation au projet",
   "tooltip_transfer_entry": "Transférer vers le stock général — complète une entrée correspondante ou en crée une nouvelle, puis retire du stock privé",
   "tooltip_click_again_confirm": "Cliquer à nouveau pour confirmer",
+  "tooltip_projekt_loeschen_betroffen": "Attention : {count} entrée(s) (stock/objets de collection/besoins) sont liées à ce projet — le lien sera supprimé lors de la suppression. Cliquer à nouveau pour confirmer.",
+  "tooltip_material_loeschen_betroffen": "Attention : {count} entrée(s) utilisent ce matériau/lieu — elles seront entièrement supprimées, pas seulement déliées. Cliquer à nouveau pour confirmer.",
   "msg_entry_deleted_named": "« {name} » supprimé.",
   "msg_material_added": "« {name} » ajouté à « {category} ».",
   "msg_location_added": "« {name} » ajouté à « {system} ».",
@@ -4343,7 +4368,13 @@ function renderUserList(){
     btn.addEventListener('click', ()=>{ saveUserEdit(parseInt(btn.dataset.idx)); });
   });
   container.querySelectorAll('[data-action="delete-user"]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ armConfirm(btn, ()=>{ deleteUser(parseInt(btn.dataset.idx)); }); });
+    btn.addEventListener('click', ()=>{
+      const idx = parseInt(btn.dataset.idx);
+      const user = USERS[idx];
+      const usage = user ? countUserPrivateData(user.username) : {total:0};
+      const confirmTitle = usage.total > 0 ? t('tooltip_material_loeschen_betroffen').replace('{count}', usage.total) : undefined;
+      armConfirm(btn, ()=>{ deleteUser(idx); }, confirmTitle);
+    });
   });
 }
 
@@ -4420,6 +4451,31 @@ async function saveUserEdit(idx){
       delete credentials[oldUsername];
       await saveCredentials();
     }
+
+    // KRITISCH: Private Bestaende/Sammelobjekte/Projekte werden strikt
+    // nach owner===Benutzername gefiltert (siehe myPrivateEntries() etc.).
+    // Ohne diese Aktualisierung wuerde die betroffene Person nach der
+    // Umbenennung ihre KOMPLETTE private Sammlung nicht mehr sehen --
+    // wirkt fuer sie wie Datenverlust, obwohl die Daten technisch noch
+    // vorhanden sind. Zusaetzlich betroffen: eigene Bedarfe (verlieren
+    // sonst "Erhoehen"-Button + Erinnerungs-Modal-Zugehoerigkeit) sowie
+    // die Anzeige bei geteilten Bestand-Eintraegen/Sammelobjekten
+    // (Person/Besitzer-Spalte). Historische Log-Eintraege werden bewusst
+    // NICHT nachtraeglich umgeschrieben, da sie den damaligen Stand
+    // dokumentieren sollen. Siehe Nutzerwunsch vom 6. August 2026.
+    let renamedCount = 0;
+    privateEntries.forEach(e=>{ if(e.owner===oldUsername){ e.owner=newUsername; renamedCount++; } });
+    privateCollectibles.forEach(e=>{ if(e.owner===oldUsername){ e.owner=newUsername; renamedCount++; } });
+    privateProjects.forEach(p=>{ if(p.owner===oldUsername){ p.owner=newUsername; renamedCount++; } });
+    entries.forEach(e=>{ if(e.person===oldUsername){ e.person=newUsername; renamedCount++; } });
+    collectibles.forEach(e=>{ if(e.besitzer===oldUsername){ e.besitzer=newUsername; renamedCount++; } });
+    needs.forEach(n=>{ if(n.user===oldUsername){ n.user=newUsername; renamedCount++; } });
+    if(renamedCount > 0){
+      await Promise.all([
+        savePrivateEntries(), savePrivateCollectibles(), savePrivateProjects(),
+        save(), saveCollectibles(), saveNeeds()
+      ]);
+    }
   }
 
   // organizationId bewusst aus dem bestehenden Datensatz übernehmen, statt
@@ -4460,6 +4516,21 @@ async function saveUserEdit(idx){
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
 }
 
+// Ermittelt, wie viele private Bestand-/Sammelobjekt-/Projekt-Eintraege
+// einer Person gehoeren -- wird VOR dem Loeschen eines Benutzers
+// aufgerufen. Ohne Bereinigung blieben diese Daten nach dem Loeschen
+// dauerhaft in der Datenbank bestehen, waeren aber fuer niemanden mehr
+// erreichbar (kein Login kann noch auf diesen owner-Wert zugreifen) --
+// dieselbe Art "verwaister" Daten wie bei Projekten/Material/Lagerort,
+// nur durch Benutzer-Loeschung statt Katalog-Loeschung ausgeloest.
+// Siehe Nutzerwunsch vom 6. August 2026.
+function countUserPrivateData(username){
+  const entriesCount = privateEntries.filter(e=>e.owner===username).length;
+  const collectiblesCount = privateCollectibles.filter(e=>e.owner===username).length;
+  const projectsCount = privateProjects.filter(p=>p.owner===username).length;
+  return { total: entriesCount+collectiblesCount+projectsCount, entriesCount, collectiblesCount, projectsCount };
+}
+
 async function deleteUser(idx){
   const statusEl = document.getElementById('userFormStatus');
   const user = USERS[idx];
@@ -4481,6 +4552,7 @@ async function deleteUser(idx){
     return;
   }
 
+  const usage = countUserPrivateData(user.username);
   USERS.splice(idx,1);
   statusEl.textContent = t('msg_saving');
   await ensureCredentialsLoaded();
@@ -4489,7 +4561,16 @@ async function deleteUser(idx){
     await saveCredentials();
   }
   await saveUsers();
-  await logAction('Benutzer gelöscht', user.username);
+  // Verwaiste private Daten der geloeschten Person konsequent mitloeschen
+  // (nach vorheriger Warnung im Bestaetigungs-Tooltip, siehe Aufrufstelle)
+  // -- sonst blieben sie dauerhaft unerreichbar in der Datenbank liegen.
+  if(usage.total > 0){
+    privateEntries = privateEntries.filter(e=>e.owner!==user.username);
+    privateCollectibles = privateCollectibles.filter(e=>e.owner!==user.username);
+    privateProjects = privateProjects.filter(p=>p.owner!==user.username);
+    await Promise.all([savePrivateEntries(), savePrivateCollectibles(), savePrivateProjects()]);
+  }
+  await logAction('Benutzer gelöscht', `${user.username}${usage.total>0 ? ` (${usage.total} private(r) Eintrag/Einträge mitgelöscht)` : ''}`);
   statusEl.textContent = t('msg_user_deleted').replace('{name}', user.username);
   renderUserList();
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
@@ -6655,7 +6736,13 @@ function renderCatalogLists(){
       </div>
     `).join('');
     matContainer.querySelectorAll('[data-action="delete-material"]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{ armConfirm(btn, ()=>{ deleteMaterial(parseInt(btn.dataset.idx)); }); });
+      btn.addEventListener('click', ()=>{
+        const idx = parseInt(btn.dataset.idx);
+        const item = MATERIALS[idx];
+        const usage = item ? countMaterialUsage(item.name) : {total:0};
+        const confirmTitle = usage.total > 0 ? t('tooltip_material_loeschen_betroffen').replace('{count}', usage.total) : undefined;
+        armConfirm(btn, ()=>{ deleteMaterial(idx); }, confirmTitle);
+      });
     });
   }
 
@@ -6671,7 +6758,13 @@ function renderCatalogLists(){
       </div>
     `).join('');
     locContainer.querySelectorAll('[data-action="delete-location"]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{ armConfirm(btn, ()=>{ deleteLocation(parseInt(btn.dataset.idx)); }); });
+      btn.addEventListener('click', ()=>{
+        const idx = parseInt(btn.dataset.idx);
+        const item = LOCATIONS[idx];
+        const usage = item ? countLocationUsage(item) : {total:0};
+        const confirmTitle = usage.total > 0 ? t('tooltip_material_loeschen_betroffen').replace('{count}', usage.total) : undefined;
+        armConfirm(btn, ()=>{ deleteLocation(idx); }, confirmTitle);
+      });
     });
   }
 
@@ -6764,14 +6857,40 @@ async function addMaterial(){
   setTimeout(()=>{ statusEl.textContent=''; }, 3500);
 }
 
+// Ermittelt, wie viele Bestand-Eintraege (geteilt + privat) ein
+// bestimmtes Material tatsaechlich verwenden -- wird VOR dem Loeschen
+// eines Materials aus dem Katalog aufgerufen, um ehrlich zu warnen,
+// bevor "verwaiste" Eintraege entstehen (Material existiert im Katalog
+// nicht mehr, der Eintrag zeigt aber weiterhin den reinen Text an und
+// laesst sich beim Bearbeiten nicht mehr sauber auswaehlen). Siehe
+// Nutzerwunsch vom 6. August 2026.
+function countMaterialUsage(materialName){
+  const entriesCount = entries.filter(e=>e.material===materialName).length;
+  const privateEntriesCount = privateEntries.filter(e=>e.material===materialName).length;
+  return { total: entriesCount + privateEntriesCount, entriesCount, privateEntriesCount };
+}
+
 async function deleteMaterial(idx){
   if(currentUser.role !== 'owner') return;
   const item = MATERIALS[idx];
+  if(!item) return;
+  const usage = countMaterialUsage(item.name);
   MATERIALS.splice(idx,1);
   await saveMaterials();
-  if(item) await logAction('Material gelöscht', `${item.name} (${item.category})`);
+  // Nach Bestaetigung durch den Nutzer (siehe Bestaetigungs-Text vor dem
+  // Aufruf dieser Funktion) werden verwaiste Eintraege konsequent
+  // MIT geloescht, statt als nicht mehr auswaehlbare Karteileichen
+  // liegen zu bleiben.
+  if(usage.total > 0){
+    entries = entries.filter(e=>e.material!==item.name);
+    privateEntries = privateEntries.filter(e=>e.material!==item.name);
+    await Promise.all([save(), savePrivateEntries()]);
+  }
+  if(item) await logAction('Material gelöscht', `${item.name} (${item.category})${usage.total>0 ? `, ${usage.total} verwaiste(r) Bestand-Eintrag/Einträge mitgelöscht` : ''}`);
   renderCatalogLists();
   await refreshCatalogDropdowns();
+  render();
+  renderPrivate();
 }
 
 async function addLocation(){
@@ -6812,14 +6931,43 @@ async function addLocation(){
   setTimeout(()=>{ statusEl.textContent=''; }, 3500);
 }
 
+// Analog zu countMaterialUsage(), aber fuer Lagerorte -- betrifft neben
+// Bestand-Eintraegen (geteilt + privat) auch Sammelobjekte (geteilt +
+// privat), da diese ebenfalls einen Lagerort referenzieren koennen.
+function countLocationUsage(loc){
+  const label = locLabel(loc);
+  const entriesCount = entries.filter(e=>e.lagerort===label).length;
+  const privateEntriesCount = privateEntries.filter(e=>e.lagerort===label).length;
+  const collectiblesCount = collectibles.filter(c=>c.standort===label).length;
+  const privateCollectiblesCount = privateCollectibles.filter(c=>c.standort===label).length;
+  return {
+    total: entriesCount + privateEntriesCount + collectiblesCount + privateCollectiblesCount,
+    entriesCount, privateEntriesCount, collectiblesCount, privateCollectiblesCount
+  };
+}
+
 async function deleteLocation(idx){
   if(currentUser.role !== 'owner') return;
   const item = LOCATIONS[idx];
+  if(!item) return;
+  const usage = countLocationUsage(item);
+  const label = locLabel(item);
   LOCATIONS.splice(idx,1);
   await saveLocations();
-  if(item) await logAction('Lagerort gelöscht', `${item.code} – ${item.name} (${item.system})`);
+  if(usage.total > 0){
+    entries = entries.filter(e=>e.lagerort!==label);
+    privateEntries = privateEntries.filter(e=>e.lagerort!==label);
+    collectibles = collectibles.filter(c=>c.standort!==label);
+    privateCollectibles = privateCollectibles.filter(c=>c.standort!==label);
+    await Promise.all([save(), savePrivateEntries(), saveCollectibles(), savePrivateCollectibles()]);
+  }
+  if(item) await logAction('Lagerort gelöscht', `${item.code} – ${item.name} (${item.system})${usage.total>0 ? `, ${usage.total} verwaiste(r) Eintrag/Einträge mitgelöscht` : ''}`);
   renderCatalogLists();
   await refreshCatalogDropdowns();
+  render();
+  renderPrivate();
+  renderCollectibles();
+  renderPrivateCollectibles();
 }
 
 // ============================================================
@@ -7054,8 +7202,16 @@ function buildStockBreakdownHTML(material, projekt){
 // uebereinstimmt, die als "verfuegbar" fuer die Deckung herangezogen
 // wurde. Genutzt fuer die Deckungs-Aufschluesselung im Bedarf-Tab (wer,
 // wieviel, wo -- siehe Nutzerwunsch vom 6. August 2026).
-function buildNeedCoverageBreakdownHTML(material, einheit){
-  const matching = entries.filter(e=>e.material===material && (einheit===undefined || e.einheit===einheit));
+function buildNeedCoverageBreakdownHTML(need){
+  // Zeigt nur Eintraege, die fuer DIESEN Bedarf tatsaechlich anrechenbar
+  // sind (siehe getNeedAvailableStock): frei verfuegbare Eintraege sowie
+  // -- falls der Bedarf aus einem Projekt heraus gemeldet wurde -- die
+  // fuer genau dieses Projekt reservierten Eintraege. Reservierungen
+  // ANDERER Projekte werden bewusst NICHT angezeigt, da sie fuer diesen
+  // Bedarf nicht zur Verfuegung stehen.
+  const matching = entries.filter(e=>e.material===need.material
+    && (need.einheit===undefined || e.einheit===need.einheit)
+    && ((e.projekt||'')==='' || (need.sourceProjekt && e.projekt===need.sourceProjekt)));
   let body;
   if(matching.length === 0){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
@@ -7073,6 +7229,33 @@ function buildNeedCoverageBreakdownHTML(material, einheit){
     body += `</tbody></table>`;
   }
   return `<div class="stock-hover-title">${t('label_beitraege_aufschluesselung')}</div>${body}`;
+}
+
+// Ermittelt andere, ebenfalls noch offene Bedarfe fuer DASSELBE Material
+// -- diese "konkurrieren" um denselben (freien) Bestand, da eine
+// "Gedeckt"-Pruefung jeden Bedarf bislang unabhaengig von allen anderen
+// betrachtet. Zeigt zwei gleichzeitig gemeldete Bedarfe von je 60
+// bei nur 80 verfuegbar beide als "gedeckt" an, obwohl zusammen nur
+// einer bedient werden kann. Bewusst als reiner Hinweis umgesetzt
+// (nicht als automatische Verrechnung/Warteschlange) -- Priorisierung
+// bzw. Aufteilung soll nach Ruecksprache zwischen den Beteiligten
+// erfolgen, siehe Nutzerwunsch vom 6. August 2026.
+function getCompetingNeeds(need){
+  return needs.filter(n2=> n2.id!==need.id && n2.material===need.material && n2.menge>0);
+}
+
+function buildCompetingNeedsHTML(need, competing){
+  const sorted = [...competing].sort((a,b)=> (a.createdAt||'').localeCompare(b.createdAt||''));
+  let body = `<table><thead><tr><th>${t('col_benutzer')}</th><th>${t('label_menge')}</th><th>${t('label_prioritaet')}</th></tr></thead><tbody>`;
+  sorted.forEach(n=>{
+    body += `<tr>
+      <td><span style="display:inline-flex;align-items:center;">${userDot(n.user)}${escapeHtml(n.user)}</span></td>
+      <td class="qty-cell">${n.menge} ${escapeHtml(einheitLabel(n.einheit))}</td>
+      <td><span class="badge ${PRIORITY_CLASS[n.prioritaet]}" style="font-size:10px;">${escapeHtml(prioLabel(n.prioritaet))}</span></td>
+    </tr>`;
+  });
+  body += `</tbody></table>`;
+  return `<div class="stock-hover-title">${t('label_konkurrierende_bedarfe')}</div>${body}`;
 }
 
 // ============================================================
@@ -7205,6 +7388,24 @@ function stockAmount(material, projekt, einheit){
     .reduce((sum,e)=> sum + e.menge, 0);
 }
 
+// Liefert die fuer einen Bedarf tatsaechlich anrechenbare Bestandsmenge --
+// bewusst NICHT einfach der komplette Bestand des Materials, da bereits
+// einem (anderen) Projekt zugeordnete Mengen sonst faktisch doppelt
+// verplant wuerden (einmal fuer das Projekt, einmal fuer den allgemeinen
+// Bedarf). Konsistent zur bereits etablierten "Reserviert"/"Frei
+// verfuegbar"-Unterscheidung im Bestand:
+//   - Allgemeiner Bedarf (kein Projektbezug): nur frei verfuegbarer
+//     Bestand zaehlt.
+//   - Aus einem Projekt heraus gemeldeter Bedarf: frei verfuegbarer
+//     Bestand PLUS die fuer genau DIESES Projekt bereits reservierte
+//     Menge (aber nicht Reservierungen anderer Projekte).
+// (Siehe Nutzerwunsch vom 6. August 2026.)
+function getNeedAvailableStock(need){
+  const free = stockAmount(need.material, '', need.einheit);
+  const reservedForOwnProject = need.sourceProjekt ? stockAmount(need.material, need.sourceProjekt, need.einheit) : 0;
+  return free + reservedForOwnProject;
+}
+
 function buildProjectZielSelectHTML(id, selected, extraClass){
   const ziele = [...new Set(projects.map(p=>p.ziel))];
   let html = `<select id="${id}" class="${extraClass||''}"><option value="">${t('placeholder_no_project')}</option>`;
@@ -7278,6 +7479,76 @@ function normalizeResource(r){
 // die hinterlegte Menge WAR bereits die Gesamtmenge, unabhaengig von der
 // Projekt-Anzahl -- keine rueckwirkende Neuinterpretation bestehender
 // Projekte.
+// Ermittelt, wie viele Eintraege (Bestand/Privat Bestand/Sammelobjekte
+// geteilt+privat/Bedarfe) einem Projekt zugeordnet sind -- wird VOR dem
+// Loeschen eines Projekts aufgerufen, um den Nutzer ehrlich ueber die
+// Auswirkungen zu informieren (siehe Nutzerwunsch vom 6. August 2026:
+// automatisches Bereinigen verwaister Projekt-Verknuepfungen, aber mit
+// vorherigem Hinweis).
+function countProjectReferences(ziel, typ){
+  const matchesEntry = e => e.projekt === ziel; // geteilter Bestand kennt nur geteilte Projekte
+  const matchesPrivate = e => e.projekt === ziel && (e.projektTyp || 'shared') === typ;
+  const matchesNeed = n => n.sourceProjekt === ziel && (n.sourceProjektTyp || 'shared') === typ;
+
+  const entriesCount = typ === 'shared' ? entries.filter(matchesEntry).length : 0;
+  const collectiblesCount = typ === 'shared' ? collectibles.filter(matchesEntry).length : 0;
+  const privateEntriesCount = privateEntries.filter(matchesPrivate).length;
+  const privateCollectiblesCount = privateCollectibles.filter(matchesPrivate).length;
+  const needsCount = needs.filter(matchesNeed).length;
+
+  return {
+    total: entriesCount + collectiblesCount + privateEntriesCount + privateCollectiblesCount + needsCount,
+    entriesCount, collectiblesCount, privateEntriesCount, privateCollectiblesCount, needsCount
+  };
+}
+
+// Loest die Projekt-Zuordnung (NICHT die Eintraege selbst!) bei allen
+// referenzierenden Bestand-/Sammelobjekte-Eintraegen und Bedarfen --
+// wird direkt vor dem tatsaechlichen Loeschen eines Projekts aufgerufen.
+// Die Eintraege/Sammelobjekte/Bedarfe selbst bleiben bestehen, gelten ab
+// sofort nur nicht mehr als "diesem (nicht mehr existierenden) Projekt
+// zugeordnet" -- verhindert die zuvor moegliche "Geister-Reservierung"
+// fuer ein bereits gelöschtes Projekt.
+async function releaseProjectReferences(ziel, typ){
+  let changed = false;
+  if(typ === 'shared'){
+    entries.forEach(e=>{ if(e.projekt === ziel){ e.projekt = ''; changed = true; } });
+    collectibles.forEach(e=>{ if(e.projekt === ziel){ e.projekt = ''; e.projektTyp = null; changed = true; } });
+  }
+  privateEntries.forEach(e=>{ if(e.projekt === ziel && (e.projektTyp||'shared') === typ){ e.projekt = ''; e.projektTyp = null; changed = true; } });
+  privateCollectibles.forEach(e=>{ if(e.projekt === ziel && (e.projektTyp||'shared') === typ){ e.projekt = ''; e.projektTyp = null; changed = true; } });
+  needs.forEach(n=>{ if(n.sourceProjekt === ziel && (n.sourceProjektTyp||'shared') === typ){ n.sourceProjekt = null; n.sourceProjektTyp = null; changed = true; } });
+
+  if(changed){
+    await Promise.all([save(), saveCollectibles(), savePrivateEntries(), savePrivateCollectibles(), saveNeeds()]);
+  }
+}
+
+// Aktualisiert die Projekt-Zuordnung (.projekt bzw. sourceProjekt) bei
+// allen referenzierenden Eintraegen auf den NEUEN Ziel-Namen -- wird
+// aufgerufen, wenn beim Bearbeiten eines Projekts der Name geaendert
+// wurde. Ohne diese Aktualisierung wuerden Bestand-Eintraege,
+// Sammelobjekte und Bedarfe stillschweigend mit dem alten, nicht mehr
+// existierenden Namen verknuepft bleiben -- dieselbe Art "Geister-
+// Reservierung" wie beim Loeschen, nur durch Umbenennen statt Loeschen
+// ausgeloest (siehe Nutzerwunsch vom 6. August 2026).
+async function renameProjectReferences(oldZiel, newZiel, typ){
+  if(oldZiel === newZiel) return 0;
+  let count = 0;
+  if(typ === 'shared'){
+    entries.forEach(e=>{ if(e.projekt === oldZiel){ e.projekt = newZiel; count++; } });
+    collectibles.forEach(e=>{ if(e.projekt === oldZiel){ e.projekt = newZiel; count++; } });
+  }
+  privateEntries.forEach(e=>{ if(e.projekt === oldZiel && (e.projektTyp||'shared') === typ){ e.projekt = newZiel; count++; } });
+  privateCollectibles.forEach(e=>{ if(e.projekt === oldZiel && (e.projektTyp||'shared') === typ){ e.projekt = newZiel; count++; } });
+  needs.forEach(n=>{ if(n.sourceProjekt === oldZiel && (n.sourceProjektTyp||'shared') === typ){ n.sourceProjekt = newZiel; count++; } });
+
+  if(count > 0){
+    await Promise.all([save(), saveCollectibles(), savePrivateEntries(), savePrivateCollectibles(), saveNeeds()]);
+  }
+  return count;
+}
+
 function effectiveResourceMenge(project, resource){
   if(resource.menge == null) return null;
   if(project && project.perUnit){
@@ -7571,7 +7842,7 @@ function getEscalationCandidates(){
   if(!currentUser) return [];
   return needs.filter(n=>{
     if(n.user !== currentUser.username || n.prioritaet === 'Kritisch') return false;
-    const avail = stockAmount(n.material, undefined, n.einheit);
+    const avail = getNeedAvailableStock(n);
     if(avail >= n.menge) return false; // bereits gedeckt
     const ageDays = n.createdAt ? Math.floor((Date.now() - new Date(n.createdAt).getTime()) / 86400000) : Infinity;
     return ageDays >= 7;
@@ -8688,14 +8959,27 @@ function renderProjects(){
   });
   container.querySelectorAll('[data-action="delete-project"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
+      const p = projects.find(pr=>pr.id===btn.dataset.id);
+      // Vor dem eigentlichen Loeschen ermitteln, wie viele Eintraege
+      // betroffen waeren, und dem Nutzer in der "scharf gestellten"
+      // Bestaetigungs-Phase ehrlich mitteilen -- verhindert, dass
+      // Verknuepfungen zu einem geloeschten Projekt unbemerkt als
+      // "Geister-Reservierung" bestehen bleiben (siehe Nutzerwunsch vom
+      // 6. August 2026).
+      const refs = p ? countProjectReferences(p.ziel, 'shared') : {total:0};
+      const confirmTitle = refs.total > 0
+        ? t('tooltip_projekt_loeschen_betroffen').replace('{count}', refs.total)
+        : undefined;
       armConfirm(btn, async ()=>{
-        const p = projects.find(pr=>pr.id===btn.dataset.id);
         projects = projects.filter(pr=>pr.id !== btn.dataset.id);
         await saveProjects();
-        if(p) await logAction('Projekt gelöscht', p.ziel);
+        if(p){
+          await releaseProjectReferences(p.ziel, 'shared');
+          await logAction('Projekt gelöscht', `${p.ziel}${refs.total>0 ? ` (Zuordnung bei ${refs.total} Eintrag(en) aufgehoben)` : ''}`);
+        }
         renderProjects();
         scheduleRenderDashboard();
-      });
+      }, confirmTitle);
     });
   });
 
@@ -8744,14 +9028,17 @@ function renderProjects(){
             mindestqualitaet: qualEl && qualEl.value !== '' ? parseFloat(qualEl.value) : null
           };
         }).filter(r=>r.material);
+        const oldZiel = projects[idx].ziel;
+        const newZiel = document.getElementById('edit-proj-ziel').value.trim();
         projects[idx] = {
           ...projects[idx],
-          ziel: document.getElementById('edit-proj-ziel').value.trim(),
+          ziel: newZiel,
           anzahl: parseFloat(document.getElementById('edit-proj-anzahl').value)||0,
           prioritaet: document.getElementById('edit-proj-prioritaet').value,
           resources
         };
-        await logAction('Projekt bearbeitet', projects[idx].ziel);
+        const renamedCount = await renameProjectReferences(oldZiel, newZiel, 'shared');
+        await logAction('Projekt bearbeitet', `${projects[idx].ziel}${renamedCount>0 ? ` (Zuordnung bei ${renamedCount} Eintrag(en) auf neuen Namen aktualisiert)` : ''}`);
       }
       editingProjectId = null;
       await saveProjects();
@@ -9089,13 +9376,20 @@ function renderPrivateProjects(){
   });
   container.querySelectorAll('[data-action="delete-priv-project"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
+      const p = privateProjects.find(pr=>pr.id===btn.dataset.id);
+      const refs = p ? countProjectReferences(p.ziel, 'private') : {total:0};
+      const confirmTitle = refs.total > 0
+        ? t('tooltip_projekt_loeschen_betroffen').replace('{count}', refs.total)
+        : undefined;
       armConfirm(btn, async ()=>{
-        const p = privateProjects.find(pr=>pr.id===btn.dataset.id);
         privateProjects = privateProjects.filter(pr=>pr.id !== btn.dataset.id);
         await savePrivateProjects();
-        if(p) await logAction('Privates Projekt gelöscht', p.ziel);
+        if(p){
+          await releaseProjectReferences(p.ziel, 'private');
+          await logAction('Privates Projekt gelöscht', `${p.ziel}${refs.total>0 ? ` (Zuordnung bei ${refs.total} Eintrag(en) aufgehoben)` : ''}`);
+        }
         renderPrivateProjects();
-      });
+      }, confirmTitle);
     });
   });
 
@@ -9142,13 +9436,16 @@ function renderPrivateProjects(){
             mindestqualitaet: qualEl && qualEl.value !== '' ? parseFloat(qualEl.value) : null
           };
         }).filter(r=>r.material);
+        const oldZiel = privateProjects[idx].ziel;
+        const newZiel = document.getElementById('edit-priv-proj-ziel').value.trim();
         privateProjects[idx] = {
           ...privateProjects[idx],
-          ziel: document.getElementById('edit-priv-proj-ziel').value.trim(),
+          ziel: newZiel,
           anzahl: parseFloat(document.getElementById('edit-priv-proj-anzahl').value)||0,
           resources
         };
-        await logAction('Privates Projekt bearbeitet', privateProjects[idx].ziel);
+        const renamedCount = await renameProjectReferences(oldZiel, newZiel, 'private');
+        await logAction('Privates Projekt bearbeitet', `${privateProjects[idx].ziel}${renamedCount>0 ? ` (Zuordnung bei ${renamedCount} Eintrag(en) auf neuen Namen aktualisiert)` : ''}`);
       }
       editingPrivateProjectId = null;
       await savePrivateProjects();
@@ -9290,14 +9587,15 @@ function renderNeeds(){
         </td>
       </tr>`;
     } else {
-      const avail = stockAmount(n.material, undefined, n.einheit);
+      const avail = getNeedAvailableStock(n);
       const covered = avail >= n.menge;
+      const competing = getCompetingNeeds(n);
       const ageDays = n.createdAt ? Math.floor((Date.now() - new Date(n.createdAt).getTime()) / 86400000) : null;
       const isOwnUnescalated = n.user===currentUser.username && n.prioritaet!=='Kritisch' && !covered && (ageDays===null || ageDays>=7);
       html += `<tr>
         <td>${canManage ? `<input type="checkbox" class="need-select-cb" data-id="${n.id}" ${selectedNeedIds.has(n.id)?'checked':''}>` : ''}</td>
         <td data-label="${t('col_benutzer')}"><span style="display:inline-flex;align-items:center;">${userDot(n.user)}${escapeHtml(n.user)}${n.user===currentUser.username?' <span style="color:var(--ink-soft);font-size:11px;">(Du)</span>':''}</span></td>
-        <td data-label="${t('col_material')}">${escapeHtml(n.material)}</td>
+        <td data-label="${t('col_material')}">${escapeHtml(n.material)}${competing.length>0 ? ` <span class="stock-hover-wrap" style="border-bottom:1px dotted var(--low);"><span style="color:var(--low);font-size:11px;cursor:help;">⚠ ${t('label_konkurriert_mit').replace('{count}', competing.length)}</span><span class="stock-hover-tooltip">${buildCompetingNeedsHTML(n, competing)}</span></span>` : ''}</td>
         <td data-label="${t('label_mind_qualitaet')}">${n.qualitaet}</td>
         <td data-label="${t('label_menge')}" class="qty-cell">${n.menge} ${escapeHtml(einheitLabel(n.einheit))}</td>
         <td data-label="${t('label_prioritaet')}">
@@ -9306,7 +9604,7 @@ function renderNeeds(){
         </td>
         <td data-label="${t('col_gemeldet')}" title="${n.createdAt ? formatImportTimestamp(n.createdAt) : ''}">${n.createdAt ? formatRelativeAge(n.createdAt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td data-label="${t('col_status')}" title="${covered ? '' : `Bestand: ${avail} ${escapeHtml(n.einheit)}`}">${covered
-          ? `<span class="stock-hover-wrap"><span class="badge high" style="cursor:help;">${statusLabel(covered)}</span><span class="stock-hover-tooltip">${buildNeedCoverageBreakdownHTML(n.material, n.einheit)}</span></span>`
+          ? `<span class="stock-hover-wrap"><span class="badge high" style="cursor:help;">${statusLabel(covered)}</span><span class="stock-hover-tooltip">${buildNeedCoverageBreakdownHTML(n)}</span></span>`
           : `<span class="badge low">${statusLabel(covered)}</span>`
         }</td>
         <td class="actions-cell">
@@ -9443,18 +9741,23 @@ function updateProjectBulkActionsBar(){
 
 const btnBulkDeleteProjects = document.getElementById('btnBulkDeleteProjects');
 btnBulkDeleteProjects.addEventListener('click', ()=>{
+  const toDeletePreview = projects.filter(p=>selectedProjectIds.has(p.id));
+  const totalRefs = toDeletePreview.reduce((sum,p)=> sum + countProjectReferences(p.ziel, 'shared').total, 0);
+  const confirmTitle = totalRefs > 0 ? t('tooltip_projekt_loeschen_betroffen').replace('{count}', totalRefs) : undefined;
   armConfirm(btnBulkDeleteProjects, async ()=>{
     if(!roleAtLeast(currentUser.role, 'admin')) return;
     const toDelete = projects.filter(p=>selectedProjectIds.has(p.id));
     projects = projects.filter(p=>!selectedProjectIds.has(p.id));
     await saveProjects();
     for(const p of toDelete){
-      await logAction('Projekt gelöscht', `${p.ziel} (Sammel-Löschung)`);
+      const refs = countProjectReferences(p.ziel, 'shared');
+      await releaseProjectReferences(p.ziel, 'shared');
+      await logAction('Projekt gelöscht', `${p.ziel} (Sammel-Löschung)${refs.total>0 ? `, Zuordnung bei ${refs.total} Eintrag(en) aufgehoben` : ''}`);
     }
     selectedProjectIds.clear();
     renderProjects();
     scheduleRenderDashboard();
-  });
+  }, confirmTitle);
 });
 
 // Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) fuer die Sammelobjekte-
@@ -9520,16 +9823,21 @@ function updatePrivProjectBulkActionsBar(){
 
 const btnBulkDeletePrivProjects = document.getElementById('btnBulkDeletePrivProjects');
 btnBulkDeletePrivProjects.addEventListener('click', ()=>{
+  const toDeletePreview = privateProjects.filter(p=>selectedPrivProjectIds.has(p.id));
+  const totalRefs = toDeletePreview.reduce((sum,p)=> sum + countProjectReferences(p.ziel, 'private').total, 0);
+  const confirmTitle = totalRefs > 0 ? t('tooltip_projekt_loeschen_betroffen').replace('{count}', totalRefs) : undefined;
   armConfirm(btnBulkDeletePrivProjects, async ()=>{
     const toDelete = privateProjects.filter(p=>selectedPrivProjectIds.has(p.id));
     privateProjects = privateProjects.filter(p=>!selectedPrivProjectIds.has(p.id));
     await savePrivateProjects();
     for(const p of toDelete){
-      await logAction('Privates Projekt gelöscht', `${p.ziel} (Sammel-Löschung)`);
+      const refs = countProjectReferences(p.ziel, 'private');
+      await releaseProjectReferences(p.ziel, 'private');
+      await logAction('Privates Projekt gelöscht', `${p.ziel} (Sammel-Löschung)${refs.total>0 ? `, Zuordnung bei ${refs.total} Eintrag(en) aufgehoben` : ''}`);
     }
     selectedPrivProjectIds.clear();
     renderPrivateProjects();
-  });
+  }, confirmTitle);
 });
 
 async function load(){
@@ -9705,7 +10013,7 @@ async function renderDashboard(){
   }
 
   const kritischeBedarfe = needs.filter(n=>{
-    const avail = stockAmount(n.material, undefined, n.einheit);
+    const avail = getNeedAvailableStock(n);
     const covered = avail >= n.menge;
     return !covered && (n.prioritaet==='Kritisch' || n.prioritaet==='Hoch');
   }).length;
@@ -9714,7 +10022,7 @@ async function renderDashboard(){
   // "Kritisch" (nicht "Hoch") — nennt die betroffenen Materialien direkt
   // beim Namen, damit sie nicht in der bloßen Zählung der Kachel untergehen.
   const nurKritisch = needs.filter(n=>{
-    const avail = stockAmount(n.material, undefined, n.einheit);
+    const avail = getNeedAvailableStock(n);
     return avail < n.menge && n.prioritaet==='Kritisch';
   });
   const criticalBanner = document.getElementById('criticalNeedsBanner');
@@ -10938,7 +11246,7 @@ function updateFilterOptions(){
 // Erster Klick versetzt den Button 3 Sekunden lang in einen "Bestätigen?"-Zustand,
 // zweiter Klick innerhalb dieser Zeit führt die Aktion aus. Ohne zweiten Klick
 // springt der Button automatisch in seinen Ausgangszustand zurück.
-function armConfirm(btn, onConfirm){
+function armConfirm(btn, onConfirm, confirmTitle){
   if(btn.dataset.confirming === '1'){
     clearTimeout(btn._confirmTimeout);
     delete btn.dataset.confirming;
@@ -10952,7 +11260,11 @@ function armConfirm(btn, onConfirm){
   btn.dataset.origHtml = btn.innerHTML;
   btn.dataset.origTitle = btn.title || '';
   btn.innerHTML = '✓';
-  btn.title = t('tooltip_click_again_confirm');
+  // confirmTitle erlaubt einen individuellen Hinweistext waehrend der
+  // "scharf gestellten" Phase (z.B. mit Angabe, wie viele Eintraege von
+  // der Aktion mit betroffen sind) -- faellt ohne Angabe auf den
+  // Standardtext zurueck.
+  btn.title = confirmTitle || t('tooltip_click_again_confirm');
   btn.classList.add('btn-confirming');
   btn._confirmTimeout = setTimeout(()=>{
     if(btn.dataset.confirming === '1'){
@@ -11015,7 +11327,7 @@ function exportNeedsCSV(){
   downloadCSV('bedarf.csv',
     [t('col_benutzer'), t('col_material'), t('col_mind_qualitaet'), t('col_menge'), t('col_einheit'), t('col_prioritaet'), t('col_status2')],
     needs.map(n=>{
-      const covered = stockAmount(n.material, undefined, n.einheit) >= n.menge;
+      const covered = getNeedAvailableStock(n) >= n.menge;
       return [n.user, n.material, n.qualitaet, n.menge, einheitLabel(n.einheit), prioLabel(n.prioritaet), statusLabel(covered)];
     })
   );
@@ -11096,7 +11408,7 @@ function updateTabBadges(){
   if(!currentUser) return;
 
   const kritischeBedarfe = needs.filter(n=>{
-    const avail = stockAmount(n.material, undefined, n.einheit);
+    const avail = getNeedAvailableStock(n);
     return avail < n.menge && (n.prioritaet==='Kritisch' || n.prioritaet==='Hoch');
   }).length;
   const bedarfBadge = document.getElementById('tabBadge-bedarfe');
