@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.012 -->
+<!-- Version: 0.013 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -7194,6 +7194,32 @@ function buildStockBreakdownHTML(material, projekt){
   return `<div class="stock-hover-title">${t('label_beitraege_aufschluesselung')}</div>${body}`;
 }
 
+// Aehnlich zu buildStockBreakdownHTML(), aber OHNE Projekt-Filter und mit
+// zusaetzlicher Projekt-Spalte -- fuer die "Gesamt"-Spalte in der
+// Bestand-Uebersicht nach Material, die ja auch bereits einem Projekt
+// zugeordnete Mengen mit einschliesst (siehe Nutzerwunsch vom
+// 6. August 2026).
+function buildTotalStockBreakdownHTML(material){
+  const matching = entries.filter(e=>e.material===material);
+  let body;
+  if(matching.length === 0){
+    body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
+  } else {
+    const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
+    body = `<table><thead><tr><th>${t('col_verantwortlicher')}</th><th>${t('col_lagerort')}</th><th>${t('col_projekt')}</th><th>${t('label_menge')}</th></tr></thead><tbody>`;
+    sorted.forEach(e=>{
+      body += `<tr>
+        <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
+        <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(e.lagerort)}</span></td>
+        <td>${e.projekt ? escapeHtml(e.projekt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
+        <td class="qty-cell">${Math.round(e.menge*100)/100} ${e.einheit}</td>
+      </tr>`;
+    });
+    body += `</tbody></table>`;
+  }
+  return `<div class="stock-hover-title">${t('label_beitraege_aufschluesselung')}</div>${body}`;
+}
+
 // Aehnlich zu buildStockBreakdownHTML(), aber OHNE Projekt-Filter --
 // zeigt ALLE Bestand-Eintraege eines Materials (unabhaengig von einer
 // etwaigen Projekt-Zuordnung), passend zur Einheit. Nutzt exakt dieselbe
@@ -11622,7 +11648,7 @@ function renderSummary(){
       <td><div class="sum-cell ${r.low===0?'zero':''}"><span class="sum-dot" style="background:#FF3B5C"></span>${fmt(r.low)}</div></td>
       <td><div class="sum-cell ${r.med===0?'zero':''}"><span class="sum-dot" style="background:#FFC93C"></span>${fmt(r.med)}</div></td>
       <td><div class="sum-cell ${r.high===0?'zero':''}"><span class="sum-dot" style="background:#2CFFA0"></span>${fmt(r.high)}</div></td>
-      <td class="sum-total">${fmt(total)}</td>
+      <td class="sum-total"><span class="qty-cell stock-hover-wrap" style="cursor:help;">${fmt(total)}<span class="stock-hover-tooltip">${buildTotalStockBreakdownHTML(r.material)}</span></span></td>
       <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${fmt(r.reserviert)}</span>` : `<span style="color:var(--ink-soft);">${fmt(0)}</span>`}</td>
       <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${fmt(frei)}</span></td>
       <td>${minStock!=null ? `<span class="badge ${underMin?'low':'high'}">${underMin ? t('label_under_min_stock')+' ('+minStock+')' : t('label_ok_min_stock')+' ('+minStock+')'}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
