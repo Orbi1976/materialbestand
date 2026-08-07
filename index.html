@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.008 -->
+<!-- Version: 0.009 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -318,7 +318,15 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
      Grenzen bleibt (siehe Nutzerwunsch vom 6. August 2026).
   */
   right:0;
-  bottom:calc(100% + 8px);
+  /* top statt bottom -- der Tooltip erschien bisher IMMER oberhalb des
+     ausloesenden Elements. Bei Zeilen nah am oberen Rand des sichtbaren
+     Bereichs (z.B. die ersten Tabellenzeilen direkt unter dem Panel-
+     Kopf) fehlte dafuer oft der Platz nach oben, wodurch der Tooltip vom
+     Browser-Viewport abgeschnitten wurde. Nach unten ist in aller Regel
+     mehr Platz vorhanden (weiterer Tabelleninhalt, Seite laesst sich
+     ohnehin scrollen) -- daher jetzt standardmaessig unterhalb.
+  */
+  top:calc(100% + 8px);
   z-index:60;
   min-width:240px;
   max-width:360px;
