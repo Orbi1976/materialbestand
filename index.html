@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.005 -->
+<!-- Version: 0.006 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2019,6 +2019,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </div>
     </div>
     <div class="status-msg" id="privateCollectibleStatus"></div>
+    <div class="filters">
+      <input type="text" id="priv-coll-search" placeholder="Suche nach Objekt, Kategorie, Lagerort …" data-i18n-placeholder="placeholder_search_collectibles">
+      <select id="priv-coll-filterKategorie"><option value="" data-i18n="filter_alle_kategorien">Alle Kategorien</option></select>
+    </div>
     <div id="privCollectibleBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
       <span id="privCollectibleBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
       <button class="btn-icon danger" id="btnBulkDeletePrivCollectibles" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
@@ -2160,6 +2164,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         </div>
       </div>
       <div class="status-msg" id="collectibleStatus"></div>
+    </div>
+    <div class="filters">
+      <input type="text" id="coll-search" placeholder="Suche nach Objekt, Kategorie, Lagerort, Besitzer …" data-i18n-placeholder="placeholder_search_collectibles">
+      <select id="coll-filterKategorie"><option value="" data-i18n="filter_alle_kategorien">Alle Kategorien</option></select>
     </div>
     <div id="collectibleBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
       <span id="collectibleBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
@@ -2450,6 +2458,8 @@ const I18N = {
   "btn_group_by_location": "Nach Lagerort gruppieren",
   "placeholder_search": "Suche nach Material, Lagerort, Person …",
   "filter_alle_lagerorte": "Alle Lagerorte",
+  "placeholder_search_collectibles": "Suche nach Objekt, Kategorie, Lagerort, Besitzer …",
+  "filter_alle_kategorien": "Alle Kategorien",
   "placeholder_qualitaet_ge": "Qualität ≥",
   "panel_bedarf": "Bedarfsprioritäten",
   "label_mind_qualitaet": "Mind. Qualität",
@@ -2972,6 +2982,8 @@ const I18N = {
   "btn_group_by_location": "Group by location",
   "placeholder_search": "Search by material, location, person …",
   "filter_alle_lagerorte": "All locations",
+  "placeholder_search_collectibles": "Search by object, category, location, owner …",
+  "filter_alle_kategorien": "All categories",
   "placeholder_qualitaet_ge": "Quality ≥",
   "panel_bedarf": "Need priorities",
   "label_mind_qualitaet": "Min. quality",
@@ -3494,6 +3506,8 @@ const I18N = {
   "btn_group_by_location": "Grouper par emplacement",
   "placeholder_search": "Rechercher par matériau, emplacement, personne…",
   "filter_alle_lagerorte": "Tous les emplacements",
+  "placeholder_search_collectibles": "Rechercher par objet, catégorie, emplacement, propriétaire…",
+  "filter_alle_kategorien": "Toutes les catégories",
   "placeholder_qualitaet_ge": "Qualité ≥",
   "panel_bedarf": "Priorités de besoins",
   "label_mind_qualitaet": "Qualité min.",
@@ -6011,9 +6025,30 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
   setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 });
 
+function getFilteredCollectibles(){
+  const q = document.getElementById('coll-search').value.toLowerCase();
+  const kategorie = document.getElementById('coll-filterKategorie').value;
+  return collectibles.filter(c=>{
+    const matchesSearch = !q || [c.objekt, c.kategorie, c.standort, c.besitzer].join(' ').toLowerCase().includes(q);
+    const matchesKategorie = !kategorie || c.kategorie === kategorie;
+    return matchesSearch && matchesKategorie;
+  });
+}
+
+function updateCollectibleFilterOptions(){
+  const sel = document.getElementById('coll-filterKategorie');
+  if(!sel) return;
+  const current = sel.value;
+  const kategorien = [...new Set(collectibles.map(c=>c.kategorie))].sort();
+  sel.innerHTML = `<option value="">${t('filter_alle_kategorien')}</option>` + kategorien.map(k=>`<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('');
+  sel.value = kategorien.includes(current) ? current : '';
+}
+
 function renderCollectibles(){
   const container = document.getElementById('collectibleTableContainer');
   if(!currentUser) return;
+
+  updateCollectibleFilterOptions();
 
   if(collectibles.length === 0){
     container.innerHTML = `<div class="empty"><div class="big">${t('empty_collectibles_title')}</div>${t('empty_collectibles_sub')}</div>`;
@@ -6021,8 +6056,15 @@ function renderCollectibles(){
     return;
   }
 
+  const filtered = getFilteredCollectibles();
+  if(filtered.length === 0){
+    container.innerHTML = `<div class="empty"><div class="big">${t('empty_results_title')}</div>${t('empty_results_sub')}</div>`;
+    renderCollectibleSummary();
+    return;
+  }
+
   const canManage = currentUser.role!=='viewer';
-  const sorted = [...collectibles].sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
+  const sorted = [...filtered].sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
 
   let html = `<table style="table-layout:fixed;"><thead><tr>
     <th style="width:3%;white-space:normal;"><input type="checkbox" id="selectAllCollectibles"></th>
@@ -6317,11 +6359,32 @@ async function transferPrivateCollectible(id){
   setTimeout(()=>{ document.getElementById('privateCollectibleStatus').textContent=''; }, 3000);
 }
 
+function getFilteredPrivateCollectibles(){
+  const q = document.getElementById('priv-coll-search').value.toLowerCase();
+  const kategorie = document.getElementById('priv-coll-filterKategorie').value;
+  return myPrivateCollectibles().filter(c=>{
+    const matchesSearch = !q || [c.objekt, c.kategorie, c.standort].join(' ').toLowerCase().includes(q);
+    const matchesKategorie = !kategorie || c.kategorie === kategorie;
+    return matchesSearch && matchesKategorie;
+  });
+}
+
+function updatePrivateCollectibleFilterOptions(){
+  const sel = document.getElementById('priv-coll-filterKategorie');
+  if(!sel) return;
+  const current = sel.value;
+  const kategorien = [...new Set(myPrivateCollectibles().map(c=>c.kategorie))].sort();
+  sel.innerHTML = `<option value="">${t('filter_alle_kategorien')}</option>` + kategorien.map(k=>`<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('');
+  sel.value = kategorien.includes(current) ? current : '';
+}
+
 function renderPrivateCollectibles(){
   const container = document.getElementById('privateCollectibleTableContainer');
   if(!currentUser) return;
   updateTabBadges();
   const mine = myPrivateCollectibles();
+
+  updatePrivateCollectibleFilterOptions();
 
   if(mine.length === 0){
     container.innerHTML = `<div class="empty"><div class="big">${t('empty_private_collectibles_title')}</div>${t('empty_collectibles_sub')}</div>`;
@@ -6329,7 +6392,14 @@ function renderPrivateCollectibles(){
     return;
   }
 
-  const sorted = [...mine].sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
+  const filtered = getFilteredPrivateCollectibles();
+  if(filtered.length === 0){
+    container.innerHTML = `<div class="empty"><div class="big">${t('empty_results_title')}</div>${t('empty_results_sub')}</div>`;
+    renderPrivateCollectibleSummary();
+    return;
+  }
+
+  const sorted = [...filtered].sort((a,b)=> a.kategorie.localeCompare(b.kategorie) || a.objekt.localeCompare(b.objekt));
 
   let html = `<table style="table-layout:fixed;"><thead><tr>
     <th style="width:3%;white-space:normal;"><input type="checkbox" id="selectAllPrivCollectibles"></th>
@@ -9954,6 +10024,8 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
 });
 
 document.getElementById('search').addEventListener('input', debounce(render, 200));
+document.getElementById('coll-search').addEventListener('input', debounce(renderCollectibles, 200));
+document.getElementById('coll-filterKategorie').addEventListener('change', renderCollectibles);
 document.getElementById('btnToggleGroupByLocation').addEventListener('click', ()=>{
   groupByLocation = !groupByLocation;
   document.getElementById('btnToggleGroupByLocation').textContent = groupByLocation ? t('btn_ungroup_location') : t('btn_group_by_location');
@@ -11569,6 +11641,8 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
 });
 
 document.getElementById('priv-search').addEventListener('input', debounce(renderPrivate, 200));
+document.getElementById('priv-coll-search').addEventListener('input', debounce(renderPrivateCollectibles, 200));
+document.getElementById('priv-coll-filterKategorie').addEventListener('change', renderPrivateCollectibles);
 document.getElementById('priv-filterLagerort').addEventListener('change', renderPrivate);
 document.getElementById('priv-filterQualitaet').addEventListener('change', renderPrivate);
 
