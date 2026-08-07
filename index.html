@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.014 -->
+<!-- Version: 0.015 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -362,7 +362,19 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
 .stock-hover-tooltip td, .stock-hover-tooltip th{
   overflow-wrap:break-word;
 }
-.stock-hover-tooltip thead th{ padding:4px 6px; cursor:default; }
+.stock-hover-tooltip thead th{
+  padding:4px 6px;
+  cursor:default;
+  /* Ueberschreibt die globale thead-th-Regel (white-space:nowrap weiter
+     oben in dieser Datei), die sonst verhinderte, dass laengere
+     Spaltenueberschriften (z.B. "VERANTWORTLICHER") in diesen kleinen,
+     schmalen Hover-Tabellen umbrechen -- der Text lief dadurch trotz
+     table-layout:fixed sichtbar in die Nachbarspalte hinein und
+     ueberlappte dort mit deren Ueberschrift. Siehe Nutzerwunsch vom
+     6. August 2026 (Screenshot mit ineinander verschobenen Kopfzeilen).
+  */
+  white-space:normal;
+}
 .stock-hover-tooltip thead th:hover{ color:var(--ink-soft); }
 .stock-hover-tooltip tbody td{ padding:5px 6px; }
 .stock-hover-tooltip .stock-hover-empty{ color:var(--ink-soft); font-size:12px; padding:2px 0; }
