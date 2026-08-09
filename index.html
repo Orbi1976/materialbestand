@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.020 -->
+<!-- Version: 0.021 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2611,6 +2611,8 @@ const I18N = {
   "label_beitraege_aufschluesselung": "Wer hat beigetragen",
   "label_konkurrierende_bedarfe": "Konkurrierende Bedarfe (dasselbe Material)",
   "label_konkurriert_mit": "konkurriert mit {count} weiterem Bedarf/Bedarfen",
+  "label_privat_zugesagt": "{menge} {einheit} bereits privat zugesagt von {person}, noch nicht übertragen",
+  "btn_jetzt_uebertragen": "Jetzt übertragen",
   "empty_no_contributions": "Noch kein Bestand für dieses Material in diesem Projekt.",
   "label_fehlt": "fehlt",
   "label_gedeckt": "gedeckt",
@@ -3139,6 +3141,8 @@ const I18N = {
   "label_beitraege_aufschluesselung": "Who contributed",
   "label_konkurrierende_bedarfe": "Competing needs (same material)",
   "label_konkurriert_mit": "competes with {count} other need(s)",
+  "label_privat_zugesagt": "{menge} {einheit} already privately committed by {person}, not yet transferred",
+  "btn_jetzt_uebertragen": "Transfer now",
   "empty_no_contributions": "No stock for this material in this project yet.",
   "label_fehlt": "missing",
   "label_gedeckt": "covered",
@@ -3667,6 +3671,8 @@ const I18N = {
   "label_beitraege_aufschluesselung": "Qui a contribué",
   "label_konkurrierende_bedarfe": "Besoins concurrents (même matériau)",
   "label_konkurriert_mit": "entre en concurrence avec {count} autre(s) besoin(s)",
+  "label_privat_zugesagt": "{menge} {einheit} déjà promis en privé par {person}, pas encore transféré",
+  "btn_jetzt_uebertragen": "Transférer maintenant",
   "empty_no_contributions": "Pas encore de stock pour ce matériau dans ce projet.",
   "label_fehlt": "manquant",
   "label_gedeckt": "couvert",
@@ -7227,6 +7233,22 @@ function stockForMaterial(material, projekt){
   return units.map(u=>`${Math.round(byUnit[u]*100)/100} ${u}`).join(', ');
 }
 
+// Ermittelt privaten Bestand, der einem GETEILTEN Projekt bereits
+// zugeordnet, aber noch nicht in den geteilten Bestand uebertragen
+// wurde -- ueber ALLE Nutzer der Organisation hinweg (privateEntries
+// enthaelt bereits alle, myPrivateEntries() ist nur eine clientseitige
+// Filterung fuer die eigene Anzeige). Bewusst NICHT in die eigentliche
+// Fortschritts-/Deckungsberechnung eingerechnet -- das Material liegt
+// ja physisch weiterhin nur privat, eine Anrechnung wuerde eine
+// Scheinsicherheit erzeugen (siehe Konsistenz-Pruefung vom 6. August:
+// Bestand darf nicht gleichzeitig fuer mehrere Zwecke "verfuegbar"
+// wirken). Dient rein der Anzeige: "X wurde bereits privat zugesagt,
+// aber noch nicht uebertragen" inkl. direktem Uebertragen-Button fuer
+// den jeweiligen Eigentuemer. Siehe Nutzerwunsch vom 7. August 2026.
+function getPendingPrivateCommitments(material, ziel){
+  return privateEntries.filter(e=>e.material===material && e.projekt===ziel && e.projektTyp==='shared');
+}
+
 // Kuerzt einen Lagerort-Namen fuer die Anzeige in den kleinen
 // Mouse-over-Aufschluesselungs-Fenstern (Bedarf-Deckung, Gesamt-Spalte
 // im Bestand, Projekt-Ressourcen "Vorhanden") auf den reinen Code-Teil,
@@ -8925,6 +8947,17 @@ function renderProjects(){
             return `<div style="margin-bottom:6px;">
               <div>${escapeHtml(r.material)} — ${t('label_benoetigt')}: <span class="qty-cell">${r.effMenge!=null ? r.effMenge : '–'}</span>${p.perUnit && r.menge!=null ? ` <span style="color:var(--ink-soft);font-size:10.5px;">(${r.menge} × ${p.anzahl})</span>` : ''} / ${t('label_vorhanden')}: <span class="qty-cell stock-hover-wrap">${escapeHtml(stockForMaterial(r.material, p.ziel))}<span class="stock-hover-tooltip">${buildStockBreakdownHTML(r.material, p.ziel)}</span></span>${r.mindestqualitaet!=null ? ` · <span style="color:var(--ink-soft);">${t('label_mind_qualitaet')}: ${r.mindestqualitaet}</span>` : ''}</div>
               ${pct!==null ? `<div class="gauge" style="width:140px;margin-top:4px;"><div class="gauge-fill" style="width:${pct}%;background:${barColor};"></div></div><div style="font-size:10px;color:var(--ink-soft);margin-top:2px;">${pct}%</div>` : ''}
+              ${(()=>{
+                const commitments = getPendingPrivateCommitments(r.material, p.ziel);
+                if(commitments.length === 0) return '';
+                return commitments.map(c=>{
+                  const isOwn = c.owner===currentUser.username;
+                  return `<div style="font-size:10.5px;color:var(--med);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span>⏳ ${t('label_privat_zugesagt').replace('{menge}', c.menge).replace('{einheit}', escapeHtml(c.einheit)).replace('{person}', escapeHtml(c.person))}</span>
+                    ${isOwn ? `<button class="btn-ghost" data-action="transfer-committed-private" data-id="${c.id}" style="font-size:10px;padding:2px 8px;">${t('btn_jetzt_uebertragen')}</button>` : ''}
+                  </div>`;
+                }).join('');
+              })()}
               ${r.fehlend>0 ? (needs.some(n=>n.material===r.material && n.sourceProjekt===p.ziel && (n.sourceProjektTyp||'shared')==='shared')
                 ? `<button class="btn-ghost" data-action="need-from-project" data-material="${escapeHtml(r.material)}" data-menge="${r.fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;" title="${t('tooltip_bedarf_bereits_verknuepft')}">${t('btn_bedarf_aktualisieren')} (${r.fehlend} ${t('label_fehlt')})</button>`
                 : `<button class="btn-ghost" data-action="need-from-project" data-material="${escapeHtml(r.material)}" data-menge="${r.fehlend}" data-ziel="${escapeHtml(p.ziel)}" style="font-size:10.5px;padding:4px 10px;margin-top:5px;">${t('btn_bedarf_eintragen')} (${r.fehlend} ${t('label_fehlt')})</button>`
@@ -8948,6 +8981,19 @@ function renderProjects(){
   });
   html += '</tbody></table>';
   container.innerHTML = html;
+
+  container.querySelectorAll('[data-action="transfer-committed-private"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      // Ruft dieselbe, bereits bewaehrte Uebertragungs-Funktion auf wie
+      // der "Übertragen"-Button im Reiter "Privat Bestände" -- entfernt
+      // den privaten Eintrag und legt ihn (bzw. addiert die Menge zu
+      // einem passenden bestehenden Eintrag) im geteilten Bestand an,
+      // inklusive Projekt-Zuordnung. renderProjects() wird von
+      // transferPrivateEntry() bereits selbst aufgerufen, aktualisiert
+      // die Anzeige also automatisch.
+      transferPrivateEntry(btn.dataset.id);
+    });
+  });
 
   container.querySelectorAll('[data-action="need-from-project"]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
