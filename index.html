@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.019 -->
+<!-- Version: 0.020 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -5399,6 +5399,33 @@ function switchTab(tabName){
   document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.classList.toggle('active', btn.dataset.tab===tabName);
   });
+  // WICHTIG: Der Reiter-Wechsel selbst blendete bislang lediglich den
+  // bereits vorhandenen (moeglicherweise laengst veralteten) DOM-Inhalt
+  // ein/aus, ohne ihn neu zu rendern. Aenderungen an anderer Stelle (z.B.
+  // ein neu angelegter, einem Projekt zugeordneter Bestand-Eintrag)
+  // wurden dadurch beim Wechsel zum Projekte-Reiter nicht sichtbar,
+  // obwohl die zugrunde liegenden Daten und die Berechnung selbst
+  // korrekt waren -- reines Anzeige-Problem. Beim Wechsel zu einem
+  // Reiter, dessen Inhalt von Projekt-Zuordnungen abhaengt, wird daher
+  // jetzt konsequent frisch gerendert. Siehe Nutzerwunsch vom
+  // 7. August 2026.
+  if(tabName === 'projekte'){
+    renderProjects();
+  }
+  if(tabName === 'privatbestand'){
+    renderPrivate();
+    renderPrivateCollectibles();
+    renderPrivateProjects();
+  }
+  if(tabName === 'bestand'){
+    render();
+  }
+  if(tabName === 'sammelobjekte'){
+    renderCollectibles();
+  }
+  if(tabName === 'bedarfe'){
+    renderNeeds();
+  }
 }
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{ switchTab(btn.dataset.tab); });
