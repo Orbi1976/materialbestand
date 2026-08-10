@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.026 -->
+<!-- Version: 0.027 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2951,6 +2951,9 @@ const I18N = {
   "ocr_col_snippet": "Bildausschnitt",
   "ocr_recognized_as": "Erkannt als",
   "ocr_raw_text_hint": "So wurde dieser Bereich des Bilds ursprünglich gelesen, bevor er mit der Materialliste abgeglichen wurde",
+  "ocr_ignore_row": "Ignorieren",
+  "ocr_tooltip_ignore_row": "Diese Zeile als Fehlerkennung markieren — wird beim Übernehmen übersprungen.",
+  "ocr_rows_ignored": "({count} als Fehlerkennung ignoriert.)",
   "ocr_rows_skipped_no_material": "Achtung: {count} Zeile(n) übersprungen, da kein Material ausgewählt wurde.",
   "copyright_notice": "© 2026 Neorob1976. Alle Rechte vorbehalten.",
   "ocr_pick_file": "Foto auswählen oder aufnehmen",
@@ -3499,6 +3502,9 @@ const I18N = {
   "ocr_col_snippet": "Image snippet",
   "ocr_recognized_as": "Recognized as",
   "ocr_raw_text_hint": "This is what was originally read in this area of the image, before matching it against the material list",
+  "ocr_ignore_row": "Ignore",
+  "ocr_tooltip_ignore_row": "Mark this row as a misrecognition — it will be skipped when applying.",
+  "ocr_rows_ignored": "({count} ignored as misrecognition.)",
   "ocr_rows_skipped_no_material": "Note: {count} row(s) skipped because no material was selected.",
   "copyright_notice": "© 2026 Neorob1976. All rights reserved.",
   "ocr_pick_file": "Choose or take a photo",
@@ -4047,6 +4053,9 @@ const I18N = {
   "ocr_col_snippet": "Extrait d'image",
   "ocr_recognized_as": "Reconnu comme",
   "ocr_raw_text_hint": "Voici ce qui a été lu à l'origine dans cette zone de l'image, avant la comparaison avec la liste des matériaux",
+  "ocr_ignore_row": "Ignorer",
+  "ocr_tooltip_ignore_row": "Marquer cette ligne comme une erreur de reconnaissance — elle sera ignorée lors de l'application.",
+  "ocr_rows_ignored": "({count} ignorée(s) comme erreur de reconnaissance.)",
   "ocr_rows_skipped_no_material": "Attention\u00a0: {count} ligne(s) ignorée(s) car aucun matériau n'a été sélectionné.",
   "copyright_notice": "© 2026 Neorob1976. Tous droits réservés.",
   "ocr_pick_file": "Choisir ou prendre une photo",
@@ -11473,7 +11482,7 @@ document.getElementById('btnRunOcr').addEventListener('click', async ()=>{
 function renderOcrPreview(rows, cropCanvas, scale){
   const wrap = document.getElementById('ocrPreviewTableWrap');
   let html = `<table><thead><tr>
-    <th>${t('ocr_col_snippet')}</th><th>${t('label_material')}</th><th>${t('label_qualitaet')}</th><th>${t('label_menge')} (SCU)</th>
+    <th>${t('ocr_col_snippet')}</th><th>${t('label_material')}</th><th>${t('label_qualitaet')}</th><th>${t('label_menge')} (SCU)</th><th></th>
   </tr></thead><tbody>`;
   rows.forEach((r,i)=>{
     const snippetSrc = buildRowSnippet(cropCanvas, r.yMin, r.yMax, scale);
@@ -11488,15 +11497,35 @@ function renderOcrPreview(rows, cropCanvas, scale){
     const rawHint = showRawHint
       ? `<div class="ocr-raw-hint" title="${t('ocr_raw_text_hint')}">${t('ocr_recognized_as')}: „${escapeHtml(r.materialRaw)}“</div>`
       : '';
-    html += `<tr>
+    // Zeile als Fehlerkennung markierbar -- z.B. wenn Tesseract etwas
+    // erkannt hat, das gar nicht zur eigentlichen Tabelle gehoert (Rauschen,
+    // ein Bildschirm-Element ausserhalb der Materialliste usw.). Eine so
+    // markierte Zeile wird beim Uebernehmen in die Massen-Eingabe
+    // uebersprungen, statt einen unerwuenschten Eintrag zu erzeugen.
+    // Siehe Nutzerwunsch vom 7. August 2026.
+    html += `<tr class="ocr-prev-row" data-row-idx="${i}">
       <td><img class="ocr-row-snippet" src="${snippetSrc}" alt=""></td>
       <td>${materialSelect}${rawHint}</td>
       <td><input type="number" step="0.01" class="edit-input ocr-prev-quality ${r.qualityConfident?'':'ocr-uncertain'}" data-idx="${i}" value="${r.quality!=null?r.quality:''}" title="${r.qualityConfident?'':t('ocr_uncertain_hint')}"></td>
       <td><input type="number" step="0.001" class="edit-input ocr-prev-menge ${r.mengeConfident?'':'ocr-uncertain'}" data-idx="${i}" value="${r.menge!=null?r.menge:''}" title="${r.mengeConfident?'':t('ocr_uncertain_hint')}"></td>
+      <td><label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink-soft);cursor:pointer;white-space:nowrap;" title="${t('ocr_tooltip_ignore_row')}">
+        <input type="checkbox" class="ocr-prev-ignore" data-idx="${i}"> ${t('ocr_ignore_row')}
+      </label></td>
     </tr>`;
   });
   html += '</tbody></table>';
   wrap.innerHTML = html;
+
+  // Als "ignorieren" markierte Zeile visuell deutlich abblenden und die
+  // Eingabefelder sperren, damit klar ist, dass sie beim Uebernehmen
+  // keine Rolle mehr spielt.
+  wrap.querySelectorAll('.ocr-prev-ignore').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const row = cb.closest('.ocr-prev-row');
+      row.style.opacity = cb.checked ? '0.4' : '';
+      row.querySelectorAll('select, input:not(.ocr-prev-ignore)').forEach(el=>{ el.disabled = cb.checked; });
+    });
+  });
 
   const anyUncertain = rows.some(r=> !r.materialConfident || !r.qualityConfident || !r.mengeConfident);
   document.getElementById('ocrUncertainHint').style.display = anyUncertain ? '' : 'none';
@@ -11528,39 +11557,71 @@ document.getElementById('btnApplyOcrPreview').addEventListener('click', ()=>{
   const materialInputs = document.querySelectorAll('.ocr-prev-material');
   const qualityInputs = document.querySelectorAll('.ocr-prev-quality');
   const mengeInputs = document.querySelectorAll('.ocr-prev-menge');
+  const ignoreInputs = document.querySelectorAll('.ocr-prev-ignore');
   const lagerort = document.getElementById('ocrLagerort').value || '';
-  const person = currentUser.username;
 
-  const lines = [];
-  let skipped = 0;
+  const isPrivate = ocrTargetContext === 'private';
+  const prefix = isPrivate ? 'priv-' : '';
+
+  // WICHTIG: Die Massen-Eingabe wurde von einem CSV-Textfeld auf eine
+  // tabellenbasierte Eingabe umgestellt (siehe BULK_CSV_MODE_ENABLED) --
+  // dieser Handler schrieb bislang noch in das alte, inzwischen
+  // ausgeblendete Textfeld und loeste dadurch fuer den Nutzer sichtbar
+  // GAR NICHTS mehr aus. Jetzt korrekt an die tatsaechlich aktive
+  // Tabellen-Eingabe angebunden: bestehende Zeilen werden geleert und
+  // durch die uebernommenen OCR-Zeilen ersetzt, Lagerort wird direkt in
+  // das entsprechende Sammel-Feld der Tabellen-Eingabe uebertragen.
+  // Siehe Nutzerwunsch vom 7. August 2026.
+  const tbody = document.getElementById(prefix+'bulkTableBody');
+  tbody.innerHTML = '';
+
+  let added = 0, skipped = 0, ignored = 0;
   for(let i=0;i<materialInputs.length;i++){
+    if(ignoreInputs[i] && ignoreInputs[i].checked){ ignored++; continue; }
     const material = materialInputs[i].value.trim();
     const quality = qualityInputs[i].value;
     const menge = mengeInputs[i].value;
     if(!material || quality==='' || menge===''){ skipped++; continue; }
-    lines.push(`${material};${quality};${menge};SCU;${lagerort};${person};`);
+    addBulkTableRow(isPrivate);
+    const newRow = tbody.lastElementChild;
+    const rowId = newRow.dataset.rowId;
+    document.getElementById(prefix+'bulk-mat-'+rowId).value = material;
+    document.getElementById(prefix+'bulk-qual-'+rowId).value = quality;
+    document.getElementById(prefix+'bulk-menge-'+rowId).value = menge;
+    added++;
   }
-  if(lines.length === 0){
+
+  if(added === 0){
+    // Tabelle wurde oben bereits geleert -- bei komplett leerem Ergebnis
+    // (alles ignoriert/übersprungen) mindestens eine leere Zeile
+    // wiederherstellen, damit der Nutzer nicht vor einer komplett leeren,
+    // wirkungslos wirkenden Tabelle steht.
+    addBulkTableRow(isPrivate);
     document.getElementById('ocrStatus').textContent = t('ocr_no_results');
     return;
   }
+  // Mindestens eine leere Startzeile darf nicht fehlen, falls der Nutzer
+  // danach noch von Hand weitere Zeilen ergaenzen moechte -- addBulkTableRow
+  // legt bereits eine an, hier nur sicherstellen, dass die gemeinsamen
+  // Felder (Lagerort/Projekt-Dropdown) korrekt initialisiert sind, bevor
+  // der Lagerort ueberschrieben wird.
+  renderBulkTableSharedFields(isPrivate);
+  const lagerortSelect = document.getElementById(prefix+'bulkTableLagerort');
+  if(lagerortSelect) lagerortSelect.value = lagerort;
 
-  const isPrivate = ocrTargetContext === 'private';
-  const textareaId = isPrivate ? 'priv-bulkAddText' : 'bulkAddText';
-  const containerBoxId = isPrivate ? 'priv-bulkAddContainer' : 'bulkAddContainer';
-  const toggleBtnId = isPrivate ? 'priv-btnToggleBulk' : 'btnToggleBulk';
-
-  document.getElementById(textareaId).value = lines.join('\n');
+  const containerBoxId = prefix+'bulkAddContainer';
+  const toggleBtnId = prefix+'btnToggleBulk';
   document.getElementById(containerBoxId).style.display = '';
   document.getElementById(toggleBtnId).textContent = t('btn_hide_bulk');
   markBulkAsOcrSourced(isPrivate ? 'private' : 'public');
 
   closeOcrModal();
   switchTab(isPrivate ? 'privatbestand' : 'bestand');
-  const targetStatusEl = document.getElementById(isPrivate ? 'priv-bulkAddStatus' : 'bulkAddStatus');
+  const targetStatusEl = document.getElementById(prefix+'bulkAddStatus');
   if(targetStatusEl){
-    let msg = `${lines.length} ${t('ocr_results_applied')}`;
+    let msg = `${added} ${t('ocr_results_applied')}`;
     if(skipped > 0) msg += ' ' + t('ocr_rows_skipped_no_material').replace('{count}', skipped);
+    if(ignored > 0) msg += ' ' + t('ocr_rows_ignored').replace('{count}', ignored);
     targetStatusEl.textContent = msg;
   }
 });
@@ -11580,7 +11641,15 @@ function updateBulkOcrUI(target){
   const warning = document.getElementById(prefix+'bulkOcrWarning');
   const confirmRow = document.getElementById(prefix+'bulkOcrConfirmRow');
   const confirmBtn = document.getElementById(prefix+'btnBulkOcrConfirm');
+  // WICHTIG: Die urspruengliche Bestaetigungspflicht-Sperre bezog sich
+  // ausschliesslich auf den alten CSV-Textfeld-Absenden-Button
+  // (btnSubmitBulk), der seit Umstellung auf die tabellenbasierte
+  // Massen-Eingabe ausgeblendet ist (BULK_CSV_MODE_ENABLED=false) --
+  // dadurch griff die Sperre faktisch gar nicht mehr. Jetzt zusaetzlich
+  // auf den tatsaechlich aktiven Tabellen-Absenden-Button umgeleitet.
+  // Siehe Nutzerwunsch vom 7. August 2026.
   const submitBtn = document.getElementById(prefix+'btnSubmitBulk');
+  const submitTableBtn = document.getElementById(prefix+'btnSubmitBulkTable');
   if(bulkOcrPending[target]){
     warning.style.display = '';
     confirmRow.style.display = 'flex';
@@ -11588,17 +11657,20 @@ function updateBulkOcrUI(target){
       confirmBtn.textContent = '✓ ' + t('ocr_confirm_btn_done');
       confirmBtn.style.borderColor = 'var(--high)';
       confirmBtn.style.color = 'var(--high)';
-      submitBtn.disabled = false;
+      if(submitBtn) submitBtn.disabled = false;
+      if(submitTableBtn) submitTableBtn.disabled = false;
     } else {
       confirmBtn.textContent = t('ocr_confirm_btn');
       confirmBtn.style.borderColor = '';
       confirmBtn.style.color = '';
-      submitBtn.disabled = true;
+      if(submitBtn) submitBtn.disabled = true;
+      if(submitTableBtn) submitTableBtn.disabled = true;
     }
   } else {
     warning.style.display = 'none';
     confirmRow.style.display = 'none';
-    submitBtn.disabled = false;
+    if(submitBtn) submitBtn.disabled = false;
+    if(submitTableBtn) submitTableBtn.disabled = false;
   }
 }
 function markBulkAsOcrSourced(target){
@@ -11622,6 +11694,22 @@ document.getElementById('bulkAddText').addEventListener('input', ()=>{
   }
 });
 document.getElementById('priv-bulkAddText').addEventListener('input', ()=>{
+  if(bulkOcrPending.private && bulkOcrConfirmed.private){
+    bulkOcrConfirmed.private = false;
+    updateBulkOcrUI('private');
+  }
+});
+// Dasselbe fuer die tatsaechlich aktive tabellenbasierte Massen-Eingabe --
+// per Ereignis-Delegation auf dem tbody, da Zeilen dynamisch hinzugefuegt/
+// entfernt werden und einzelne Listener pro Zeile die Rueckstellung sonst
+// bei neu hinzugefuegten Zeilen verpassen wuerden.
+document.getElementById('bulkTableBody').addEventListener('input', ()=>{
+  if(bulkOcrPending.public && bulkOcrConfirmed.public){
+    bulkOcrConfirmed.public = false;
+    updateBulkOcrUI('public');
+  }
+});
+document.getElementById('priv-bulkTableBody').addEventListener('input', ()=>{
   if(bulkOcrPending.private && bulkOcrConfirmed.private){
     bulkOcrConfirmed.private = false;
     updateBulkOcrUI('private');
