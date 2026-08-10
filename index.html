@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.021 -->
+<!-- Version: 0.026 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1372,6 +1372,50 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 </div>
 
+<!-- Teilmengen-Auswahl: wiederverwendetes Modal fuer alle Stellen, an
+     denen bislang immer die GESAMTE Menge einer Position auf einmal
+     zugewiesen/uebertragen wurde (Projekt-Zuordnung bei Bestand/Privat
+     Bestand, Uebertragen-Button, "Jetzt uebertragen" bei Projekten).
+     Erlaubt stattdessen wahlweise Gesamtmenge oder eine frei waehlbare
+     Teilmenge (als direkte Menge ODER als Prozentsatz, synchron
+     verknuepft). Siehe Nutzerwunsch vom 7. August 2026. -->
+<div id="partialAssignModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:246;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:26px 28px;max-width:420px;width:100%;box-shadow:0 0 40px var(--cyan-glow);">
+    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 8px;" id="partialAssignTitle">⚖ <span data-i18n="modal_partial_assign_title">Wie viel zuweisen?</span></h3>
+    <p id="partialAssignText" style="font-family:'Rajdhani', sans-serif;font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin:0 0 16px;"></p>
+    <div id="partialAssignRecipientWrap" style="display:none;margin-bottom:16px;">
+      <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px;" data-i18n="label_empfaenger">Empfänger</label>
+      <select id="partialAssignRecipient" style="width:100%;"></select>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'Rajdhani', sans-serif;font-size:14px;color:var(--ink);">
+        <input type="radio" name="partialAssignMode" id="partialAssignModeFull" value="full" checked>
+        <span data-i18n="label_gesamte_menge">Gesamte Menge</span> (<span id="partialAssignFullAmount" class="qty-cell"></span>)
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'Rajdhani', sans-serif;font-size:14px;color:var(--ink);">
+        <input type="radio" name="partialAssignMode" id="partialAssignModePartial" value="partial">
+        <span data-i18n="label_teilmenge">Teilmenge</span>
+      </label>
+      <div id="partialAssignInputs" style="display:none;padding-left:26px;display:flex;gap:10px;align-items:center;">
+        <div>
+          <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px;" data-i18n="label_menge">Menge</label>
+          <input type="number" id="partialAssignMenge" min="0" step="0.001" style="width:110px;">
+        </div>
+        <div style="color:var(--ink-soft);margin-top:14px;">/</div>
+        <div>
+          <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px;">%</label>
+          <input type="number" id="partialAssignPercent" min="0" max="100" step="1" style="width:70px;">
+        </div>
+      </div>
+      <div id="partialAssignError" style="color:var(--low);font-size:12px;display:none;"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-ghost" id="btnPartialAssignCancel" data-i18n="btn_cancel">Abbrechen</button>
+      <button class="btn-primary" id="btnPartialAssignConfirm" data-i18n="btn_confirm">Bestätigen</button>
+    </div>
+  </div>
+</div>
+
 <div id="templateImportConfirmModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:245;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
   <div style="background:#0D141C;border:1px solid var(--low);border-radius:var(--radius);padding:26px 28px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 0 40px rgba(255,59,92,0.25);">
     <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--low);margin:0 0 8px;">⚠ <span data-i18n="modal_import_confirm_title">Globale Vorlagen überschreiben?</span></h3>
@@ -1432,6 +1476,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
     <div id="ocrStep3" style="display:none;">
       <h3 style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px 0;color:var(--steel);" data-i18n="ocr_preview_title">Erkannte Werte prüfen</h3>
+      <div class="user-note" style="display:flex;gap:8px;margin:0 0 12px 0;border-left:3px solid var(--low);padding:8px 10px;background:rgba(255,59,92,0.08);">
+        <span style="font-size:16px;line-height:1;">⚠</span>
+        <span><strong data-i18n="ocr_experimental_label">Experimentelles Feature:</strong> <span data-i18n="ocr_experimental_hint">Die Texterkennung kann Fehler machen — bitte JEDEN erkannten Wert (Material, Qualität, Menge) vor der Übernahme zwingend mit dem Original-Screenshot abgleichen, auch wenn kein Feld orange markiert ist.</span></span>
+      </div>
       <div class="user-note" id="ocrUncertainHint" style="display:none;margin:0 0 12px 0;border-left:3px solid var(--med);padding-left:10px;" data-i18n="ocr_uncertain_hint">⚠ Orange markierte Felder konnten nicht eindeutig erkannt werden — bitte besonders sorgfältig prüfen.</div>
       <div id="ocrPreviewTableWrap" style="max-height:40vh;overflow-y:auto;"></div>
       <div style="margin-top:14px;display:flex;gap:10px;">
@@ -2254,7 +2302,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 // es, die folgende Zeile auf "true" zu setzen. Keine weiteren Änderungen
 // nötig.
 // ============================================================
-const OCR_FEATURE_ENABLED = false;
+const OCR_FEATURE_ENABLED = true;
 if(!OCR_FEATURE_ENABLED){
   const ocrBtn1 = document.getElementById('btnOpenOcr');
   const ocrBtn2 = document.getElementById('priv-btnOpenOcr');
@@ -2883,6 +2931,7 @@ const I18N = {
   "ocr_hint": "Lade ein Foto oder einen Screenshot der Materialtabelle hoch (z. B. Raffinerie-Ergebnis). Möglichst gerade von vorne fotografieren, Spiegelungen vermeiden.",
   "ocr_select_hint": "Ziehe ein Rechteck über die Tabelle mit Materialname, Qualität und Menge.",
   "ocr_run": "Erkennen",
+  "ocr_running_digits": "Zahlen-Feinabgleich…",
   "ocr_running": "Erkennung läuft…",
   "ocr_loading_lib": "Erkennungsmodul wird geladen…",
   "ocr_no_selection": "Bitte zuerst einen Bereich auf dem Bild markieren.",
@@ -2893,6 +2942,8 @@ const I18N = {
   "ocr_confirm_btn": "Daten korrekt",
   "ocr_confirm_btn_done": "Bestätigt",
   "ocr_confirm_required": "Bitte zuerst bestätigen, dass die per Bilderkennung ermittelten Daten korrekt sind.",
+  "ocr_experimental_label": "Experimentelles Feature:",
+  "ocr_experimental_hint": "Die Texterkennung kann Fehler machen — bitte JEDEN erkannten Wert (Material, Qualität, Menge) vor der Übernahme zwingend mit dem Original-Screenshot abgleichen, auch wenn kein Feld orange markiert ist.",
   "ocr_uncertain_hint": "⚠ Orange markierte Felder konnten nicht eindeutig erkannt werden — bitte besonders sorgfältig prüfen.",
   "ocr_apply_preview": "In Massen-Eingabe übernehmen",
   "ocr_back": "Zurück",
@@ -2921,6 +2972,21 @@ const I18N = {
   "unit_scu": "SCU",
   "unit_stueck": "Stück",
   "msg_save_failed_local": "Speichern fehlgeschlagen — Änderung nur lokal sichtbar.",
+  "modal_partial_assign_title": "Wie viel zuweisen?",
+  "label_gesamte_menge": "Gesamte Menge",
+  "label_teilmenge": "Teilmenge",
+  "val_menge_required": "Bitte eine gültige Menge größer 0 angeben.",
+  "val_teilmenge_zu_gross": "Die Teilmenge darf die Gesamtmenge nicht übersteigen.",
+  "text_partial_transfer": "{material} @ {lagerort} — wie viel davon soll in den geteilten Bestand übertragen werden?",
+  "text_partial_assign": "{material} — wie viel davon soll dem Projekt „{project}“ zugewiesen werden?",
+  "btn_confirm": "Bestätigen",
+  "tooltip_assign_to_person": "Person zuweisen (Admin)",
+  "text_assign_to_person": "{material} @ {lagerort} — an welche Person soll (wie viel davon) zugewiesen werden?",
+  "val_keine_empfaenger": "Keine anderen Organisations-Mitglieder vorhanden.",
+  "msg_assigned_to_person": "Erfolgreich an {person} zugewiesen.",
+  "label_empfaenger": "Empfänger",
+  "tooltip_assigned_by": "Zugewiesen von {person} am {date}",
+  "label_zugewiesen": "Zugewiesen",
   "val_bestand_required": "Bitte Material, Qualität, Menge, Lagerort und Verantwortlichen angeben.",
   "val_kategorie_nicht_erlaubt": "Diese Material-Kategorie ist für dich nicht freigeschaltet.",
   "label_kategorie_beschraenkung": "Kategorie-Beschränkung (optional)",
@@ -3413,6 +3479,7 @@ const I18N = {
   "ocr_hint": "Upload a photo or screenshot of the material table (e.g. refinery result). Photograph as straight-on as possible and avoid reflections.",
   "ocr_select_hint": "Drag a rectangle over the table with material name, quality and quantity.",
   "ocr_run": "Recognize",
+  "ocr_running_digits": "Refining numbers…",
   "ocr_running": "Recognition running…",
   "ocr_loading_lib": "Loading recognition module…",
   "ocr_no_selection": "Please select an area on the image first.",
@@ -3423,6 +3490,8 @@ const I18N = {
   "ocr_confirm_btn": "Data is correct",
   "ocr_confirm_btn_done": "Confirmed",
   "ocr_confirm_required": "Please confirm first that the data recognized from the image is correct.",
+  "ocr_experimental_label": "Experimental feature:",
+  "ocr_experimental_hint": "Text recognition can make mistakes — please compare EVERY recognized value (material, quality, quantity) against the original screenshot before applying it, even if no field is highlighted orange.",
   "ocr_uncertain_hint": "⚠ Fields highlighted in orange could not be recognized unambiguously — please review them especially carefully.",
   "ocr_apply_preview": "Apply to bulk entry",
   "ocr_back": "Back",
@@ -3451,6 +3520,21 @@ const I18N = {
   "unit_scu": "SCU",
   "unit_stueck": "Piece",
   "msg_save_failed_local": "Save failed — change is only visible locally.",
+  "modal_partial_assign_title": "How much to assign?",
+  "label_gesamte_menge": "Full amount",
+  "label_teilmenge": "Partial amount",
+  "val_menge_required": "Please enter a valid amount greater than 0.",
+  "val_teilmenge_zu_gross": "The partial amount cannot exceed the full amount.",
+  "text_partial_transfer": "{material} @ {lagerort} — how much should be transferred to the shared stock?",
+  "text_partial_assign": "{material} — how much should be assigned to project \u201e{project}\u201c?",
+  "btn_confirm": "Confirm",
+  "tooltip_assign_to_person": "Assign to person (admin)",
+  "text_assign_to_person": "{material} @ {lagerort} — which person should receive (how much of) this?",
+  "val_keine_empfaenger": "No other organization members available.",
+  "msg_assigned_to_person": "Successfully assigned to {person}.",
+  "label_empfaenger": "Recipient",
+  "tooltip_assigned_by": "Assigned by {person} on {date}",
+  "label_zugewiesen": "Assigned",
   "val_bestand_required": "Please enter material, quality, quantity, location and responsible person.",
   "val_kategorie_nicht_erlaubt": "This material category is not enabled for you.",
   "label_kategorie_beschraenkung": "Category restriction (optional)",
@@ -3943,6 +4027,7 @@ const I18N = {
   "ocr_hint": "Téléversez une photo ou une capture d'écran du tableau de matériaux (p. ex. résultat de raffinerie). Photographiez si possible bien droit et évitez les reflets.",
   "ocr_select_hint": "Faites glisser un rectangle sur le tableau avec le nom du matériau, la qualité et la quantité.",
   "ocr_run": "Reconnaître",
+  "ocr_running_digits": "Affinage des nombres…",
   "ocr_running": "Reconnaissance en cours…",
   "ocr_loading_lib": "Chargement du module de reconnaissance…",
   "ocr_no_selection": "Veuillez d'abord sélectionner une zone sur l'image.",
@@ -3953,6 +4038,8 @@ const I18N = {
   "ocr_confirm_btn": "Les données sont correctes",
   "ocr_confirm_btn_done": "Confirmé",
   "ocr_confirm_required": "Veuillez d'abord confirmer que les données reconnues à partir de l'image sont correctes.",
+  "ocr_experimental_label": "Fonctionnalité expérimentale :",
+  "ocr_experimental_hint": "La reconnaissance de texte peut faire des erreurs — veuillez comparer OBLIGATOIREMENT chaque valeur reconnue (matériau, qualité, quantité) avec la capture d'écran d'origine avant de l'appliquer, même si aucun champ n'est surligné en orange.",
   "ocr_uncertain_hint": "⚠ Les champs surlignés en orange n'ont pas pu être reconnus sans ambiguïté — veuillez les vérifier particulièrement attentivement.",
   "ocr_apply_preview": "Appliquer à la saisie groupée",
   "ocr_back": "Retour",
@@ -3981,6 +4068,21 @@ const I18N = {
   "unit_scu": "SCU",
   "unit_stueck": "Pièce",
   "msg_save_failed_local": "Échec de l'enregistrement — la modification n'est visible que localement.",
+  "modal_partial_assign_title": "Quelle quantité attribuer ?",
+  "label_gesamte_menge": "Quantité totale",
+  "label_teilmenge": "Quantité partielle",
+  "val_menge_required": "Veuillez indiquer une quantité valide supérieure à 0.",
+  "val_teilmenge_zu_gross": "La quantité partielle ne peut pas dépasser la quantité totale.",
+  "text_partial_transfer": "{material} @ {lagerort} — quelle quantité transférer vers le stock partagé ?",
+  "text_partial_assign": "{material} — quelle quantité attribuer au projet « {project} » ?",
+  "btn_confirm": "Confirmer",
+  "tooltip_assign_to_person": "Attribuer à une personne (admin)",
+  "text_assign_to_person": "{material} @ {lagerort} — à quelle personne (et quelle quantité) attribuer ?",
+  "val_keine_empfaenger": "Aucun autre membre de l'organisation disponible.",
+  "msg_assigned_to_person": "Attribué avec succès à {person}.",
+  "label_empfaenger": "Destinataire",
+  "tooltip_assigned_by": "Attribué par {person} le {date}",
+  "label_zugewiesen": "Attribué",
   "val_bestand_required": "Veuillez indiquer le matériau, la qualité, la quantité, l'emplacement et le responsable.",
   "val_kategorie_nicht_erlaubt": "Cette catégorie de matériau n'est pas activée pour vous.",
   "label_kategorie_beschraenkung": "Restriction de catégorie (optionnel)",
@@ -8107,6 +8209,99 @@ document.getElementById('btnReleaseToShared').addEventListener('click', async ()
   document.getElementById('releaseAssignmentModal').style.display = 'none';
 });
 
+// Teilmengen-Auswahl-Modal: generischer Aufruf fuer alle Stellen, an
+// denen bislang zwingend die GESAMTE Menge einer Position auf einmal
+// zugewiesen/uebertragen wurde. config = { title, text, fullAmount,
+// einheit, onConfirm(gewaehlteMenge) }. Rechnet Menge und Prozent live
+// gegeneinander um, damit beide Eingabearten gleichwertig zur Verfuegung
+// stehen (siehe Nutzerwunsch vom 7. August 2026).
+let partialAssignConfig = null;
+
+function openPartialAssignModal(config){
+  partialAssignConfig = config;
+  document.getElementById('partialAssignText').textContent = config.text;
+  document.getElementById('partialAssignFullAmount').textContent = `${config.fullAmount} ${config.einheit}`;
+  document.getElementById('partialAssignModeFull').checked = true;
+  document.getElementById('partialAssignInputs').style.display = 'none';
+  document.getElementById('partialAssignMenge').value = config.fullAmount;
+  document.getElementById('partialAssignPercent').value = 100;
+  document.getElementById('partialAssignError').style.display = 'none';
+
+  // Empfaenger-Auswahl nur einblenden, wenn der Aufrufer sie explizit
+  // anfordert (recipients-Array uebergeben) -- z.B. bei der neuen
+  // Admin-Funktion "Person zuweisen". Bei allen anderen Verwendungen
+  // (Projekt-Zuordnung, Uebertragen) bleibt sie ausgeblendet.
+  const recipientWrap = document.getElementById('partialAssignRecipientWrap');
+  const recipientSelect = document.getElementById('partialAssignRecipient');
+  if(config.recipients && config.recipients.length > 0){
+    recipientSelect.innerHTML = config.recipients.map(u=>`<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
+    recipientWrap.style.display = 'block';
+  } else {
+    recipientWrap.style.display = 'none';
+  }
+
+  document.getElementById('partialAssignModal').style.display = 'flex';
+}
+
+function closePartialAssignModal(){
+  partialAssignConfig = null;
+  document.getElementById('partialAssignModal').style.display = 'none';
+}
+
+document.querySelectorAll('input[name="partialAssignMode"]').forEach(radio=>{
+  radio.addEventListener('change', ()=>{
+    const isPartial = document.getElementById('partialAssignModePartial').checked;
+    document.getElementById('partialAssignInputs').style.display = isPartial ? 'flex' : 'none';
+  });
+});
+
+// Menge -> Prozent und Prozent -> Menge werden live synchron gehalten,
+// damit beide Eingabefelder jederzeit denselben Wert widerspiegeln,
+// unabhaengig davon, welches Feld der Nutzer zuletzt bearbeitet hat.
+document.getElementById('partialAssignMenge').addEventListener('input', ()=>{
+  if(!partialAssignConfig || partialAssignConfig.fullAmount<=0) return;
+  const menge = parseFloat(document.getElementById('partialAssignMenge').value);
+  if(!isNaN(menge)){
+    document.getElementById('partialAssignPercent').value = Math.round((menge/partialAssignConfig.fullAmount)*1000)/10;
+  }
+});
+document.getElementById('partialAssignPercent').addEventListener('input', ()=>{
+  if(!partialAssignConfig) return;
+  const pct = parseFloat(document.getElementById('partialAssignPercent').value);
+  if(!isNaN(pct)){
+    document.getElementById('partialAssignMenge').value = Math.round((partialAssignConfig.fullAmount * pct/100)*1000)/1000;
+  }
+});
+
+document.getElementById('btnPartialAssignCancel').addEventListener('click', closePartialAssignModal);
+
+document.getElementById('btnPartialAssignConfirm').addEventListener('click', async ()=>{
+  if(!partialAssignConfig) return;
+  const errorEl = document.getElementById('partialAssignError');
+  errorEl.style.display = 'none';
+  const isPartial = document.getElementById('partialAssignModePartial').checked;
+  let amount = partialAssignConfig.fullAmount;
+  if(isPartial){
+    amount = parseFloat(document.getElementById('partialAssignMenge').value);
+    if(isNaN(amount) || amount<=0){
+      errorEl.textContent = t('val_menge_required');
+      errorEl.style.display = 'block';
+      return;
+    }
+    if(amount > partialAssignConfig.fullAmount){
+      errorEl.textContent = t('val_teilmenge_zu_gross');
+      errorEl.style.display = 'block';
+      return;
+    }
+  }
+  const config = partialAssignConfig;
+  const recipient = config.recipients && config.recipients.length > 0
+    ? document.getElementById('partialAssignRecipient').value
+    : undefined;
+  closePartialAssignModal();
+  await config.onConfirm(Math.round(amount*1000)/1000, recipient);
+});
+
 // Extrahiert eine optionale Versions-Kennzeichnung aus der ersten Zeile
 // einer Import-Datei, falls diese mit "#" beginnt (z. B.
 // "# Stand: 2026-08-02 | 833/856 Rezepte mit Mengen"). Gibt
@@ -8986,12 +9181,22 @@ function renderProjects(){
     btn.addEventListener('click', ()=>{
       // Ruft dieselbe, bereits bewaehrte Uebertragungs-Funktion auf wie
       // der "Übertragen"-Button im Reiter "Privat Bestände" -- entfernt
-      // den privaten Eintrag und legt ihn (bzw. addiert die Menge zu
-      // einem passenden bestehenden Eintrag) im geteilten Bestand an,
+      // den privaten Eintrag (bzw. verkleinert ihn bei Teilmenge) und
+      // legt die uebertragene Menge (bzw. addiert sie zu einem
+      // passenden bestehenden Eintrag) im geteilten Bestand an,
       // inklusive Projekt-Zuordnung. renderProjects() wird von
       // transferPrivateEntry() bereits selbst aufgerufen, aktualisiert
-      // die Anzeige also automatisch.
-      transferPrivateEntry(btn.dataset.id);
+      // die Anzeige also automatisch. Erst das Teilmengen-Modal fragen,
+      // statt sofort die volle Menge zu uebertragen.
+      const e = privateEntries.find(pe=>pe.id===btn.dataset.id);
+      if(!e) return;
+      openPartialAssignModal({
+        title: t('modal_partial_assign_title'),
+        text: t('text_partial_transfer').replace('{material}', e.material).replace('{lagerort}', e.lagerort),
+        fullAmount: e.menge,
+        einheit: e.einheit,
+        onConfirm: async (amount)=>{ await transferPrivateEntry(e.id, amount); }
+      });
     });
   });
 
@@ -10992,17 +11197,77 @@ function preprocessCrop(cropCanvas, targetDim, threshold){
   return out;
 }
 
+// Zusaetzlicher, auf die Zahlen-Spalten (Qualitaet+Menge) beschraenkter
+// Erkennungsdurchlauf -- ausschliesslich Ziffern erlaubt (kein
+// allgemeiner Textmodus). Grund: Mit echten Star-Citizen-Screenshots
+// getestet (7. August 2026) zeigte sich, dass der allgemeine Textmodus
+// Ziffernfolgen faelschlich als Woerter zu interpretieren versucht (z.B.
+// "878" wurde zu "ore" fehlgelesen und fiel dadurch komplett durchs
+// Raster). Mit einer auf 0-9 beschraenkten Zeichenliste treten solche
+// katastrophalen Fehllesungen praktisch nicht mehr auf. Nutzt dieselbe,
+// bereits fuer die allgemeine Erkennung vorbereitete Canvas (nur
+// horizontal auf den rechten Tabellenbereich zugeschnitten, keine
+// erneute Skalierung noetig) und denselben Worker -- lediglich mit
+// zeitweise geaenderter Zeichen-Whitelist.
+async function runDigitFocusedPass(cropCanvas, targetDim, thresholds, worker, statusEl, offset){
+  // xStartFrac: Start der Zahlen-Spalten als Anteil der Breite der
+  // Nutzer-Auswahl. 0.58 entspricht dem in echten Screenshots
+  // gemessenen Beginn der Qualitaets-Spalte (siehe Kalibrierung anhand
+  // der drei Testbilder vom 7. August 2026) -- mit Sicherheitsabstand
+  // nach links, damit die Spalte nicht versehentlich abgeschnitten wird.
+  const xStartFrac = 0.56;
+  await worker.setParameters({ tessedit_char_whitelist: '0123456789' });
+  const perThresholdRows = [];
+  try{
+    for(let i=0;i<thresholds.length;i++){
+      if(statusEl) statusEl.textContent = `${t('ocr_running_digits')} (${i+1}/${thresholds.length})`;
+      const processed = preprocessCrop(cropCanvas, targetDim, thresholds[i]);
+      const sliceX = Math.round(processed.width * xStartFrac);
+      const sliceW = processed.width - sliceX;
+      if(sliceW <= 0) continue;
+      const sliceCanvas = document.createElement('canvas');
+      sliceCanvas.width = sliceW;
+      sliceCanvas.height = processed.height;
+      sliceCanvas.getContext('2d').drawImage(processed, sliceX, 0, sliceW, processed.height, 0, 0, sliceW, processed.height);
+      const result = await worker.recognize(sliceCanvas);
+      const words = (result.data.words || []).filter(w=>w.text && /^\d+$/.test(w.text.trim()));
+      // Innerhalb jeder Zeile stehen im zugeschnittenen Bereich nur noch
+      // Qualitaet (links) und Menge (rechts) -- Reihenfolge nach
+      // X-Position bestimmt, welche Ziffernfolge welchem Feld entspricht.
+      const rows = [];
+      words.sort((a,b)=> (a.bbox.y0+a.bbox.y1)/2 - (b.bbox.y0+b.bbox.y1)/2);
+      words.forEach(w=>{
+        const yCenter = (w.bbox.y0 + w.bbox.y1) / 2;
+        let row = rows.find(r=>Math.abs(r.yCenter-yCenter) < 50);
+        if(!row){ row = { yCenter, numbers: [] }; rows.push(row); }
+        row.numbers.push({ x: w.bbox.x0, val: parseInt(w.text.trim(),10) });
+      });
+      perThresholdRows.push(rows.map(r=>{
+        r.numbers.sort((a,b)=>a.x-b.x);
+        return { yCenter: r.yCenter, quality: r.numbers[0]!=null?r.numbers[0].val:null, menge: r.numbers[1]!=null?r.numbers[1].val:null };
+      }));
+    }
+  } finally {
+    // Zeichen-Whitelist unbedingt zuruecksetzen, damit nachfolgende
+    // allgemeine Erkennungsdurchlaeufe (Materialnamen) nicht versehentlich
+    // auf Ziffern beschraenkt bleiben.
+    await worker.setParameters({ tessedit_char_whitelist: '' });
+  }
+  return perThresholdRows;
+}
+
 // Mehrere Schwellenwerte durchlaufen, je Zeile den häufigsten Wert je
 // Feld übernehmen (Mehrheitsentscheid) — fängt Erkennungsschwankungen
 // durch unterschiedliche Belichtung/Kontrast deutlich besser ab als ein
 // einzelner Durchlauf.
 async function runOcrEnsemble(cropCanvas, statusEl){
-  const thresholds = [110, 130, 150, 170, 190];
-  // Zielgröße der längeren Seite nach der Aufbereitung — unabhängig von
-  // der ursprünglichen Zuschnittgröße immer auf einen sinnvollen, für die
-  // Erkennung geeigneten Bereich gebracht (weder zu klein für feine
-  // Details, noch so groß, dass die anschließende Pixel-für-Pixel-
-  // Schwellenwertberechnung auf Mobilgeräten spürbar lange dauert).
+  // Schwellenwert-Bandbreite erweitert (urspruenglich 110-190) --
+  // Tests mit echten Screenshots vom 7. August 2026 zeigten, dass der
+  // optimale Einzel-Schwellenwert zwischen Bildern erheblich schwankt
+  // (je nach Spiel-interner Beleuchtung/Kontrast an der jeweiligen
+  // Station); 90 und 210 als zusaetzliche Randwerte ergaenzt, um diese
+  // Schwankungsbreite zuverlaessiger abzudecken.
+  const thresholds = [90, 110, 130, 150, 170, 190, 210];
   const targetDim = 2200;
   const perThresholdRows = [];
 
@@ -11011,6 +11276,7 @@ async function runOcrEnsemble(cropCanvas, statusEl){
   // nur einmal geladen werden statt fünfmal, was besonders auf
   // Mobilgeräten spürbar Zeit spart.
   const worker = await window.Tesseract.createWorker('eng');
+  let digitFocusedRows = [];
   try{
     for(let i=0;i<thresholds.length;i++){
       statusEl.textContent = `${t('ocr_running')} (${i+1}/${thresholds.length})`;
@@ -11019,6 +11285,10 @@ async function runOcrEnsemble(cropCanvas, statusEl){
       const words = (result.data.words || []).filter(w=>w.text && w.text.trim());
       perThresholdRows.push(clusterWordsIntoRows(words));
     }
+    // Zusaetzlicher, auf Ziffern beschraenkter Durchlauf fuer Qualitaet
+    // und Menge -- siehe runDigitFocusedPass(). Nutzt denselben Worker
+    // weiter (kein erneutes Laden des Sprachmodells noetig).
+    digitFocusedRows = await runDigitFocusedPass(cropCanvas, targetDim, thresholds, worker, statusEl);
   } finally {
     await worker.terminate();
   }
@@ -11045,6 +11315,19 @@ async function runOcrEnsemble(cropCanvas, statusEl){
         if(match.menge!=null) candidates.menge.push(String(match.menge));
         yMinSum += match.yMin; yMaxSum += match.yMax; matchCount++;
         if(firstMaterialRaw===null && match.materialRaw) firstMaterialRaw = match.materialRaw;
+      }
+    });
+    // Werte aus dem ziffern-fokussierten Durchlauf zusaetzlich in denselben
+    // Abstimmungs-Topf einspeisen -- da dieser Durchlauf nachweislich
+    // weniger anfaellig fuer Fehllesungen ist (siehe Kommentar bei
+    // runDigitFocusedPass), verschiebt das die Mehrheitsentscheidung bei
+    // widerspruechlichen Werten sinnvoll in seine Richtung, ohne die
+    // bestehende, bewaehrte Mehrheitsentscheid-Logik komplett zu ersetzen.
+    digitFocusedRows.forEach(rows=>{
+      const match = rows.find(r=>Math.abs(r.yCenter-yCenter) < 50);
+      if(match){
+        if(match.quality!=null) candidates.quality.push(String(match.quality));
+        if(match.menge!=null) candidates.menge.push(String(match.menge));
       }
     });
     const mat = mostCommonWithConfidence(candidates.material);
@@ -11943,6 +12226,7 @@ function render(){
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit" data-id="${e.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon danger" data-action="delete" data-id="${e.id}" title="${t('btn_delete')}">🗑</button>` : ''}
+          ${roleAtLeast(currentUser.role, 'admin') ? `<button class="btn-icon" data-action="assign-to-person" data-id="${e.id}" title="${t('tooltip_assign_to_person')}">👤➜</button>` : ''}
         </td>
       </tr>`;
     }
@@ -11953,6 +12237,29 @@ function render(){
 
   container.querySelectorAll('[data-action="edit"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingId = btn.dataset.id; render(); });
+  });
+  container.querySelectorAll('[data-action="assign-to-person"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const e = entries.find(en=>en.id===btn.dataset.id);
+      if(!e) return;
+      // Empfaenger-Liste: alle Organisations-Mitglieder ausser der
+      // ausfuehrenden Person selbst (sich selbst etwas "zuweisen" waere
+      // sinnfrei -- dafuer existiert bereits die normale Neuanlage im
+      // eigenen privaten Bestand).
+      const recipients = USERS.filter(u=>u.organizationId===currentUser.organizationId && u.username!==currentUser.username).map(u=>u.username);
+      if(recipients.length === 0){
+        setStatus(t('val_keine_empfaenger'));
+        return;
+      }
+      openPartialAssignModal({
+        title: t('modal_partial_assign_title'),
+        text: t('text_assign_to_person').replace('{material}', e.material).replace('{lagerort}', e.lagerort),
+        fullAmount: e.menge,
+        einheit: e.einheit,
+        recipients,
+        onConfirm: async (amount, recipient)=>{ await assignEntryToPerson(e.id, amount, recipient); }
+      });
+    });
   });
   container.querySelectorAll('[data-action="delete"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -12004,43 +12311,90 @@ function render(){
   if(saveBtn){
     saveBtn.addEventListener('click', async ()=>{
       const idx = entries.findIndex(e=>e.id===editingId);
-      if(idx>-1){
-        const newQualitaet = parseFloat(document.getElementById('edit-qualitaet').value);
-        const newMenge = parseFloat(document.getElementById('edit-menge').value);
-        const validationError = validateQualityAndMenge(newQualitaet, newMenge);
-        if(validationError){
-          setStatus(validationError);
+      if(idx===-1){ editingId = null; render(); return; }
+
+      const newQualitaet = parseFloat(document.getElementById('edit-qualitaet').value);
+      const newMenge = parseFloat(document.getElementById('edit-menge').value);
+      const validationError = validateQualityAndMenge(newQualitaet, newMenge);
+      if(validationError){
+        setStatus(validationError);
+        return;
+      }
+      const newMaterial = document.getElementById('edit-material').value.trim();
+      const categoryRestriction = getUserCategoryRestriction();
+      if(categoryRestriction){
+        const matDef = MATERIALS.find(m=>m.name===newMaterial);
+        if(!matDef || !categoryRestriction.includes(matDef.category)){
+          setStatus(t('val_kategorie_nicht_erlaubt'));
           return;
         }
-        const newMaterial = document.getElementById('edit-material').value.trim();
-        const categoryRestriction = getUserCategoryRestriction();
-        if(categoryRestriction){
-          const matDef = MATERIALS.find(m=>m.name===newMaterial);
-          if(!matDef || !categoryRestriction.includes(matDef.category)){
-            setStatus(t('val_kategorie_nicht_erlaubt'));
-            return;
-          }
-        }
-        entries[idx] = {
-          ...entries[idx],
-          material: newMaterial,
-          qualitaet: newQualitaet,
-          menge: newMenge,
-          einheit: document.getElementById('edit-einheit').value,
-          lagerort: document.getElementById('edit-lagerort').value.trim(),
-          projekt: document.getElementById('edit-projekt').value
-        };
-        await logAction('Bestand bearbeitet', `${entries[idx].material}, ${entries[idx].menge} ${entries[idx].einheit} @ ${entries[idx].lagerort}${entries[idx].projekt ? ' [Projekt: '+entries[idx].projekt+']' : ''}`);
       }
-      editingId = null;
-      setStatus(t('msg_saving'));
-      await save();
-      render();
-      updateProjectAvailability();
-      renderProjects();
-      renderNeeds();
-      scheduleRenderDashboard();
-      setStatus(t('msg_entry_updated'));
+      const newEinheit = document.getElementById('edit-einheit').value;
+      const newLagerort = document.getElementById('edit-lagerort').value.trim();
+      const newProjekt = document.getElementById('edit-projekt').value;
+      const oldProjekt = entries[idx].projekt || '';
+      const oldPerson = entries[idx].person;
+
+      // Speichert die uebrigen Feldaenderungen unabhaengig davon, ob eine
+      // (Teil-)Menge einem neuen Projekt zugewiesen wird. assignMenge=null
+      // bedeutet "normal speichern, keine Aufteilung noetig" (Projekt
+      // unveraendert oder entfernt); ein Wert < newMenge teilt den
+      // Eintrag: der bearbeitete Eintrag behaelt die BISHERIGE
+      // Projekt-Zuordnung mit der Restmenge, ein NEUER Eintrag erhaelt die
+      // gewaehlte Teilmenge mit der neuen Projekt-Zuordnung (siehe
+      // Nutzerwunsch vom 7. August 2026 zur Teilmengen-Zuweisung).
+      const applyEdit = async (assignMenge)=>{
+        if(assignMenge != null && assignMenge < newMenge){
+          const remainderMenge = Math.round((newMenge - assignMenge) * 1000) / 1000;
+          entries[idx] = {
+            ...entries[idx],
+            material: newMaterial, qualitaet: newQualitaet,
+            menge: remainderMenge, einheit: newEinheit, lagerort: newLagerort,
+            projekt: oldProjekt
+          };
+          entries.push({
+            id: uid(),
+            material: newMaterial, qualitaet: newQualitaet,
+            menge: assignMenge, einheit: newEinheit, lagerort: newLagerort,
+            person: oldPerson, projekt: newProjekt,
+            createdAt: new Date().toISOString()
+          });
+          await logAction('Bestand bearbeitet', `${newMaterial}, ${newMenge} ${newEinheit} @ ${newLagerort} — davon ${assignMenge} ${newEinheit} neu zugewiesen an [Projekt: ${newProjekt}], Rest ${remainderMenge} ${newEinheit} bleibt bei ${oldProjekt ? 'Projekt „'+oldProjekt+'“' : 'frei verfügbar'}`);
+        } else {
+          entries[idx] = {
+            ...entries[idx],
+            material: newMaterial, qualitaet: newQualitaet,
+            menge: newMenge, einheit: newEinheit, lagerort: newLagerort,
+            projekt: newProjekt
+          };
+          await logAction('Bestand bearbeitet', `${entries[idx].material}, ${entries[idx].menge} ${entries[idx].einheit} @ ${entries[idx].lagerort}${entries[idx].projekt ? ' [Projekt: '+entries[idx].projekt+']' : ''}`);
+        }
+        editingId = null;
+        setStatus(t('msg_saving'));
+        await save();
+        render();
+        updateProjectAvailability();
+        renderProjects();
+        renderNeeds();
+        scheduleRenderDashboard();
+        setStatus(t('msg_entry_updated'));
+      };
+
+      // Modal nur einblenden, wenn TATSAECHLICH eine neue, andere
+      // Projekt-Zuordnung gesetzt wird (nicht beim Entfernen oder
+      // Unveraendert-Lassen) -- dort ist eine Teilmengen-Abfrage nicht
+      // sinnvoll bzw. nicht noetig.
+      if(newProjekt && newProjekt !== oldProjekt){
+        openPartialAssignModal({
+          title: t('modal_partial_assign_title'),
+          text: t('text_partial_assign').replace('{material}', newMaterial).replace('{project}', newProjekt),
+          fullAmount: newMenge,
+          einheit: newEinheit,
+          onConfirm: async (amount)=>{ await applyEdit(amount); }
+        });
+      } else {
+        await applyEdit(null);
+      }
     });
   }
   const cancelBtn = document.getElementById('cancelEdit');
@@ -12237,9 +12591,68 @@ function renderPrivateSummary(){
   container.innerHTML = html;
 }
 
-async function transferPrivateEntry(id){
+// Admin+-Funktion: weist eine (Teil-)Menge einer geteilten Bestand-
+// Position gezielt einer Person zu -- landet als privater Eintrag im
+// Bestand des Empfaengers (owner=Empfaenger, damit es fuer ihn/sie
+// sichtbar wird), behaelt dabei aber bewusst den urspruenglichen
+// Verantwortlichen UND Lagerort bei, da die Person das Material ja
+// unter Umstaenden noch dort physisch abholen muss -- KEIN Wechsel des
+// "person"-Felds auf den Empfaenger. Zusaetzlich assignedBy/assignedAt
+// gesetzt, damit der Empfaenger einen sichtbaren Hinweis bekommt (siehe
+// renderPrivate()). Reduziert bzw. entfernt den geteilten Ursprungs-
+// eintrag entsprechend. Siehe Nutzerwunsch vom 7. August 2026.
+async function assignEntryToPerson(id, amount, recipient){
+  const e = entries.find(pub=>pub.id===id);
+  if(!e || !recipient) return;
+
+  const fullAmount = e.menge;
+  const assignAmount = (amount!=null && amount>0 && amount<fullAmount) ? amount : fullAmount;
+  const remainderAmount = Math.round((fullAmount - assignAmount) * 1000) / 1000;
+
+  privateEntries.push({
+    id: privateUid(),
+    material: e.material, qualitaet: e.qualitaet,
+    menge: assignAmount, einheit: e.einheit,
+    lagerort: e.lagerort, person: e.person, owner: recipient,
+    projekt: '', projektTyp: null,
+    assignedBy: currentUser.username,
+    assignedAt: new Date().toISOString()
+  });
+
+  let logDetail;
+  if(remainderAmount > 0){
+    e.menge = remainderAmount;
+    logDetail = `${e.material}, ${assignAmount} ${e.einheit} @ ${e.lagerort} an ${recipient} zugewiesen — Rest ${remainderAmount} ${e.einheit} bleibt geteilt`;
+  } else {
+    entries = entries.filter(pub=>pub.id!==id);
+    logDetail = `${e.material}, ${assignAmount} ${e.einheit} @ ${e.lagerort} an ${recipient} zugewiesen (vollständig)`;
+  }
+  await save();
+  await savePrivateEntries();
+  await logAction('Person zugewiesen', logDetail);
+
+  render();
+  updateProjectAvailability();
+  renderProjects();
+  renderNeeds();
+  scheduleRenderDashboard();
+  renderPrivate();
+  setStatus(t('msg_assigned_to_person').replace('{person}', recipient));
+}
+
+// amount ist optional -- ohne Angabe (oder wenn amount die volle Menge
+// erreicht/übersteigt) wird wie bisher der komplette Eintrag übertragen
+// und aus dem privaten Bestand entfernt. Bei einer kleineren Teilmenge
+// wird stattdessen nur diese übertragen, der Rest bleibt als
+// verkleinerter privater Eintrag bestehen (siehe Nutzerwunsch vom
+// 7. August 2026 zur Teilmengen-Zuweisung).
+async function transferPrivateEntry(id, amount){
   const e = privateEntries.find(pe=>pe.id===id);
   if(!e) return;
+
+  const fullAmount = e.menge;
+  const transferAmount = (amount!=null && amount>0 && amount<fullAmount) ? amount : fullAmount;
+  const remainderAmount = Math.round((fullAmount - transferAmount) * 1000) / 1000;
 
   // Passenden bestehenden öffentlichen Eintrag suchen (gleiches Material,
   // gleiche Qualität, gleicher Lagerort, gleiche Einheit, gleiches Projektziel)
@@ -12254,21 +12667,26 @@ async function transferPrivateEntry(id){
 
   let logDetail;
   if(match){
-    match.menge = Math.round((match.menge + e.menge) * 100) / 100;
-    logDetail = `${e.material}, +${e.menge} ${e.einheit} @ ${e.lagerort} (neuer Bestand: ${match.menge} ${e.einheit})`;
+    match.menge = Math.round((match.menge + transferAmount) * 100) / 100;
+    logDetail = `${e.material}, +${transferAmount} ${e.einheit} @ ${e.lagerort} (neuer Bestand: ${match.menge} ${e.einheit})`;
   } else {
     entries.push({
       id: uid(),
       material: e.material, qualitaet: e.qualitaet,
-      menge: e.menge, einheit: e.einheit,
+      menge: transferAmount, einheit: e.einheit,
       lagerort: e.lagerort, person: e.person, projekt: e.projekt,
       createdAt: new Date().toISOString()
     });
-    logDetail = `${e.material}, ${e.menge} ${e.einheit} @ ${e.lagerort} (neuer Eintrag)`;
+    logDetail = `${e.material}, ${transferAmount} ${e.einheit} @ ${e.lagerort} (neuer Eintrag)`;
   }
   await save();
 
-  privateEntries = privateEntries.filter(pe=>pe.id!==id);
+  if(remainderAmount > 0){
+    e.menge = remainderAmount;
+    logDetail += ` — Rest ${remainderAmount} ${e.einheit} bleibt privat`;
+  } else {
+    privateEntries = privateEntries.filter(pe=>pe.id!==id);
+  }
   await savePrivateEntries();
 
   await logAction('Aus Privatbestand übernommen', logDetail);
@@ -12279,6 +12697,7 @@ async function transferPrivateEntry(id){
   renderNeeds();
   scheduleRenderDashboard();
   renderPrivate();
+  renderPrivateProjects();
   setPrivateStatus(match ? t('msg_stock_extended_private') : t('msg_transferred_to_general'));
 }
 
@@ -12343,7 +12762,7 @@ function renderPrivate(){
     } else {
       const pct = Math.min(100, Math.round((e.menge/max)*100));
       html += `<tr>
-        <td data-label="${t('col_material')}">${escapeHtml(e.material)}</td>
+        <td data-label="${t('col_material')}">${escapeHtml(e.material)}${e.assignedBy ? ` <span class="badge" style="background:rgba(0,229,255,0.15);color:var(--cyan);border:1px solid var(--cyan);font-size:10px;cursor:help;" title="${escapeHtml(t('tooltip_assigned_by').replace('{person}', e.assignedBy).replace('{date}', new Date(e.assignedAt).toLocaleDateString()))}">🎁 ${t('label_zugewiesen')}</span>` : ''}</td>
         <td data-label="${t('label_qualitaet')}"><span class="badge ${badgeClass(e.qualitaet)}">${e.qualitaet}</span></td>
         <td data-label="${t('label_menge')}">
           <div class="qty-cell">${e.menge} ${escapeHtml(einheitLabel(e.einheit))}</div>
@@ -12373,7 +12792,17 @@ function renderPrivate(){
   });
   container.querySelectorAll('[data-action="transfer-private"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      armConfirm(btn, async ()=>{ await transferPrivateEntry(btn.dataset.id); });
+      const e = privateEntries.find(pe=>pe.id===btn.dataset.id);
+      if(!e) return;
+      // Das Modal selbst dient als Bestaetigungsschritt -- kein
+      // zusaetzliches armConfirm-Doppelklick-Muster mehr noetig.
+      openPartialAssignModal({
+        title: t('modal_partial_assign_title'),
+        text: t('text_partial_transfer').replace('{material}', e.material).replace('{lagerort}', e.lagerort),
+        fullAmount: e.menge,
+        einheit: e.einheit,
+        onConfirm: async (amount)=>{ await transferPrivateEntry(e.id, amount); }
+      });
     });
   });
   container.querySelectorAll('[data-action="delete-private"]').forEach(btn=>{
@@ -12392,32 +12821,76 @@ function renderPrivate(){
   if(savePrivBtn){
     savePrivBtn.addEventListener('click', async ()=>{
       const idx = privateEntries.findIndex(e=>e.id===editingPrivateId);
-      if(idx>-1){
-        const newPrivQualitaet = parseFloat(document.getElementById('edit-priv-qualitaet').value);
-        const newPrivMenge = parseFloat(document.getElementById('edit-priv-menge').value);
-        const privEditValidationError = validateQualityAndMenge(newPrivQualitaet, newPrivMenge);
-        if(privEditValidationError){
-          setPrivateStatus(privEditValidationError);
-          return;
-        }
-        const editProjektAssign = parseProjectAssignmentValue(document.getElementById('edit-priv-projekt').value);
-        privateEntries[idx] = {
-          ...privateEntries[idx],
-          material: document.getElementById('edit-priv-material').value.trim(),
-          qualitaet: newPrivQualitaet,
-          menge: newPrivMenge,
-          einheit: document.getElementById('edit-priv-einheit').value,
-          lagerort: document.getElementById('edit-priv-lagerort').value.trim(),
-          projekt: editProjektAssign.ziel,
-          projektTyp: editProjektAssign.typ
-        };
-        await logAction('Privatbestand bearbeitet', `${privateEntries[idx].material}, ${privateEntries[idx].menge} ${privateEntries[idx].einheit} @ ${privateEntries[idx].lagerort}`);
+      if(idx===-1){ editingPrivateId = null; renderPrivate(); return; }
+
+      const newPrivQualitaet = parseFloat(document.getElementById('edit-priv-qualitaet').value);
+      const newPrivMenge = parseFloat(document.getElementById('edit-priv-menge').value);
+      const privEditValidationError = validateQualityAndMenge(newPrivQualitaet, newPrivMenge);
+      if(privEditValidationError){
+        setPrivateStatus(privEditValidationError);
+        return;
       }
-      editingPrivateId = null;
-      setPrivateStatus(t('msg_saving'));
-      await savePrivateEntries();
-      renderPrivate();
-      setPrivateStatus(t('msg_entry_updated'));
+      const newPrivMaterial = document.getElementById('edit-priv-material').value.trim();
+      const newPrivEinheit = document.getElementById('edit-priv-einheit').value;
+      const newPrivLagerort = document.getElementById('edit-priv-lagerort').value.trim();
+      const editProjektAssign = parseProjectAssignmentValue(document.getElementById('edit-priv-projekt').value);
+      const newProjekt = editProjektAssign.ziel;
+      const newProjektTyp = editProjektAssign.typ;
+      const oldProjekt = privateEntries[idx].projekt || '';
+      const oldProjektTyp = privateEntries[idx].projektTyp || null;
+      const oldOwner = privateEntries[idx].owner;
+      const oldPerson = privateEntries[idx].person;
+
+      // Siehe Kommentar bei der analogen Stelle im geteilten Bestand
+      // (saveEdit-Handler) -- gleiches Prinzip, hier zusaetzlich mit
+      // projektTyp, da private Eintraege sowohl geteilten als auch
+      // privaten Projekten zugeordnet werden koennen.
+      const applyEdit = async (assignMenge)=>{
+        if(assignMenge != null && assignMenge < newPrivMenge){
+          const remainderMenge = Math.round((newPrivMenge - assignMenge) * 1000) / 1000;
+          privateEntries[idx] = {
+            ...privateEntries[idx],
+            material: newPrivMaterial, qualitaet: newPrivQualitaet,
+            menge: remainderMenge, einheit: newPrivEinheit, lagerort: newPrivLagerort,
+            projekt: oldProjekt, projektTyp: oldProjektTyp
+          };
+          privateEntries.push({
+            id: privateUid(),
+            material: newPrivMaterial, qualitaet: newPrivQualitaet,
+            menge: assignMenge, einheit: newPrivEinheit, lagerort: newPrivLagerort,
+            person: oldPerson, owner: oldOwner,
+            projekt: newProjekt, projektTyp: newProjektTyp
+          });
+          await logAction('Privatbestand bearbeitet', `${newPrivMaterial}, ${newPrivMenge} ${newPrivEinheit} @ ${newPrivLagerort} — davon ${assignMenge} ${newPrivEinheit} neu zugewiesen an [Projekt: ${newProjekt}], Rest ${remainderMenge} ${newPrivEinheit} bleibt bei ${oldProjekt ? 'Projekt „'+oldProjekt+'“' : 'frei verfügbar'}`);
+        } else {
+          privateEntries[idx] = {
+            ...privateEntries[idx],
+            material: newPrivMaterial, qualitaet: newPrivQualitaet,
+            menge: newPrivMenge, einheit: newPrivEinheit, lagerort: newPrivLagerort,
+            projekt: newProjekt, projektTyp: newProjektTyp
+          };
+          await logAction('Privatbestand bearbeitet', `${privateEntries[idx].material}, ${privateEntries[idx].menge} ${privateEntries[idx].einheit} @ ${privateEntries[idx].lagerort}`);
+        }
+        editingPrivateId = null;
+        setPrivateStatus(t('msg_saving'));
+        await savePrivateEntries();
+        renderPrivate();
+        renderProjects();
+        renderPrivateProjects();
+        setPrivateStatus(t('msg_entry_updated'));
+      };
+
+      if(newProjekt && (newProjekt !== oldProjekt || newProjektTyp !== oldProjektTyp)){
+        openPartialAssignModal({
+          title: t('modal_partial_assign_title'),
+          text: t('text_partial_assign').replace('{material}', newPrivMaterial).replace('{project}', newProjekt),
+          fullAmount: newPrivMenge,
+          einheit: newPrivEinheit,
+          onConfirm: async (amount)=>{ await applyEdit(amount); }
+        });
+      } else {
+        await applyEdit(null);
+      }
     });
   }
   const cancelPrivBtn = document.getElementById('cancelPrivateEdit');
