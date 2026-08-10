@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.028 -->
+<!-- Version: 0.029 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1852,9 +1852,6 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div class="user-note" id="bulkCsvHint" style="margin:0 0 10px 0;"><span data-i18n="hint_bulk_format">Ein Eintrag pro Zeile, Felder getrennt mit Semikolon:</span><br><code>Material;Qualität;Menge;Einheit;Lagerort;Verantwortlicher;Projekt(optional)</code><br>Beispiel: <code>Iron;720;150;SCU;ARC-L1 – Wide Forest Station;Heiko;</code></div>
         <textarea id="bulkAddText" rows="6" placeholder="Iron;720;150;SCU;ARC-L1 – Wide Forest Station;Heiko;&#10;Titanium;650;80;SCU;ARC-L1 – Wide Forest Station;Stedo;" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:13px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
         <div id="bulkOcrWarning" class="user-note" style="display:none;margin-top:10px;border-left:3px solid var(--low);padding-left:10px;" data-i18n="ocr_review_warning">⚠ Diese Werte wurden automatisch per Bilderkennung ermittelt und können Fehler enthalten. Bitte prüfe jede Zeile sorgfältig, bevor du sie übernimmst.</div>
-        <div id="bulkOcrConfirmRow" style="display:none;margin-top:10px;align-items:center;gap:10px;">
-          <button type="button" class="btn-ghost" id="btnBulkOcrConfirm" data-i18n="ocr_confirm_btn">Daten korrekt</button>
-        </div>
         <div style="margin-top:10px;">
           <button class="btn-primary" id="btnSubmitBulk" data-i18n="btn_submit_bulk">Alle Einträge hinzufügen</button>
         </div>
@@ -1882,6 +1879,9 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
               <tbody id="bulkTableBody"></tbody>
             </table>
             <button type="button" class="btn-add-row" id="btnAddBulkTableRow"><span class="plus-icon">+</span><span data-i18n="btn_add_bulk_row">Weitere Zeile hinzufügen</span></button>
+          </div>
+          <div id="bulkOcrConfirmRow" style="display:none;margin-top:14px;align-items:center;gap:10px;">
+            <button type="button" class="btn-ghost" id="btnBulkOcrConfirm" data-i18n="ocr_confirm_btn">Daten korrekt</button>
           </div>
           <div style="margin-top:14px;">
             <button class="btn-primary" id="btnSubmitBulkTable" data-i18n="btn_submit_bulk">Alle Einträge hinzufügen</button>
@@ -1990,9 +1990,6 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div class="user-note" id="priv-bulkCsvHint" style="margin:0 0 10px 0;"><span data-i18n="hint_bulk_format">Ein Eintrag pro Zeile, Felder getrennt mit Semikolon:</span><br><code>Material;Qualität;Menge;Einheit;Lagerort;Verantwortlicher;Projekt(optional)</code><br>Beispiel: <code>Iron;720;150;SCU;ARC-L1 – Wide Forest Station;Heiko;</code></div>
         <textarea id="priv-bulkAddText" rows="6" placeholder="Iron;720;150;SCU;ARC-L1 – Wide Forest Station;Heiko;&#10;Titanium;650;80;SCU;ARC-L1 – Wide Forest Station;Stedo;" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:13px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
         <div id="priv-bulkOcrWarning" class="user-note" style="display:none;margin-top:10px;border-left:3px solid var(--low);padding-left:10px;" data-i18n="ocr_review_warning">⚠ Diese Werte wurden automatisch per Bilderkennung ermittelt und können Fehler enthalten. Bitte prüfe jede Zeile sorgfältig, bevor du sie übernimmst.</div>
-        <div id="priv-bulkOcrConfirmRow" style="display:none;margin-top:10px;align-items:center;gap:10px;">
-          <button type="button" class="btn-ghost" id="priv-btnBulkOcrConfirm" data-i18n="ocr_confirm_btn">Daten korrekt</button>
-        </div>
         <div style="margin-top:10px;">
           <button class="btn-primary" id="priv-btnSubmitBulk" data-i18n="btn_submit_bulk">Alle Einträge hinzufügen</button>
         </div>
@@ -2020,6 +2017,9 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
               <tbody id="priv-bulkTableBody"></tbody>
             </table>
             <button type="button" class="btn-add-row" id="priv-btnAddBulkTableRow"><span class="plus-icon">+</span><span data-i18n="btn_add_bulk_row">Weitere Zeile hinzufügen</span></button>
+          </div>
+          <div id="priv-bulkOcrConfirmRow" style="display:none;margin-top:14px;align-items:center;gap:10px;">
+            <button type="button" class="btn-ghost" id="priv-btnBulkOcrConfirm" data-i18n="ocr_confirm_btn">Daten korrekt</button>
           </div>
           <div style="margin-top:14px;">
             <button class="btn-primary" id="priv-btnSubmitBulkTable" data-i18n="btn_submit_bulk">Alle Einträge hinzufügen</button>
