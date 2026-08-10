@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.027 -->
+<!-- Version: 0.028 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -11657,20 +11657,24 @@ function updateBulkOcrUI(target){
       confirmBtn.textContent = '✓ ' + t('ocr_confirm_btn_done');
       confirmBtn.style.borderColor = 'var(--high)';
       confirmBtn.style.color = 'var(--high)';
-      if(submitBtn) submitBtn.disabled = false;
-      if(submitTableBtn) submitTableBtn.disabled = false;
+      if(submitBtn){ submitBtn.disabled = false; submitBtn.title = ''; submitBtn.style.opacity = ''; }
+      if(submitTableBtn){ submitTableBtn.disabled = false; submitTableBtn.title = ''; submitTableBtn.style.opacity = ''; }
     } else {
       confirmBtn.textContent = t('ocr_confirm_btn');
       confirmBtn.style.borderColor = '';
       confirmBtn.style.color = '';
-      if(submitBtn) submitBtn.disabled = true;
-      if(submitTableBtn) submitTableBtn.disabled = true;
+      // Deutlich sichtbar machen, WARUM der Button nicht reagiert --
+      // ein rein per CSS ausgegrautes disabled-Element ist sonst leicht
+      // zu uebersehen und wirkt wie ein defekter Button, nicht wie ein
+      // bewusst gesperrter (siehe Nutzerwunsch vom 7. August 2026).
+      if(submitBtn){ submitBtn.disabled = true; submitBtn.title = t('ocr_confirm_required'); submitBtn.style.opacity = '0.5'; }
+      if(submitTableBtn){ submitTableBtn.disabled = true; submitTableBtn.title = t('ocr_confirm_required'); submitTableBtn.style.opacity = '0.5'; }
     }
   } else {
     warning.style.display = 'none';
     confirmRow.style.display = 'none';
-    if(submitBtn) submitBtn.disabled = false;
-    if(submitTableBtn) submitTableBtn.disabled = false;
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.title = ''; submitBtn.style.opacity = ''; }
+    if(submitTableBtn){ submitTableBtn.disabled = false; submitTableBtn.title = ''; submitTableBtn.style.opacity = ''; }
   }
 }
 function markBulkAsOcrSourced(target){
