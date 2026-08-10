@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.034 -->
+<!-- Version: 0.035 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2770,13 +2770,15 @@ const I18N = {
   "tour_step2_title": "Die Reiter oben",
   "tour_step2_text": "Übersicht, Bestand, Bedarf, Projekte, Sammelobjekte und Privatbestand. Du kannst die Reiter frei per Ziehen umsortieren — die Reihenfolge merkt sich die Anwendung für dich persönlich.",
   "tour_step3_title": "Bestand eintragen",
-  "tour_step3_text": "Material, Qualität, Menge, Lagerort und Verantwortlicher — einzeln eintragen oder über die Massen-Eingabe gleich mehrere Zeilen auf einmal.",
-  "tour_step4_title": "Massen-Eingabe",
-  "tour_step4_text": "Lagerort, Verantwortlicher und Projekt einmal für die ganze Tabelle festlegen, dann pro Zeile nur noch Material, Qualität und Menge — mit \"Weitere Zeile hinzufügen\" beliebig erweiterbar.",
+  "tour_step3_text": "Material, Qualität, Menge, Lagerort und Verantwortlicher — einzeln eintragen oder über die Massen-Eingabe gleich mehrere Zeilen auf einmal. Die Einheit (SCU/Stück) stellt sich automatisch passend zum gewählten Material ein.",
+  "tour_step4_title": "Massen-Eingabe & Bilderkennung",
+  "tour_step4_text": "Lagerort, Verantwortlicher und Projekt einmal für die ganze Tabelle festlegen, dann pro Zeile nur noch Material, Qualität und Menge. Alternativ lassen sich Werte experimentell auch per Screenshot einlesen (\"Per Foto erfassen\") — bitte jedes erkannte Ergebnis vor der Übernahme sorgfältig prüfen.",
   "tour_step5_title": "Bedarf & Projekte",
-  "tour_step5_text": "Trag ein, was du brauchst — die Anwendung zeigt live, ob der Bestand das bereits deckt. Projekte zeigen den Fortschritt anhand der benötigten Ressourcen.",
-  "tour_step6_title": "Später Hilfe nötig?",
-  "tour_step6_text": "Der \"?\"-Button unten rechts ist immer erreichbar und erklärt Rollen, Reiter und alle Verwaltungsbereiche im Detail. Viel Erfolg beim Fördern!",
+  "tour_step5_text": "Trag ein, was du brauchst — die Anwendung zeigt live, ob der Bestand das bereits deckt, und weist auf konkurrierende Bedarfe hin. Projekte zeigen den Fortschritt anhand der benötigten Ressourcen; bereits einem anderen Projekt zugeordneter Bestand zählt dabei bewusst nicht doppelt.",
+  "tour_step6_title": "Auswertung & Übersicht",
+  "tour_step6_text": "Die Zusammenfassung nach Material zeigt Reserviert/Frei verfügbar sowie eine anklickbare Aufschlüsselung der exakten Qualitätsstufen. Bestand und Sammelobjekte lassen sich zusätzlich durchsuchen und filtern.",
+  "tour_step7_title": "Später Hilfe nötig?",
+  "tour_step7_text": "Der \"?\"-Button unten rechts ist immer erreichbar und erklärt Rollen, Reiter und alle Verwaltungsbereiche im Detail. Viel Erfolg beim Fördern!",
   "msg_saving": "Wird gespeichert …",
   "panel_projekte_privat": "Projekte (Privat)",
   "hint_privat_projekte": "Nur du siehst diese Vorhaben. Der Fortschritt bezieht sich ausschließlich auf deinen eigenen Privatbestand, nicht auf den allgemeinen Bestand der Organisation.",
@@ -3326,13 +3328,15 @@ const I18N = {
   "tour_step2_title": "The tabs up top",
   "tour_step2_text": "Overview, inventory, needs, projects, collectibles, and private stock. You can freely reorder the tabs by dragging — the order is remembered personally for you.",
   "tour_step3_title": "Adding inventory",
-  "tour_step3_text": "Material, quality, quantity, location, and responsible person — enter items one at a time, or add several rows at once via the bulk entry.",
-  "tour_step4_title": "Bulk entry",
-  "tour_step4_text": "Set location, responsible person, and project once for the whole table, then just material, quality, and quantity per row — extend with \"Add another row\" as needed.",
+  "tour_step3_text": "Material, quality, quantity, location, and responsible person — enter items one at a time, or add several rows at once via the bulk entry. The unit (SCU/pieces) is set automatically based on the chosen material.",
+  "tour_step4_title": "Bulk entry & image recognition",
+  "tour_step4_text": "Set location, responsible person, and project once for the whole table, then just material, quality, and quantity per row. Values can also be read in experimentally from a screenshot (\"Capture by photo\") — please review every recognized result carefully before applying it.",
   "tour_step5_title": "Needs & projects",
-  "tour_step5_text": "Enter what you need — the app shows live whether the inventory already covers it. Projects show progress based on the required resources.",
-  "tour_step6_title": "Need help later?",
-  "tour_step6_text": "The \"?\" button in the bottom right is always available and explains roles, tabs, and all administration areas in detail. Happy mining!",
+  "tour_step5_text": "Enter what you need — the app shows live whether the inventory already covers it, and flags competing needs. Projects show progress based on the required resources; stock already assigned to another project is deliberately not counted twice.",
+  "tour_step6_title": "Analysis & overview",
+  "tour_step6_text": "The summary by material shows reserved/freely available amounts as well as a clickable breakdown of exact quality levels. Inventory and collectibles can also be searched and filtered.",
+  "tour_step7_title": "Need help later?",
+  "tour_step7_text": "The \"?\" button in the bottom right is always available and explains roles, tabs, and all administration areas in detail. Happy mining!",
   "msg_saving": "Saving …",
   "panel_projekte_privat": "Projects (Private)",
   "hint_privat_projekte": "Only you see these plans. Progress is based solely on your own private stock, not the organization's shared inventory.",
@@ -3882,13 +3886,15 @@ const I18N = {
   "tour_step2_title": "Les onglets en haut",
   "tour_step2_text": "Aperçu, stock, besoins, projets, objets de collection et stock privé. Vous pouvez réorganiser librement les onglets par glisser-déposer — l'ordre est mémorisé personnellement pour vous.",
   "tour_step3_title": "Ajouter du stock",
-  "tour_step3_text": "Matériau, qualité, quantité, emplacement et responsable — saisissez un élément à la fois, ou ajoutez plusieurs lignes à la fois via la saisie groupée.",
-  "tour_step4_title": "Saisie groupée",
-  "tour_step4_text": "Définissez l'emplacement, le responsable et le projet une fois pour toute la table, puis seulement le matériau, la qualité et la quantité par ligne — étendez avec « Ajouter une autre ligne » si nécessaire.",
+  "tour_step3_text": "Matériau, qualité, quantité, emplacement et responsable — saisissez un élément à la fois, ou ajoutez plusieurs lignes à la fois via la saisie groupée. L'unité (SCU/pièces) se règle automatiquement selon le matériau choisi.",
+  "tour_step4_title": "Saisie groupée et reconnaissance d'image",
+  "tour_step4_text": "Définissez l'emplacement, le responsable et le projet une fois pour toute la table, puis seulement le matériau, la qualité et la quantité par ligne. Les valeurs peuvent aussi être lues à titre expérimental depuis une capture d'écran (« Capturer par photo ») — veuillez vérifier attentivement chaque résultat reconnu avant de l'appliquer.",
   "tour_step5_title": "Besoins et projets",
-  "tour_step5_text": "Indiquez ce dont vous avez besoin — l'application affiche en temps réel si le stock le couvre déjà. Les projets affichent la progression en fonction des ressources nécessaires.",
-  "tour_step6_title": "Besoin d'aide plus tard ?",
-  "tour_step6_text": "Le bouton « ? » en bas à droite est toujours disponible et explique en détail les rôles, les onglets et toutes les sections d'administration. Bon minage !",
+  "tour_step5_text": "Indiquez ce dont vous avez besoin — l'application affiche en temps réel si le stock le couvre déjà, et signale les besoins concurrents. Les projets affichent la progression en fonction des ressources nécessaires ; le stock déjà attribué à un autre projet n'est volontairement pas compté deux fois.",
+  "tour_step6_title": "Analyse et aperçu",
+  "tour_step6_text": "Le récapitulatif par matériau affiche les quantités réservées/disponibles ainsi qu'une répartition cliquable des niveaux de qualité exacts. Le stock et les objets de collection peuvent également être recherchés et filtrés.",
+  "tour_step7_title": "Besoin d'aide plus tard ?",
+  "tour_step7_text": "Le bouton « ? » en bas à droite est toujours disponible et explique en détail les rôles, les onglets et toutes les sections d'administration. Bon minage !",
   "msg_saving": "Enregistrement en cours …",
   "panel_projekte_privat": "Projets (privé)",
   "hint_privat_projekte": "Vous seul voyez ces projets. La progression se base uniquement sur votre propre stock privé, pas sur le stock partagé de l'organisation.",
@@ -4912,7 +4918,8 @@ const ONBOARDING_STEPS = [
   { icon:'📦', titleKey:'tour_step3_title', textKey:'tour_step3_text' },
   { icon:'📝', titleKey:'tour_step4_title', textKey:'tour_step4_text' },
   { icon:'🎯', titleKey:'tour_step5_title', textKey:'tour_step5_text' },
-  { icon:'❓', titleKey:'tour_step6_title', textKey:'tour_step6_text' }
+  { icon:'📊', titleKey:'tour_step6_title', textKey:'tour_step6_text' },
+  { icon:'❓', titleKey:'tour_step7_title', textKey:'tour_step7_text' }
 ];
 let tourStepIndex = 0;
 
