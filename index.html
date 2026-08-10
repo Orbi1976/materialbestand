@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.030 -->
+<!-- Version: 0.032 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2615,6 +2615,10 @@ const I18N = {
   "label_geteilte_projekte": "Geteilte Projekte",
   "label_private_projekte": "Private Projekte",
   "col_einheit": "Einheit",
+  "col_avg_qualitaet": "Ø Qualität",
+  "tooltip_avg_qualitaet": "Mengengewichteter Durchschnitt der Qualität über alle Einträge dieses Materials.",
+  "label_qualitaet_aufschluesselung": "Aufschlüsselung nach Qualität",
+  "tooltip_qualitaet_aufschluesselung": "Klicken für Aufschlüsselung nach exakten Qualitätsstufen",
   "col_gesamt": "Gesamt",
   "label_pro_einheit": "pro Einheit",
   "label_gesamt_klein": "gesamt",
@@ -3166,6 +3170,10 @@ const I18N = {
   "label_geteilte_projekte": "Shared projects",
   "label_private_projekte": "Private projects",
   "col_einheit": "Unit",
+  "col_avg_qualitaet": "Avg. Quality",
+  "tooltip_avg_qualitaet": "Quantity-weighted average quality across all entries of this material.",
+  "label_qualitaet_aufschluesselung": "Breakdown by quality",
+  "tooltip_qualitaet_aufschluesselung": "Click for a breakdown by exact quality levels",
   "col_gesamt": "Total",
   "label_pro_einheit": "per unit",
   "label_gesamt_klein": "total",
@@ -3717,6 +3725,10 @@ const I18N = {
   "label_geteilte_projekte": "Projets partagés",
   "label_private_projekte": "Projets privés",
   "col_einheit": "Unité",
+  "col_avg_qualitaet": "Qualité moy.",
+  "tooltip_avg_qualitaet": "Qualité moyenne pondérée par la quantité sur toutes les entrées de ce matériau.",
+  "label_qualitaet_aufschluesselung": "Répartition par qualité",
+  "tooltip_qualitaet_aufschluesselung": "Cliquer pour une répartition par niveaux de qualité exacts",
   "col_gesamt": "Total",
   "label_pro_einheit": "par unité",
   "label_gesamt_klein": "total",
@@ -4223,6 +4235,12 @@ let editingId = null;
 // null). Getrennt für Materialien und Sammelobjekte, da beide
 // Zusammenfassungen unabhängig voneinander aufklappbar sein sollen.
 let expandedUsageMaterial = null;
+// Analog zu expandedUsageMaterial, aber fuer die neue Qualitaets-
+// Aufschluesselung (Klick auf die Oe-Qualitaet-Zelle in der
+// Zusammenfassung nach Material) -- unabhaengig umschaltbar, damit
+// beide Aufklapp-Arten (Rueckwaerts-Suche + Qualitaets-Aufschluesselung)
+// nicht ineinander eingreifen. Siehe Nutzerwunsch vom 7. August 2026.
+let expandedQualityMaterial = null;
 let expandedUsageCollectible = null;
 let selectedNeedIds = new Set();
 let selectedProjectIds = new Set();
@@ -10643,6 +10661,13 @@ document.addEventListener('click', (e)=>{
     renderSummary();
     return;
   }
+  const qualityBtn = e.target.closest('[data-action="toggle-quality-breakdown"]');
+  if(qualityBtn){
+    const material = qualityBtn.dataset.material;
+    expandedQualityMaterial = (expandedQualityMaterial === material) ? null : material;
+    renderSummary();
+    return;
+  }
   const collUsageBtn = e.target.closest('[data-action="toggle-usage-collectible"]');
   if(collUsageBtn){
     const objekt = collUsageBtn.dataset.objekt;
@@ -12110,6 +12135,41 @@ function qualityBucket(q){
   return 'low';
 }
 
+// Sortier-Zustand eigens fuer die Zusammenfassung nach Material (getrennt
+// von der Sortierung der Haupttabelle, da beide unabhaengig voneinander
+// nutzbar sein sollen).
+let summarySortKey = null;
+let summarySortDir = 1;
+
+// Baut die aufgeklappte Aufschluesselung unter der Oe-Qualitaet-Zelle:
+// zeigt fuer ein Material jede tatsaechlich vorkommende, EXAKTE
+// Qualitaetsstufe einzeln (nicht in Rot/Gelb/Gruen-Buckets
+// zusammengefasst) mit der jeweiligen Gesamtmenge -- macht sichtbar, wie
+// sich der angezeigte gewichtete Durchschnitt tatsaechlich zusammensetzt.
+// Siehe Nutzerwunsch vom 7. August 2026.
+function buildQualityBreakdownHTML(material, einheit){
+  const matching = entries.filter(e=>e.material===material && e.einheit===einheit);
+  const byQuality = {};
+  matching.forEach(e=>{
+    byQuality[e.qualitaet] = (byQuality[e.qualitaet] || 0) + e.menge;
+  });
+  const rows = Object.keys(byQuality)
+    .map(q=>({ qualitaet: parseFloat(q), menge: byQuality[q] }))
+    .sort((a,b)=> b.qualitaet - a.qualitaet);
+
+  const fmt = n => (Math.round(n*100)/100).toLocaleString('de-DE');
+
+  let body = `<table><thead><tr><th>${t('label_qualitaet')}</th><th>${t('label_menge')}</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    body += `<tr>
+      <td><span class="badge ${badgeClass(r.qualitaet)}">${fmt(r.qualitaet)}</span></td>
+      <td class="qty-cell">${fmt(r.menge)} ${escapeHtml(einheit)}</td>
+    </tr>`;
+  });
+  body += '</tbody></table>';
+  return `<div style="padding:10px 16px;background:rgba(0,10,16,0.4);"><div class="stock-hover-title" style="margin-bottom:8px;">${t('label_qualitaet_aufschluesselung')}</div>${body}</div>`;
+}
+
 function renderSummary(){
   const container = document.getElementById('summaryContainer');
   if(entries.length === 0){
@@ -12117,31 +12177,66 @@ function renderSummary(){
     return;
   }
 
-  // Gruppieren nach Material + Einheit
+  // Gruppieren nach Material + Einheit. qualitySum wird mengengewichtet
+  // aufsummiert (qualitaet * menge), um daraus unten den exakten,
+  // mengengewichteten Durchschnittswert zu berechnen -- eine einfache
+  // ungewichtete Durchschnittsbildung wuerde einen winzigen Posten mit
+  // stark abweichender Qualitaet genauso stark zaehlen lassen wie einen
+  // grossen Posten, was den Wert verzerren wuerde. Siehe Nutzerwunsch
+  // vom 7. August 2026 (exakter Qualitaetswert + Sortierbarkeit,
+  // analog zur bereits vorhandenen Haupttabelle).
   const groups = {};
   entries.forEach(e=>{
     const key = e.material + '||' + e.einheit;
-    if(!groups[key]) groups[key] = { material: e.material, einheit: e.einheit, low:0, med:0, high:0, reserviert:0 };
+    if(!groups[key]) groups[key] = { material: e.material, einheit: e.einheit, low:0, med:0, high:0, reserviert:0, qualitySum:0 };
     groups[key][qualityBucket(e.qualitaet)] += e.menge;
+    groups[key].qualitySum += e.qualitaet * e.menge;
     if(e.projekt){ groups[key].reserviert += e.menge; }
   });
 
-  const rows = Object.values(groups).sort((a,b)=> a.material.localeCompare(b.material));
+  let rows = Object.values(groups).map(r=>{
+    const total = r.low + r.med + r.high;
+    return { ...r, total, frei: total - r.reserviert, avgQuality: total>0 ? r.qualitySum/total : null };
+  });
 
   const fmt = n => {
     const rounded = Math.round(n*100)/100;
     return rounded.toLocaleString('de-DE');
   };
 
+  // Sortierung anwenden -- Standard (kein sortKey gesetzt) bleibt
+  // alphabetisch nach Material, wie bisher.
+  if(summarySortKey){
+    rows.sort((a,b)=>{
+      let av = a[summarySortKey], bv = b[summarySortKey];
+      if(summarySortKey==='material' || summarySortKey==='einheit'){
+        return summarySortDir * String(av||'').localeCompare(String(bv||''));
+      }
+      // null (kein Qualitaetswert, keine Preisangabe usw.) immer ans Ende
+      // sortieren, unabhaengig von der Sortierrichtung -- fehlende Werte
+      // sollen nicht als "kleinster" oder "groesster" Wert missverstanden
+      // werden.
+      if(av==null && bv==null) return 0;
+      if(av==null) return 1;
+      if(bv==null) return -1;
+      return summarySortDir * (av - bv);
+    });
+  } else {
+    rows.sort((a,b)=> a.material.localeCompare(b.material));
+  }
+
+  const sortArrow = key => summarySortKey===key ? (summarySortDir===1?' ▲':' ▼') : '';
+
   let html = `<table class="summary-table"><thead><tr>
-    <th>${t('label_material')}</th>
-    <th>${t('col_einheit')}</th>
-    <th>${t('col_rot')}</th>
-    <th>${t('col_gelb')}</th>
-    <th>${t('col_gruen')}</th>
-    <th>${t('col_gesamt')}</th>
-    <th>${t('col_reserviert')}</th>
-    <th>${t('col_frei_verfuegbar')}</th>
+    <th data-sort="material">${t('label_material')}${sortArrow('material')}</th>
+    <th data-sort="einheit">${t('col_einheit')}${sortArrow('einheit')}</th>
+    <th data-sort="avgQuality" title="${t('tooltip_avg_qualitaet')}">${t('col_avg_qualitaet')}${sortArrow('avgQuality')}</th>
+    <th data-sort="low">${t('col_rot')}${sortArrow('low')}</th>
+    <th data-sort="med">${t('col_gelb')}${sortArrow('med')}</th>
+    <th data-sort="high">${t('col_gruen')}${sortArrow('high')}</th>
+    <th data-sort="total">${t('col_gesamt')}${sortArrow('total')}</th>
+    <th data-sort="reserviert">${t('col_reserviert')}${sortArrow('reserviert')}</th>
+    <th data-sort="frei">${t('col_frei_verfuegbar')}${sortArrow('frei')}</th>
     <th>${t('col_sollbestand')}</th>
     <th>${t('col_geschaetzter_wert')}</th>
   </tr></thead><tbody>`;
@@ -12150,18 +12245,20 @@ function renderSummary(){
   let anyPriceFound = false;
 
   rows.forEach(r=>{
-    const total = r.low + r.med + r.high;
-    const frei = total - r.reserviert;
+    const total = r.total;
+    const frei = r.frei;
     const matDef = MATERIALS.find(m=>m.name===r.material);
     const minStock = matDef ? matDef.minStock : null;
     const underMin = minStock!=null && total < minStock;
     const isExpanded = expandedUsageMaterial === r.material;
+    const isQualityExpanded = expandedQualityMaterial === r.material;
     const price = r.einheit === 'SCU' ? getCommodityPrice(r.material) : null;
     const estValue = (price && price.sellBest != null) ? total * price.sellBest : null;
     if(estValue != null){ totalValue += estValue; anyPriceFound = true; }
     html += `<tr${underMin ? ' style="background:rgba(255,59,92,0.06);"' : ''}>
       <td class="material-name">${escapeHtml(r.material)}<span class="usage-search-btn${isExpanded?' active':''}" data-action="toggle-usage-material" data-material="${escapeHtml(r.material)}" title="${t('tooltip_rueckwaertssuche')}">🔍</span></td>
       <td>${escapeHtml(r.einheit)}</td>
+      <td>${r.avgQuality!=null ? `<span class="badge ${badgeClass(r.avgQuality)}" style="cursor:pointer;${isQualityExpanded?'outline:1px solid var(--cyan);':''}" data-action="toggle-quality-breakdown" data-material="${escapeHtml(r.material)}" title="${t('tooltip_qualitaet_aufschluesselung')}">${fmt(r.avgQuality)}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
       <td><div class="sum-cell ${r.low===0?'zero':''}"><span class="sum-dot" style="background:#FF3B5C"></span>${fmt(r.low)}</div></td>
       <td><div class="sum-cell ${r.med===0?'zero':''}"><span class="sum-dot" style="background:#FFC93C"></span>${fmt(r.med)}</div></td>
       <td><div class="sum-cell ${r.high===0?'zero':''}"><span class="sum-dot" style="background:#2CFFA0"></span>${fmt(r.high)}</div></td>
@@ -12171,20 +12268,31 @@ function renderSummary(){
       <td>${minStock!=null ? `<span class="badge ${underMin?'low':'high'}">${underMin ? t('label_under_min_stock')+' ('+minStock+')' : t('label_ok_min_stock')+' ('+minStock+')'}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
       <td>${estValue!=null ? `<span class="qty-cell stock-hover-wrap">${fmt(estValue)} aUEC<span class="stock-hover-tooltip">${buildSellLocationTooltipHTML(price)}</span></span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
     </tr>`;
+    if(isQualityExpanded){
+      html += `<tr><td colspan="11" style="padding:0;">${buildQualityBreakdownHTML(r.material, r.einheit)}</td></tr>`;
+    }
     if(isExpanded){
-      html += `<tr><td colspan="10" style="padding:0;">${buildUsageBreakdownHTML(r.material)}</td></tr>`;
+      html += `<tr><td colspan="11" style="padding:0;">${buildUsageBreakdownHTML(r.material)}</td></tr>`;
     }
   });
 
   if(anyPriceFound){
     html += `<tr style="border-top:2px solid var(--panel-border);">
-      <td colspan="9" style="text-align:right;font-weight:700;color:var(--ink);">${t('label_gesamtwert_bestand')}</td>
+      <td colspan="10" style="text-align:right;font-weight:700;color:var(--ink);">${t('label_gesamtwert_bestand')}</td>
       <td class="sum-total" style="color:var(--cyan);">${fmt(totalValue)} aUEC</td>
     </tr>`;
   }
 
   html += '</tbody></table>';
   container.innerHTML = html;
+
+  container.querySelectorAll('th[data-sort]').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.sort;
+      if(summarySortKey === key){ summarySortDir *= -1; } else { summarySortKey = key; summarySortDir = 1; }
+      renderSummary();
+    });
+  });
 }
 
 // Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) entsprechend der aktuellen
