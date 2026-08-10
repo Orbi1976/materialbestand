@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.032 -->
+<!-- Version: 0.034 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2616,6 +2616,7 @@ const I18N = {
   "label_private_projekte": "Private Projekte",
   "col_einheit": "Einheit",
   "col_avg_qualitaet": "Ø Qualität",
+  "tooltip_einheit_gesperrt": "Einheit für dieses Material auf Stück festgelegt (Handabbau) — nicht änderbar.",
   "tooltip_avg_qualitaet": "Mengengewichteter Durchschnitt der Qualität über alle Einträge dieses Materials.",
   "label_qualitaet_aufschluesselung": "Aufschlüsselung nach Qualität",
   "tooltip_qualitaet_aufschluesselung": "Klicken für Aufschlüsselung nach exakten Qualitätsstufen",
@@ -3171,6 +3172,7 @@ const I18N = {
   "label_private_projekte": "Private projects",
   "col_einheit": "Unit",
   "col_avg_qualitaet": "Avg. Quality",
+  "tooltip_einheit_gesperrt": "Unit fixed to pieces for this material (hand-mined) — not changeable.",
   "tooltip_avg_qualitaet": "Quantity-weighted average quality across all entries of this material.",
   "label_qualitaet_aufschluesselung": "Breakdown by quality",
   "tooltip_qualitaet_aufschluesselung": "Click for a breakdown by exact quality levels",
@@ -3726,6 +3728,7 @@ const I18N = {
   "label_private_projekte": "Projets privés",
   "col_einheit": "Unité",
   "col_avg_qualitaet": "Qualité moy.",
+  "tooltip_einheit_gesperrt": "Unité fixée à pièces pour ce matériau (extraction manuelle) — non modifiable.",
   "tooltip_avg_qualitaet": "Qualité moyenne pondérée par la quantité sur toutes les entrées de ce matériau.",
   "label_qualitaet_aufschluesselung": "Répartition par qualité",
   "tooltip_qualitaet_aufschluesselung": "Cliquer pour une répartition par niveaux de qualité exacts",
@@ -6134,6 +6137,18 @@ let MATERIALS = [
 // restrictCategories (optional): Array von Kategorie-Namen — wenn gesetzt,
 // werden nur Materialien aus diesen Kategorien angeboten. Genutzt fuer die
 // optionale Kategorie-Beschraenkung von Editoren im (geteilten) Bestand.
+// Liefert die passende Standard-Einheit fuer ein Material: "Stück" fuer
+// Materialien der Kategorie "Non-Ship Mineables" (Hand-Mining/ROC/ATLS-
+// GEO -- werden stueckweise gesammelt, nicht in SCU-Volumen), ansonsten
+// "SCU" (Ship-Mineables, per Bergbau-Laser in Roh-Erz-Volumen
+// gefoerdert). Sammelobjekte haben ohnehin keine eigene Einheiten-
+// Auswahl (immer implizit Stück), sind hier also nicht betroffen. Siehe
+// Nutzerwunsch vom 7. August 2026.
+function getDefaultEinheitForMaterial(materialName){
+  const m = MATERIALS.find(x=>x.name===materialName);
+  return (m && m.category==='Non-Ship Mineables') ? 'Stück' : 'SCU';
+}
+
 function buildMaterialSelectHTML(id, selected, extraClass, restrictCategories){
   const allCats = [...new Set(MATERIALS.map(m=>m.category))];
   const cats = restrictCategories && restrictCategories.length > 0
@@ -9241,7 +9256,7 @@ function renderProjects(){
         const oldMenge = existing.menge;
         existing.menge = menge;
         await saveNeeds();
-        await logAction('Bedarf aktualisiert', `${material}: ${oldMenge} → ${menge} SCU — aus Projekt „${ziel}“ (verknüpfter Bedarf angepasst statt Duplikat)`);
+        await logAction('Bedarf aktualisiert', `${material}: ${oldMenge} → ${menge} ${getDefaultEinheitForMaterial(material)} — aus Projekt „${ziel}“ (verknüpfter Bedarf angepasst statt Duplikat)`);
         renderNeeds();
         btn.textContent = t('msg_need_updated');
       } else {
@@ -9249,14 +9264,14 @@ function renderProjects(){
           id: needUid(),
           user: currentUser.username,
           material, qualitaet: 0,
-          menge, einheit: 'SCU',
+          menge, einheit: getDefaultEinheitForMaterial(material),
           prioritaet: 'Hoch',
           createdAt: new Date().toISOString(),
           sourceProjekt: ziel,
           sourceProjektTyp: 'shared'
         });
         await saveNeeds();
-        await logAction('Bedarf hinzugefügt', `${material}, ${menge} SCU (Hoch) — aus Projekt „${ziel}“`);
+        await logAction('Bedarf hinzugefügt', `${material}, ${menge} ${getDefaultEinheitForMaterial(material)} (Hoch) — aus Projekt „${ziel}“`);
         renderNeeds();
         btn.textContent = t('msg_added_as_need');
       }
@@ -9285,7 +9300,7 @@ function renderProjects(){
               id: needUid(),
               user: currentUser.username,
               material: r.material, qualitaet: 0,
-              menge: fehlend, einheit: 'SCU',
+              menge: fehlend, einheit: getDefaultEinheitForMaterial(r.material),
               prioritaet: 'Hoch',
               createdAt: new Date().toISOString(),
               sourceProjekt: p.ziel,
@@ -9665,7 +9680,7 @@ function renderPrivateProjects(){
         const oldMenge = existing.menge;
         existing.menge = menge;
         await saveNeeds();
-        await logAction('Bedarf aktualisiert', `${material}: ${oldMenge} → ${menge} SCU — aus privatem Projekt „${ziel}“ (verknüpfter Bedarf angepasst statt Duplikat)`);
+        await logAction('Bedarf aktualisiert', `${material}: ${oldMenge} → ${menge} ${getDefaultEinheitForMaterial(material)} — aus privatem Projekt „${ziel}“ (verknüpfter Bedarf angepasst statt Duplikat)`);
         renderNeeds();
         btn.textContent = t('msg_need_updated');
       } else {
@@ -9673,14 +9688,14 @@ function renderPrivateProjects(){
           id: needUid(),
           user: currentUser.username,
           material, qualitaet: 0,
-          menge, einheit: 'SCU',
+          menge, einheit: getDefaultEinheitForMaterial(material),
           prioritaet: 'Hoch',
           createdAt: new Date().toISOString(),
           sourceProjekt: ziel,
           sourceProjektTyp: 'private'
         });
         await saveNeeds();
-        await logAction('Bedarf hinzugefügt', `${material}, ${menge} SCU (Hoch) — aus privatem Projekt „${ziel}“`);
+        await logAction('Bedarf hinzugefügt', `${material}, ${menge} ${getDefaultEinheitForMaterial(material)} (Hoch) — aus privatem Projekt „${ziel}“`);
         renderNeeds();
         btn.textContent = t('msg_added_as_need');
       }
@@ -9708,7 +9723,7 @@ function renderPrivateProjects(){
               id: needUid(),
               user: currentUser.username,
               material: r.material, qualitaet: 0,
-              menge: fehlend, einheit: 'SCU',
+              menge: fehlend, einheit: getDefaultEinheitForMaterial(r.material),
               prioritaet: 'Hoch',
               createdAt: new Date().toISOString(),
               sourceProjekt: p.ziel,
@@ -9898,6 +9913,10 @@ document.getElementById('btnAddNeed').addEventListener('click', async ()=>{
   document.getElementById('need-qualitaet').value = '';
   document.getElementById('need-menge').value = '';
   document.getElementById('need-prioritaet').value = 'Mittel';
+  const needEinheitEl = document.getElementById('need-einheit');
+  needEinheitEl.disabled = false;
+  needEinheitEl.title = '';
+  needEinheitEl.value = 'SCU';
 
   statusEl.textContent = t('msg_saving');
   await saveNeeds();
@@ -9942,7 +9961,7 @@ function renderNeeds(){
         <td data-label="${t('label_menge')}">
           <div style="display:flex;gap:4px;">
             <input class="edit-input" id="edit-need-menge" type="number" step="0.001" value="${n.menge}" style="width:90px;">
-            <select class="edit-input" id="edit-need-einheit" style="width:80px;">
+            <select class="edit-input" id="edit-need-einheit" style="width:80px;" ${getDefaultEinheitForMaterial(n.material)==='Stück'?`disabled title="${t('tooltip_einheit_gesperrt')}"`:''}>
               ${['SCU','Stück'].map(u=>`<option value="${u}" ${u===n.einheit?'selected':''}>${einheitLabel(u)}</option>`).join('')}
             </select>
           </div>
@@ -10648,6 +10667,42 @@ document.addEventListener('change', (e)=>{
     const prefix = e.target.id.replace('-material','').replace('-projekt','');
     updateQualityWarning(prefix);
   }
+  // Automatische Einheiten-Zuordnung UND -Sperre: Bei Materialien der
+  // Kategorie "Non-Ship Mineables" (Hand-Mining/ROC/ATLS-GEO -- werden
+  // stueckweise gesammelt statt in SCU-Volumen gefoerdert) wird die
+  // Einheit nicht nur auf "Stück" vorbelegt, sondern das Einheiten-Feld
+  // zusaetzlich GESPERRT (disabled), damit eine versehentliche manuelle
+  // Umstellung auf SCU gar nicht erst moeglich ist -- eine reine
+  // Vorbelegung liesse sich sonst weiterhin aus Versehen ueberschreiben.
+  // Bei allen anderen Materialien bleibt das Feld normal bedienbar
+  // (Standard SCU, Stück weiterhin waehlbar). Ueber Ereignis-Delegation
+  // realisiert, da die Material-Felder bei jedem Neu-Rendern des
+  // Formulars als komplett neue <select>-Elemente erzeugt werden (ein
+  // direkt angehefteter Listener wuerde dabei verloren gehen). Deckt
+  // Bestand, Privat Bestand und Bedarf (jeweils Neuanlage + Bearbeiten)
+  // ab. Siehe Nutzerwunsch vom 7. August 2026.
+  const materialToEinheitId = {
+    'f-material': 'f-einheit',
+    'priv-material': 'priv-einheit',
+    'need-material': 'need-einheit',
+    'edit-material': 'edit-einheit',
+    'edit-priv-material': 'edit-priv-einheit',
+    'edit-need-material': 'edit-need-einheit'
+  };
+  if(materialToEinheitId[e.target.id]){
+    const einheitEl = document.getElementById(materialToEinheitId[e.target.id]);
+    if(einheitEl && e.target.value){
+      const defaultEinheit = getDefaultEinheitForMaterial(e.target.value);
+      einheitEl.value = defaultEinheit;
+      einheitEl.disabled = (defaultEinheit === 'Stück');
+      einheitEl.title = einheitEl.disabled ? t('tooltip_einheit_gesperrt') : '';
+    } else if(einheitEl){
+      // Leere Material-Auswahl ("Bitte wählen…") -- Sperre aufheben,
+      // damit das Feld nicht in gesperrtem Zustand haengen bleibt.
+      einheitEl.disabled = false;
+      einheitEl.title = '';
+    }
+  }
 });
 
 // Rueckwaerts-Suche: Klick-Icons in den Zusammenfassungen (Material &
@@ -10747,6 +10802,15 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
   document.getElementById('f-menge').value='';
   document.getElementById('f-lagerort').value='';
   document.getElementById('f-projekt').value='';
+  // Einheiten-Sperre (siehe automatische Zuordnung/Sperrung fuer
+  // Handabbau-Materialien weiter oben) muss beim Zuruecksetzen des
+  // Formulars ebenfalls aufgehoben werden -- sonst bliebe sie faelschlich
+  // fuer den naechsten, potenziell ganz anderen Eintrag aktiv, bis
+  // erneut ein Material ausgewaehlt wird.
+  const fEinheitEl = document.getElementById('f-einheit');
+  fEinheitEl.disabled = false;
+  fEinheitEl.title = '';
+  fEinheitEl.value = 'SCU';
 
   setStatus(t('msg_saving'));
   await save();
@@ -10830,10 +10894,17 @@ async function submitBulkTable(isPrivate){
     const qualitaet = parseFloat(document.getElementById(prefix+'bulk-qual-'+rowId).value);
     const menge = parseFloat(document.getElementById(prefix+'bulk-menge-'+rowId).value);
     if(!material || validateQualityAndMenge(qualitaet, menge)){ skipped++; return; }
+    // Die Massen-Eingabe-Tabelle hat bewusst keine eigene Einheiten-Spalte
+    // (wuerde die ohnehin schon kompakte Tabelle unnoetig aufblaehen) --
+    // die Einheit wird stattdessen je Zeile automatisch aus der
+    // Material-Kategorie abgeleitet (Stück fuer Non-Ship-Mineables, sonst
+    // SCU), statt wie bisher immer fest SCU anzunehmen. Siehe
+    // Nutzerwunsch vom 7. August 2026.
+    const einheit = getDefaultEinheitForMaterial(material);
     if(isPrivate){
-      privateEntries.push({ id: privateUid(), material, qualitaet, menge, einheit:'SCU', lagerort, person, projekt: projekt||'', owner: currentUser.username });
+      privateEntries.push({ id: privateUid(), material, qualitaet, menge, einheit, lagerort, person, projekt: projekt||'', owner: currentUser.username });
     } else {
-      entries.push({ id: uid(), material, qualitaet, menge, einheit:'SCU', lagerort, person, projekt: projekt||'', createdAt: new Date().toISOString() });
+      entries.push({ id: uid(), material, qualitaet, menge, einheit, lagerort, person, projekt: projekt||'', createdAt: new Date().toISOString() });
     }
     added++;
   });
@@ -12423,7 +12494,7 @@ function render(){
         <td data-label="${t('label_menge')}">
           <div style="display:flex;gap:4px;">
             <input class="edit-input" id="edit-menge" type="number" step="0.001" value="${e.menge}" style="width:90px;">
-            <select class="edit-input" id="edit-einheit" style="width:64px;">
+            <select class="edit-input" id="edit-einheit" style="width:64px;" ${getDefaultEinheitForMaterial(e.material)==='Stück'?`disabled title="${t('tooltip_einheit_gesperrt')}"`:''}>
               ${['SCU','Stück'].map(u=>`<option value="${u}" ${u===e.einheit?'selected':''}>${einheitLabel(u)}</option>`).join('')}
             </select>
           </div>
@@ -12714,6 +12785,10 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
   document.getElementById('priv-menge').value='';
   document.getElementById('priv-lagerort').value='';
   document.getElementById('priv-projekt').value='';
+  const privEinheitEl = document.getElementById('priv-einheit');
+  privEinheitEl.disabled = false;
+  privEinheitEl.title = '';
+  privEinheitEl.value = 'SCU';
 
   setPrivateStatus(t('msg_saving'));
   await savePrivateEntries();
@@ -12973,7 +13048,7 @@ function renderPrivate(){
         <td data-label="${t('label_menge')}">
           <div style="display:flex;gap:4px;">
             <input class="edit-input" id="edit-priv-menge" type="number" step="0.001" value="${e.menge}" style="width:90px;">
-            <select class="edit-input" id="edit-priv-einheit" style="width:64px;">
+            <select class="edit-input" id="edit-priv-einheit" style="width:64px;" ${getDefaultEinheitForMaterial(e.material)==='Stück'?`disabled title="${t('tooltip_einheit_gesperrt')}"`:''}>
               ${['SCU','Stück'].map(u=>`<option value="${u}" ${u===e.einheit?'selected':''}>${einheitLabel(u)}</option>`).join('')}
             </select>
           </div>
