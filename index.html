@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.029 -->
+<!-- Version: 0.030 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -10838,6 +10838,33 @@ async function submitBulkTable(isPrivate){
   statusEl.textContent = skipped>0
     ? t('msg_bulk_table_added_with_skipped').replace('{count}', added).replace('{skipped}', skipped)
     : t('msg_bulk_table_added').replace('{count}', added);
+
+  // Stammte die soeben erfolgreich übernommene Eingabe aus einer
+  // OCR-Erkennung, wird das gesamte Panel auf den Ausgangszustand
+  // zurückgesetzt (Bereich wieder eingeklappt, Umschalt-Button-Text
+  // zurückgesetzt, OCR-Hinweise/Bestätigungspflicht aufgehoben) --
+  // exakt wie beim erstmaligen Öffnen des Registerreiters. Ohne diesen
+  // Reset bliebe die durch die Übernahme veränderte Struktur (Warnung,
+  // Bestätigen-Button, vorausgefüllte Tabelle) sichtbar bestehen, was
+  // nach erfolgreichem Abschluss verwirrend wirken könnte. Betrifft
+  // bewusst NUR den OCR-Fall -- bei normaler manueller Massen-Eingabe
+  // bleibt der Bereich weiterhin offen, damit direkt weitere Zeilen
+  // ergänzt werden können. Kurze Verzögerung vor dem Einklappen, damit
+  // die Erfolgsmeldung (liegt innerhalb des Containers) erst noch
+  // sichtbar wird, statt sofort mit zu verschwinden. Siehe Nutzerwunsch
+  // vom 7. August 2026.
+  const ocrTarget = isPrivate ? 'private' : 'public';
+  if(bulkOcrPending[ocrTarget]){
+    bulkOcrPending[ocrTarget] = false;
+    bulkOcrConfirmed[ocrTarget] = false;
+    updateBulkOcrUI(ocrTarget);
+    setTimeout(()=>{
+      const containerEl = document.getElementById(prefix+'bulkAddContainer');
+      const toggleBtn = document.getElementById(prefix+'btnToggleBulk');
+      if(containerEl) containerEl.style.display = 'none';
+      if(toggleBtn) toggleBtn.textContent = t('btn_show_bulk');
+    }, 2500);
+  }
 }
 
 document.getElementById('btnAddBulkTableRow').addEventListener('click', ()=>{ addBulkTableRow(false); });
