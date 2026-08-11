@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.036 -->
+<!-- Version: 0.038 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1822,6 +1822,50 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="bestand">
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+      <h2 style="margin:0;" data-i18n="panel_zusammenfassung">Zusammenfassung nach Material</h2>
+      <div id="commodityPriceStatus" style="font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;"></div>
+    </div>
+    <div id="summaryContainer"></div>
+  </div>
+
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+      <h2 style="margin:0;" data-i18n="panel_bestand_table">Bestand</h2>
+      <button class="btn-ghost btn-compact" id="btnExportBestand" data-i18n="btn_export_csv">Als CSV exportieren</button>
+    </div>
+    <div class="filters">
+      <input type="text" id="search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
+      <select id="filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
+      <input type="number" id="filterQualitaet" placeholder="Qualität ≥" step="0.01" style="max-width:140px;" data-i18n-placeholder="placeholder_qualitaet_ge">
+      <button class="btn-ghost btn-compact" id="btnToggleGroupByLocation" data-i18n="btn_group_by_location">Nach Lagerort gruppieren</button>
+      <select id="filterReservierung">
+        <option value="" data-i18n="filter_reservierung_alle">Alle Einträge</option>
+        <option value="frei" data-i18n="filter_reservierung_frei">Nur frei verfügbar</option>
+        <option value="reserviert" data-i18n="filter_reservierung_reserviert">Nur reserviert (Projekte)</option>
+      </select>
+    </div>
+    <div id="bulkActionsBar" style="display:none;margin-bottom:10px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="bulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-icon danger" id="btnBulkDeleteEntries" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+    </div>
+    <div id="tableContainer"></div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="panel_rueckwaertssuche">Wo wird das gebraucht?</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rueckwaertssuche">Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="flex:1;min-width:220px;margin:0;">
+        <label for="usageSearchInput" data-i18n="label_material_oder_objekt">Material oder Sammelobjekt</label>
+        <input type="text" id="usageSearchInput" list="usageSearchOptions" placeholder="z. B. Titanium" data-i18n-placeholder="placeholder_usage_search" autocomplete="off">
+        <datalist id="usageSearchOptions"></datalist>
+      </div>
+    </div>
+    <div id="usageSearchResult" style="margin-top:14px;"></div>
+  </div>
+
   <div class="panel" id="entryFormPanel">
     <h2 data-i18n="panel_neuer_eintrag">Neuer Eintrag</h2>
     <div class="form-grid-flex">
@@ -1907,50 +1951,6 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="panel">
-    <h2 data-i18n="panel_rueckwaertssuche">Wo wird das gebraucht?</h2>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rueckwaertssuche">Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.</span></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
-      <div class="field" style="flex:1;min-width:220px;margin:0;">
-        <label for="usageSearchInput" data-i18n="label_material_oder_objekt">Material oder Sammelobjekt</label>
-        <input type="text" id="usageSearchInput" list="usageSearchOptions" placeholder="z. B. Titanium" data-i18n-placeholder="placeholder_usage_search" autocomplete="off">
-        <datalist id="usageSearchOptions"></datalist>
-      </div>
-    </div>
-    <div id="usageSearchResult" style="margin-top:14px;"></div>
-  </div>
-
-  <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
-      <h2 style="margin:0;" data-i18n="panel_zusammenfassung">Zusammenfassung nach Material</h2>
-      <div id="commodityPriceStatus" style="font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;"></div>
-    </div>
-    <div id="summaryContainer"></div>
-  </div>
-
-  <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-      <h2 style="margin:0;" data-i18n="panel_bestand_table">Bestand</h2>
-      <button class="btn-ghost btn-compact" id="btnExportBestand" data-i18n="btn_export_csv">Als CSV exportieren</button>
-    </div>
-    <div class="filters">
-      <input type="text" id="search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
-      <select id="filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
-      <input type="number" id="filterQualitaet" placeholder="Qualität ≥" step="0.01" style="max-width:140px;" data-i18n-placeholder="placeholder_qualitaet_ge">
-      <button class="btn-ghost btn-compact" id="btnToggleGroupByLocation" data-i18n="btn_group_by_location">Nach Lagerort gruppieren</button>
-      <select id="filterReservierung">
-        <option value="" data-i18n="filter_reservierung_alle">Alle Einträge</option>
-        <option value="frei" data-i18n="filter_reservierung_frei">Nur frei verfügbar</option>
-        <option value="reserviert" data-i18n="filter_reservierung_reserviert">Nur reserviert (Projekte)</option>
-      </select>
-    </div>
-    <div id="bulkActionsBar" style="display:none;margin-bottom:10px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
-      <span id="bulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
-      <button class="btn-icon danger" id="btnBulkDeleteEntries" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
-    </div>
-    <div id="tableContainer"></div>
-  </div>
-
-  <div class="panel">
     <h2 data-i18n="panel_papierkorb">Papierkorb</h2>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_papierkorb">Gelöschte Bestandseinträge der letzten 24 Stunden können hier wiederhergestellt werden.</span></div>
     <button class="btn-ghost" id="btnToggleTrash" data-i18n="btn_show_trash">Papierkorb anzeigen</button>
@@ -1959,6 +1959,71 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="privatbestand" style="display:none;">
+  <div class="panel">
+    <h2 data-i18n="panel_zusammenfassung_privat">Zusammenfassung nach Material (Privat)</h2>
+    <div id="privateSummaryContainer"></div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="panel_privatbestand">Privatbestand</h2>
+    <div class="filters">
+      <input type="text" id="priv-search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
+      <select id="priv-filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
+      <input type="number" id="priv-filterQualitaet" placeholder="Qualität ≥" step="0.01" style="max-width:140px;" data-i18n-placeholder="placeholder_qualitaet_ge">
+    </div>
+    <div id="privateTableContainer"></div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="panel_projekte_privat">Projekte (Privat)</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privat_projekte">Nur du siehst diese Vorhaben. Der Fortschritt bezieht sich ausschließlich auf deinen eigenen Privatbestand, nicht auf den allgemeinen Bestand der Organisation.</span></div>
+    <div id="privProjectAddSection">
+      <div class="field template-picker-wrap" style="margin-bottom:12px;">
+        <label for="priv-proj-template-search" data-i18n="label_vorlage">Vorlage (optional)</label>
+        <input type="text" id="priv-proj-template-search" placeholder="Vorlage suchen (optional) …" data-i18n-placeholder="placeholder_vorlage_suchen" autocomplete="off">
+        <div id="priv-proj-template-dropdown" class="template-dropdown"></div>
+      </div>
+      <div class="form-grid" style="grid-template-columns:1.4fr 0.8fr;">
+        <div class="field">
+          <label for="priv-proj-ziel" data-i18n="label_ziel">Ziel</label>
+          <input type="text" id="priv-proj-ziel" list="privProjZielList" placeholder="z. B. Idris-P bauen">
+          <datalist id="privProjZielList"></datalist>
+        </div>
+        <div class="field">
+          <label for="priv-proj-anzahl" data-i18n="label_anzahl">Anzahl</label>
+          <input type="number" id="priv-proj-anzahl" min="0" step="1" placeholder="1">
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label data-i18n="label_benoetigte_ressourcen" style="display:block;margin-bottom:8px;">Benötigte Ressourcen</label>
+        <div id="privProjResourcesContainer"></div>
+        <button type="button" class="btn-add-row" id="btnAddPrivProjResource"><span class="plus-icon">+</span><span data-i18n="btn_add_resource">Weitere Ressource hinzufügen</span></button>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn-primary" id="btnAddPrivProject" data-i18n="btn_projekt_anlegen">Projekt anlegen</button>
+      </div>
+      <div class="status-msg" id="privProjectStatus"></div>
+    </div>
+    <div id="privProjectBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="privProjectBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-icon danger" id="btnBulkDeletePrivProjects" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+    </div>
+    <div id="privProjectTableContainer" style="margin-top:14px;"></div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="panel_rueckwaertssuche">Wo wird das gebraucht?</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rueckwaertssuche">Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="flex:1;min-width:220px;margin:0;">
+        <label for="privUsageSearchInput" data-i18n="label_material_oder_objekt">Material oder Sammelobjekt</label>
+        <input type="text" id="privUsageSearchInput" list="privUsageSearchOptions" placeholder="z. B. Titanium" data-i18n-placeholder="placeholder_usage_search" autocomplete="off">
+        <datalist id="privUsageSearchOptions"></datalist>
+      </div>
+    </div>
+    <div id="privUsageSearchResult" style="margin-top:14px;"></div>
+  </div>
+
   <div class="panel">
     <h2 data-i18n="panel_neuer_eintrag_privat">Neuer Eintrag (Privat)</h2>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privatbestand">Nur du siehst diese Einträge. Sie werden nicht mit anderen Benutzern geteilt und fließen nur ein, wenn du sie ausdrücklich in den allgemeinen Bestand übernimmst.</span></div>
@@ -2042,71 +2107,6 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div class="status-msg" id="priv-bulkAddStatus"></div>
       </div>
     </div>
-  </div>
-
-  <div class="panel">
-    <h2 data-i18n="panel_rueckwaertssuche">Wo wird das gebraucht?</h2>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rueckwaertssuche">Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.</span></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
-      <div class="field" style="flex:1;min-width:220px;margin:0;">
-        <label for="privUsageSearchInput" data-i18n="label_material_oder_objekt">Material oder Sammelobjekt</label>
-        <input type="text" id="privUsageSearchInput" list="privUsageSearchOptions" placeholder="z. B. Titanium" data-i18n-placeholder="placeholder_usage_search" autocomplete="off">
-        <datalist id="privUsageSearchOptions"></datalist>
-      </div>
-    </div>
-    <div id="privUsageSearchResult" style="margin-top:14px;"></div>
-  </div>
-
-  <div class="panel">
-    <h2 data-i18n="panel_zusammenfassung_privat">Zusammenfassung nach Material (Privat)</h2>
-    <div id="privateSummaryContainer"></div>
-  </div>
-
-  <div class="panel">
-    <h2 data-i18n="panel_privatbestand">Privatbestand</h2>
-    <div class="filters">
-      <input type="text" id="priv-search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
-      <select id="priv-filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
-      <input type="number" id="priv-filterQualitaet" placeholder="Qualität ≥" step="0.01" style="max-width:140px;" data-i18n-placeholder="placeholder_qualitaet_ge">
-    </div>
-    <div id="privateTableContainer"></div>
-  </div>
-
-  <div class="panel">
-    <h2 data-i18n="panel_projekte_privat">Projekte (Privat)</h2>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privat_projekte">Nur du siehst diese Vorhaben. Der Fortschritt bezieht sich ausschließlich auf deinen eigenen Privatbestand, nicht auf den allgemeinen Bestand der Organisation.</span></div>
-    <div id="privProjectAddSection">
-      <div class="field template-picker-wrap" style="margin-bottom:12px;">
-        <label for="priv-proj-template-search" data-i18n="label_vorlage">Vorlage (optional)</label>
-        <input type="text" id="priv-proj-template-search" placeholder="Vorlage suchen (optional) …" data-i18n-placeholder="placeholder_vorlage_suchen" autocomplete="off">
-        <div id="priv-proj-template-dropdown" class="template-dropdown"></div>
-      </div>
-      <div class="form-grid" style="grid-template-columns:1.4fr 0.8fr;">
-        <div class="field">
-          <label for="priv-proj-ziel" data-i18n="label_ziel">Ziel</label>
-          <input type="text" id="priv-proj-ziel" list="privProjZielList" placeholder="z. B. Idris-P bauen">
-          <datalist id="privProjZielList"></datalist>
-        </div>
-        <div class="field">
-          <label for="priv-proj-anzahl" data-i18n="label_anzahl">Anzahl</label>
-          <input type="number" id="priv-proj-anzahl" min="0" step="1" placeholder="1">
-        </div>
-      </div>
-      <div style="margin-top:12px;">
-        <label data-i18n="label_benoetigte_ressourcen" style="display:block;margin-bottom:8px;">Benötigte Ressourcen</label>
-        <div id="privProjResourcesContainer"></div>
-        <button type="button" class="btn-add-row" id="btnAddPrivProjResource"><span class="plus-icon">+</span><span data-i18n="btn_add_resource">Weitere Ressource hinzufügen</span></button>
-      </div>
-      <div style="margin-top:14px;">
-        <button class="btn-primary" id="btnAddPrivProject" data-i18n="btn_projekt_anlegen">Projekt anlegen</button>
-      </div>
-      <div class="status-msg" id="privProjectStatus"></div>
-    </div>
-    <div id="privProjectBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
-      <span id="privProjectBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
-      <button class="btn-icon danger" id="btnBulkDeletePrivProjects" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
-    </div>
-    <div id="privProjectTableContainer" style="margin-top:14px;"></div>
   </div>
 
   <div class="panel">
@@ -4430,6 +4430,49 @@ async function saveOrgDefaultPassword(newPassword){
   }
 }
 
+// Cache fuer bereits abgefragte Standard-Passwoerter ANDERER
+// Organisationen (Owner-Organisationsverwaltung, siehe
+// renderOrgManagementList) -- vermeidet wiederholte Speicherzugriffe
+// beim mehrfachen Auf-/Zuklappen derselben Zeile. Bewusst getrennt von
+// currentOrgDefaultPassword, das ausschliesslich die EIGENE
+// Organisation der eingeloggten Person betrifft.
+const orgDefaultPasswordCache = {};
+
+async function loadSpecificOrgDefaultPassword(organizationId){
+  if(orgDefaultPasswordCache[organizationId] !== undefined) return orgDefaultPasswordCache[organizationId];
+  try{
+    const key = `${DEFAULT_PASSWORD_KEY}__org_${organizationId}`;
+    const res = await window.storage.get(key, true);
+    orgDefaultPasswordCache[organizationId] = (res && res.value) ? res.value : DEFAULT_PASSWORD;
+  }catch(e){
+    orgDefaultPasswordCache[organizationId] = DEFAULT_PASSWORD;
+  }
+  return orgDefaultPasswordCache[organizationId];
+}
+
+// Speichert das Standard-Passwort einer EXPLIZIT angegebenen Organisation
+// (Owner-Organisationsverwaltung) -- im Unterschied zu
+// saveOrgDefaultPassword() oben, das ausschliesslich ueber orgKey()
+// (also implizit die EIGENE Organisation der eingeloggten Person)
+// arbeitet. Aktualisiert bei Erfolg zusaetzlich den Cache sowie, falls
+// die bearbeitete Organisation zufaellig der eigenen entspricht, auch
+// currentOrgDefaultPassword, damit keine widerspruechlichen Werte im
+// Speicher stehen bleiben. Siehe Nutzerwunsch vom 8. August 2026 (Owner
+// kann jeder Organisation ein eigenes Standard-Passwort vergeben).
+async function saveSpecificOrgDefaultPassword(organizationId, newPassword){
+  try{
+    const key = `${DEFAULT_PASSWORD_KEY}__org_${organizationId}`;
+    await window.storage.set(key, newPassword, true);
+    orgDefaultPasswordCache[organizationId] = newPassword;
+    if(organizationId === currentOrgId){
+      currentOrgDefaultPassword = newPassword;
+    }
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
 function getPassword(username){
   return credentials[username] || currentOrgDefaultPassword || DEFAULT_PASSWORD;
 }
@@ -4855,11 +4898,20 @@ function renderOrgManagementList(){
   container.innerHTML = ORGANIZATIONS.map((o,idx)=>{
     const userCount = USERS.filter(u=>u.organizationId===o.id).length;
     if(editingOrgIndex === idx){
-      return `<div class="user-row">
+      // orgEditDefaultPasswordValue wird asynchron VOR dem Rendern
+      // dieser Zeile geladen (siehe edit-org-Klick-Handler unten) und
+      // hier synchron eingesetzt -- dadurch zeigt das Feld sofort den
+      // tatsaechlich aktuellen Wert dieser konkreten Organisation, statt
+      // eines generischen Platzhalters.
+      return `<div class="user-row" style="flex-direction:column;align-items:stretch;gap:8px;">
         <div class="user-info">
           <input class="edit-input" id="edit-org-name-${idx}" value="${escapeHtml(o.name)}">
         </div>
-        <div class="actions-cell">
+        <div class="field" style="margin:0;">
+          <label for="edit-org-defaultpw-${idx}" style="font-size:11px;" data-i18n="label_default_password">Standard-Passwort</label>
+          <input class="edit-input" id="edit-org-defaultpw-${idx}" value="${escapeHtml(orgDefaultPasswordCache[o.id] || '')}" autocomplete="off">
+        </div>
+        <div class="actions-cell" style="justify-content:flex-end;">
           <button class="btn-icon" data-action="save-org" data-idx="${idx}" title="${t('btn_save')}">✓</button>
           <button class="btn-icon danger" data-action="cancel-org" title="${t('btn_cancel')}">✕</button>
         </div>
@@ -4877,7 +4929,17 @@ function renderOrgManagementList(){
   }).join('');
 
   container.querySelectorAll('[data-action="edit-org"]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ editingOrgIndex = parseInt(btn.dataset.idx); renderOrgManagementList(); });
+    btn.addEventListener('click', async ()=>{
+      const idx = parseInt(btn.dataset.idx);
+      // Standard-Passwort dieser konkreten Organisation VOR dem
+      // Umschalten in den Bearbeiten-Modus laden, damit die Zeile beim
+      // ersten Rendern bereits den korrekten Wert zeigt (nicht leer,
+      // nicht der eigene, evtl. abweichende Wert der einloggenden
+      // Person).
+      await loadSpecificOrgDefaultPassword(ORGANIZATIONS[idx].id);
+      editingOrgIndex = idx;
+      renderOrgManagementList();
+    });
   });
   container.querySelectorAll('[data-action="cancel-org"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingOrgIndex = null; document.getElementById('orgFormStatus').textContent=''; renderOrgManagementList(); });
@@ -4890,9 +4952,14 @@ function renderOrgManagementList(){
 async function saveOrgEdit(idx){
   const statusEl = document.getElementById('orgFormStatus');
   const newName = document.getElementById('edit-org-name-'+idx).value.trim();
+  const newDefaultPw = document.getElementById('edit-org-defaultpw-'+idx).value.trim();
 
   if(!newName){
     statusEl.textContent = t('val_org_name_required');
+    return;
+  }
+  if(!newDefaultPw){
+    statusEl.textContent = t('val_default_password_required');
     return;
   }
   const duplicate = ORGANIZATIONS.some((o,i)=> i!==idx && o.name.toLowerCase()===newName.toLowerCase());
@@ -4905,8 +4972,10 @@ async function saveOrgEdit(idx){
   editingOrgIndex = null;
   statusEl.textContent = t('msg_saving');
   const ok = await saveOrganizations();
+  const pwOk = await saveSpecificOrgDefaultPassword(ORGANIZATIONS[idx].id, newDefaultPw);
   if(ok) await logAction('Organisation umbenannt', newName);
-  statusEl.textContent = ok ? t('msg_org_renamed') : t('msg_save_failed');
+  if(pwOk) await logAction('Standard-Passwort geändert', `${t('label_default_password')} (${newName})`);
+  statusEl.textContent = (ok && pwOk) ? t('msg_org_renamed') : t('msg_save_failed');
   renderOrgManagementList();
   renderOrgSwitcher();
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
@@ -5629,6 +5698,15 @@ function switchTab(tabName){
   document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.classList.toggle('active', btn.dataset.tab===tabName);
   });
+  // Das "Passwort ändern"-Panel liegt bewusst ausserhalb der eigentlichen
+  // Tab-Struktur (direkt unter der Reiter-Navigation, unabhaengig vom
+  // gerade aktiven Reiter erreichbar) und wurde von der obigen
+  // .tab-content-Sichtbarkeitssteuerung daher nie mit erfasst -- blieb
+  // nach einem Klick auf "Passwort ändern" bislang bei jedem
+  // Reiter-Wechsel weiterhin sichtbar stehen, was irritierend wirken
+  // konnte. Wird jetzt bei jedem Reiter-Wechsel konsequent mit
+  // ausgeblendet. Siehe Nutzerwunsch vom 8. August 2026.
+  document.getElementById('pwPanel').style.display = 'none';
   // WICHTIG: Der Reiter-Wechsel selbst blendete bislang lediglich den
   // bereits vorhandenen (moeglicherweise laengst veralteten) DOM-Inhalt
   // ein/aus, ohne ihn neu zu rendern. Aenderungen an anderer Stelle (z.B.
@@ -5839,11 +5917,17 @@ function completeLogin(user){
   document.getElementById('orgBrandingPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   document.getElementById('orgExportPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   document.getElementById('catalogPanel').style.display = user.role==='owner' ? '' : 'none';
-  document.getElementById('defaultPasswordPanel').style.display = user.role==='owner' ? '' : 'none';
-  if(user.role==='owner'){
+  // Ab 8. August 2026: nicht mehr nur owner, sondern bereits org_admin
+  // aufwaerts -- betrifft dabei ausschliesslich die EIGENE Organisation
+  // (ueber orgKey()/currentOrgId, siehe loadOrgDefaultPassword). Fuer
+  // eine gezielte Aenderung ANDERER Organisationen bleibt es owner
+  // vorbehalten, ueber die Organisationsverwaltung (siehe dort). Siehe
+  // Nutzerwunsch vom 8. August 2026.
+  document.getElementById('defaultPasswordPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+  if(isOrgAdminOrAbove){
     // currentOrgDefaultPassword wurde bereits beim Login geladen (siehe
     // doLogin -> loadOrgDefaultPassword) -- hier nur noch ins Eingabefeld
-    // uebernehmen, damit der Owner den aktuell gueltigen Wert sofort sieht,
+    // uebernehmen, damit direkt der aktuell gueltige Wert sichtbar ist,
     // statt ihn zu erraten.
     document.getElementById('defaultPasswordInput').value = currentOrgDefaultPassword || DEFAULT_PASSWORD;
   }
