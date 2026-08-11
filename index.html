@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.042 -->
+<!-- Version: 0.043 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -8360,12 +8360,15 @@ function addProjectResourceRow(isPrivate, container, prefill){
   const anzahlNow = getEffectiveProjectAnzahl(isPrivate);
   const displayValue = baseMenge!=null ? Math.round(baseMenge * anzahlNow * 1000) / 1000 : '';
 
+  const einheitId = prefix+'proj-res-einheit-'+rowId;
+
   div.innerHTML = `
     <div style="flex:1;min-width:170px;">${buildMaterialSelectHTML(matId, prefill?prefill.material:'', '')}</div>
     <input type="number" id="${qtyId}" min="0" step="0.001" value="${displayValue}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:170px;">
+    <span id="${einheitId}" style="font-size:11px;color:var(--cyan);white-space:nowrap;min-width:38px;">${prefill&&prefill.material?getDefaultEinheitForMaterial(prefill.material):''}</span>
     <span id="${hintId}" style="font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:110px;"></span>
     <input type="number" id="${qualId}" min="0" max="1000" step="0.01" value="${prefill&&prefill.mindestqualitaet!=null?prefill.mindestqualitaet:''}" placeholder="${t('placeholder_mindestqualitaet')}" title="${t('tooltip_projekt_mindestqualitaet')}" style="width:130px;">
-    <div style="font-size:11px;color:var(--ink-soft);white-space:nowrap;">${t('label_vorhanden')}: <span class="qty-cell" id="${availId}">–</span></div>
+    <div style="font-size:11px;color:var(--ink-soft);white-space:nowrap;">${t('label_vorhanden')}: <span class="qty-cell" id="${availId}">–</span>${prefill&&prefill.material?' '+getDefaultEinheitForMaterial(prefill.material):''}</div>
     <button type="button" class="btn-icon danger" data-remove-resource="${rowId}" title="${t('btn_delete')}">✕</button>
   `;
   container.appendChild(div);
@@ -8377,7 +8380,11 @@ function addProjectResourceRow(isPrivate, container, prefill){
   qtyInput.dataset.baseMenge = baseMenge!=null ? baseMenge : '';
   updateProjectResourceHint(qtyInput, isPrivate);
 
-  document.getElementById(matId).addEventListener('change', ()=>{ isPrivate ? updatePrivateProjectAvailability() : updateProjectAvailability(); });
+  document.getElementById(matId).addEventListener('change', ()=>{
+    const einheitSpan = document.getElementById(einheitId);
+    if(einheitSpan) einheitSpan.textContent = document.getElementById(matId).value ? getDefaultEinheitForMaterial(document.getElementById(matId).value) : '';
+    isPrivate ? updatePrivateProjectAvailability() : updateProjectAvailability();
+  });
 
   // WICHTIG: Dieser Listener feuert AUSSCHLIESSLICH bei echter
   // Nutzereingabe (Tippen/Scroll-Pfeile) -- nicht, wenn der Wert weiter
@@ -9379,7 +9386,7 @@ function updateProjectAvailability(){
     const out = document.getElementById('proj-avail-'+rowId);
     if(!sel || !out) return;
     const material = sel.value;
-    out.textContent = material ? stockForMaterial(material, ziel || undefined) : '–';
+    out.textContent = material ? `${stockForMaterial(material, ziel || undefined)} ${getDefaultEinheitForMaterial(material)}` : '–';
   });
 }
 
@@ -10046,7 +10053,7 @@ function updatePrivateProjectAvailability(){
     const out = document.getElementById('priv-proj-avail-'+rowId);
     if(!sel || !out) return;
     const material = sel.value;
-    out.textContent = material ? privateStockForMaterial(material, ziel || undefined, 'private') : '–';
+    out.textContent = material ? `${privateStockForMaterial(material, ziel || undefined, 'private')} ${getDefaultEinheitForMaterial(material)}` : '–';
   });
 }
 
