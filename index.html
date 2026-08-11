@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.038 -->
+<!-- Version: 0.040 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1525,7 +1525,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <button class="tab-btn" id="tabBtn-bedarfe" data-tab="bedarfe"><span data-i18n="tab_bedarf">Bedarf</span><span class="tab-badge" id="tabBadge-bedarfe" style="display:none;" title="Ungedeckte Bedarfe mit Priorität Hoch oder Kritisch" data-i18n-title="tooltip_bedarf_badge"></span></button>
     <button class="tab-btn" id="tabBtn-projekte" data-tab="projekte" data-i18n="tab_projekte">Projekte</button>
     <button class="tab-btn" id="tabBtn-sammelobjekte" data-tab="sammelobjekte" data-i18n="tab_sammelobjekte">Sammelobjekte</button>
-    <button class="tab-btn" id="tabBtn-privatbestand" data-tab="privatbestand"><span data-i18n="tab_privatbestand">Privat Bestände</span><span class="tab-badge" id="tabBadge-privatbestand" style="display:none;" title="Eigene private Einträge, die noch nicht in den geteilten Bestand übertragen wurden" data-i18n-title="tooltip_privat_badge"></span></button>
+    <button class="tab-btn" id="tabBtn-privatbestand" data-tab="privatbestand"><span data-i18n="tab_privatbestand">Privat Bestände</span></button>
     <button class="tab-btn" id="tabBtn-verwaltung" data-tab="verwaltung" style="display:none;" data-i18n="tab_verwaltung">Verwaltung</button>
   </nav>
 
@@ -1599,6 +1599,37 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-primary" id="btnSaveDefaultPassword" data-i18n="btn_save">Speichern</button>
     </div>
     <div class="status-msg" id="defaultPasswordStatus"></div>
+  </div>
+
+  <div class="panel" id="discordPanel" style="display:none;">
+    <h2 data-i18n="panel_discord">Discord-Benachrichtigungen</h2>
+    <div class="user-note" data-i18n="hint_discord">Sendet bei ausgewählten Ereignissen automatisch eine kurze Nachricht an einen Discord-Kanal eurer Wahl — praktisch als eigener, separat stummschaltbarer Kanal, damit andere Kanäle nicht überflutet werden. Die Webhook-URL wird wie ein Passwort behandelt: Wer sie kennt, kann in diesem Kanal posten.</div>
+    <div class="field" style="margin-top:12px;">
+      <label for="discordWebhookInput" data-i18n="label_discord_webhook">Discord-Webhook-URL</label>
+      <input type="password" id="discordWebhookInput" placeholder="https://discord.com/api/webhooks/…" autocomplete="off">
+    </div>
+    <div class="field" style="margin-top:14px;">
+      <label data-i18n="label_discord_events">Benachrichtigen bei</label>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
+          <input type="checkbox" id="discordEvent-kritischerBedarf"> <span data-i18n="label_discord_event_kritisch">⚠ Kritischer Bedarf gemeldet</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
+          <input type="checkbox" id="discordEvent-zuweisung"> <span data-i18n="label_discord_event_zuweisung">🎁 Material einer Person zugewiesen</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
+          <input type="checkbox" id="discordEvent-projektAngelegt"> <span data-i18n="label_discord_event_projekt">🚀 Neues Projekt angelegt</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
+          <input type="checkbox" id="discordEvent-projektBedarf"> <span data-i18n="label_discord_event_projektbedarf">📦 Bedarf aus einem Projekt gemeldet</span>
+        </label>
+      </div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px;">
+      <button class="btn-primary" id="btnSaveDiscord" data-i18n="btn_save">Speichern</button>
+      <button class="btn-ghost" id="btnTestDiscord" data-i18n="btn_discord_test">Testnachricht senden</button>
+    </div>
+    <div class="status-msg" id="discordStatus"></div>
   </div>
 
   <div class="panel" id="orgExportPanel" style="display:none;">
@@ -2713,7 +2744,6 @@ const I18N = {
   "msg_login_wrong_password": "Falsches Passwort.",
   "tooltip_under_min_stock": "Materialien unter Sollbestand",
   "tooltip_bedarf_badge": "Ungedeckte Bedarfe mit Priorität Hoch oder Kritisch",
-  "tooltip_privat_badge": "Eigene private Einträge, die noch nicht in den geteilten Bestand übertragen wurden",
   "label_under_min_stock": "Unter Soll",
   "val_quality_range": "Qualität muss zwischen 0 und 1000 liegen.",
   "val_menge_positive": "Menge muss größer als 0 sein.",
@@ -2843,6 +2873,24 @@ const I18N = {
   "val_min_one_owner": "Es muss mindestens ein Besitzer bestehen bleiben.",
   "val_no_permission_role": "Du darfst diese Rolle nicht vergeben.",
   "val_nur_owner": "Strukturelle Änderungen am Katalog (Materialien, Lagerorte) sind nur der Rolle Besitzer vorbehalten.",
+  "panel_discord": "Discord-Benachrichtigungen",
+  "hint_discord": "Sendet bei ausgewählten Ereignissen automatisch eine kurze Nachricht an einen Discord-Kanal eurer Wahl — praktisch als eigener, separat stummschaltbarer Kanal, damit andere Kanäle nicht überflutet werden. Die Webhook-URL wird wie ein Passwort behandelt: Wer sie kennt, kann in diesem Kanal posten.",
+  "label_discord_webhook": "Discord-Webhook-URL",
+  "label_discord_events": "Benachrichtigen bei",
+  "label_discord_event_kritisch": "⚠ Kritischer Bedarf gemeldet",
+  "label_discord_event_zuweisung": "🎁 Material einer Person zugewiesen",
+  "label_discord_event_projekt": "🚀 Neues Projekt angelegt",
+  "label_discord_event_projektbedarf": "📦 Bedarf aus einem Projekt gemeldet",
+  "btn_discord_test": "Testnachricht senden",
+  "val_discord_webhook_invalid": "Das sieht nicht nach einer gültigen Discord-Webhook-URL aus (muss mit https://discord.com/api/webhooks/ beginnen).",
+  "val_discord_webhook_required": "Bitte zuerst eine Webhook-URL eintragen.",
+  "msg_discord_saved": "Discord-Einstellungen gespeichert.",
+  "msg_discord_testing": "Testnachricht wird gesendet …",
+  "msg_discord_test_content": "✅ Testnachricht vom Materialbestand-Tool — die Verbindung funktioniert!",
+  "msg_discord_test_success": "Testnachricht erfolgreich gesendet — bitte im Discord-Kanal prüfen.",
+  "msg_discord_test_failed": "Senden fehlgeschlagen — bitte die Webhook-URL prüfen.",
+  "label_discord_aktiv": "aktiviert",
+  "label_discord_deaktiviert": "deaktiviert",
   "panel_default_password": "Standard-Passwort für Erst-Login",
   "hint_default_password_setting": "Gilt für alle Benutzer dieser Organisation, die noch kein eigenes Passwort gesetzt haben — wird beim allerersten Login zwingend durch ein persönliches Passwort ersetzt. Eine Änderung hier betrifft nur zukünftige Erst-Logins, nicht bereits individuell gesetzte Passwörter.",
   "label_default_password": "Standard-Passwort",
@@ -3276,7 +3324,6 @@ const I18N = {
   "msg_login_wrong_password": "Incorrect password.",
   "tooltip_under_min_stock": "Materials below target stock",
   "tooltip_bedarf_badge": "Uncovered needs with priority High or Critical",
-  "tooltip_privat_badge": "Your own private entries not yet transferred to the shared inventory",
   "label_under_min_stock": "Below target",
   "val_quality_range": "Quality must be between 0 and 1000.",
   "val_menge_positive": "Quantity must be greater than 0.",
@@ -3406,6 +3453,24 @@ const I18N = {
   "val_min_one_owner": "At least one owner must remain.",
   "val_no_permission_role": "You are not allowed to assign this role.",
   "val_nur_owner": "Structural catalog changes (materials, locations) are reserved for the Owner role.",
+  "panel_discord": "Discord notifications",
+  "hint_discord": "Automatically sends a short message to a Discord channel of your choice for selected events — handy as its own channel that can be muted separately, so other channels aren't flooded. The webhook URL is treated like a password: anyone who knows it can post in that channel.",
+  "label_discord_webhook": "Discord webhook URL",
+  "label_discord_events": "Notify on",
+  "label_discord_event_kritisch": "⚠ Critical need reported",
+  "label_discord_event_zuweisung": "🎁 Material assigned to a person",
+  "label_discord_event_projekt": "🚀 New project created",
+  "label_discord_event_projektbedarf": "📦 Need reported from a project",
+  "btn_discord_test": "Send test message",
+  "val_discord_webhook_invalid": "That doesn't look like a valid Discord webhook URL (must start with https://discord.com/api/webhooks/).",
+  "val_discord_webhook_required": "Please enter a webhook URL first.",
+  "msg_discord_saved": "Discord settings saved.",
+  "msg_discord_testing": "Sending test message …",
+  "msg_discord_test_content": "✅ Test message from the Materialbestand tool — the connection works!",
+  "msg_discord_test_success": "Test message sent successfully — please check the Discord channel.",
+  "msg_discord_test_failed": "Sending failed — please check the webhook URL.",
+  "label_discord_aktiv": "enabled",
+  "label_discord_deaktiviert": "disabled",
   "panel_default_password": "Default password for first login",
   "hint_default_password_setting": "Applies to all users of this organization who have not yet set their own password — must be replaced with a personal password on the very first login. A change here only affects future first logins, not already individually set passwords.",
   "label_default_password": "Default password",
@@ -3839,7 +3904,6 @@ const I18N = {
   "msg_login_wrong_password": "Mot de passe incorrect.",
   "tooltip_under_min_stock": "Matériaux en dessous du stock cible",
   "tooltip_bedarf_badge": "Besoins non couverts avec priorité Haute ou Critique",
-  "tooltip_privat_badge": "Vos propres entrées privées pas encore transférées vers l'inventaire partagé",
   "label_under_min_stock": "Sous l'objectif",
   "val_quality_range": "La qualité doit être comprise entre 0 et 1000.",
   "val_menge_positive": "La quantité doit être supérieure à 0.",
@@ -3969,6 +4033,24 @@ const I18N = {
   "val_min_one_owner": "Il doit rester au moins un propriétaire.",
   "val_no_permission_role": "Vous n'êtes pas autorisé à attribuer ce rôle.",
   "val_nur_owner": "Les modifications structurelles du catalogue (matériaux, emplacements) sont réservées au rôle Propriétaire.",
+  "panel_discord": "Notifications Discord",
+  "hint_discord": "Envoie automatiquement un court message à un canal Discord de votre choix lors d'événements sélectionnés — pratique comme canal séparé, désactivable individuellement, pour ne pas inonder les autres canaux. L'URL du webhook est traitée comme un mot de passe : quiconque la connaît peut publier dans ce canal.",
+  "label_discord_webhook": "URL du webhook Discord",
+  "label_discord_events": "Notifier lors de",
+  "label_discord_event_kritisch": "⚠ Besoin critique signalé",
+  "label_discord_event_zuweisung": "🎁 Matériau attribué à une personne",
+  "label_discord_event_projekt": "🚀 Nouveau projet créé",
+  "label_discord_event_projektbedarf": "📦 Besoin signalé depuis un projet",
+  "btn_discord_test": "Envoyer un message test",
+  "val_discord_webhook_invalid": "Cela ne ressemble pas à une URL de webhook Discord valide (doit commencer par https://discord.com/api/webhooks/).",
+  "val_discord_webhook_required": "Veuillez d'abord indiquer une URL de webhook.",
+  "msg_discord_saved": "Paramètres Discord enregistrés.",
+  "msg_discord_testing": "Envoi du message test …",
+  "msg_discord_test_content": "✅ Message test de l'outil Materialbestand — la connexion fonctionne !",
+  "msg_discord_test_success": "Message test envoyé avec succès — veuillez vérifier le canal Discord.",
+  "msg_discord_test_failed": "Échec de l'envoi — veuillez vérifier l'URL du webhook.",
+  "label_discord_aktiv": "activé",
+  "label_discord_deaktiviert": "désactivé",
   "panel_default_password": "Mot de passe par défaut pour la première connexion",
   "hint_default_password_setting": "S'applique à tous les utilisateurs de cette organisation qui n'ont pas encore défini leur propre mot de passe — doit être remplacé par un mot de passe personnel dès la toute première connexion. Une modification ici n'affecte que les futures premières connexions, pas les mots de passe déjà définis individuellement.",
   "label_default_password": "Mot de passe par défaut",
@@ -4427,6 +4509,73 @@ async function saveOrgDefaultPassword(newPassword){
     return true;
   }catch(e){
     return false;
+  }
+}
+
+// Discord-Benachrichtigungen (ab 8. August 2026, ab org_admin) --
+// organisationsgebunden gespeichert (orgKey()), damit jede Organisation
+// ihren eigenen Discord-Kanal/-Webhook nutzt. Webhook-URL und die
+// einzeln zuschaltbaren Ereignis-Kennzeichen liegen gebuendelt in EINEM
+// Speicherschluessel (statt mehrerer Einzelschluessel), da sie ohnehin
+// stets gemeinsam geladen/gespeichert werden. Siehe Nutzerwunsch vom
+// 8. August 2026.
+const DISCORD_SETTINGS_KEY = 'discord-settings';
+let currentOrgDiscordSettings = null;
+
+function defaultDiscordSettings(){
+  return { webhookUrl: '', events: { kritischerBedarf:false, zuweisung:false, projektAngelegt:false, projektBedarf:false } };
+}
+
+async function loadOrgDiscordSettings(){
+  try{
+    const res = await window.storage.get(orgKey(DISCORD_SETTINGS_KEY), true);
+    currentOrgDiscordSettings = res && res.value ? JSON.parse(res.value) : defaultDiscordSettings();
+  }catch(e){
+    currentOrgDiscordSettings = defaultDiscordSettings();
+  }
+  return currentOrgDiscordSettings;
+}
+
+async function saveOrgDiscordSettings(settings){
+  try{
+    await window.storage.set(orgKey(DISCORD_SETTINGS_KEY), JSON.stringify(settings), true);
+    currentOrgDiscordSettings = settings;
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+function loadDiscordSettingsIntoForm(){
+  const s = currentOrgDiscordSettings || defaultDiscordSettings();
+  document.getElementById('discordWebhookInput').value = s.webhookUrl || '';
+  document.getElementById('discordEvent-kritischerBedarf').checked = !!s.events.kritischerBedarf;
+  document.getElementById('discordEvent-zuweisung').checked = !!s.events.zuweisung;
+  document.getElementById('discordEvent-projektAngelegt').checked = !!s.events.projektAngelegt;
+  document.getElementById('discordEvent-projektBedarf').checked = !!s.events.projektBedarf;
+}
+
+// Zentrale Versandfunktion -- wird an allen vier Ausloese-Stellen
+// aufgerufen. Prueft selbststaendig, ob ueberhaupt ein Webhook
+// hinterlegt UND das jeweilige Ereignis aktiviert ist; tut in allen
+// anderen Faellen (kein Webhook, Ereignis deaktiviert, Netzwerkfehler)
+// still gar nichts. Schlaegt der Versand fehl, wird das bewusst NICHT
+// dem Nutzer gemeldet und blockiert unter keinen Umstaenden die
+// eigentliche Aktion (Bedarf anlegen, Zuweisung usw.) -- eine
+// Benachrichtigung ist immer nur ein Nice-to-have obendrauf, nie eine
+// Voraussetzung. Discord-Webhooks erwarten ein JSON-Objekt mit einem
+// "content"-Feld (einfacher Textinhalt), siehe Discord-Entwicklerdoku.
+async function sendDiscordNotification(eventKey, message){
+  const s = currentOrgDiscordSettings;
+  if(!s || !s.webhookUrl || !s.events[eventKey]) return;
+  try{
+    await fetch(s.webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: message })
+    });
+  }catch(e){
+    // Bewusst stillschweigend ignoriert -- siehe Kommentar oben.
   }
 }
 
@@ -5481,6 +5630,54 @@ document.getElementById('btnSaveDefaultPassword').addEventListener('click', asyn
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
 });
 
+document.getElementById('btnSaveDiscord').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('discordStatus');
+  const settings = {
+    webhookUrl: document.getElementById('discordWebhookInput').value.trim(),
+    events: {
+      kritischerBedarf: document.getElementById('discordEvent-kritischerBedarf').checked,
+      zuweisung: document.getElementById('discordEvent-zuweisung').checked,
+      projektAngelegt: document.getElementById('discordEvent-projektAngelegt').checked,
+      projektBedarf: document.getElementById('discordEvent-projektBedarf').checked
+    }
+  };
+  // Webhook-URL grob validieren -- verhindert nicht jeden Tippfehler,
+  // faengt aber den haeufigsten Fall ab (komplett falsche/vergessene URL).
+  if(settings.webhookUrl && !settings.webhookUrl.startsWith('https://discord.com/api/webhooks/') && !settings.webhookUrl.startsWith('https://discordapp.com/api/webhooks/')){
+    statusEl.textContent = t('val_discord_webhook_invalid');
+    return;
+  }
+  statusEl.textContent = t('msg_saving');
+  const ok = await saveOrgDiscordSettings(settings);
+  statusEl.textContent = ok ? t('msg_discord_saved') : t('msg_save_failed');
+  if(ok) await logAction('Discord-Benachrichtigungen geändert', settings.webhookUrl ? t('label_discord_aktiv') : t('label_discord_deaktiviert'));
+  setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+});
+
+document.getElementById('btnTestDiscord').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('discordStatus');
+  const webhookUrl = document.getElementById('discordWebhookInput').value.trim();
+  if(!webhookUrl){
+    statusEl.textContent = t('val_discord_webhook_required');
+    return;
+  }
+  statusEl.textContent = t('msg_discord_testing');
+  try{
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: t('msg_discord_test_content') })
+    });
+    // Discord-Webhooks antworten bei Erfolg mit Status 204 (kein Inhalt).
+    // Alles ausserhalb 200-299 deutet auf eine falsche/geloeschte
+    // Webhook-URL oder fehlende Berechtigung hin.
+    statusEl.textContent = res.ok ? t('msg_discord_test_success') : t('msg_discord_test_failed');
+  }catch(e){
+    statusEl.textContent = t('msg_discord_test_failed');
+  }
+  setTimeout(()=>{ statusEl.textContent=''; }, 5000);
+});
+
 // ============================================================
 // Vollständiger Datenexport der aktiven Organisation — bewusst auf die
 // geteilten (organisationsweiten) Daten beschränkt, nicht die persönlichen
@@ -5647,6 +5844,14 @@ async function doLogin(){
   document.getElementById('loginPassword').value = '';
   currentUser = user;
   currentOrgId = user.organizationId || LEGACY_ORG_ID;
+  // Discord-Einstellungen dieser Organisation laden, damit sie beim
+  // anschliessenden completeLogin() bereits fuers Formular (siehe
+  // loadDiscordSettingsIntoForm) sowie fuer alle vier moeglichen
+  // Benachrichtigungs-Ausloeser zur Verfuegung stehen. BEWUSST
+  // abgewartet (await) -- ohne das wuerde loadDiscordSettingsIntoForm()
+  // in completeLogin() auf noch nicht geladene Daten treffen (Formular
+  // zeigt faelschlich leer, obwohl Einstellungen existieren).
+  await loadOrgDiscordSettings();
 
   if(password === currentOrgDefaultPassword){
     // Erster Login mit Standardpasswort — individuelles Passwort ist Pflicht.
@@ -5924,6 +6129,10 @@ function completeLogin(user){
   // vorbehalten, ueber die Organisationsverwaltung (siehe dort). Siehe
   // Nutzerwunsch vom 8. August 2026.
   document.getElementById('defaultPasswordPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+  document.getElementById('discordPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+  if(isOrgAdminOrAbove){
+    loadDiscordSettingsIntoForm();
+  }
   if(isOrgAdminOrAbove){
     // currentOrgDefaultPassword wurde bereits beim Login geladen (siehe
     // doLogin -> loadOrgDefaultPassword) -- hier nur noch ins Eingabefeld
@@ -5983,6 +6192,23 @@ async function switchOrganization(newOrgId){
   applyOrgBranding();
   renderOrgBrandingForm();
   renderExportReminder();
+  // WICHTIG: currentOrgDiscordSettings (und currentOrgDefaultPassword)
+  // haengen ueber orgKey() an currentOrgId und MUESSEN beim Wechsel neu
+  // geladen werden -- ohne dies wuerde eine z.B. ausgeloeste
+  // Discord-Benachrichtigung faelschlich weiterhin ueber den Webhook der
+  // vorher aktiven Organisation laufen, obwohl der Owner inzwischen eine
+  // ANDERE Organisation verwaltet. Genau die Art von Organisations-
+  // Vermischung, die laut ausdruecklichem Nutzerwunsch (8. August 2026)
+  // strikt ausgeschlossen sein muss, da jede Organisation ihr eigenes
+  // Discord betreibt. Vor renderDiscordSettingsIntoForm() geladen, damit
+  // das Owner-Formular anschliessend auch sofort den korrekten,
+  // organisationsspezifischen Stand zeigt.
+  await loadOrgDiscordSettings();
+  await loadOrgDefaultPassword(newOrgId);
+  if(roleAtLeast(currentUser.role, 'org_admin')){
+    loadDiscordSettingsIntoForm();
+    document.getElementById('defaultPasswordInput').value = currentOrgDefaultPassword || DEFAULT_PASSWORD;
+  }
   await load();
   if(roleAtLeast(currentUser.role, 'admin')) renderCatalogLists();
 }
@@ -9236,6 +9462,7 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
   statusEl.textContent = t('msg_saving');
   await saveProjects();
   await logAction('Projekt angelegt', `${ziel} (${anzahl}x, Priorität: ${prioritaet})`);
+  await sendDiscordNotification('projektAngelegt', `🚀 **Neues Projekt angelegt**: ${ziel} (${anzahl}x) — von ${currentUser.username}`);
 
   document.getElementById('proj-ziel').value = '';
   document.getElementById('proj-anzahl').value = '';
@@ -9456,6 +9683,7 @@ function renderProjects(){
         });
         await saveNeeds();
         await logAction('Bedarf hinzugefügt', `${material}, ${menge} ${getDefaultEinheitForMaterial(material)} (Hoch) — aus Projekt „${ziel}“`);
+        await sendDiscordNotification('projektBedarf', `📦 **Bedarf aus Projekt gemeldet**: ${material}, ${menge} ${getDefaultEinheitForMaterial(material)} — für Projekt „${ziel}“`);
         renderNeeds();
         btn.textContent = t('msg_added_as_need');
       }
@@ -9500,6 +9728,9 @@ function renderProjects(){
         if(addedCount>0) parts.push(`${addedCount} neu`);
         if(updatedCount>0) parts.push(`${updatedCount} aktualisiert (verknüpft statt Duplikat)`);
         await logAction('Bedarf hinzugefügt (Sammel)', `${parts.join(', ')} aus Projekt „${p.ziel}“`);
+        if(addedCount > 0){
+          await sendDiscordNotification('projektBedarf', `📦 **Bedarf aus Projekt gemeldet**: ${addedCount} neue Bedarfe für Projekt „${p.ziel}“`);
+        }
         renderNeeds();
       }
       btn.textContent = t('msg_added_as_need');
@@ -10105,6 +10336,9 @@ document.getElementById('btnAddNeed').addEventListener('click', async ()=>{
   statusEl.textContent = t('msg_saving');
   await saveNeeds();
   await logAction('Bedarf hinzugefügt', `${material}, ${menge} ${einheit} (${prioritaet})`);
+  if(prioritaet === 'Kritisch'){
+    await sendDiscordNotification('kritischerBedarf', `⚠ **Kritischer Bedarf gemeldet**: ${material}, ${menge} ${einheit} — gemeldet von ${currentUser.username}`);
+  }
   renderNeeds();
   statusEl.textContent = t('msg_need_saved');
   setTimeout(()=>{ statusEl.textContent=''; }, 2500);
@@ -12240,12 +12474,11 @@ function updateTabBadges(){
     bedarfBadge.style.display = kritischeBedarfe>0 ? '' : 'none';
   }
 
-  const privateCount = myPrivateEntries().length + myPrivateCollectibles().length;
-  const privBadge = document.getElementById('tabBadge-privatbestand');
-  if(privBadge){
-    privBadge.textContent = privateCount;
-    privBadge.style.display = privateCount>0 ? '' : 'none';
-  }
+  // Der zuvor hier vorhandene Zahlen-Marker am Reiter "Privat Bestände"
+  // (Anzahl noch nicht uebertragener privater Eintraege) wurde entfernt --
+  // sollte nicht den Eindruck erwecken, private Eintraege muessten
+  // zwingend in den geteilten Bestand uebertragen werden. Siehe
+  // Nutzerwunsch vom 8. August 2026.
 
   // Anzahl der Materialien, die (über alle Qualitätsstufen hinweg
   // zusammengezählt) unter ihrem festgelegten Sollbestand liegen.
@@ -13116,6 +13349,7 @@ async function assignEntryToPerson(id, amount, recipient){
   await save();
   await savePrivateEntries();
   await logAction('Person zugewiesen', logDetail);
+  await sendDiscordNotification('zuweisung', `🎁 **Material zugewiesen**: ${e.material}, ${assignAmount} ${e.einheit} an ${recipient} — von ${currentUser.username}`);
 
   render();
   updateProjectAvailability();
