@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.040 -->
+<!-- Version: 0.041 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1681,6 +1681,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <button class="btn-primary" id="btnAddOrg" data-i18n="btn_anlegen">Anlegen</button>
       </div>
     </div>
+    <div class="field" style="margin-top:10px;">
+      <label for="newOrgWebhook" data-i18n="label_discord_webhook_optional">Discord-Webhook-URL (optional, lässt sich auch später ergänzen)</label>
+      <input type="password" id="newOrgWebhook" placeholder="https://discord.com/api/webhooks/…" autocomplete="off">
+    </div>
     <div class="status-msg" id="orgFormStatus"></div>
     <div class="user-list" id="orgListContainer" style="margin-top:12px;"></div>
     <div class="user-note" data-i18n="hint_org_no_delete">Organisationen können umbenannt, aber aus Sicherheitsgründen nicht gelöscht werden.</div>
@@ -2875,6 +2879,7 @@ const I18N = {
   "val_nur_owner": "Strukturelle Änderungen am Katalog (Materialien, Lagerorte) sind nur der Rolle Besitzer vorbehalten.",
   "panel_discord": "Discord-Benachrichtigungen",
   "hint_discord": "Sendet bei ausgewählten Ereignissen automatisch eine kurze Nachricht an einen Discord-Kanal eurer Wahl — praktisch als eigener, separat stummschaltbarer Kanal, damit andere Kanäle nicht überflutet werden. Die Webhook-URL wird wie ein Passwort behandelt: Wer sie kennt, kann in diesem Kanal posten.",
+  "label_discord_webhook_optional": "Discord-Webhook-URL (optional, lässt sich auch später ergänzen)",
   "label_discord_webhook": "Discord-Webhook-URL",
   "label_discord_events": "Benachrichtigen bei",
   "label_discord_event_kritisch": "⚠ Kritischer Bedarf gemeldet",
@@ -3455,6 +3460,7 @@ const I18N = {
   "val_nur_owner": "Structural catalog changes (materials, locations) are reserved for the Owner role.",
   "panel_discord": "Discord notifications",
   "hint_discord": "Automatically sends a short message to a Discord channel of your choice for selected events — handy as its own channel that can be muted separately, so other channels aren't flooded. The webhook URL is treated like a password: anyone who knows it can post in that channel.",
+  "label_discord_webhook_optional": "Discord webhook URL (optional, can also be added later)",
   "label_discord_webhook": "Discord webhook URL",
   "label_discord_events": "Notify on",
   "label_discord_event_kritisch": "⚠ Critical need reported",
@@ -4035,6 +4041,7 @@ const I18N = {
   "val_nur_owner": "Les modifications structurelles du catalogue (matériaux, emplacements) sont réservées au rôle Propriétaire.",
   "panel_discord": "Notifications Discord",
   "hint_discord": "Envoie automatiquement un court message à un canal Discord de votre choix lors d'événements sélectionnés — pratique comme canal séparé, désactivable individuellement, pour ne pas inonder les autres canaux. L'URL du webhook est traitée comme un mot de passe : quiconque la connaît peut publier dans ce canal.",
+  "label_discord_webhook_optional": "URL du webhook Discord (facultatif, peut aussi être ajoutée plus tard)",
   "label_discord_webhook": "URL du webhook Discord",
   "label_discord_events": "Notifier lors de",
   "label_discord_event_kritisch": "⚠ Besoin critique signalé",
@@ -4622,6 +4629,40 @@ async function saveSpecificOrgDefaultPassword(organizationId, newPassword){
   }
 }
 
+// Analog zu orgDefaultPasswordCache/loadSpecificOrgDefaultPassword/
+// saveSpecificOrgDefaultPassword oben -- ermoeglicht dem Owner, den
+// Discord-Webhook einer BELIEBIGEN Organisation zu hinterlegen (z.B.
+// direkt bei der Neuanlage, oder nachtraeglich in der
+// Organisationsverwaltung), nicht nur der eigenen. Siehe Nutzerwunsch
+// vom 8. August 2026.
+const orgDiscordSettingsCache = {};
+
+async function loadSpecificOrgDiscordSettings(organizationId){
+  if(orgDiscordSettingsCache[organizationId] !== undefined) return orgDiscordSettingsCache[organizationId];
+  try{
+    const key = `${DISCORD_SETTINGS_KEY}__org_${organizationId}`;
+    const res = await window.storage.get(key, true);
+    orgDiscordSettingsCache[organizationId] = res && res.value ? JSON.parse(res.value) : defaultDiscordSettings();
+  }catch(e){
+    orgDiscordSettingsCache[organizationId] = defaultDiscordSettings();
+  }
+  return orgDiscordSettingsCache[organizationId];
+}
+
+async function saveSpecificOrgDiscordSettings(organizationId, settings){
+  try{
+    const key = `${DISCORD_SETTINGS_KEY}__org_${organizationId}`;
+    await window.storage.set(key, JSON.stringify(settings), true);
+    orgDiscordSettingsCache[organizationId] = settings;
+    if(organizationId === currentOrgId){
+      currentOrgDiscordSettings = settings;
+    }
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
 function getPassword(username){
   return credentials[username] || currentOrgDefaultPassword || DEFAULT_PASSWORD;
 }
@@ -5017,8 +5058,10 @@ let editingOrgIndex = null;
 
 async function addOrganization(){
   const nameInput = document.getElementById('newOrgName');
+  const webhookInput = document.getElementById('newOrgWebhook');
   const statusEl = document.getElementById('orgFormStatus');
   const name = nameInput.value.trim();
+  const webhookUrl = webhookInput.value.trim();
 
   if(!name){
     statusEl.textContent = t('val_org_name_required');
@@ -5028,13 +5071,27 @@ async function addOrganization(){
     statusEl.textContent = t('val_org_name_exists');
     return;
   }
+  if(webhookUrl && !webhookUrl.startsWith('https://discord.com/api/webhooks/') && !webhookUrl.startsWith('https://discordapp.com/api/webhooks/')){
+    statusEl.textContent = t('val_discord_webhook_invalid');
+    return;
+  }
 
   const id = 'org_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7);
   ORGANIZATIONS.push({ id, name, createdAt: new Date().toISOString() });
   statusEl.textContent = t('msg_saving');
   const ok = await saveOrganizations();
   if(ok) await logAction('Organisation angelegt', name);
+  // Webhook-URL optional gleich bei der Neuanlage mitgeben -- nutzt
+  // denselben Mechanismus wie das nachtraegliche Bearbeiten (explizite
+  // Organisations-ID, siehe saveSpecificOrgDiscordSettings), damit keine
+  // doppelte Speicherlogik entsteht. Nur Webhook-URL, Ereignisse bleiben
+  // zunaechst alle deaktiviert -- die werden bewusst separat im
+  // Discord-Panel ausgewaehlt, nicht schon bei der Organisations-Anlage.
+  if(webhookUrl){
+    await saveSpecificOrgDiscordSettings(id, { webhookUrl, events: defaultDiscordSettings().events });
+  }
   nameInput.value = '';
+  webhookInput.value = '';
   statusEl.textContent = ok ? t('msg_org_added').replace('{name}', name) : t('msg_save_failed');
   renderOrgManagementList();
   renderOrgSwitcher();
@@ -5060,6 +5117,10 @@ function renderOrgManagementList(){
           <label for="edit-org-defaultpw-${idx}" style="font-size:11px;" data-i18n="label_default_password">Standard-Passwort</label>
           <input class="edit-input" id="edit-org-defaultpw-${idx}" value="${escapeHtml(orgDefaultPasswordCache[o.id] || '')}" autocomplete="off">
         </div>
+        <div class="field" style="margin:0;">
+          <label for="edit-org-webhook-${idx}" style="font-size:11px;" data-i18n="label_discord_webhook">Discord-Webhook-URL</label>
+          <input class="edit-input" type="password" id="edit-org-webhook-${idx}" value="${escapeHtml((orgDiscordSettingsCache[o.id] && orgDiscordSettingsCache[o.id].webhookUrl) || '')}" autocomplete="off">
+        </div>
         <div class="actions-cell" style="justify-content:flex-end;">
           <button class="btn-icon" data-action="save-org" data-idx="${idx}" title="${t('btn_save')}">✓</button>
           <button class="btn-icon danger" data-action="cancel-org" title="${t('btn_cancel')}">✕</button>
@@ -5080,12 +5141,15 @@ function renderOrgManagementList(){
   container.querySelectorAll('[data-action="edit-org"]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const idx = parseInt(btn.dataset.idx);
-      // Standard-Passwort dieser konkreten Organisation VOR dem
-      // Umschalten in den Bearbeiten-Modus laden, damit die Zeile beim
-      // ersten Rendern bereits den korrekten Wert zeigt (nicht leer,
-      // nicht der eigene, evtl. abweichende Wert der einloggenden
-      // Person).
-      await loadSpecificOrgDefaultPassword(ORGANIZATIONS[idx].id);
+      // Standard-Passwort UND Discord-Webhook dieser konkreten
+      // Organisation VOR dem Umschalten in den Bearbeiten-Modus laden,
+      // damit die Zeile beim ersten Rendern bereits beide korrekten
+      // Werte zeigt (nicht leer, nicht die evtl. abweichenden Werte der
+      // einloggenden Person).
+      await Promise.all([
+        loadSpecificOrgDefaultPassword(ORGANIZATIONS[idx].id),
+        loadSpecificOrgDiscordSettings(ORGANIZATIONS[idx].id)
+      ]);
       editingOrgIndex = idx;
       renderOrgManagementList();
     });
@@ -5102,6 +5166,7 @@ async function saveOrgEdit(idx){
   const statusEl = document.getElementById('orgFormStatus');
   const newName = document.getElementById('edit-org-name-'+idx).value.trim();
   const newDefaultPw = document.getElementById('edit-org-defaultpw-'+idx).value.trim();
+  const newWebhook = document.getElementById('edit-org-webhook-'+idx).value.trim();
 
   if(!newName){
     statusEl.textContent = t('val_org_name_required');
@@ -5109,6 +5174,14 @@ async function saveOrgEdit(idx){
   }
   if(!newDefaultPw){
     statusEl.textContent = t('val_default_password_required');
+    return;
+  }
+  // Webhook-URL ist bewusst OPTIONAL (anders als das Standard-Passwort) --
+  // eine Organisation kann durchaus legitim ganz auf Discord-
+  // Benachrichtigungen verzichten. Nur bei tatsaechlicher Eingabe wird
+  // das Format grob geprueft.
+  if(newWebhook && !newWebhook.startsWith('https://discord.com/api/webhooks/') && !newWebhook.startsWith('https://discordapp.com/api/webhooks/')){
+    statusEl.textContent = t('val_discord_webhook_invalid');
     return;
   }
   const duplicate = ORGANIZATIONS.some((o,i)=> i!==idx && o.name.toLowerCase()===newName.toLowerCase());
@@ -5122,9 +5195,16 @@ async function saveOrgEdit(idx){
   statusEl.textContent = t('msg_saving');
   const ok = await saveOrganizations();
   const pwOk = await saveSpecificOrgDefaultPassword(ORGANIZATIONS[idx].id, newDefaultPw);
+  // Bereits vorhandene Ereignis-Zuschaltungen dieser Organisation bleiben
+  // unangetastet -- diese Zeile bearbeitet ausschliesslich die Webhook-
+  // URL, die einzelnen Ereignis-Haken bleiben dem eigentlichen
+  // Discord-Panel vorbehalten (siehe dort).
+  const existingDiscord = orgDiscordSettingsCache[ORGANIZATIONS[idx].id] || defaultDiscordSettings();
+  const webhookOk = await saveSpecificOrgDiscordSettings(ORGANIZATIONS[idx].id, { webhookUrl: newWebhook, events: existingDiscord.events });
   if(ok) await logAction('Organisation umbenannt', newName);
   if(pwOk) await logAction('Standard-Passwort geändert', `${t('label_default_password')} (${newName})`);
-  statusEl.textContent = (ok && pwOk) ? t('msg_org_renamed') : t('msg_save_failed');
+  if(webhookOk) await logAction('Discord-Webhook geändert', `${newName} (${newWebhook ? t('label_discord_aktiv') : t('label_discord_deaktiviert')})`);
+  statusEl.textContent = (ok && pwOk && webhookOk) ? t('msg_org_renamed') : t('msg_save_failed');
   renderOrgManagementList();
   renderOrgSwitcher();
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
