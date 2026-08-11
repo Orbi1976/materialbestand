@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.041 -->
+<!-- Version: 0.042 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -9502,6 +9502,38 @@ document.getElementById('btnAddProjResource').addEventListener('click', ()=>{
 document.getElementById('proj-anzahl').addEventListener('input', ()=>{ updateProjectResourceTotals(false); });
 document.getElementById('priv-proj-anzahl').addEventListener('input', ()=>{ updateProjectResourceTotals(true); });
 
+// Formatiert die benoetigten Ressourcen eines Projekts als uebersichtliche,
+// in Discord als Codeblock dargestellte Liste (fixe Zeichenbreite sorgt
+// fuer saubere Ausrichtung, unabhaengig von unterschiedlich langen
+// Materialnamen). Menge wird -- wie ueberall sonst im Projekt-Kontext --
+// als "pro Einheit x Anzahl" interpretiert (perUnit-Projekte), Materialien
+// ganz ohne angegebene Menge werden mit "?" statt einer erfundenen Zahl
+// dargestellt. Auf maximal 15 Zeilen begrenzt, um Discords Nachrichten-
+// Laengenlimit (2000 Zeichen) bei sehr grossen Projekten nicht zu
+// sprengen -- weitere Materialien werden als Sammelzeile zusammengefasst.
+// Siehe Nutzerwunsch vom 8. August 2026.
+function buildDiscordResourceList(resources, anzahl){
+  const valid = resources.filter(r=>r.material);
+  if(valid.length === 0) return '';
+
+  const maxNameLen = Math.min(24, Math.max(...valid.map(r=>r.material.length)));
+  const MAX_LINES = 15;
+  const shown = valid.slice(0, MAX_LINES);
+  const rest = valid.length - shown.length;
+
+  const lines = shown.map(r=>{
+    const total = r.menge!=null ? Math.round(r.menge * (anzahl||1) * 1000) / 1000 : null;
+    const einheit = getDefaultEinheitForMaterial(r.material);
+    const namePart = r.material.length > maxNameLen ? r.material.slice(0, maxNameLen-1)+'…' : r.material;
+    const mengePart = total!=null ? `${total} ${einheit}` : '?';
+    const qualPart = r.mindestqualitaet!=null ? ` (Qualität ≥ ${r.mindestqualitaet})` : '';
+    return `${namePart.padEnd(maxNameLen+1)}${mengePart}${qualPart}`;
+  });
+  if(rest > 0) lines.push(`… und ${rest} weitere${rest===1?'s':''} Material${rest===1?'':'ien'}`);
+
+  return '```\n' + lines.join('\n') + '\n```';
+}
+
 document.getElementById('btnAddProject').addEventListener('click', async ()=>{
   const ziel = document.getElementById('proj-ziel').value.trim();
   const anzahl = document.getElementById('proj-anzahl').value;
@@ -9542,7 +9574,8 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
   statusEl.textContent = t('msg_saving');
   await saveProjects();
   await logAction('Projekt angelegt', `${ziel} (${anzahl}x, Priorität: ${prioritaet})`);
-  await sendDiscordNotification('projektAngelegt', `🚀 **Neues Projekt angelegt**: ${ziel} (${anzahl}x) — von ${currentUser.username}`);
+  const resourceList = buildDiscordResourceList(resources, parseFloat(anzahl));
+  await sendDiscordNotification('projektAngelegt', `🚀 **Neues Projekt angelegt**: ${ziel} (${anzahl}x) — von ${currentUser.username}${resourceList ? '\n' + resourceList : ''}`);
 
   document.getElementById('proj-ziel').value = '';
   document.getElementById('proj-anzahl').value = '';
