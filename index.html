@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.044 -->
+<!-- Version: 0.045 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -6634,25 +6634,24 @@ let MATERIALS = [
 // gefoerdert). Sammelobjekte haben ohnehin keine eigene Einheiten-
 // Auswahl (immer implizit Stück), sind hier also nicht betroffen. Siehe
 // Nutzerwunsch vom 7. August 2026.
+// Nur Materialien, die EXPLIZIT als "Ship Mineables" katalogisiert sind
+// (per Bergbau-Laser gefoerdertes Roh-Erz, in SCU-Volumen gemessen),
+// bekommen SCU. ALLES andere -- Non-Ship-Mineables, bekannte
+// Sammelobjekte, UND auch komplett unbekannte Namen (in keinem der
+// beiden Kataloge, z.B. noch nicht katalogisierte Wikelo-/Loot-Gegen-
+// staende wie "Carinite (Pure)") -- bekommt Stück. Bewusst so herum
+// entschieden (statt SCU als "sicherer" Rueckfallwert fuer Unbekanntes):
+// die grosse Mehrheit dessen, was in Projekt-Ressourcen sonst noch
+// auftaucht (Ausruestung, Waehrungen, Sammelobjekte, Tierische
+// Ressourcen), wird stueckweise gezaehlt, nicht in SCU-Volumen -- ein
+// noch nicht katalogisierter Name ist mit deutlich hoeherer
+// Wahrscheinlichkeit ein weiteres Sammelobjekt als ein weiteres
+// Ship-Mineable-Erz. Reduziert zugleich die Notwendigkeit, jede
+// einzelne Luecke im COLLECTIBLES-Katalog manuell nachzupflegen. Siehe
+// Nutzerwunsch vom 8. August 2026 (zweite Rueckmeldung).
 function getDefaultEinheitForMaterial(materialName){
   const m = MATERIALS.find(x=>x.name===materialName);
-  if(m) return m.category==='Non-Ship Mineables' ? 'Stück' : 'SCU';
-  // Materialien aus Projekt-Ressourcen (z.B. per Wikelo-Import) koennen
-  // auch Sammelobjekte sein, die gar nicht im MATERIALS-Katalog stehen,
-  // sondern ausschliesslich im separaten COLLECTIBLES-Katalog -- ohne
-  // diese Pruefung fielen sie faelschlich auf SCU zurueck, obwohl
-  // Sammelobjekte durchgehend stueckweise gezaehlt werden. Nur wirklich
-  // unbekannte Namen (in KEINEM der beiden Kataloge) behalten SCU als
-  // sicheren Rueckfallwert. Siehe Nutzerwunsch vom 8. August 2026.
-  if(COLLECTIBLES.some(c=>c.name===materialName)) return 'Stück';
-  // Der Wikelo-Import haengt haeufig einen Tier-/Qualifizierer-Zusatz in
-  // Klammern direkt an den Grundnamen an (z.B. "Wikelo Favor (MS/CS/C/P)"
-  // oder "Irradiated Valakkar Pearl (Grade AA)") -- ein exakter Abgleich
-  // wuerde dabei fehlschlagen, da der Katalog nur den Grundnamen ohne
-  // Zusatz enthaelt. Zusaetzlich per Praefix-Vergleich pruefen, damit
-  // auch diese Faelle korrekt als Sammelobjekt (Stück) erkannt werden.
-  if(COLLECTIBLES.some(c=>materialName.startsWith(c.name))) return 'Stück';
-  return 'SCU';
+  return (m && m.category==='Ship Mineables') ? 'SCU' : 'Stück';
 }
 
 function buildMaterialSelectHTML(id, selected, extraClass, restrictCategories){
