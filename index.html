@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.035 -->
+<!-- Version: 0.036 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1588,6 +1588,19 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="orgBrandingStatus"></div>
   </div>
 
+  <div class="panel" id="defaultPasswordPanel" style="display:none;">
+    <h2 data-i18n="panel_default_password">Standard-Passwort für Erst-Login</h2>
+    <div class="user-note" data-i18n="hint_default_password_setting">Gilt für alle Benutzer dieser Organisation, die noch kein eigenes Passwort gesetzt haben — wird beim allerersten Login zwingend durch ein persönliches Passwort ersetzt. Eine Änderung hier betrifft nur zukünftige Erst-Logins, nicht bereits individuell gesetzte Passwörter.</div>
+    <div class="field" style="margin-top:12px;">
+      <label for="defaultPasswordInput" data-i18n="label_default_password">Standard-Passwort</label>
+      <input type="text" id="defaultPasswordInput" maxlength="60" autocomplete="off">
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn-primary" id="btnSaveDefaultPassword" data-i18n="btn_save">Speichern</button>
+    </div>
+    <div class="status-msg" id="defaultPasswordStatus"></div>
+  </div>
+
   <div class="panel" id="orgExportPanel" style="display:none;">
     <h2 data-i18n="panel_org_export">Datensicherung</h2>
     <div class="user-note" data-i18n="hint_org_export">Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.</div>
@@ -1623,7 +1636,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     </div>
     <div class="status-msg" id="userFormStatus"></div>
     <div class="user-list" id="userListContainer" style="margin-top:12px;"></div>
-    <div class="user-note" data-i18n="hint_default_password">Neue Benutzer erhalten automatisch das Initialpasswort night, das sie nach der Anmeldung selbst ändern können.</div>
+    <div class="user-note" data-i18n="hint_default_password">Neue Benutzer erhalten automatisch das von der Organisation festgelegte Standard-Passwort (siehe Einstellung weiter unten), das sie nach der Anmeldung durch ein persönliches Passwort ersetzen müssen.</div>
   </div>
 
   <div class="panel" id="orgManagementPanel" style="display:none;">
@@ -2681,7 +2694,7 @@ const I18N = {
   "heading_material_hinzufuegen": "Material hinzufügen",
   "heading_lagerort_hinzufuegen": "Lagerort hinzufügen",
   "placeholder_bestehend_oder_neu": "bestehend wählen oder neu eingeben",
-  "hint_default_password": "Neue Benutzer erhalten automatisch das Initialpasswort night, das sie nach der Anmeldung selbst ändern können.",
+  "hint_default_password": "Neue Benutzer erhalten automatisch das von der Organisation festgelegte Standard-Passwort (siehe Einstellung weiter unten), das sie nach der Anmeldung durch ein persönliches Passwort ersetzen müssen.",
   "hint_auto_category": "Neue Kategorien bzw. Systeme entstehen automatisch, sobald du einen noch nicht existierenden Namen einträgst.",
   "hint_changelog_admin_only": "Nur für Administratoren sichtbar. Protokolliert wird, wer wann welche Änderung vorgenommen hat.",
   "empty_history_data_title": "Noch nicht genug Daten",
@@ -2830,6 +2843,11 @@ const I18N = {
   "val_min_one_owner": "Es muss mindestens ein Besitzer bestehen bleiben.",
   "val_no_permission_role": "Du darfst diese Rolle nicht vergeben.",
   "val_nur_owner": "Strukturelle Änderungen am Katalog (Materialien, Lagerorte) sind nur der Rolle Besitzer vorbehalten.",
+  "panel_default_password": "Standard-Passwort für Erst-Login",
+  "hint_default_password_setting": "Gilt für alle Benutzer dieser Organisation, die noch kein eigenes Passwort gesetzt haben — wird beim allerersten Login zwingend durch ein persönliches Passwort ersetzt. Eine Änderung hier betrifft nur zukünftige Erst-Logins, nicht bereits individuell gesetzte Passwörter.",
+  "label_default_password": "Standard-Passwort",
+  "val_default_password_required": "Bitte ein Standard-Passwort angeben.",
+  "msg_default_password_saved": "Standard-Passwort gespeichert.",
   "panel_org_branding": "Organisation anpassen",
   "label_org_motto": "Motto / Untertitel (optional)",
   "label_org_accent": "Akzentfarbe",
@@ -3239,7 +3257,7 @@ const I18N = {
   "heading_material_hinzufuegen": "Add material",
   "heading_lagerort_hinzufuegen": "Add location",
   "placeholder_bestehend_oder_neu": "select existing or enter new",
-  "hint_default_password": "New users automatically receive the initial password night, which they can change themselves after logging in.",
+  "hint_default_password": "New users automatically receive the organization's configured default password (see setting further below), which they must replace with a personal password after logging in.",
   "hint_auto_category": "New categories or systems are created automatically as soon as you enter a name that doesn't exist yet.",
   "hint_changelog_admin_only": "Visible to administrators only. Logs who made which change and when.",
   "empty_history_data_title": "Not enough data yet",
@@ -3388,6 +3406,11 @@ const I18N = {
   "val_min_one_owner": "At least one owner must remain.",
   "val_no_permission_role": "You are not allowed to assign this role.",
   "val_nur_owner": "Structural catalog changes (materials, locations) are reserved for the Owner role.",
+  "panel_default_password": "Default password for first login",
+  "hint_default_password_setting": "Applies to all users of this organization who have not yet set their own password — must be replaced with a personal password on the very first login. A change here only affects future first logins, not already individually set passwords.",
+  "label_default_password": "Default password",
+  "val_default_password_required": "Please enter a default password.",
+  "msg_default_password_saved": "Default password saved.",
   "panel_org_branding": "Customize organization",
   "label_org_motto": "Motto / subtitle (optional)",
   "label_org_accent": "Accent color",
@@ -3797,7 +3820,7 @@ const I18N = {
   "heading_material_hinzufuegen": "Ajouter un matériau",
   "heading_lagerort_hinzufuegen": "Ajouter un emplacement",
   "placeholder_bestehend_oder_neu": "sélectionner existant ou en saisir un nouveau",
-  "hint_default_password": "Les nouveaux utilisateurs reçoivent automatiquement le mot de passe initial night, qu'ils peuvent modifier eux-mêmes après connexion.",
+  "hint_default_password": "Les nouveaux utilisateurs reçoivent automatiquement le mot de passe par défaut défini par l'organisation (voir paramètre plus bas), qu'ils doivent remplacer par un mot de passe personnel après connexion.",
   "hint_auto_category": "De nouvelles catégories ou systèmes sont créés automatiquement dès que vous saisissez un nom qui n'existe pas encore.",
   "hint_changelog_admin_only": "Visible uniquement par les administrateurs. Enregistre qui a effectué quelle modification et quand.",
   "empty_history_data_title": "Pas encore assez de données",
@@ -3946,6 +3969,11 @@ const I18N = {
   "val_min_one_owner": "Il doit rester au moins un propriétaire.",
   "val_no_permission_role": "Vous n'êtes pas autorisé à attribuer ce rôle.",
   "val_nur_owner": "Les modifications structurelles du catalogue (matériaux, emplacements) sont réservées au rôle Propriétaire.",
+  "panel_default_password": "Mot de passe par défaut pour la première connexion",
+  "hint_default_password_setting": "S'applique à tous les utilisateurs de cette organisation qui n'ont pas encore défini leur propre mot de passe — doit être remplacé par un mot de passe personnel dès la toute première connexion. Une modification ici n'affecte que les futures premières connexions, pas les mots de passe déjà définis individuellement.",
+  "label_default_password": "Mot de passe par défaut",
+  "val_default_password_required": "Veuillez indiquer un mot de passe par défaut.",
+  "msg_default_password_saved": "Mot de passe par défaut enregistré.",
   "panel_org_branding": "Personnaliser l'organisation",
   "label_org_motto": "Devise / sous-titre (facultatif)",
   "label_org_accent": "Couleur d'accent",
@@ -4350,6 +4378,17 @@ async function saveUsers(){
 
 const DEFAULT_PASSWORD = 'night';
 const CREDENTIALS_KEY = 'user-credentials';
+// Organisationsspezifisches Standard-Passwort (ab 7. August 2026, nur
+// Rolle owner aenderbar) -- ueber orgKey() organisationsgebunden
+// gespeichert, damit die Aenderung eines Owners NICHT versehentlich auch
+// andere Organisationen betrifft. currentOrgDefaultPassword wird waehrend
+// des Logins geladen (sobald die Organisation des einloggenden Benutzers
+// bekannt ist) und faellt mangels eigener Einstellung auf die urspruengliche
+// Konstante DEFAULT_PASSWORD zurueck -- bestehende, bislang unveraenderte
+// Organisationen funktionieren dadurch unveraendert weiter. Siehe
+// Nutzerwunsch vom 7. August 2026.
+const DEFAULT_PASSWORD_KEY = 'default-password';
+let currentOrgDefaultPassword = null;
 let credentials = {};
 let credentialsLoaded = false;
 
@@ -4364,8 +4403,35 @@ async function ensureCredentialsLoaded(){
   credentialsLoaded = true;
 }
 
+// Laedt das Standard-Passwort der Organisation mit der uebergebenen
+// organizationId (NICHT die aktuell global gesetzte currentOrgId, da
+// dies waehrend des Login-Vorgangs aufgerufen wird, bevor currentOrgId
+// notwendigerweise final gesetzt ist). Setzt currentOrgDefaultPassword
+// als Nebeneffekt, damit getPassword() im Anschluss synchron darauf
+// zugreifen kann.
+async function loadOrgDefaultPassword(organizationId){
+  try{
+    const key = organizationId ? `${DEFAULT_PASSWORD_KEY}__org_${organizationId}` : DEFAULT_PASSWORD_KEY;
+    const res = await window.storage.get(key, true);
+    currentOrgDefaultPassword = (res && res.value) ? res.value : DEFAULT_PASSWORD;
+  }catch(e){
+    currentOrgDefaultPassword = DEFAULT_PASSWORD;
+  }
+  return currentOrgDefaultPassword;
+}
+
+async function saveOrgDefaultPassword(newPassword){
+  try{
+    await window.storage.set(orgKey(DEFAULT_PASSWORD_KEY), newPassword, true);
+    currentOrgDefaultPassword = newPassword;
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
 function getPassword(username){
-  return credentials[username] || DEFAULT_PASSWORD;
+  return credentials[username] || currentOrgDefaultPassword || DEFAULT_PASSWORD;
 }
 
 async function saveCredentials(){
@@ -5331,6 +5397,21 @@ async function saveOrgBranding(){
 }
 document.getElementById('btnSaveOrgBranding').addEventListener('click', saveOrgBranding);
 
+document.getElementById('btnSaveDefaultPassword').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('defaultPasswordStatus');
+  const input = document.getElementById('defaultPasswordInput');
+  const newValue = input.value.trim();
+  if(!newValue){
+    statusEl.textContent = t('val_default_password_required');
+    return;
+  }
+  statusEl.textContent = t('msg_saving');
+  const ok = await saveOrgDefaultPassword(newValue);
+  statusEl.textContent = ok ? t('msg_default_password_saved') : t('msg_save_failed');
+  if(ok) await logAction('Standard-Passwort geändert', t('label_default_password'));
+  setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+});
+
 // ============================================================
 // Vollständiger Datenexport der aktiven Organisation — bewusst auf die
 // geteilten (organisationsweiten) Daten beschränkt, nicht die persönlichen
@@ -5484,6 +5565,10 @@ async function doLogin(){
     document.getElementById('loginError').textContent = t('msg_login_username_not_found');
     return;
   }
+  // Standard-Passwort DIESER Organisation laden, bevor das eingegebene
+  // Passwort geprueft wird -- getPassword() greift synchron auf das
+  // Ergebnis zu (siehe currentOrgDefaultPassword).
+  await loadOrgDefaultPassword(user.organizationId || LEGACY_ORG_ID);
   if(password !== getPassword(user.username)){
     setLoginBusy(false);
     document.getElementById('loginError').textContent = t('msg_login_wrong_password');
@@ -5494,7 +5579,7 @@ async function doLogin(){
   currentUser = user;
   currentOrgId = user.organizationId || LEGACY_ORG_ID;
 
-  if(password === DEFAULT_PASSWORD){
+  if(password === currentOrgDefaultPassword){
     // Erster Login mit Standardpasswort — individuelles Passwort ist Pflicht.
     setLoginBusy(false);
     document.getElementById('loginScreen').style.display = 'none';
@@ -5754,6 +5839,14 @@ function completeLogin(user){
   document.getElementById('orgBrandingPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   document.getElementById('orgExportPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   document.getElementById('catalogPanel').style.display = user.role==='owner' ? '' : 'none';
+  document.getElementById('defaultPasswordPanel').style.display = user.role==='owner' ? '' : 'none';
+  if(user.role==='owner'){
+    // currentOrgDefaultPassword wurde bereits beim Login geladen (siehe
+    // doLogin -> loadOrgDefaultPassword) -- hier nur noch ins Eingabefeld
+    // uebernehmen, damit der Owner den aktuell gueltigen Wert sofort sieht,
+    // statt ihn zu erraten.
+    document.getElementById('defaultPasswordInput').value = currentOrgDefaultPassword || DEFAULT_PASSWORD;
+  }
   document.getElementById('logPanel').style.display = isAdminOrAbove ? '' : 'none';
   document.getElementById('entryFormPanel').style.display = user.role==='viewer' ? 'none' : '';
   document.getElementById('needFormGrid').style.display = user.role==='viewer' ? 'none' : '';
@@ -5882,7 +5975,7 @@ async function submitForcedPassword(){
     statusEl.textContent = t('val_new_password_required');
     return;
   }
-  if(next === DEFAULT_PASSWORD){
+  if(next === currentOrgDefaultPassword){
     statusEl.textContent = t('val_new_password_not_default');
     return;
   }
