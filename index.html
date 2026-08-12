@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.045 -->
+<!-- Version: 0.046 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1706,6 +1706,16 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="templateImportStatus"></div>
   </div>
 
+  <div class="panel" id="scmdbImportPanel" style="display:none;">
+    <h2 data-i18n="panel_scmdb_import">Alternative Quelle: scmdb.net</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_scmdb_import">Unabhängiges Gegenstück zur obigen Rezepte-Liste — praktisch, um fehlende oder abweichende Rezepte aufzuspüren. Ablauf: Skript herunterladen, lokal ausführen (siehe Kommentar am Dateianfang für Voraussetzungen), die dabei erzeugte Datei hier einfügen oder auswählen. Der Import läuft anschließend über dasselbe Textfeld wie oben — dieser Bereich stellt lediglich Quelle und Skript bequem bereit.</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
+      <a href="https://scmdb.net/?page=fab" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n="btn_scmdb_quelle_oeffnen">↗ scmdb.net öffnen (Quelle)</a>
+      <button type="button" class="btn-ghost" id="btnDownloadScmdbScript" data-i18n="btn_scmdb_skript_herunterladen">⇩ Scraping-Skript herunterladen</button>
+    </div>
+    <div class="user-note" style="font-size:11px;" data-i18n="hint_scmdb_script_requirements">Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.</div>
+  </div>
+
   <div class="panel" id="wikeloImportPanel" style="display:none;">
     <h2 data-i18n="panel_wikelo_import">Wikelo-Handelsangebote importieren</h2>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_wikelo_import">Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — optional lässt sich je Gegenstand eine vorgeschlagene Menge anhängen, z. B. "Gegenstand:15". Ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
@@ -2831,8 +2841,13 @@ const I18N = {
   "hint_privat_projekte": "Nur du siehst diese Vorhaben. Der Fortschritt bezieht sich ausschließlich auf deinen eigenen Privatbestand, nicht auf den allgemeinen Bestand der Organisation.",
   "empty_private_projects_title": "Noch keine privaten Projekte",
   "empty_private_projects_sub": "Leg dein erstes Vorhaben an, um den Fortschritt anhand deines Privatbestands zu verfolgen.",
+  "panel_scmdb_import": "Alternative Quelle: scmdb.net",
+  "hint_scmdb_import": "Unabhängiges Gegenstück zur obigen Rezepte-Liste — praktisch, um fehlende oder abweichende Rezepte aufzuspüren. Ablauf: Skript herunterladen, lokal ausführen (siehe Kommentar am Dateianfang für Voraussetzungen), die dabei erzeugte Datei hier einfügen oder auswählen. Der Import läuft anschließend über dasselbe Textfeld wie oben — dieser Bereich stellt lediglich Quelle und Skript bequem bereit.",
+  "btn_scmdb_quelle_oeffnen": "↗ scmdb.net öffnen (Quelle)",
+  "btn_scmdb_skript_herunterladen": "⇩ Scraping-Skript herunterladen",
+  "hint_scmdb_script_requirements": "Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.",
   "panel_rezepte_import": "Projekt-Vorlagen importieren",
-  "hint_rezepte_import": "Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Format pro Zeile: Kategorie;Name;Material1,Material2,Material3 — optional lässt sich je Material eine vorgeschlagene Menge anhängen, z. B. \"Material:15\". Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
+  "hint_rezepte_import": "Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Zwei Formate werden automatisch erkannt: entweder das einfache Format Kategorie;Name;Material1,Material2,Material3 (jedes Material darf optional eine vorgeschlagene Menge tragen, z. B. \"Material:15\", sowie zusätzlich eine Mindestqualität, z. B. \"Material:15:800\"), oder der rohe, unveränderte Export der scmdb.net-Tabelle (Farbvarianten werden dabei automatisch zu einer Basis-Vorlage zusammengefasst). Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
   "btn_rezepte_importieren": "Importieren",
   "msg_templates_imported": "{count} Vorlagen importiert.",
   "msg_templates_current_count": "Aktuell {count} Vorlagen gespeichert.",
@@ -3412,8 +3427,13 @@ const I18N = {
   "hint_privat_projekte": "Only you see these plans. Progress is based solely on your own private stock, not the organization's shared inventory.",
   "empty_private_projects_title": "No private projects yet",
   "empty_private_projects_sub": "Add your first plan to track progress based on your private stock.",
+  "panel_scmdb_import": "Alternative source: scmdb.net",
+  "hint_scmdb_import": "Independent counterpart to the recipe list above — handy for spotting missing or differing recipes. Workflow: download the script, run it locally (see the comment at the top of the file for requirements), then paste or select the resulting file here. The import itself runs through the same text field as above — this section just provides the source and script conveniently.",
+  "btn_scmdb_quelle_oeffnen": "↗ Open scmdb.net (source)",
+  "btn_scmdb_skript_herunterladen": "⇩ Download scraping script",
+  "hint_scmdb_script_requirements": "Requirements to run it: Python 3, plus <code>pip install playwright</code> and <code>playwright install chromium</code> (one-time setup). Details are in the comment at the top of the downloaded file.",
   "panel_rezepte_import": "Import project templates",
-  "hint_rezepte_import": "Adds a list of ready-made project templates that become searchable when creating a project (shared or private). Format per line: Category;Name;Material1,Material2,Material3 — each material may optionally carry a suggested quantity, e.g. \"Material:15\". A new import replaces the entire existing list. Applies across all organizations (pure game data, not organization-specific).",
+  "hint_rezepte_import": "Adds a list of ready-made project templates that become searchable when creating a project (shared or private). Two formats are detected automatically: either the simple format Category;Name;Material1,Material2,Material3 (each material may optionally carry a suggested quantity, e.g. \"Material:15\", plus an optional minimum quality, e.g. \"Material:15:800\"), or the raw, unmodified export of the scmdb.net table (colour variants are automatically merged into a single base template). A new import replaces the entire existing list. Applies across all organizations (pure game data, not organization-specific).",
   "btn_rezepte_importieren": "Import",
   "msg_templates_imported": "{count} templates imported.",
   "msg_templates_current_count": "Currently {count} templates saved.",
@@ -3993,8 +4013,13 @@ const I18N = {
   "hint_privat_projekte": "Vous seul voyez ces projets. La progression se base uniquement sur votre propre stock privé, pas sur le stock partagé de l'organisation.",
   "empty_private_projects_title": "Aucun projet privé pour le moment",
   "empty_private_projects_sub": "Ajoutez votre premier projet pour suivre la progression selon votre stock privé.",
+  "panel_scmdb_import": "Source alternative : scmdb.net",
+  "hint_scmdb_import": "Pendant indépendant de la liste de recettes ci-dessus — pratique pour repérer des recettes manquantes ou divergentes. Procédure : téléchargez le script, exécutez-le localement (voir le commentaire en haut du fichier pour les prérequis), puis collez ou sélectionnez ici le fichier obtenu. L'importation elle-même passe par le même champ de texte que ci-dessus — cette section ne fait que fournir la source et le script commodément.",
+  "btn_scmdb_quelle_oeffnen": "↗ Ouvrir scmdb.net (source)",
+  "btn_scmdb_skript_herunterladen": "⇩ Télécharger le script de scraping",
+  "hint_scmdb_script_requirements": "Prérequis pour l'exécution : Python 3, ainsi que <code>pip install playwright</code> et <code>playwright install chromium</code> (une seule fois). Les détails figurent en commentaire en haut du fichier téléchargé.",
   "panel_rezepte_import": "Importer des modèles de projet",
-  "hint_rezepte_import": "Ajoute une liste de modèles de projet prêts à l'emploi, consultables lors de la création d'un projet (partagé ou privé). Deux formats sont détectés automatiquement : soit le format simple Catégorie;Nom;Matériau1,Matériau2,Matériau3 (chaque matériau peut porter une quantité suggérée facultative, ex. « Matériau:15 »), soit l'export brut et non modifié de la table scmdb.net (les variantes de couleur sont automatiquement fusionnées en un seul modèle de base). Une nouvelle importation remplace la liste existante. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
+  "hint_rezepte_import": "Ajoute une liste de modèles de projet prêts à l'emploi, consultables lors de la création d'un projet (partagé ou privé). Deux formats sont détectés automatiquement : soit le format simple Catégorie;Nom;Matériau1,Matériau2,Matériau3 (chaque matériau peut porter une quantité suggérée facultative, ex. « Matériau:15 », ainsi qu'une qualité minimale facultative, ex. « Matériau:15:800 »), soit l'export brut et non modifié de la table scmdb.net (les variantes de couleur sont automatiquement fusionnées en un seul modèle de base). Une nouvelle importation remplace la liste existante. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
   "btn_rezepte_importieren": "Importer",
   "msg_templates_imported": "{count} modèles importés.",
   "msg_templates_current_count": "Actuellement {count} modèles enregistrés.",
@@ -4972,6 +4997,7 @@ async function saveUserEdit(idx){
     document.getElementById('logPanel').style.display = isAdminOrAbove ? '' : 'none';
     document.getElementById('orgManagementPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('templateImportPanel').style.display = newRole==='owner' ? '' : 'none';
+    document.getElementById('scmdbImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('wikeloImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('locationImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('orgSwitcherWrap').style.display = newRole==='owner' ? '' : 'none';
@@ -6228,6 +6254,7 @@ function completeLogin(user){
   document.getElementById('tabBtn-verwaltung').style.display = isAdminOrAbove ? '' : 'none';
   document.getElementById('orgManagementPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('templateImportPanel').style.display = user.role==='owner' ? '' : 'none';
+  document.getElementById('scmdbImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('wikeloImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('locationImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('orgSwitcherWrap').style.display = user.role==='owner' ? '' : 'none';
@@ -9103,6 +9130,18 @@ function parseScmdbRawFormat(rawText){
 // Lädt eine lokal ausgewählte Datei in das Textfeld, ohne automatisch zu
 // importieren — der Besitzer kann den Inhalt so vor dem eigentlichen
 // Import noch einsehen/anpassen.
+document.getElementById('btnDownloadScmdbScript').addEventListener('click', ()=>{
+  const blob = new Blob([SCMDB_SCRAPER_SCRIPT], {type:'text/x-python;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'scrape_scmdb_rezepte.py';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
 document.getElementById('btnSelectTemplateFile').addEventListener('click', ()=>{
   document.getElementById('templateFileInput').click();
 });
@@ -9131,8 +9170,8 @@ document.getElementById('templateFileInput').addEventListener('change', (e)=>{
 // "Material:Menge"). Sorgt dafür, dass bereits gespeicherte, ältere
 // Vorlagen weiterhin klaglos funktionieren.
 function normalizeTemplateMaterial(m){
-  if(m && typeof m === 'object') return {name: m.name, menge: m.menge!=null ? m.menge : null};
-  return {name: m, menge: null};
+  if(m && typeof m === 'object') return {name: m.name, menge: m.menge!=null ? m.menge : null, mindestqualitaet: m.mindestqualitaet!=null ? m.mindestqualitaet : null};
+  return {name: m, menge: null, mindestqualitaet: null};
 }
 
 function parseSimpleTemplateFormat(lines){
@@ -9142,19 +9181,31 @@ function parseSimpleTemplateFormat(lines){
     if(parts.length < 3) return;
     const category = parts[0].trim();
     const name = parts[1].trim();
-    // Jedes Material darf optional eine vorgeschlagene Menge tragen,
-    // im Format "Materialname:Menge" (z. B. "ASD Secure Drive:15").
-    // Ohne Doppelpunkt bleibt die Menge leer, wie bisher.
+    // Jedes Material darf optional eine vorgeschlagene Menge UND
+    // (zusätzlich, ab 9. August 2026) eine Mindestqualität tragen, im
+    // Format "Materialname:Menge:Qualität" (z. B. "Titanium:15:800").
+    // Rückwärtskompatibel: "Materialname:Menge" (nur Menge, wie bisher)
+    // und "Materialname" (weder noch) funktionieren unverändert weiter.
+    // Von rechts geparst (erst 3-Teile-Form versucht, dann 2-Teile-Form),
+    // damit Materialnamen mit eigenen Doppelpunkten (unwahrscheinlich,
+    // aber sicherheitshalber) nicht faelschlich als Menge/Qualitaet
+    // interpretiert werden.
     const materials = parts[2].split(',').map(raw=>{
       const t = raw.trim();
       if(!t) return null;
-      const colonIdx = t.lastIndexOf(':');
-      if(colonIdx > 0){
-        const namePart = t.slice(0, colonIdx).trim();
-        const qtyPart = parseFloat(t.slice(colonIdx+1).trim());
-        if(namePart && !isNaN(qtyPart)) return {name: namePart, menge: qtyPart};
+      const segments = t.split(':');
+      if(segments.length >= 3){
+        const qualPart = parseFloat(segments[segments.length-1]);
+        const qtyPart = parseFloat(segments[segments.length-2]);
+        const namePart = segments.slice(0, segments.length-2).join(':').trim();
+        if(namePart && !isNaN(qtyPart) && !isNaN(qualPart)) return {name: namePart, menge: qtyPart, mindestqualitaet: qualPart};
       }
-      return {name: t, menge: null};
+      if(segments.length >= 2){
+        const qtyPart = parseFloat(segments[segments.length-1]);
+        const namePart = segments.slice(0, segments.length-1).join(':').trim();
+        if(namePart && !isNaN(qtyPart)) return {name: namePart, menge: qtyPart, mindestqualitaet: null};
+      }
+      return {name: t, menge: null, mindestqualitaet: null};
     }).filter(m=>m && m.name);
     if(!category || !name || materials.length === 0) return;
     parsed.push({category, name, materials});
@@ -9489,9 +9540,13 @@ async function applyProjectTemplate(isPrivate, tpl){
   container.innerHTML = '';
   materials.forEach(m=>{
     // Eigene, zuletzt tatsächlich verwendete Menge hat Vorrang vor der
-    // recherchierten Vorschlagsmenge aus der Vorlage selbst.
+    // recherchierten Vorschlagsmenge aus der Vorlage selbst. Die
+    // Mindestqualität wird (falls in der Vorlage hinterlegt) direkt mit
+    // übernommen -- anders als bei der Menge gibt es hierfür noch keine
+    // "zuletzt verwendete"-Historie, da Mindestqualität bislang nicht in
+    // Vorlagen vorkam.
     const suggested = lastQuantities[m.name] != null ? lastQuantities[m.name] : m.menge;
-    addProjectResourceRow(isPrivate, container, {material:m.name, menge:suggested});
+    addProjectResourceRow(isPrivate, container, {material:m.name, menge:suggested, mindestqualitaet:m.mindestqualitaet});
   });
 
   const statusEl = document.getElementById(isPrivate ? 'privProjectStatus' : 'projectStatus');
@@ -12482,6 +12537,332 @@ function armConfirm(btn, onConfirm, confirmTitle){
 // häufiges Neuaufbauen großer Tabellen während des Tippens.
 // Generischer CSV-Export — Semikolon als Trenner (deutsches Excel nutzt das
 // Komma als Dezimaltrennzeichen) plus BOM, damit Umlaute korrekt erscheinen.
+// Eingebetteter Inhalt des scmdb.net-Scraper-Skripts (siehe
+// scmdbImportPanel weiter oben) -- als Blob herunterladbar, damit
+// der Owner keine externe Datei-Hosting-Loesung braucht. Siehe
+// Nutzerwunsch vom 9. August 2026.
+const SCMDB_SCRAPER_SCRIPT = `#!/usr/bin/env python3
+"""
+Star Citizen Materialbestand — SCMDB.net Rezepte-Scraper
+====================================================================
+ZWECK
+-----
+Zweite, unabhängige Quelle für Projekt-Vorlagen (Rezepte) — als
+Gegenstück zur bestehenden api.star-citizen.wiki-Quelle, um fehlende
+oder abweichende Rezepte aufzuspüren. Erzeugt eine Datei im selben
+Format, das der bestehende Rezepte-Import-Button der Materialbestand-
+Anwendung erwartet (jetzt mit Mindestqualität pro Material, siehe
+unten):
+
+    Kategorie;Name;Material1:Menge:Qualität,Material2:Menge,Material3
+
+Eine Zeile pro Rezept. ":Menge" und ":Qualität" sind beide optional
+und unabhängig voneinander — "Material" (nichts), "Material:15" (nur
+Menge) und "Material:15:800" (Menge + Mindestqualität) funktionieren
+alle drei.
+
+DATENQUELLE
+-----------
+https://scmdb.net/?page=fab — Übersicht aller Fabricator-Blueprints
+https://scmdb.net/?page=fab&fab=<ID> — Detailseite mit den tatsächlich
+benötigten Materialien samt Menge (und, falls von scmdb angegeben,
+Qualitäts-/Grade-Hinweisen).
+
+WICHTIGER HINWEIS (ehrlich, nicht schöngeredet)
+------------------------------------------------
+scmdb.net ist eine JavaScript-Anwendung (Single-Page-App) — der Inhalt
+wird erst im Browser nachträglich per JavaScript nachgeladen, steht
+also NICHT im rohen HTML der Seite. Ich (Claude) hatte aus meiner
+Sandbox-Umgebung heraus keinen Zugriff auf scmdb.net und konnte daher
+weder die exakte HTML-Struktur der Seite einsehen noch dieses Skript
+selbst gegen die echte Seite testen. Das Skript nutzt deshalb einen
+echten (unsichtbaren) Browser über Playwright, der die Seite genauso
+rendert wie dein eigener Browser — robuster als ein Rate-Versuch auf
+eine vermutete, aber unbestätigte API.
+
+Die CSS-Selektoren unten (siehe SELECTORS ganz oben in der Datei) sind
+plausible Vermutungen basierend auf der Rezepte-Import-Logik, die die
+Anwendung bereits kennt (dort werden gruppierte scmdb-Tabellenzeilen
+mit Feldern wie Name/Hersteller/Icon/Grade/Größe/Materialien/Craftzeit
+verarbeitet) — sie können trotzdem von der tatsächlichen Seite
+abweichen. Bitte zuerst mit "--limit 3" testen (siehe unten) und kurz
+"scmdb_debug.html" ansehen, falls nichts gefunden wird — dann kann ich
+die Selektoren anhand der echten Seitenstruktur gezielt korrigieren.
+
+VORAUSSETZUNGEN
+----------------
+    pip install playwright
+    playwright install chromium
+
+AUFRUF
+------
+    python scrape_scmdb_rezepte.py              # alle Rezepte
+    python scrape_scmdb_rezepte.py --limit 5     # nur die ersten 5 (zum Testen)
+    python scrape_scmdb_rezepte.py --headed       # Browser sichtbar (zum Debuggen)
+
+Ergebnis: "scmdb-rezepte-import.txt" im selben Ordner — direkt in das
+Textfeld beim Rezepte-Import kopierbar (oder als Datei auswählen).
+
+ANPASSUNG / AUFBAU
+-------------------
+    fetch_fab_list()      -> holt Namen + IDs aller Blueprints von der Übersichtsseite
+    fetch_fab_detail()    -> holt Materialien (Name, Menge, Qualität) einer einzelnen Detailseite
+    guess_category()      -> ordnet grob eine Kategorie zu (editierbar!, gleiche Heuristik wie
+                              beim bestehenden scrape_projekte.py, damit beide Quellen zu
+                              vergleichbaren Kategorien kommen)
+    write_import_file()   -> schreibt die fertige Textdatei
+
+Falls die Selektoren nicht auf Anhieb passen: Öffne "scmdb_debug.html"
+(wird bei jedem Fehlschlag automatisch gespeichert) in einem
+Text-Editor oder Browser, suche nach den tatsächlichen CSS-Klassen/IDs
+rund um die Rezept-Liste bzw. Material-Liste, und passe SELECTORS
+entsprechend an — oder schick mir einen Ausschnitt der Datei, dann
+übernehme ich die Anpassung.
+"""
+
+import argparse
+import json
+import re
+import sys
+import time
+from pathlib import Path
+
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    print("Bitte zuerst installieren:")
+    print("    pip install playwright")
+    print("    playwright install chromium")
+    sys.exit(1)
+
+# ----------------------------------------------------------------------
+# Konfiguration — hier anpassen, falls sich Pfade/Verhalten ändern sollen
+# ----------------------------------------------------------------------
+BASE_URL = "https://scmdb.net/"
+FAB_LIST_URL = BASE_URL + "?page=fab"
+FAB_DETAIL_URL = BASE_URL + "?page=fab&fab={fab_id}"
+
+OUTPUT_FILE = Path(__file__).parent / "scmdb-rezepte-import.txt"
+LOG_FILE = Path(__file__).parent / "crawl_scmdb.log"
+DEBUG_HTML_FILE = Path(__file__).parent / "scmdb_debug.html"
+CACHE_FILE = Path(__file__).parent / "scmdb_cache.json"
+
+# Wartezeit zwischen zwei Detailseiten-Aufrufen (Sekunden) — bewusst
+# vorsichtig gewählt, um die Seite nicht unnötig zu belasten.
+REQUEST_DELAY = 0.8
+
+# Plausible CSS-Selektoren für die Übersichtsseite (Liste aller
+# Blueprints) und die Detailseite (Materialliste eines einzelnen
+# Blueprints). MÜSSEN nach dem ersten Testlauf ggf. angepasst werden,
+# siehe Hinweis oben in der Modul-Beschreibung.
+SELECTORS = {
+    # Übersichtsseite: jede Zeile/Karte eines Blueprints
+    "list_item": "[data-fab], .fab-row, .fab-card, table tbody tr",
+    # Innerhalb einer Zeile: der Link/Button, der zur Detailseite führt
+    # (enthält meist die Fab-ID als Teil der URL oder als data-Attribut)
+    "list_item_link": "a[href*='fab='], [data-fab-id]",
+    # Detailseite: Name des Rezepts
+    "detail_name": "h1, .fab-title, .item-name",
+    # Detailseite: jede Materialzeile (Name + Menge + ggf. Qualität)
+    "material_row": ".material-row, .ingredient-row, table.materials tbody tr, .fab-materials li",
+    "material_name": ".material-name, .ingredient-name, td:nth-child(1)",
+    "material_qty": ".material-qty, .ingredient-qty, td:nth-child(2)",
+    "material_quality": ".material-quality, .ingredient-quality, td:nth-child(3)",
+}
+
+# Dieselbe Kategorie-Heuristik wie in scrape_projekte.py, damit beide
+# Quellen zu vergleichbaren Kategorien kommen und sich leichter
+# gegenüberstellen lassen. Gerne an eure tatsächlich genutzten
+# Kategorien anpassen (siehe Material-Katalog in der Anwendung, Tab
+# Verwaltung).
+KEYWORD_CATEGORY_MAP = [
+    (["magazine", "mag", "ammo", "ballistic"], "Waffen"),
+    (["rifle", "pistol", "smg", "shotgun", "sniper"], "Waffen"),
+    (["helmet", "armor", "undersuit", "backpack"], "Rüstung"),
+    (["ship", "component", "shield", "cooler", "powerplant", "quantum"], "Schiffskomponenten"),
+    (["medpen", "medical", "healing"], "Medizin"),
+    (["tool", "multitool"], "Werkzeuge"),
+]
+
+
+def log(msg):
+    ts = time.strftime("%Y-%m-%d %H:%M:%S")
+    line = f"[{ts}] {msg}"
+    print(line)
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
+        f.write(line + "\\n")
+
+
+def guess_category(name):
+    lower = name.lower()
+    for keywords, category in KEYWORD_CATEGORY_MAP:
+        if any(kw in lower for kw in keywords):
+            return category
+    return "Sonstiges"
+
+
+def parse_quantity(text):
+    """Extrahiert eine Zahl aus einem Mengen-Text wie "12 SCU" oder "x3"."""
+    if not text:
+        return None
+    match = re.search(r"[\\d.,]+", text.replace(",", "."))
+    if not match:
+        return None
+    try:
+        return float(match.group(0))
+    except ValueError:
+        return None
+
+
+def fetch_fab_list(page):
+    """Holt Name + Fab-ID (aus der URL/data-Attribut) jedes Blueprints
+    von der Übersichtsseite. Gibt eine Liste von {name, fab_id} zurück."""
+    log(f"Lade Übersichtsseite: {FAB_LIST_URL}")
+    page.goto(FAB_LIST_URL, wait_until="networkidle", timeout=30000)
+    # Der Seite etwas Zeit geben, falls Inhalte per JS nachgeladen
+    # werden, nachdem das Netzwerk bereits "idle" gemeldet hat.
+    page.wait_for_timeout(1500)
+
+    items = []
+    try:
+        page.wait_for_selector(SELECTORS["list_item"], timeout=10000)
+    except Exception:
+        log("WARNUNG: Kein Element nach SELECTORS['list_item'] gefunden — speichere Debug-HTML.")
+        DEBUG_HTML_FILE.write_text(page.content(), encoding="utf-8")
+        return items
+
+    rows = page.query_selector_all(SELECTORS["list_item"])
+    log(f"{len(rows)} mögliche Zeilen auf der Übersichtsseite gefunden.")
+
+    for row in rows:
+        link_el = row.query_selector(SELECTORS["list_item_link"]) or row
+        href = link_el.get_attribute("href") or ""
+        fab_id_attr = link_el.get_attribute("data-fab-id") or link_el.get_attribute("data-fab") or ""
+        fab_id = fab_id_attr
+        if not fab_id and "fab=" in href:
+            match = re.search(r"fab=([^&]+)", href)
+            if match:
+                fab_id = match.group(1)
+        name = (row.inner_text() or "").strip().split("\\n")[0].strip()
+        if fab_id and name:
+            items.append({"name": name, "fab_id": fab_id})
+
+    # Duplikate (z. B. durch verschachtelte Selektor-Treffer) entfernen
+    seen = set()
+    unique_items = []
+    for it in items:
+        if it["fab_id"] not in seen:
+            seen.add(it["fab_id"])
+            unique_items.append(it)
+
+    log(f"{len(unique_items)} eindeutige Blueprints erkannt.")
+    return unique_items
+
+
+def fetch_fab_detail(page, fab_id, fallback_name):
+    """Holt Name + Materialliste (mit Menge/Qualität, falls vorhanden)
+    einer einzelnen Detailseite. Gibt {name, materials: [...]} zurück,
+    oder None bei Fehlschlag."""
+    url = FAB_DETAIL_URL.format(fab_id=fab_id)
+    try:
+        page.goto(url, wait_until="networkidle", timeout=30000)
+        page.wait_for_timeout(800)
+    except Exception as e:
+        log(f"  FEHLER beim Laden von {url}: {e}")
+        return None
+
+    name_el = page.query_selector(SELECTORS["detail_name"])
+    name = (name_el.inner_text().strip() if name_el else fallback_name) or fallback_name
+
+    material_rows = page.query_selector_all(SELECTORS["material_row"])
+    if not material_rows:
+        log(f"  WARNUNG: Keine Materialzeilen für '{name}' ({fab_id}) gefunden.")
+        if not DEBUG_HTML_FILE.exists():
+            DEBUG_HTML_FILE.write_text(page.content(), encoding="utf-8")
+        return {"name": name, "materials": []}
+
+    materials = []
+    for mrow in material_rows:
+        name_el = mrow.query_selector(SELECTORS["material_name"])
+        qty_el = mrow.query_selector(SELECTORS["material_qty"])
+        qual_el = mrow.query_selector(SELECTORS["material_quality"])
+
+        mat_name = (name_el.inner_text().strip() if name_el else (mrow.inner_text() or "").strip().split("\\n")[0])
+        mat_qty = parse_quantity(qty_el.inner_text() if qty_el else "")
+        mat_qual = parse_quantity(qual_el.inner_text() if qual_el else "")
+
+        if mat_name:
+            materials.append({"name": mat_name, "menge": mat_qty, "qualitaet": mat_qual})
+
+    return {"name": name, "materials": materials}
+
+
+def format_material(m):
+    parts = [m["name"]]
+    if m.get("menge") is not None:
+        parts.append(str(m["menge"]))
+        if m.get("qualitaet") is not None:
+            parts.append(str(m["qualitaet"]))
+    return ":".join(parts)
+
+
+def write_import_file(recipes):
+    lines = [f"# Stand: {time.strftime('%Y-%m-%d')} | Quelle: scmdb.net | {len(recipes)} Rezepte"]
+    for r in recipes:
+        if not r["materials"]:
+            continue
+        category = guess_category(r["name"])
+        materials_str = ",".join(format_material(m) for m in r["materials"])
+        lines.append(f"{category};{r['name']};{materials_str}")
+
+    OUTPUT_FILE.write_text("\\n".join(lines), encoding="utf-8")
+    log(f"Geschrieben: {OUTPUT_FILE} ({len(lines)-1} Rezepte mit Materialien)")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="scmdb.net Rezepte-Scraper")
+    parser.add_argument("--limit", type=int, default=None, help="Nur die ersten N Rezepte abrufen (zum Testen)")
+    parser.add_argument("--headed", action="store_true", help="Browser sichtbar starten (zum Debuggen)")
+    args = parser.parse_args()
+
+    LOG_FILE.write_text("", encoding="utf-8")  # Log-Datei bei jedem Lauf neu beginnen
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=not args.headed)
+        page = browser.new_page()
+
+        fab_list = fetch_fab_list(page)
+        if not fab_list:
+            log("Keine Blueprints gefunden — Abbruch. Bitte scmdb_debug.html prüfen und SELECTORS anpassen.")
+            browser.close()
+            sys.exit(1)
+
+        if args.limit:
+            fab_list = fab_list[: args.limit]
+            log(f"--limit gesetzt, verarbeite nur die ersten {len(fab_list)} Blueprints.")
+
+        recipes = []
+        for i, item in enumerate(fab_list, 1):
+            log(f"[{i}/{len(fab_list)}] {item['name']} ({item['fab_id']})")
+            detail = fetch_fab_detail(page, item["fab_id"], item["name"])
+            if detail:
+                recipes.append(detail)
+            time.sleep(REQUEST_DELAY)
+
+        browser.close()
+
+    write_import_file(recipes)
+    empty_count = sum(1 for r in recipes if not r["materials"])
+    if empty_count:
+        log(f"HINWEIS: {empty_count} von {len(recipes)} Rezepten hatten keine erkannten Materialien — "
+            f"diese wurden NICHT in die Ausgabedatei aufgenommen. Bitte scmdb_debug.html prüfen.")
+    log("Fertig.")
+
+
+if __name__ == "__main__":
+    main()
+`;
+
 function downloadCSV(filename, headers, rows){
   const esc = v=>{
     const s = String(v==null ? '' : v);
