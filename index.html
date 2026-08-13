@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.054 -->
+<!-- Version: 0.055 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -3141,6 +3141,7 @@ const I18N = {
   "val_material_exists": "Dieses Material existiert in dieser Kategorie bereits.",
   "val_system_code_name_required": "Bitte System, Code und Name angeben.",
   "val_location_exists": "Dieser Lagerort existiert in diesem System bereits.",
+  "val_projekt_name_existiert": "Ein Projekt mit diesem Namen existiert bereits — bitte einen eindeutigen Namen wählen (wichtig für die korrekte Zuordnung von Bestand/Sammelobjekten).",
   "val_goal_qty_required": "Bitte mindestens Ziel und Anzahl angeben.",
   "msg_project_saved": "Projekt gespeichert.",
   "val_need_required": "Bitte Material, Mindest-Qualität und Menge angeben.",
@@ -3758,6 +3759,7 @@ const I18N = {
   "val_material_exists": "This material already exists in this category.",
   "val_system_code_name_required": "Please enter system, code and name.",
   "val_location_exists": "This location already exists in this system.",
+  "val_projekt_name_existiert": "A project with this name already exists — please choose a unique name (important for correctly assigning inventory/collectibles).",
   "val_goal_qty_required": "Please enter at least a goal and quantity.",
   "msg_project_saved": "Project saved.",
   "val_need_required": "Please enter material, minimum quality and quantity.",
@@ -4375,6 +4377,7 @@ const I18N = {
   "val_material_exists": "Ce matériau existe déjà dans cette catégorie.",
   "val_system_code_name_required": "Veuillez indiquer le système, le code et le nom.",
   "val_location_exists": "Cet emplacement existe déjà dans ce système.",
+  "val_projekt_name_existiert": "Un projet portant ce nom existe déjà — veuillez choisir un nom unique (important pour l'attribution correcte du stock/objets de collection).",
   "val_goal_qty_required": "Veuillez indiquer au moins un objectif et une quantité.",
   "msg_project_saved": "Projet enregistré.",
   "val_need_required": "Veuillez indiquer le matériau, la qualité minimale et la quantité.",
@@ -8244,6 +8247,11 @@ function stockForMaterial(material, projekt){
   entries.filter(e=>e.material===material && (projekt===undefined || (e.projekt||'')===projekt)).forEach(e=>{
     byUnit[e.einheit] = (byUnit[e.einheit] || 0) + e.menge;
   });
+  // Sammelobjekte zaehlen mit, siehe Kommentar bei stockAmount() weiter
+  // oben -- immer stueckweise, daher unter der Einheit "Stück" einsortiert.
+  collectibles.filter(c=>c.objekt===material && (projekt===undefined || (c.projekt||'')===projekt)).forEach(c=>{
+    byUnit['Stück'] = (byUnit['Stück'] || 0) + c.anzahl;
+  });
   const units = Object.keys(byUnit);
   if(units.length === 0) return '0';
   return units.map(u=>`${Math.round(byUnit[u]*100)/100} ${u}`).join(', ');
@@ -8512,13 +8520,30 @@ function renderCommodityPriceStatus(){
 // Reine Zahl statt formatiertem Text — für Fortschrittsberechnungen und
 // den Abgleich "gedeckt / nicht gedeckt" bei Bedarfsprioritäten.
 // Ohne Einheiten-Filter wird über alle Einheiten summiert.
+// Beruecksichtigt seit 12. August 2026 zusaetzlich COLLECTIBLES, nicht
+// nur ENTRIES (reguläre Materialien) -- Projekt-Ressourcen (insbesondere
+// aus importierten Vorlagen, z.B. scmdb.net) koennen durchaus
+// Sammelobjekt-Namen als "Material" referenzieren (z.B. "Ace Interceptor
+// Helmet"). Ohne diese Ergaenzung zaehlten einem Projekt zugeordnete
+// Sammelobjekte NIE zum Projekt-Fortschritt, obwohl die Zuordnung selbst
+// (das projekt-Feld am Sammelobjekt-Eintrag) korrekt gespeichert wurde --
+// sie wurde schlicht nie AUSGEWERTET. Sammelobjekte sind immer stueckweise
+// gezaehlt (Stück), daher nur beruecksichtigt, wenn keine ANDERE,
+// spezifische Einheit angefragt wird. Siehe Nutzerwunsch vom
+// 12. August 2026.
 function stockAmount(material, projekt, einheit){
   if(!material) return 0;
-  return entries
+  const fromMaterials = entries
     .filter(e=>e.material===material
       && (projekt===undefined || (e.projekt||'')===projekt)
       && (einheit===undefined || e.einheit===einheit))
     .reduce((sum,e)=> sum + e.menge, 0);
+  const fromCollectibles = (einheit===undefined || einheit==='Stück')
+    ? collectibles
+        .filter(c=>c.objekt===material && (projekt===undefined || (c.projekt||'')===projekt))
+        .reduce((sum,c)=> sum + c.anzahl, 0)
+    : 0;
+  return fromMaterials + fromCollectibles;
 }
 
 // Liefert die fuer einen Bedarf tatsaechlich anrechenbare Bestandsmenge --
@@ -10193,6 +10218,21 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
     statusEl.textContent = t('val_goal_qty_required');
     return;
   }
+  // Neu ab 12. August 2026: Die gesamte Zuordnung von Bestand/Sammel-
+  // objekten zu einem Projekt laeuft technisch ueber den NAMEN (ziel),
+  // nicht ueber die zwar vorhandene, aber dafuer nicht genutzte
+  // eindeutige id -- ein vollstaendiger Umbau auf ID-basierte
+  // Verknuepfung waere ein sehr grosser Eingriff quer durch die gesamte
+  // Anwendung. Pragmatischer, deutlich kleinerer Fix stattdessen: Zwei
+  // GETEILTE Projekte duerfen erst gar nicht denselben Namen bekommen,
+  // wodurch die Mehrdeutigkeit an der Wurzel ausgeschlossen wird, ohne
+  // die bestehende Verknuepfungslogik grundlegend aendern zu muessen.
+  // Case-insensitiver Vergleich, analog zum bereits etablierten Muster
+  // bei Organisationsnamen. Siehe Nutzerwunsch vom 12. August 2026.
+  if(projects.some(p=>p.ziel.toLowerCase() === ziel.toLowerCase())){
+    statusEl.textContent = t('val_projekt_name_existiert');
+    return;
+  }
 
   projects.push({
     id: projectUid(),
@@ -10583,6 +10623,17 @@ function renderProjects(){
         }).filter(r=>r.material);
         const oldZiel = projects[idx].ziel;
         const newZiel = document.getElementById('edit-proj-ziel').value.trim();
+        // Dieselbe Eindeutigkeits-Pruefung wie bei der Neuanlage (siehe
+        // dortiger Kommentar) -- verhindert, dass ein Projekt durch
+        // Umbenennen nachtraeglich in eine Namenskollision mit einem
+        // ANDEREN, bereits bestehenden Projekt geraet. Der eigene, aktuell
+        // bearbeitete Eintrag wird bewusst von der Pruefung ausgenommen
+        // (sonst wuerde ein unveraendert gelassener Name faelschlich als
+        // "bereits vergeben" gelten).
+        if(newZiel && projects.some((p,i)=> i!==idx && p.ziel.toLowerCase() === newZiel.toLowerCase())){
+          alert(t('val_projekt_name_existiert'));
+          return;
+        }
         projects[idx] = {
           ...projects[idx],
           ziel: newZiel,
@@ -10638,6 +10689,9 @@ function myPrivateProjects(){
 
 // projektTyp (optional): siehe privateStockAmount weiter unten -- selbe
 // Kollisions-Vermeidung, hier fuer die formatierte Text-Anzeige.
+// Beruecksichtigt seit 12. August 2026 zusaetzlich myPrivateCollectibles(),
+// analog zur Erweiterung von stockAmount()/stockForMaterial() weiter oben
+// -- exakt dieselbe Luecke bestand auch bei privaten Sammelobjekten.
 function privateStockForMaterial(material, projekt, projektTyp){
   if(!material) return null;
   const byUnit = {};
@@ -10646,6 +10700,12 @@ function privateStockForMaterial(material, projekt, projektTyp){
     && (projektTyp===undefined || (e.projektTyp||'shared')===projektTyp)
   ).forEach(e=>{
     byUnit[e.einheit] = (byUnit[e.einheit] || 0) + e.menge;
+  });
+  myPrivateCollectibles().filter(c=>c.objekt===material
+    && (projekt===undefined || (c.projekt||'')===projekt)
+    && (projektTyp===undefined || (c.projektTyp||'shared')===projektTyp)
+  ).forEach(c=>{
+    byUnit['Stück'] = (byUnit['Stück'] || 0) + c.anzahl;
   });
   const units = Object.keys(byUnit);
   if(units.length === 0) return '0';
@@ -10659,12 +10719,20 @@ function privateStockForMaterial(material, projekt, projektTyp){
 // geteilten Projekten zuordenbar und werden daher als 'shared' behandelt.
 function privateStockAmount(material, projekt, einheit, projektTyp){
   if(!material) return 0;
-  return myPrivateEntries()
+  const fromMaterials = myPrivateEntries()
     .filter(e=>e.material===material
       && (projekt===undefined || (e.projekt||'')===projekt)
       && (projektTyp===undefined || (e.projektTyp||'shared')===projektTyp)
       && (einheit===undefined || e.einheit===einheit))
     .reduce((sum,e)=> sum + e.menge, 0);
+  const fromCollectibles = (einheit===undefined || einheit==='Stück')
+    ? myPrivateCollectibles()
+        .filter(c=>c.objekt===material
+          && (projekt===undefined || (c.projekt||'')===projekt)
+          && (projektTyp===undefined || (c.projektTyp||'shared')===projektTyp))
+        .reduce((sum,c)=> sum + c.anzahl, 0)
+    : 0;
+  return fromMaterials + fromCollectibles;
 }
 
 function bindPrivateProjectResourceListeners(){
@@ -10710,6 +10778,17 @@ document.getElementById('btnAddPrivProject').addEventListener('click', async ()=
 
   if(!ziel || anzahl === ''){
     statusEl.textContent = t('val_goal_qty_required');
+    return;
+  }
+  // Siehe ausfuehrlichen Kommentar bei der geteilten Projekt-Anlage
+  // weiter oben. Bei privaten Projekten reicht eine Pruefung je Besitzer
+  // (nicht organisationsweit), da myPrivateEntries()/myPrivateCollectibles()
+  // ohnehin bereits vor der Namens-Zuordnung auf die eigene Person
+  // gefiltert werden -- zwei verschiedene Personen mit privaten
+  // Projekten gleichen Namens wuerden sich technisch nicht in die Quere
+  // kommen, wohl aber zwei eigene private Projekte mit identischem Namen.
+  if(privateProjects.some(p=>p.owner===currentUser.username && p.ziel.toLowerCase() === ziel.toLowerCase())){
+    statusEl.textContent = t('val_projekt_name_existiert');
     return;
   }
 
@@ -10991,6 +11070,11 @@ function renderPrivateProjects(){
         }).filter(r=>r.material);
         const oldZiel = privateProjects[idx].ziel;
         const newZiel = document.getElementById('edit-priv-proj-ziel').value.trim();
+        // Siehe Kommentar bei der geteilten Projekt-Anlage/-Bearbeitung.
+        if(newZiel && privateProjects.some((p,i)=> i!==idx && p.owner===currentUser.username && p.ziel.toLowerCase() === newZiel.toLowerCase())){
+          alert(t('val_projekt_name_existiert'));
+          return;
+        }
         privateProjects[idx] = {
           ...privateProjects[idx],
           ziel: newZiel,
