@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.051 -->
+<!-- Version: 0.054 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1645,19 +1645,33 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     </div>
     <div class="field" style="margin-top:14px;">
       <label data-i18n="label_discord_events">Benachrichtigen bei</label>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
-        <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
-          <input type="checkbox" id="discordEvent-kritischerBedarf"> <span data-i18n="label_discord_event_kritisch">⚠ Kritischer Bedarf gemeldet</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
-          <input type="checkbox" id="discordEvent-zuweisung"> <span data-i18n="label_discord_event_zuweisung">🎁 Material einer Person zugewiesen</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
-          <input type="checkbox" id="discordEvent-projektAngelegt"> <span data-i18n="label_discord_event_projekt">🚀 Neues Projekt angelegt</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
-          <input type="checkbox" id="discordEvent-projektBedarf"> <span data-i18n="label_discord_event_projektbedarf">📦 Bedarf aus einem Projekt gemeldet</span>
-        </label>
+      <!-- Grid statt einzelner Flex-Zeilen: stellt sicher, dass sowohl
+           die Checkboxen als auch die Beschreibungstexte jeweils exakt
+           in einer eigenen, sauberen Spalte untereinander stehen --
+           unabhaengig davon, wie lang der einzelne Beschreibungstext ist
+           (z.B. die deutlich laengere 50%-Beschreibung gegenueber den
+           kuerzeren Zeilen) oder ob ein Text auf mehrere Zeilen umbricht.
+           Erste Spalte fest auf Checkbox-Breite begrenzt (auto),
+           zweite Spalte nimmt den restlichen Platz ein (1fr). Siehe
+           Nutzerwunsch vom 12. August 2026. -->
+      <div style="display:grid;grid-template-columns:auto 1fr;column-gap:8px;row-gap:8px;margin-top:6px;align-items:start;">
+        <input type="checkbox" id="discordEvent-kritischerBedarf" style="margin-top:3px;">
+        <label for="discordEvent-kritischerBedarf" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_kritisch">⚠ Kritischer Bedarf gemeldet</label>
+
+        <input type="checkbox" id="discordEvent-zuweisung" style="margin-top:3px;">
+        <label for="discordEvent-zuweisung" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_zuweisung">🎁 Material einer Person zugewiesen</label>
+
+        <input type="checkbox" id="discordEvent-projektAngelegt" style="margin-top:3px;">
+        <label for="discordEvent-projektAngelegt" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projekt">🚀 Neues Projekt angelegt</label>
+
+        <input type="checkbox" id="discordEvent-projektBedarf" style="margin-top:3px;">
+        <label for="discordEvent-projektBedarf" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektbedarf">📦 Bedarf aus einem Projekt gemeldet</label>
+
+        <input type="checkbox" id="discordEvent-projekt50" style="margin-top:3px;">
+        <label for="discordEvent-projekt50" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projekt50">🎯 Projekt zu 50% abgeschlossen (inkl. noch fehlender Materialien)</label>
+
+        <input type="checkbox" id="discordEvent-projektAbgeschlossen" style="margin-top:3px;">
+        <label for="discordEvent-projektAbgeschlossen" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektabgeschlossen">✅ Projekt vollständig abgeschlossen</label>
       </div>
     </div>
     <div style="margin-top:14px;display:flex;gap:10px;">
@@ -2074,7 +2088,23 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="tab-content" data-tab="privatbestand" style="display:none;">
   <div class="panel">
     <h2 data-i18n="panel_zusammenfassung_privat">Zusammenfassung nach Material (Privat)</h2>
-    <div id="privateSummaryContainer"></div>
+    <!-- min-height bewusst ergaenzt: Das umschliessende .panel-Element
+         schneidet per clip-path (siehe dortiger Kommentar) JEDEN Inhalt
+         ab, der ueber die tatsaechliche, durch den Inhalt bestimmte
+         Panel-Hoehe hinausragt -- unabhaengig vom Browser-Fenster/
+         verfuegbarem Platz auf der Seite. Bei wenigen Materialien war
+         das Panel entsprechend kurz, wodurch das Hover-Info-Fenster bei
+         der "Gesamt"-Spalte abgeschnitten wurde, selbst wenn im Browser-
+         Fenster selbst reichlich Platz vorhanden gewesen waere (die neue
+         automatische Oben/Unten-Positionierung von eben wirkt NUR gegen
+         den Viewport-Rand, nicht gegen diese Panel-eigene Begrenzung).
+         Die Mindesthoehe stellt sicher, dass auch bei einer kurzen
+         Tabelle genug Panel-Flaeche fuer ein vollstaendiges Info-Fenster
+         vorhanden ist. Bewusst als Mindesthoehe (nicht feste Hoehe) --
+         waechst die Tabelle durch mehr Materialien natuerlich darueber
+         hinaus, bleibt sie weiterhin uneingeschraenkt mitwachsend. Siehe
+         Nutzerwunsch vom 12. August 2026. -->
+    <div id="privateSummaryContainer" style="min-height:420px;"></div>
   </div>
 
   <div class="panel">
@@ -2995,6 +3025,10 @@ const I18N = {
   "label_discord_event_kritisch": "⚠ Kritischer Bedarf gemeldet",
   "label_discord_event_zuweisung": "🎁 Material einer Person zugewiesen",
   "label_discord_event_projekt": "🚀 Neues Projekt angelegt",
+  "label_discord_event_projekt50": "🎯 Projekt zu 50% abgeschlossen (inkl. noch fehlender Materialien)",
+  "label_discord_event_projektabgeschlossen": "✅ Projekt vollständig abgeschlossen",
+  "label_noch_benoetigt": "Noch benötigt",
+  "label_alle_ressourcen_gedeckt": "Alle Ressourcen bereits gedeckt.",
   "label_discord_event_projektbedarf": "📦 Bedarf aus einem Projekt gemeldet",
   "btn_discord_test": "Testnachricht senden",
   "val_discord_webhook_invalid": "Das sieht nicht nach einer gültigen Discord-Webhook-URL aus (muss mit https://discord.com/api/webhooks/ beginnen).",
@@ -3608,6 +3642,10 @@ const I18N = {
   "label_discord_event_kritisch": "⚠ Critical need reported",
   "label_discord_event_zuweisung": "🎁 Material assigned to a person",
   "label_discord_event_projekt": "🚀 New project created",
+  "label_discord_event_projekt50": "🎯 Project 50% complete (incl. still-missing materials)",
+  "label_discord_event_projektabgeschlossen": "✅ Project fully complete",
+  "label_noch_benoetigt": "Still needed",
+  "label_alle_ressourcen_gedeckt": "All resources already covered.",
   "label_discord_event_projektbedarf": "📦 Need reported from a project",
   "btn_discord_test": "Send test message",
   "val_discord_webhook_invalid": "That doesn't look like a valid Discord webhook URL (must start with https://discord.com/api/webhooks/).",
@@ -4221,6 +4259,10 @@ const I18N = {
   "label_discord_event_kritisch": "⚠ Besoin critique signalé",
   "label_discord_event_zuweisung": "🎁 Matériau attribué à une personne",
   "label_discord_event_projekt": "🚀 Nouveau projet créé",
+  "label_discord_event_projekt50": "🎯 Projet complété à 50 % (avec les matériaux encore manquants)",
+  "label_discord_event_projektabgeschlossen": "✅ Projet entièrement terminé",
+  "label_noch_benoetigt": "Encore nécessaire",
+  "label_alle_ressourcen_gedeckt": "Toutes les ressources sont déjà couvertes.",
   "label_discord_event_projektbedarf": "📦 Besoin signalé depuis un projet",
   "btn_discord_test": "Envoyer un message test",
   "val_discord_webhook_invalid": "Cela ne ressemble pas à une URL de webhook Discord valide (doit commencer par https://discord.com/api/webhooks/).",
@@ -4704,7 +4746,7 @@ const DISCORD_SETTINGS_KEY = 'discord-settings';
 let currentOrgDiscordSettings = null;
 
 function defaultDiscordSettings(){
-  return { webhookUrl: '', events: { kritischerBedarf:false, zuweisung:false, projektAngelegt:false, projektBedarf:false } };
+  return { webhookUrl: '', events: { kritischerBedarf:false, zuweisung:false, projektAngelegt:false, projektBedarf:false, projekt50:false, projektAbgeschlossen:false } };
 }
 
 async function loadOrgDiscordSettings(){
@@ -4734,6 +4776,8 @@ function loadDiscordSettingsIntoForm(){
   document.getElementById('discordEvent-zuweisung').checked = !!s.events.zuweisung;
   document.getElementById('discordEvent-projektAngelegt').checked = !!s.events.projektAngelegt;
   document.getElementById('discordEvent-projektBedarf').checked = !!s.events.projektBedarf;
+  document.getElementById('discordEvent-projekt50').checked = !!s.events.projekt50;
+  document.getElementById('discordEvent-projektAbgeschlossen').checked = !!s.events.projektAbgeschlossen;
 }
 
 // Zentrale Versandfunktion -- wird an allen vier Ausloese-Stellen
@@ -5893,7 +5937,9 @@ document.getElementById('btnSaveDiscord').addEventListener('click', async ()=>{
       kritischerBedarf: document.getElementById('discordEvent-kritischerBedarf').checked,
       zuweisung: document.getElementById('discordEvent-zuweisung').checked,
       projektAngelegt: document.getElementById('discordEvent-projektAngelegt').checked,
-      projektBedarf: document.getElementById('discordEvent-projektBedarf').checked
+      projektBedarf: document.getElementById('discordEvent-projektBedarf').checked,
+      projekt50: document.getElementById('discordEvent-projekt50').checked,
+      projektAbgeschlossen: document.getElementById('discordEvent-projektAbgeschlossen').checked
     }
   };
   // Webhook-URL grob validieren -- verhindert nicht jeden Tippfehler,
@@ -11501,10 +11547,97 @@ document.getElementById('leaderboardTimeframe').addEventListener('change', (e)=>
   renderContributorLeaderboard();
 });
 
+// Berechnet den Gesamt-Fortschritt EINES einzelnen (geteilten) Projekts
+// als Durchschnitt der Deckung all seiner Ressourcen -- dieselbe
+// Rechenlogik wie beim bereits bestehenden Dashboard-Durchschnitt ueber
+// ALLE Projekte hinweg (siehe renderDashboard weiter unten), hier aber
+// auf ein einzelnes Projekt bezogen, da es bislang keine solche
+// projektweite Einzel-Kennzahl gab (nur Fortschrittsbalken je Material).
+// Gibt null zurueck, wenn das Projekt keine gueltigen Ressourcen hat.
+function calculateProjectProgress(p){
+  const resources = p.resources.map(normalizeResource).filter(r=>r.menge!=null && r.menge>0);
+  if(resources.length === 0) return null;
+  const percentages = resources.map(r=>{
+    const effMenge = effectiveResourceMenge(p, r);
+    const avail = stockAmount(r.material, p.ziel);
+    return Math.min(100, Math.round((avail/effMenge)*100));
+  });
+  return Math.round(percentages.reduce((s,v)=>s+v,0) / percentages.length);
+}
+
+// Baut dieselbe Art Discord-Codeblock-Liste wie buildDiscordResourceList
+// (siehe dort), zeigt hier aber ausschliesslich die noch FEHLENDE Menge
+// je Ressource, die noch nicht vollstaendig gedeckt ist -- genutzt fuer
+// die 50%-Fortschritts-Benachrichtigung als direkt verwertbarer Hinweis,
+// wonach noch Ausschau gehalten werden sollte. Ressourcen, die bereits
+// vollstaendig gedeckt sind, werden bewusst NICHT mit aufgefuehrt.
+function buildMissingResourcesList(p){
+  const resources = p.resources.map(normalizeResource).filter(r=>r.menge!=null && r.menge>0);
+  const missing = resources.map(r=>{
+    const effMenge = effectiveResourceMenge(p, r);
+    const avail = stockAmount(r.material, p.ziel);
+    const fehlend = Math.max(0, Math.round((effMenge-avail)*1000)/1000);
+    return { material: r.material, fehlend, einheit: getDefaultEinheitForMaterial(r.material) };
+  }).filter(r=>r.fehlend > 0);
+  if(missing.length === 0) return '';
+  const maxNameLen = Math.max(...missing.map(r=>r.material.length));
+  const lines = missing.map(r=>`${r.material.padEnd(maxNameLen+1)}${r.fehlend} ${r.einheit}`);
+  return '```\n' + lines.join('\n') + '\n```';
+}
+
+// Prueft nach jeder Dashboard-Aktualisierung (siehe scheduleRenderDashboard
+// -- wird bereits von praktisch jeder bestandsveraendernden Aktion in der
+// Anwendung aufgerufen, daher als zentraler Anknuepfungspunkt genutzt,
+// statt an jeder einzelnen Stelle im Code eine eigene Pruefung zu
+// ergaenzen) alle geteilten Projekte darauf, ob der Fortschritt gerade
+// erstmals 50% bzw. 100% erreicht/ueberschritten hat. Einmalig pro
+// Projekt (ueber die Merker notifiedHalfway/notifiedComplete, die mit
+// dem Projekt selbst gespeichert werden) -- verhindert wiederholte
+// Benachrichtigungen bei schwankendem Bestand (Nutzerwunsch, bewusste
+// Entscheidung vom 12. August 2026, um Spam zu vermeiden).
+async function checkProjectProgressNotifications(){
+  if(!currentOrgDiscordSettings) return;
+  let changed = false;
+  for(const p of projects){
+    const progress = calculateProjectProgress(p);
+    if(progress == null) continue;
+    // Stille Basis-Migration: Bestehende Projekte (bereits vor dieser
+    // Funktion angelegt) haben die Merker notifiedHalfway/notifiedComplete
+    // noch nicht gesetzt -- ohne diese Vorkehrung wuerden beim ERSTEN Lauf
+    // nach diesem Update alle bereits fortgeschrittenen/fertigen Projekte
+    // auf einen Schlag Benachrichtigungen ausloesen, obwohl der jeweilige
+    // Meilenstein moeglicherweise schon vor Wochen erreicht wurde. Der
+    // erste Durchlauf je Projekt setzt die Merker deshalb passend zum
+    // AKTUELLEN Stand, OHNE dabei selbst zu benachrichtigen -- erst ein
+    // spaeteres, tatsaechlich NEUES Ueberschreiten loest danach eine
+    // Nachricht aus. Siehe Nutzerwunsch vom 12. August 2026.
+    if(!p.progressBaselineSet){
+      p.progressBaselineSet = true;
+      if(progress >= 50) p.notifiedHalfway = true;
+      if(progress >= 100) p.notifiedComplete = true;
+      changed = true;
+      continue;
+    }
+    if(progress >= 50 && !p.notifiedHalfway){
+      p.notifiedHalfway = true;
+      changed = true;
+      const missingList = buildMissingResourcesList(p);
+      await sendDiscordNotification('projekt50', `🎯 **Projekt zu ${progress}% abgeschlossen**: ${p.ziel}${missingList ? '\n' + t('label_noch_benoetigt') + ':\n' + missingList : '\n' + t('label_alle_ressourcen_gedeckt')}`);
+    }
+    if(progress >= 100 && !p.notifiedComplete){
+      p.notifiedComplete = true;
+      changed = true;
+      await sendDiscordNotification('projektAbgeschlossen', `✅ **Projekt vollständig abgeschlossen**: ${p.ziel} — alle benötigten Ressourcen sind vorhanden!`);
+    }
+  }
+  if(changed) await saveProjects();
+}
+
 async function renderDashboard(){
   if(!currentUser) return;
   const statsContainer = document.getElementById('dashboardStats');
   renderContributorLeaderboard();
+  checkProjectProgressNotifications();
 
   const materialarten = new Set(entries.map(e=>e.material)).size;
   const lagerorte = new Set(entries.map(e=>e.lagerort)).size;
