@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.050 -->
+<!-- Version: 0.051 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -348,6 +348,17 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
   white-space:normal;
 }
 .stock-hover-wrap:hover .stock-hover-tooltip{ display:block; }
+/* Wird per JS (siehe positionStockHoverTooltip) ergaenzt, wenn fuer das
+   Fenster nach UNTEN nicht genug Platz im sichtbaren Bereich ist -- der
+   Nutzer musste sonst die ganze Seite herunterscrollen, um den unteren
+   Teil des Fensters ueberhaupt zu sehen, besonders bei Tabellenzeilen
+   weiter unten auf der Seite. Kehrt die Oeffnungsrichtung um (nach oben
+   statt nach unten), OHNE die grundsaetzliche "waechst nach links"-Logik
+   (right:0) anzutasten. Siehe Nutzerwunsch vom 12. August 2026. */
+.stock-hover-tooltip.flip-above{
+  top:auto;
+  bottom:calc(100% + 8px);
+}
 .stock-hover-tooltip table{
   font-size:12px;
   /* width:100% + table-layout:fixed zwingt die Tabelle, sich strikt an
@@ -2776,6 +2787,7 @@ const I18N = {
   "label_verschiedene_eintraege": "verschiedene Einträge",
   "label_benoetigt": "benötigt",
   "label_vorhanden": "vorhanden",
+  "label_ort_qualitaet_menge": "Ort · Qualität · Menge",
   "label_beitraege_aufschluesselung": "Wer hat beigetragen",
   "label_konkurrierende_bedarfe": "Konkurrierende Bedarfe (dasselbe Material)",
   "label_konkurriert_mit": "konkurriert mit {count} weiterem Bedarf/Bedarfen",
@@ -3388,6 +3400,7 @@ const I18N = {
   "label_verschiedene_eintraege": "distinct entries",
   "label_benoetigt": "needed",
   "label_vorhanden": "available",
+  "label_ort_qualitaet_menge": "Location · Quality · Quantity",
   "label_beitraege_aufschluesselung": "Who contributed",
   "label_konkurrierende_bedarfe": "Competing needs (same material)",
   "label_konkurriert_mit": "competes with {count} other need(s)",
@@ -4000,6 +4013,7 @@ const I18N = {
   "label_verschiedene_eintraege": "entrées différentes",
   "label_benoetigt": "nécessaire",
   "label_vorhanden": "disponible",
+  "label_ort_qualitaet_menge": "Emplacement · Qualité · Quantité",
   "label_beitraege_aufschluesselung": "Qui a contribué",
   "label_konkurrierende_bedarfe": "Besoins concurrents (même matériau)",
   "label_konkurriert_mit": "entre en concurrence avec {count} autre(s) besoin(s)",
@@ -11816,6 +11830,35 @@ document.addEventListener('change', (e)=>{
 // Rueckwaerts-Suche: Klick-Icons in den Zusammenfassungen (Material &
 // Sammelobjekte) auf-/zuklappen, sowie Klick auf einen Projektnamen
 // innerhalb der aufgeklappten Aufschluesselung zum Projekte-Tab springen.
+// Dynamische Positionierung fuer alle Hover-Info-Fenster (Bestand-
+// Aufschluesselungen, Bedarf-Deckung, Verkaufspreise usw.): Standard-
+// maessig oeffnen sie nach UNTEN (siehe .stock-hover-tooltip). Bei
+// Tabellenzeilen, die bereits weiter unten auf der Seite stehen, reichte
+// der verbleibende Platz nach unten oft nicht aus -- der obere Teil des
+// Fensters war zwar sichtbar, der untere ragte ueber den Browser-
+// Viewport hinaus, was ein zusaetzliches Herunterscrollen der ganzen
+// Seite noetig machte, nur um das komplette Fenster zu sehen. Per
+// 'mouseover' (bubbelt, im Gegensatz zu 'mouseenter') global abgefangen,
+// damit kuenftig hinzugefuegte Hover-Fenster automatisch mit abgedeckt
+// sind, ohne an jeder einzelnen Stelle im Code einen eigenen Listener
+// ergaenzen zu muessen. requestAnimationFrame sorgt dafuer, dass zuerst
+// die per CSS :hover ausgeloeste Sichtbarkeit tatsaechlich greift, bevor
+// die tatsaechliche Fenstergroesse gemessen wird -- geschieht innerhalb
+// desselben Bildaufbaus, dadurch fuer das Auge kein wahrnehmbarer Sprung.
+// Siehe Nutzerwunsch vom 12. August 2026.
+document.addEventListener('mouseover', (e)=>{
+  const wrap = e.target.closest('.stock-hover-wrap');
+  if(!wrap) return;
+  const tooltip = wrap.querySelector('.stock-hover-tooltip');
+  if(!tooltip) return;
+  requestAnimationFrame(()=>{
+    const wrapRect = wrap.getBoundingClientRect();
+    const tooltipHeight = tooltip.offsetHeight;
+    const fitsBelow = wrapRect.bottom + 8 + tooltipHeight <= window.innerHeight;
+    tooltip.classList.toggle('flip-above', !fitsBelow);
+  });
+});
+
 document.addEventListener('click', (e)=>{
   const usageBtn = e.target.closest('[data-action="toggle-usage-material"]');
   if(usageBtn){
@@ -14337,7 +14380,7 @@ function buildPrivateTotalStockBreakdownHTML(material){
     });
     body += `</tbody></table>`;
   }
-  return `<div class="stock-hover-title">${t('label_beitraege_aufschluesselung')}</div>${body}`;
+  return `<div class="stock-hover-title">${t('label_ort_qualitaet_menge')}</div>${body}`;
 }
 
 function renderPrivateSummary(){
