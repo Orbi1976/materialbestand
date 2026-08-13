@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.059 -->
+<!-- Version: 0.060 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1437,6 +1437,27 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div style="display:flex;justify-content:flex-end;gap:10px;">
       <button class="btn-ghost" id="btnTemplateImportCancel" data-i18n="btn_cancel">Abbrechen</button>
       <button class="btn-primary" id="btnTemplateImportConfirm" style="background:var(--low);" data-i18n="btn_trotzdem_importieren">Trotzdem importieren</button>
+    </div>
+  </div>
+</div>
+
+<div id="resetPasswordModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:246;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:26px 28px;max-width:420px;width:100%;box-shadow:0 0 40px var(--cyan-glow);">
+    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 6px;">🔑 <span data-i18n="modal_passwort_zuruecksetzen">Passwort zurücksetzen</span></h3>
+    <p id="resetPasswordModalUsername" style="font-size:13px;color:var(--ink-soft);margin:0 0 16px;"></p>
+    <div class="field">
+      <label for="resetPasswordNew" data-i18n="label_neues_passwort">Neues Passwort</label>
+      <input type="password" id="resetPasswordNew" autocomplete="new-password">
+    </div>
+    <div class="field" style="margin-top:10px;">
+      <label for="resetPasswordConfirm" data-i18n="label_passwort_bestaetigen">Passwort bestätigen</label>
+      <input type="password" id="resetPasswordConfirm" autocomplete="new-password">
+    </div>
+    <div class="user-note" style="margin-top:12px;" data-i18n="hint_passwort_reset_erzwingt_nicht">Der betroffene Benutzer wird beim nächsten Login NICHT zur Änderung aufgefordert — falls gewünscht, das neue Passwort bitte separat mitteilen.</div>
+    <div class="status-msg" id="resetPasswordStatus" style="margin-top:8px;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+      <button class="btn-ghost" id="btnResetPasswordCancel" data-i18n="btn_cancel">Abbrechen</button>
+      <button class="btn-primary" id="btnResetPasswordConfirm" data-i18n="btn_zuruecksetzen">Zurücksetzen</button>
     </div>
   </div>
 </div>
@@ -2983,6 +3004,13 @@ const I18N = {
   "empty_template_search": "Keine passende Vorlage gefunden.",
   "msg_template_applied": "Vorlage übernommen — bitte Anzahl und Mengen prüfen.",
   "label_vorlage": "Vorlage (optional)",
+  "modal_passwort_zuruecksetzen": "Passwort zurücksetzen",
+  "label_neues_passwort": "Neues Passwort",
+  "label_passwort_bestaetigen": "Passwort bestätigen",
+  "hint_passwort_reset_erzwingt_nicht": "Der betroffene Benutzer wird beim nächsten Login NICHT zur Änderung aufgefordert — falls gewünscht, das neue Passwort bitte separat mitteilen.",
+  "btn_zuruecksetzen": "Zurücksetzen",
+  "tooltip_passwort_zuruecksetzen": "Passwort zurücksetzen (nur Besitzer)",
+  "val_user_not_found": "Benutzer nicht gefunden.",
   "btn_datei_auswaehlen": "Datei auswählen …",
   "msg_file_loaded": "Datei „{name}“ geladen — bitte prüfen und auf „Importieren“ klicken.",
   "val_file_read_error": "Datei konnte nicht gelesen werden.",
@@ -3602,6 +3630,13 @@ const I18N = {
   "empty_template_search": "No matching template found.",
   "msg_template_applied": "Template applied — please check quantity and amounts.",
   "label_vorlage": "Template (optional)",
+  "modal_passwort_zuruecksetzen": "Reset password",
+  "label_neues_passwort": "New password",
+  "label_passwort_bestaetigen": "Confirm password",
+  "hint_passwort_reset_erzwingt_nicht": "The affected user will NOT be prompted to change it at next login — if desired, please share the new password separately.",
+  "btn_zuruecksetzen": "Reset",
+  "tooltip_passwort_zuruecksetzen": "Reset password (owner only)",
+  "val_user_not_found": "User not found.",
   "btn_datei_auswaehlen": "Select file …",
   "msg_file_loaded": "File “{name}” loaded — please review and click “Import”.",
   "val_file_read_error": "Could not read the file.",
@@ -4221,6 +4256,13 @@ const I18N = {
   "empty_template_search": "Aucun modèle correspondant trouvé.",
   "msg_template_applied": "Modèle appliqué — veuillez vérifier la quantité et les montants.",
   "label_vorlage": "Modèle (facultatif)",
+  "modal_passwort_zuruecksetzen": "Réinitialiser le mot de passe",
+  "label_neues_passwort": "Nouveau mot de passe",
+  "label_passwort_bestaetigen": "Confirmer le mot de passe",
+  "hint_passwort_reset_erzwingt_nicht": "L'utilisateur concerné ne sera PAS invité à le changer à sa prochaine connexion — si souhaité, veuillez communiquer le nouveau mot de passe séparément.",
+  "btn_zuruecksetzen": "Réinitialiser",
+  "tooltip_passwort_zuruecksetzen": "Réinitialiser le mot de passe (propriétaire uniquement)",
+  "val_user_not_found": "Utilisateur introuvable.",
   "btn_datei_auswaehlen": "Sélectionner un fichier …",
   "msg_file_loaded": "Fichier « {name} » chargé — veuillez vérifier puis cliquer sur « Importer ».",
   "val_file_read_error": "Impossible de lire le fichier.",
@@ -5048,6 +5090,7 @@ function renderUserList(){
         ${u.categoryRestriction && u.categoryRestriction.length>0 ? `<span class="badge project-reserved" title="${t('label_kategorie_beschraenkung')}">🔒 ${u.categoryRestriction.map(escapeHtml).join(', ')}</span>` : ''}
       </div>
       <div class="actions-cell">
+        ${isOwner ? `<button class="btn-icon" data-action="reset-password" data-idx="${idx}" title="${t('tooltip_passwort_zuruecksetzen')}">🔑</button>` : ''}
         <button class="btn-icon" data-action="edit-user" data-idx="${idx}" title="${t('btn_edit')}">✎</button>
         <button class="btn-icon danger" data-action="delete-user" data-idx="${idx}" title="${t('btn_delete')}">🗑</button>
       </div>
@@ -5063,6 +5106,9 @@ function renderUserList(){
   container.querySelectorAll('[data-action="save-user"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ saveUserEdit(parseInt(btn.dataset.idx)); });
   });
+  container.querySelectorAll('[data-action="reset-password"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ openResetPasswordModal(parseInt(btn.dataset.idx)); });
+  });
   container.querySelectorAll('[data-action="delete-user"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const idx = parseInt(btn.dataset.idx);
@@ -5073,6 +5119,62 @@ function renderUserList(){
     });
   });
 }
+
+// Erlaubt der Rolle owner, das Passwort eines beliebigen Benutzers direkt
+// zu ueberschreiben -- ohne den "Passwort vergessen"-Ablauf (E-Mail-
+// Abgleich) durchlaufen zu muessen, der fuer den betroffenen Benutzer
+// SELBST gedacht ist. Nutzt intern dieselbe Speicherfunktion
+// (saveCredentials) wie jede andere Passwort-Aenderung. Setzt bewusst
+// NICHT automatisch ein "muss beim naechsten Login geaendert werden"-
+// Kennzeichen (wie es beim allerersten Login neuer Benutzer der Fall
+// ist) -- das neue Passwort gilt sofort als vollwertig, der Owner muss
+// es dem Benutzer separat mitteilen. Siehe Nutzerwunsch vom
+// 12. August 2026.
+let resetPasswordUserIdx = null;
+
+function openResetPasswordModal(idx){
+  resetPasswordUserIdx = idx;
+  const user = USERS[idx];
+  if(!user) return;
+  document.getElementById('resetPasswordModalUsername').textContent = user.username;
+  document.getElementById('resetPasswordNew').value = '';
+  document.getElementById('resetPasswordConfirm').value = '';
+  document.getElementById('resetPasswordStatus').textContent = '';
+  document.getElementById('resetPasswordModal').style.display = 'flex';
+}
+
+function closeResetPasswordModal(){
+  document.getElementById('resetPasswordModal').style.display = 'none';
+  resetPasswordUserIdx = null;
+}
+
+async function confirmResetPassword(){
+  const statusEl = document.getElementById('resetPasswordStatus');
+  if(resetPasswordUserIdx == null) return;
+  const user = USERS[resetPasswordUserIdx];
+  if(!user){ statusEl.textContent = t('val_user_not_found'); return; }
+
+  const next = document.getElementById('resetPasswordNew').value;
+  const confirmVal = document.getElementById('resetPasswordConfirm').value;
+  if(!next || next !== confirmVal){
+    statusEl.textContent = t('val_new_passwords_match_notempty');
+    return;
+  }
+
+  await ensureCredentialsLoaded();
+  credentials[user.username] = next;
+  statusEl.textContent = t('msg_saving');
+  const ok = await saveCredentials();
+  if(!ok){
+    statusEl.textContent = t('msg_save_failed');
+    return;
+  }
+  await logAction('Passwort zurückgesetzt', `Für Benutzer: ${user.username}`);
+  closeResetPasswordModal();
+}
+
+document.getElementById('btnResetPasswordCancel').addEventListener('click', closeResetPasswordModal);
+document.getElementById('btnResetPasswordConfirm').addEventListener('click', confirmResetPassword);
 
 async function addUser(){
   const nameInput = document.getElementById('newUserName');
