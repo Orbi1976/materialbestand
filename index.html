@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.055 -->
+<!-- Version: 0.057 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2966,6 +2966,7 @@ const I18N = {
   "label_materialien_kurz": "Materialien",
   "modal_neue_vorlage": "Neue Vorlage",
   "modal_vorlage_bearbeiten": "Vorlage bearbeiten",
+  "label_benoetigte_materialien": "Benötigte Materialien",
   "label_kategorie": "Kategorie",
   "label_name": "Name",
   "btn_material_hinzufuegen": "Material hinzufügen",
@@ -3584,6 +3585,7 @@ const I18N = {
   "label_materialien_kurz": "materials",
   "modal_neue_vorlage": "New template",
   "modal_vorlage_bearbeiten": "Edit template",
+  "label_benoetigte_materialien": "Required materials",
   "label_kategorie": "Category",
   "label_name": "Name",
   "btn_material_hinzufuegen": "Add material",
@@ -4202,6 +4204,7 @@ const I18N = {
   "label_materialien_kurz": "matériaux",
   "modal_neue_vorlage": "Nouveau modèle",
   "modal_vorlage_bearbeiten": "Modifier le modèle",
+  "label_benoetigte_materialien": "Matériaux nécessaires",
   "label_kategorie": "Catégorie",
   "label_name": "Nom",
   "btn_material_hinzufuegen": "Ajouter un matériau",
@@ -7041,6 +7044,42 @@ function buildMaterialSelectHTML(id, selected, extraClass, restrictCategories){
   return html;
 }
 
+// Eigene, erweiterte Variante SPEZIELL fuer Projekt-Ressourcen-Zeilen:
+// Anders als buildMaterialSelectHTML() oben (bewusst nur MATERIALS, z.B.
+// fuer die normale Bestand-Neuanlage, wo Sammelobjekte nichts verloren
+// haben) koennen Projekt-Ressourcen durchaus auch Sammelobjekte als
+// benoetigtes "Material" erfordern (z.B. importierte Rezepte von
+// scmdb.net wie "Ace Interceptor Helmet"). Ohne diese Erweiterung liess
+// sich ein Sammelobjekt als Projekt-Ressource ueberhaupt nicht auswaehlen
+// -- der Dropdown bot es schlicht nicht an, wodurch weder eine manuell
+// zugeordnete noch eine per Vorlage importierte Sammelobjekt-Anforderung
+// jemals korrekt im Projekt ankam, unabhaengig von der separat
+// behobenen Bestandszaehlung (siehe stockAmount() weiter oben). Beide
+// Kataloge bleiben optisch getrennt (zwei eigene Options-Gruppen-
+// Bloecke), damit erkennbar bleibt, was ein reguläres Material und was
+// ein Sammelobjekt ist. Siehe Nutzerwunsch vom 12. August 2026.
+function buildProjectResourceSelectHTML(id, selected, extraClass){
+  const matCats = [...new Set(MATERIALS.map(m=>m.category))];
+  let html = `<select id="${id}" class="${extraClass||''}"><option value="">${t('placeholder_select')}</option>`;
+  matCats.forEach(cat=>{
+    html += `<optgroup label="${escapeHtml(cat)}">`;
+    MATERIALS.filter(m=>m.category===cat).forEach(m=>{
+      html += `<option value="${escapeHtml(m.name)}" ${selected===m.name?'selected':''}>${escapeHtml(m.name)}</option>`;
+    });
+    html += `</optgroup>`;
+  });
+  const collCats = [...new Set(COLLECTIBLES.map(c=>c.category))];
+  collCats.forEach(cat=>{
+    html += `<optgroup label="${escapeHtml(cat)} (${t('tab_sammelobjekte')})">`;
+    COLLECTIBLES.filter(c=>c.category===cat).forEach(c=>{
+      html += `<option value="${escapeHtml(c.name)}" ${selected===c.name?'selected':''}>${escapeHtml(c.name)}</option>`;
+    });
+    html += `</optgroup>`;
+  });
+  html += `</select>`;
+  return html;
+}
+
 // Liefert die Kategorie-Beschraenkung des aktuellen Nutzers, sofern
 // gesetzt (nur fuer die Rolle "Editor" relevant), sonst null (= voller
 // Zugriff, unveraendertes Standardverhalten).
@@ -7506,21 +7545,31 @@ async function transferPrivateCollectible(id){
   const c = privateCollectibles.find(pc=>pc.id===id);
   if(!c) return;
 
+  // Wie bei transferPrivateEntry() (Materialien): Nur mit einem
+  // bestehenden Eintrag zusammenfuehren, der auch dieselbe Projekt-
+  // Zuordnung hat -- sonst wuerde die eigene Zuordnung beim Zusammen-
+  // fuehren stillschweigend verloren gehen bzw. faelschlich einem ganz
+  // anderen (oder gar keinem) Projekt zugerechnet. Und beim Anlegen
+  // eines NEUEN Eintrags wird die Zuordnung jetzt korrekt mit
+  // uebernommen, statt komplett zu entfallen. Behoben, nachdem genau
+  // dieser Bug gemeldet wurde ("Sammelobjekt verliert die Projekt-
+  // Zuordnung beim Uebertragen") -- Nutzerwunsch vom 12. August 2026.
   const match = collectibles.find(pub =>
-    pub.objekt === c.objekt && (pub.tier||'') === (c.tier||'')
+    pub.objekt === c.objekt && (pub.tier||'') === (c.tier||'') && (pub.projekt||'') === (c.projekt||'')
   );
 
   let logDetail;
   if(match){
     match.anzahl = Math.round((match.anzahl + c.anzahl) * 100) / 100;
-    logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, +${c.anzahl}x (neuer Bestand: ${match.anzahl}x)`;
+    logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, +${c.anzahl}x (neuer Bestand: ${match.anzahl}x)${c.projekt ? ' [Projekt: '+c.projekt+']' : ''}`;
   } else {
     collectibles.push({
       id: collectibleUid(),
       kategorie: c.kategorie, objekt: c.objekt, tier: c.tier,
-      anzahl: c.anzahl, standort: c.standort, besitzer: currentUser.username
+      anzahl: c.anzahl, standort: c.standort, besitzer: currentUser.username,
+      projekt: c.projekt || ''
     });
-    logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, ${c.anzahl}x (neuer Eintrag)`;
+    logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, ${c.anzahl}x (neuer Eintrag)${c.projekt ? ' [Projekt: '+c.projekt+']' : ''}`;
   }
   await saveCollectibles();
 
@@ -8770,7 +8819,7 @@ function addProjectResourceRow(isPrivate, container, prefill){
   const einheitId = prefix+'proj-res-einheit-'+rowId;
 
   div.innerHTML = `
-    <div style="flex:1;min-width:170px;">${buildMaterialSelectHTML(matId, prefill?prefill.material:'', '')}</div>
+    <div style="flex:1;min-width:170px;">${buildProjectResourceSelectHTML(matId, prefill?prefill.material:'', '')}</div>
     <input type="number" id="${qtyId}" min="0" step="0.001" value="${displayValue}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:170px;">
     <span id="${einheitId}" style="font-size:11px;color:var(--cyan);white-space:nowrap;min-width:38px;">${prefill&&prefill.material?getDefaultEinheitForMaterial(prefill.material):''}</span>
     <span id="${hintId}" style="font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:110px;"></span>
@@ -8863,7 +8912,7 @@ function addEditProjectResourceRow(idPrefix, container){
   div.dataset.rowId = rowId;
   div.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
   div.innerHTML = `
-    ${buildMaterialSelectHTML(idPrefix+'-res-'+rowId, '', 'edit-input')}
+    ${buildProjectResourceSelectHTML(idPrefix+'-res-'+rowId, '', 'edit-input')}
     <input class="edit-input" id="${idPrefix}-res-qty-${rowId}" type="number" step="0.001" placeholder="${t('placeholder_benoetigte_menge')}" style="width:150px;">
     <input class="edit-input" id="${idPrefix}-res-qual-${rowId}" type="number" min="0" max="1000" step="0.01" placeholder="${t('placeholder_mindestqualitaet')}" title="${t('tooltip_projekt_mindestqualitaet')}" style="width:120px;">
     <button type="button" class="btn-icon danger" data-remove-resource="${rowId}" title="${t('btn_delete')}">✕</button>
@@ -10353,7 +10402,7 @@ function renderProjects(){
           <div id="editProjResources-${p.id}" style="display:flex;flex-direction:column;gap:6px;">
             ${resources.map((r,i)=>`
               <div class="proj-resource-row" data-row-id="e${i}" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-                ${buildMaterialSelectHTML('edit-proj-res-e'+i, r.material, 'edit-input')}
+                ${buildProjectResourceSelectHTML('edit-proj-res-e'+i, r.material, 'edit-input')}
                 <input class="edit-input" id="edit-proj-res-qty-e${i}" type="number" step="0.001" value="${r.menge!=null?r.menge:''}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:150px;">
                 <input class="edit-input" id="edit-proj-res-qual-e${i}" type="number" min="0" max="1000" step="0.01" value="${r.mindestqualitaet!=null?r.mindestqualitaet:''}" placeholder="${t('placeholder_mindestqualitaet')}" title="${t('tooltip_projekt_mindestqualitaet')}" style="width:120px;">
                 <button type="button" class="btn-icon danger" data-remove-resource="e${i}" title="${t('btn_delete')}">✕</button>
@@ -10852,7 +10901,7 @@ function renderPrivateProjects(){
           <div id="editPrivProjResources-${p.id}" style="display:flex;flex-direction:column;gap:6px;">
             ${resources.map((r,i)=>`
               <div class="proj-resource-row" data-row-id="e${i}" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-                ${buildMaterialSelectHTML('edit-priv-proj-res-e'+i, r.material, 'edit-input')}
+                ${buildProjectResourceSelectHTML('edit-priv-proj-res-e'+i, r.material, 'edit-input')}
                 <input class="edit-input" id="edit-priv-proj-res-qty-e${i}" type="number" step="0.001" value="${r.menge!=null?r.menge:''}" placeholder="${t('placeholder_benoetigte_menge')}" style="width:150px;">
                 <input class="edit-input" id="edit-priv-proj-res-qual-e${i}" type="number" min="0" max="1000" step="0.01" value="${r.mindestqualitaet!=null?r.mindestqualitaet:''}" placeholder="${t('placeholder_mindestqualitaet')}" title="${t('tooltip_projekt_mindestqualitaet')}" style="width:120px;">
                 <button type="button" class="btn-icon danger" data-remove-resource="e${i}" title="${t('btn_delete')}">✕</button>
