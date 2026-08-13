@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.048 -->
+<!-- Version: 0.049 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1430,6 +1430,30 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 </div>
 
+<div id="templateEditModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:246;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:26px 28px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 0 40px var(--cyan-glow);">
+    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 18px;" id="templateEditModalTitle">📋 <span data-i18n="modal_neue_vorlage">Neue Vorlage</span></h3>
+    <div class="field">
+      <label for="templateEditCategory" data-i18n="label_kategorie">Kategorie</label>
+      <input type="text" id="templateEditCategory">
+    </div>
+    <div class="field" style="margin-top:10px;">
+      <label for="templateEditName" data-i18n="label_name">Name</label>
+      <input type="text" id="templateEditName">
+    </div>
+    <div class="field" style="margin-top:14px;">
+      <label data-i18n="label_benoetigte_materialien">Benötigte Materialien</label>
+      <div id="templateEditMaterialsContainer" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div>
+      <button type="button" class="btn-add-row" id="btnAddTemplateEditMaterial" style="margin-top:8px;"><span class="plus-icon">+</span><span data-i18n="btn_material_hinzufuegen">Material hinzufügen</span></button>
+    </div>
+    <div class="status-msg" id="templateEditStatus" style="margin-top:12px;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
+      <button class="btn-ghost" id="btnTemplateEditCancel" data-i18n="btn_cancel">Abbrechen</button>
+      <button class="btn-primary" id="btnTemplateEditSave" data-i18n="btn_save">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <div id="undoToast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:50;background:#0D141C;border:1px solid var(--panel-border);border-radius:var(--radius);padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,0.5);align-items:center;gap:14px;font-family:'Rajdhani', sans-serif;font-size:14px;color:var(--ink);">
   <span id="undoToastText">Eintrag gelöscht.</span>
   <button class="btn-primary" id="btnUndoToast" style="padding:6px 14px;font-size:11px;">Rückgängig</button>
@@ -1704,6 +1728,16 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="templateCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
     </div>
     <div class="status-msg" id="templateImportStatus"></div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--panel-border);">
+      <h3 style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px 0;color:var(--steel);" data-i18n="label_vorlagen_verwalten">Einzelne Vorlagen verwalten</h3>
+      <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_vorlagen_verwalten">Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen.</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+        <input type="text" id="tpl-rezepte-search" placeholder="Suche nach Name oder Kategorie…" style="flex:1;min-width:200px;">
+        <button type="button" class="btn-primary" id="tpl-rezepte-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
+      </div>
+      <div id="tpl-rezepte-list" style="max-height:320px;overflow-y:auto;"></div>
+    </div>
   </div>
 
   <div class="panel" id="scmdbImportPanel" style="display:none;">
@@ -1730,6 +1764,16 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="wikeloCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
     </div>
     <div class="status-msg" id="wikeloImportStatus"></div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--panel-border);">
+      <h3 style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px 0;color:var(--steel);" data-i18n="label_vorlagen_verwalten">Einzelne Vorlagen verwalten</h3>
+      <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_vorlagen_verwalten">Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen.</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+        <input type="text" id="tpl-wikelo-search" placeholder="Suche nach Name oder Kategorie…" style="flex:1;min-width:200px;">
+        <button type="button" class="btn-primary" id="tpl-wikelo-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
+      </div>
+      <div id="tpl-wikelo-list" style="max-height:320px;overflow-y:auto;"></div>
+    </div>
   </div>
 
   <div class="panel" id="locationImportPanel" style="display:none;">
@@ -2846,6 +2890,20 @@ const I18N = {
   "btn_scmdb_quelle_oeffnen": "↗ scmdb.net öffnen (Quelle)",
   "btn_scmdb_skript_herunterladen": "⇩ Scraping-Skript herunterladen",
   "hint_scmdb_script_requirements": "Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.",
+  "label_vorlagen_verwalten": "Einzelne Vorlagen verwalten",
+  "hint_vorlagen_verwalten": "Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen.",
+  "btn_neue_vorlage": "+ Neue Vorlage",
+  "hint_vorlage_suchen": "{count} Vorlagen insgesamt — Suchbegriff eingeben, um eine bestimmte zu finden.",
+  "hint_keine_vorlage_gefunden": "Keine Vorlage gefunden.",
+  "hint_weitere_treffer_eingrenzen": "Weitere Treffer vorhanden — bitte Suchbegriff genauer eingrenzen.",
+  "label_materialien_kurz": "Materialien",
+  "modal_neue_vorlage": "Neue Vorlage",
+  "modal_vorlage_bearbeiten": "Vorlage bearbeiten",
+  "label_kategorie": "Kategorie",
+  "label_name": "Name",
+  "btn_material_hinzufuegen": "Material hinzufügen",
+  "val_kategorie_name_required": "Bitte Kategorie und Name angeben.",
+  "val_mindestens_ein_material": "Bitte mindestens ein Material angeben.",
   "panel_rezepte_import": "Projekt-Vorlagen importieren",
   "hint_rezepte_import": "Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Zwei Formate werden automatisch erkannt: entweder das einfache Format Kategorie;Name;Material1,Material2,Material3 (jedes Material darf optional eine vorgeschlagene Menge tragen, z. B. \"Material:15\", sowie zusätzlich eine Mindestqualität, z. B. \"Material:15:800\"), oder der rohe, unveränderte Export der scmdb.net-Tabelle (Farbvarianten werden dabei automatisch zu einer Basis-Vorlage zusammengefasst). Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
   "btn_rezepte_importieren": "Importieren",
@@ -3432,6 +3490,20 @@ const I18N = {
   "btn_scmdb_quelle_oeffnen": "↗ Open scmdb.net (source)",
   "btn_scmdb_skript_herunterladen": "⇩ Download scraping script",
   "hint_scmdb_script_requirements": "Requirements to run it: Python 3, plus <code>pip install playwright</code> and <code>playwright install chromium</code> (one-time setup). Details are in the comment at the top of the downloaded file.",
+  "label_vorlagen_verwalten": "Manage individual templates",
+  "hint_vorlagen_verwalten": "For smaller changes or single additions — without having to re-import the entire list.",
+  "btn_neue_vorlage": "+ New template",
+  "hint_vorlage_suchen": "{count} templates in total — enter a search term to find a specific one.",
+  "hint_keine_vorlage_gefunden": "No template found.",
+  "hint_weitere_treffer_eingrenzen": "More matches available — please narrow the search term.",
+  "label_materialien_kurz": "materials",
+  "modal_neue_vorlage": "New template",
+  "modal_vorlage_bearbeiten": "Edit template",
+  "label_kategorie": "Category",
+  "label_name": "Name",
+  "btn_material_hinzufuegen": "Add material",
+  "val_kategorie_name_required": "Please enter a category and name.",
+  "val_mindestens_ein_material": "Please enter at least one material.",
   "panel_rezepte_import": "Import project templates",
   "hint_rezepte_import": "Adds a list of ready-made project templates that become searchable when creating a project (shared or private). Two formats are detected automatically: either the simple format Category;Name;Material1,Material2,Material3 (each material may optionally carry a suggested quantity, e.g. \"Material:15\", plus an optional minimum quality, e.g. \"Material:15:800\"), or the raw, unmodified export of the scmdb.net table (colour variants are automatically merged into a single base template). A new import replaces the entire existing list. Applies across all organizations (pure game data, not organization-specific).",
   "btn_rezepte_importieren": "Import",
@@ -4018,6 +4090,20 @@ const I18N = {
   "btn_scmdb_quelle_oeffnen": "↗ Ouvrir scmdb.net (source)",
   "btn_scmdb_skript_herunterladen": "⇩ Télécharger le script de scraping",
   "hint_scmdb_script_requirements": "Prérequis pour l'exécution : Python 3, ainsi que <code>pip install playwright</code> et <code>playwright install chromium</code> (une seule fois). Les détails figurent en commentaire en haut du fichier téléchargé.",
+  "label_vorlagen_verwalten": "Gérer les modèles individuels",
+  "hint_vorlagen_verwalten": "Pour de petites modifications ou des ajouts ponctuels — sans devoir réimporter toute la liste.",
+  "btn_neue_vorlage": "+ Nouveau modèle",
+  "hint_vorlage_suchen": "{count} modèles au total — saisissez un terme de recherche pour en trouver un précis.",
+  "hint_keine_vorlage_gefunden": "Aucun modèle trouvé.",
+  "hint_weitere_treffer_eingrenzen": "D'autres résultats sont disponibles — veuillez affiner le terme de recherche.",
+  "label_materialien_kurz": "matériaux",
+  "modal_neue_vorlage": "Nouveau modèle",
+  "modal_vorlage_bearbeiten": "Modifier le modèle",
+  "label_kategorie": "Catégorie",
+  "label_name": "Nom",
+  "btn_material_hinzufuegen": "Ajouter un matériau",
+  "val_kategorie_name_required": "Veuillez indiquer une catégorie et un nom.",
+  "val_mindestens_ein_material": "Veuillez indiquer au moins un matériau.",
   "panel_rezepte_import": "Importer des modèles de projet",
   "hint_rezepte_import": "Ajoute une liste de modèles de projet prêts à l'emploi, consultables lors de la création d'un projet (partagé ou privé). Deux formats sont détectés automatiquement : soit le format simple Catégorie;Nom;Matériau1,Matériau2,Matériau3 (chaque matériau peut porter une quantité suggérée facultative, ex. « Matériau:15 », ainsi qu'une qualité minimale facultative, ex. « Matériau:15:800 »), soit l'export brut et non modifié de la table scmdb.net (les variantes de couleur sont automatiquement fusionnées en un seul modèle de base). Une nouvelle importation remplace la liste existante. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
   "btn_rezepte_importieren": "Importer",
@@ -6258,7 +6344,7 @@ function completeLogin(user){
   document.getElementById('wikeloImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('locationImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('orgSwitcherWrap').style.display = user.role==='owner' ? '' : 'none';
-  if(user.role==='owner'){ renderOrgSwitcher(); renderOrgManagementList(); renderTemplateCount(); renderWikeloCount(); updateBackupRestoreButtons(); }
+  if(user.role==='owner'){ renderOrgSwitcher(); renderOrgManagementList(); renderTemplateCount(); renderWikeloCount(); updateBackupRestoreButtons(); renderTemplateManageList('rezepte'); renderTemplateManageList('wikelo'); }
   applyOrgBranding();
   if(isOrgAdminOrAbove){ renderOrgBrandingForm(); renderExportReminder(); }
   switchTab('uebersicht');
@@ -8606,6 +8692,213 @@ function renderTemplateCount(){
   el.textContent = text;
 }
 
+// ============================================================
+// Einzelne Vorlagen verwalten (hinzufuegen/bearbeiten/loeschen) --
+// Ergaenzung zum bereits bestehenden Massen-Import, fuer den Fall dass
+// nur eine kleinere Aenderung an einer einzelnen Vorlage noetig ist
+// (z.B. eine falsche Menge korrigieren), ohne dafuer die komplette
+// Liste neu importieren zu muessen. Deckt sowohl Projekt-Vorlagen
+// (Rezepte) als auch Wikelo-Handelsangebote ab -- beide teilen sich
+// exakt dieselbe Datenstruktur ({category, name, materials:[{name,
+// menge, mindestqualitaet}]}), daher hier bewusst EIN gemeinsamer,
+// ueber "kind" ('rezepte'|'wikelo') parametrisierter Funktionssatz statt
+// zweier fast identischer Kopien. Nur Rolle owner (siehe Sichtbarkeit
+// der umschliessenden Panels). Siehe Nutzerwunsch vom 12. August 2026.
+const TEMPLATE_KIND_CONFIG = {
+  rezepte: {
+    getArray: () => projectTemplates,
+    setArray: (arr) => { projectTemplates = arr; },
+    save: saveProjectTemplates,
+    listId: 'tpl-rezepte-list',
+    searchId: 'tpl-rezepte-search'
+  },
+  wikelo: {
+    getArray: () => wikeloTemplates,
+    setArray: (arr) => { wikeloTemplates = arr; },
+    save: saveWikeloTemplates,
+    listId: 'tpl-wikelo-list',
+    searchId: 'tpl-wikelo-search'
+  }
+};
+
+let templateEditState = { kind: null, index: null }; // index: null = Neuanlage, sonst Position im Array
+
+function renderTemplateManageList(kind){
+  const cfg = TEMPLATE_KIND_CONFIG[kind];
+  const container = document.getElementById(cfg.listId);
+  const searchEl = document.getElementById(cfg.searchId);
+  if(!container || !searchEl) return;
+  const query = searchEl.value.trim().toLowerCase();
+  const array = cfg.getArray();
+
+  // Bei leerem Suchfeld bewusst NICHTS rendern (nur einen Hinweis mit
+  // der Gesamtanzahl) -- die Rezepte-Liste kann nach einem scmdb-Import
+  // ueber 1500 Eintraege umfassen, das komplette Rendern waere spuerbar
+  // langsam und in der Praxis auch nicht durchsuchbar/uebersichtlich.
+  if(!query){
+    container.innerHTML = `<div class="user-note" style="margin:0;">${t('hint_vorlage_suchen').replace('{count}', array.length)}</div>`;
+    return;
+  }
+
+  const MAX_RESULTS = 60;
+  const matches = [];
+  for(let i=0;i<array.length;i++){
+    const tpl = array[i];
+    if(tpl.name.toLowerCase().includes(query) || tpl.category.toLowerCase().includes(query)){
+      matches.push({ tpl, idx: i });
+      if(matches.length >= MAX_RESULTS) break;
+    }
+  }
+
+  if(matches.length === 0){
+    container.innerHTML = `<div class="user-note" style="margin:0;">${t('hint_keine_vorlage_gefunden')}</div>`;
+    return;
+  }
+
+  let html = matches.map(({tpl, idx})=>`
+    <div class="user-row">
+      <div class="user-info">
+        <span>${escapeHtml(tpl.name)}</span>
+        <span style="color:var(--ink-soft);font-size:11px;">${escapeHtml(tpl.category)} · ${tpl.materials.length} ${t('label_materialien_kurz')}</span>
+      </div>
+      <div class="actions-cell">
+        <button class="btn-icon" data-action="edit-template" data-kind="${kind}" data-idx="${idx}" title="${t('btn_edit')}">✎</button>
+        <button class="btn-icon danger" data-action="delete-template" data-kind="${kind}" data-idx="${idx}" title="${t('btn_delete')}">🗑</button>
+      </div>
+    </div>`).join('');
+
+  if(matches.length >= MAX_RESULTS){
+    html += `<div class="user-note" style="margin-top:8px;">${t('hint_weitere_treffer_eingrenzen')}</div>`;
+  }
+  container.innerHTML = html;
+
+  container.querySelectorAll('[data-action="edit-template"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ openTemplateEditModal(btn.dataset.kind, parseInt(btn.dataset.idx)); });
+  });
+  container.querySelectorAll('[data-action="delete-template"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      armConfirm(btn, async ()=>{
+        const k = btn.dataset.kind;
+        const idx = parseInt(btn.dataset.idx);
+        const cfg2 = TEMPLATE_KIND_CONFIG[k];
+        const arr = cfg2.getArray();
+        const removed = arr[idx];
+        arr.splice(idx, 1);
+        await cfg2.save();
+        await logAction('Vorlage gelöscht', `${removed.category};${removed.name} (${k})`);
+        renderTemplateManageList(k);
+        if(k==='rezepte') renderTemplateCount(); else renderWikeloCount();
+      });
+    });
+  });
+}
+
+function addTemplateEditMaterialRow(prefill){
+  const container = document.getElementById('templateEditMaterialsContainer');
+  const rowId = 'tplmat-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6);
+  const div = document.createElement('div');
+  div.className = 'proj-resource-row';
+  div.dataset.rowId = rowId;
+  div.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
+  div.innerHTML = `
+    <input type="text" id="tplmat-name-${rowId}" placeholder="${t('label_material')}" value="${prefill&&prefill.name?escapeHtml(prefill.name):''}" style="flex:2;min-width:160px;">
+    <input type="number" id="tplmat-menge-${rowId}" step="0.001" placeholder="${t('placeholder_benoetigte_menge')}" value="${prefill&&prefill.menge!=null?prefill.menge:''}" style="width:110px;">
+    <input type="number" id="tplmat-qual-${rowId}" step="0.01" min="0" max="1000" placeholder="${t('placeholder_mindestqualitaet')}" value="${prefill&&prefill.mindestqualitaet!=null?prefill.mindestqualitaet:''}" style="width:110px;">
+    <button type="button" class="btn-icon danger" data-remove-tplmat="${rowId}" title="${t('btn_delete')}">✕</button>
+  `;
+  container.appendChild(div);
+  div.querySelector(`[data-remove-tplmat="${rowId}"]`).addEventListener('click', ()=>{ div.remove(); });
+}
+
+function openTemplateEditModal(kind, index){
+  templateEditState = { kind, index: index!=null ? index : null };
+  const cfg = TEMPLATE_KIND_CONFIG[kind];
+  const isNew = index == null;
+  const tpl = isNew ? { category:'', name:'', materials:[] } : cfg.getArray()[index];
+
+  document.getElementById('templateEditModalTitle').innerHTML = isNew
+    ? `📋 <span>${t('modal_neue_vorlage')}</span>`
+    : `✎ <span>${t('modal_vorlage_bearbeiten')}</span>`;
+  document.getElementById('templateEditCategory').value = tpl.category || '';
+  document.getElementById('templateEditName').value = tpl.name || '';
+  document.getElementById('templateEditStatus').textContent = '';
+
+  const container = document.getElementById('templateEditMaterialsContainer');
+  container.innerHTML = '';
+  if(tpl.materials.length === 0){
+    addTemplateEditMaterialRow(null);
+  } else {
+    tpl.materials.forEach(m=>addTemplateEditMaterialRow(m));
+  }
+
+  document.getElementById('templateEditModal').style.display = 'flex';
+}
+
+function closeTemplateEditModal(){
+  document.getElementById('templateEditModal').style.display = 'none';
+  templateEditState = { kind: null, index: null };
+}
+
+async function saveTemplateEdit(){
+  const { kind, index } = templateEditState;
+  if(!kind) return;
+  const cfg = TEMPLATE_KIND_CONFIG[kind];
+  const statusEl = document.getElementById('templateEditStatus');
+
+  const category = document.getElementById('templateEditCategory').value.trim();
+  const name = document.getElementById('templateEditName').value.trim();
+  if(!category || !name){
+    statusEl.textContent = t('val_kategorie_name_required');
+    return;
+  }
+
+  const materials = [];
+  document.querySelectorAll('#templateEditMaterialsContainer > div').forEach(row=>{
+    const rowId = row.dataset.rowId;
+    const matName = document.getElementById('tplmat-name-'+rowId).value.trim();
+    if(!matName) return;
+    const mengeRaw = document.getElementById('tplmat-menge-'+rowId).value;
+    const qualRaw = document.getElementById('tplmat-qual-'+rowId).value;
+    materials.push({
+      name: matName,
+      menge: mengeRaw !== '' ? parseFloat(mengeRaw) : null,
+      mindestqualitaet: qualRaw !== '' ? parseFloat(qualRaw) : null
+    });
+  });
+  if(materials.length === 0){
+    statusEl.textContent = t('val_mindestens_ein_material');
+    return;
+  }
+
+  const array = cfg.getArray();
+  const newTpl = { category, name, materials };
+  if(index == null){
+    array.push(newTpl);
+  } else {
+    array[index] = newTpl;
+  }
+  cfg.setArray(array);
+
+  statusEl.textContent = t('msg_saving');
+  const ok = await cfg.save();
+  if(ok){
+    await logAction(index==null ? 'Vorlage hinzugefügt' : 'Vorlage bearbeitet', `${category};${name} (${kind})`);
+    closeTemplateEditModal();
+    renderTemplateManageList(kind);
+    if(kind==='rezepte') renderTemplateCount(); else renderWikeloCount();
+  } else {
+    statusEl.textContent = t('msg_save_failed');
+  }
+}
+
+document.getElementById('btnAddTemplateEditMaterial').addEventListener('click', ()=>{ addTemplateEditMaterialRow(null); });
+document.getElementById('btnTemplateEditCancel').addEventListener('click', closeTemplateEditModal);
+document.getElementById('btnTemplateEditSave').addEventListener('click', saveTemplateEdit);
+document.getElementById('tpl-rezepte-btnNew').addEventListener('click', ()=>{ openTemplateEditModal('rezepte', null); });
+document.getElementById('tpl-wikelo-btnNew').addEventListener('click', ()=>{ openTemplateEditModal('wikelo', null); });
+document.getElementById('tpl-rezepte-search').addEventListener('input', ()=>{ renderTemplateManageList('rezepte'); });
+document.getElementById('tpl-wikelo-search').addEventListener('input', ()=>{ renderTemplateManageList('wikelo'); });
+
 // Formatiert einen ISO-Zeitstempel als lesbares Datum+Uhrzeit im
 // aktuellen Sprachformat — genutzt fuer die "Zuletzt importiert am"-
 // Anzeige bei Projekt- und Wikelo-Vorlagen.
@@ -8993,6 +9286,7 @@ document.getElementById('btnRestoreTemplatesBackup').addEventListener('click', (
       await logAction('Projekt-Vorlagen wiederhergestellt', `${projectTemplates.length} Vorlagen (vorherige globale Version)`);
       statusEl.textContent = t('msg_backup_restored').replace('{count}', projectTemplates.length);
       renderTemplateCount();
+      renderTemplateManageList('rezepte');
     } else {
       statusEl.textContent = t('msg_backup_restore_failed');
     }
@@ -9009,6 +9303,7 @@ document.getElementById('btnRestoreWikeloBackup').addEventListener('click', ()=>
       await logAction('Wikelo-Handelsangebote wiederhergestellt', `${wikeloTemplates.length} Angebote (vorherige globale Version)`);
       statusEl.textContent = t('msg_backup_restored').replace('{count}', wikeloTemplates.length);
       renderWikeloCount();
+      renderTemplateManageList('wikelo');
     } else {
       statusEl.textContent = t('msg_backup_restore_failed');
     }
@@ -9251,6 +9546,7 @@ document.getElementById('btnTemplateImportConfirm').addEventListener('click', as
 
     statusEl.textContent = t('msg_templates_imported').replace('{count}', parsed.length);
     renderTemplateCount();
+    renderTemplateManageList('rezepte');
     updateBackupRestoreButtons();
     document.getElementById('templateImportText').value = '';
     setTimeout(()=>{ statusEl.textContent=''; }, 4000);
@@ -9266,6 +9562,7 @@ document.getElementById('btnTemplateImportConfirm').addEventListener('click', as
 
     statusEl.textContent = t('msg_wikelo_imported').replace('{count}', parsed.length);
     renderWikeloCount();
+    renderTemplateManageList('wikelo');
     updateBackupRestoreButtons();
     document.getElementById('wikeloImportText').value = '';
     setTimeout(()=>{ statusEl.textContent=''; }, 4000);
