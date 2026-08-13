@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.049 -->
+<!-- Version: 0.050 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1664,6 +1664,19 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-ghost" id="btnExportOrgData" data-i18n="btn_export_org_data">Alles exportieren (JSON)</button>
     </div>
     <div class="status-msg" id="orgExportStatus"></div>
+
+    <div id="orgImportSection" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--panel-border);">
+      <h3 style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px 0;color:var(--steel);" data-i18n="label_datensicherung_wiederherstellen">Aus Datensicherung wiederherstellen</h3>
+      <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_org_import">Stellt Daten aus einer zuvor per "Alles exportieren" erzeugten Datei wieder her — betrifft ausschließlich die aktuell ausgewählte Organisation. Ersetzt die jeweils ausgewählten Bereiche vollständig (keine Zusammenführung mit dem aktuellen Stand).</div>
+      <button type="button" class="btn-ghost" id="btnSelectOrgImportFile" data-i18n="btn_datensicherung_datei_waehlen">Datensicherungs-Datei auswählen …</button>
+      <input type="file" id="orgImportFileInput" accept=".json" style="display:none;">
+      <div id="orgImportPreview" style="display:none;margin-top:14px;">
+        <div class="user-note" style="border-left:3px solid var(--low);padding-left:10px;" data-i18n="hint_import_ueberschreibt">⚠ Die ausgewählten Bereiche werden vollständig ersetzt — nicht rückgängig zu machen (außer durch einen erneuten Export vorher).</div>
+        <div id="orgImportCategoryList" style="display:flex;flex-direction:column;gap:6px;margin:10px 0;"></div>
+        <button class="btn-primary" id="btnConfirmOrgImport" style="background:var(--low);" data-i18n="btn_wiederherstellen">Wiederherstellen</button>
+        <button class="btn-ghost" id="btnCancelOrgImport" data-i18n="btn_cancel">Abbrechen</button>
+      </div>
+    </div>
   </div>
 
   <div class="panel" id="adminPanel" style="display:none;">
@@ -2807,6 +2820,18 @@ const I18N = {
   "val_menge_positive": "Menge muss größer als 0 sein.",
   "label_last_active": "Zuletzt aktiv",
   "label_never_active": "noch nie angemeldet",
+  "label_datensicherung_wiederherstellen": "Aus Datensicherung wiederherstellen",
+  "hint_org_import": "Stellt Daten aus einer zuvor per \"Alles exportieren\" erzeugten Datei wieder her — betrifft ausschließlich die aktuell ausgewählte Organisation. Ersetzt die jeweils ausgewählten Bereiche vollständig (keine Zusammenführung mit dem aktuellen Stand).",
+  "btn_datensicherung_datei_waehlen": "Datensicherungs-Datei auswählen …",
+  "hint_import_ueberschreibt": "⚠ Die ausgewählten Bereiche werden vollständig ersetzt — nicht rückgängig zu machen (außer durch einen erneuten Export vorher).",
+  "btn_wiederherstellen": "Wiederherstellen",
+  "val_import_datei_ungueltig": "Diese Datei sieht nicht nach einer gültigen Datensicherung aus.",
+  "label_material_katalog_global": "Material-Katalog (global, alle Organisationen)",
+  "label_lagerort_katalog_global": "Lagerort-Katalog (global, alle Organisationen)",
+  "label_global_warnhinweis": "betrifft ALLE Organisationen, nicht nur diese",
+  "msg_import_done": "Wiederhergestellt: {parts}.",
+  "label_nichts_ausgewaehlt": "Nichts ausgewählt — kein Bereich wurde geändert.",
+  "hint_seite_neu_laden_katalog": "Bitte die Seite neu laden, damit Dropdown-Listen überall den neuen Katalog-Stand zeigen.",
   "panel_org_export": "Datensicherung",
   "hint_org_export": "Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.",
   "btn_export_org_data": "Alles exportieren (JSON)",
@@ -3407,6 +3432,18 @@ const I18N = {
   "val_menge_positive": "Quantity must be greater than 0.",
   "label_last_active": "Last active",
   "label_never_active": "never logged in",
+  "label_datensicherung_wiederherstellen": "Restore from data backup",
+  "hint_org_import": "Restores data from a file previously created via \"Export everything\" — affects only the currently selected organization. Fully replaces the selected sections (no merging with the current state).",
+  "btn_datensicherung_datei_waehlen": "Select backup file …",
+  "hint_import_ueberschreibt": "⚠ The selected sections will be fully replaced — cannot be undone (except by an export taken beforehand).",
+  "btn_wiederherstellen": "Restore",
+  "val_import_datei_ungueltig": "This file doesn't look like a valid data backup.",
+  "label_material_katalog_global": "Material catalog (global, all organizations)",
+  "label_lagerort_katalog_global": "Location catalog (global, all organizations)",
+  "label_global_warnhinweis": "affects ALL organizations, not just this one",
+  "msg_import_done": "Restored: {parts}.",
+  "label_nichts_ausgewaehlt": "Nothing selected — no section was changed.",
+  "hint_seite_neu_laden_katalog": "Please reload the page so dropdown lists everywhere show the new catalog state.",
   "panel_org_export": "Data backup",
   "hint_org_export": "Downloads a single file with all shared data of the current organization (inventory, needs, projects, collectibles, catalogs) — independent of Supabase, e.g. for your own backup.",
   "btn_export_org_data": "Export everything (JSON)",
@@ -4007,6 +4044,18 @@ const I18N = {
   "val_menge_positive": "La quantité doit être supérieure à 0.",
   "label_last_active": "Dernière activité",
   "label_never_active": "jamais connecté",
+  "label_datensicherung_wiederherstellen": "Restaurer depuis une sauvegarde",
+  "hint_org_import": "Restaure les données à partir d'un fichier créé précédemment via « Tout exporter » — n'affecte que l'organisation actuellement sélectionnée. Remplace entièrement les sections sélectionnées (pas de fusion avec l'état actuel).",
+  "btn_datensicherung_datei_waehlen": "Sélectionner le fichier de sauvegarde …",
+  "hint_import_ueberschreibt": "⚠ Les sections sélectionnées seront entièrement remplacées — irréversible (sauf via un export effectué au préalable).",
+  "btn_wiederherstellen": "Restaurer",
+  "val_import_datei_ungueltig": "Ce fichier ne ressemble pas à une sauvegarde de données valide.",
+  "label_material_katalog_global": "Catalogue de matériaux (global, toutes organisations)",
+  "label_lagerort_katalog_global": "Catalogue d'emplacements (global, toutes organisations)",
+  "label_global_warnhinweis": "concerne TOUTES les organisations, pas seulement celle-ci",
+  "msg_import_done": "Restauré : {parts}.",
+  "label_nichts_ausgewaehlt": "Rien de sélectionné — aucune section n'a été modifiée.",
+  "hint_seite_neu_laden_katalog": "Veuillez recharger la page pour que les listes déroulantes affichent partout le nouvel état du catalogue.",
   "panel_org_export": "Sauvegarde des données",
   "hint_org_export": "Télécharge un seul fichier contenant toutes les données partagées de l'organisation actuelle (stock, besoins, projets, objets de collection, catalogues) — indépendamment de Supabase, par exemple pour votre propre sauvegarde.",
   "btn_export_org_data": "Tout exporter (JSON)",
@@ -5905,6 +5954,144 @@ async function exportOrgDataJSON(){
 }
 document.getElementById('btnExportOrgData').addEventListener('click', exportOrgDataJSON);
 
+// ============================================================
+// Aus Datensicherung wiederherstellen -- Gegenstueck zum bereits
+// bestehenden Export. Ohne diese Funktion waere "Alles exportieren"
+// ohne jede Moeglichkeit, die Datei je wieder einzuspielen, praktisch
+// wirkungslos. Bewusst mit Auswahl-Moeglichkeit, WELCHE Bereiche
+// tatsaechlich ersetzt werden sollen -- insbesondere Material-/
+// Lagerort-Katalog sind GLOBAL (nicht organisationsspezifisch, siehe
+// exportOrgDataJSON weiter oben) und wuerden bei unbedachtem Import ALLE
+// Organisationen gleichzeitig betreffen, nicht nur die aktuell
+// ausgewaehlte -- daher standardmaessig abgewaehlt, mit deutlichem
+// Warnhinweis. Siehe Nutzerwunsch vom 12. August 2026.
+let pendingOrgImportData = null;
+
+document.getElementById('btnSelectOrgImportFile').addEventListener('click', ()=>{
+  document.getElementById('orgImportFileInput').click();
+});
+
+document.getElementById('orgImportFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const statusEl = document.getElementById('orgExportStatus');
+    let data;
+    try{
+      data = JSON.parse(ev.target.result);
+    }catch(err){
+      statusEl.textContent = t('val_import_datei_ungueltig');
+      return;
+    }
+    // Grobe Format-Pruefung -- verhindert, dass eine voellig fremde
+    // JSON-Datei versehentlich als Datensicherung interpretiert wird.
+    const hasExpectedShape = data && typeof data === 'object' &&
+      (Array.isArray(data.entries) || Array.isArray(data.needs) || Array.isArray(data.projects) ||
+       Array.isArray(data.collectibles) || Array.isArray(data.materials) || Array.isArray(data.locations));
+    if(!hasExpectedShape){
+      statusEl.textContent = t('val_import_datei_ungueltig');
+      return;
+    }
+    pendingOrgImportData = data;
+    renderOrgImportPreview(data);
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // erneute Auswahl derselben Datei muss ebenfalls ein 'change' ausloesen
+});
+
+function renderOrgImportPreview(data){
+  const listEl = document.getElementById('orgImportCategoryList');
+  // { checkbox-id-suffix, label-key, array-in-file, standardmaessig angehakt }
+  const categories = [
+    { id:'entries', labelKey:'tab_bestand', arr:data.entries, defaultOn:true },
+    { id:'needs', labelKey:'tab_bedarf', arr:data.needs, defaultOn:true },
+    { id:'projects', labelKey:'tab_projekte', arr:data.projects, defaultOn:true },
+    { id:'collectibles', labelKey:'tab_sammelobjekte', arr:data.collectibles, defaultOn:true },
+    { id:'materials', labelKey:'label_material_katalog_global', arr:data.materials, defaultOn:false },
+    { id:'locations', labelKey:'label_lagerort_katalog_global', arr:data.locations, defaultOn:false },
+  ];
+  listEl.innerHTML = categories.filter(c=>Array.isArray(c.arr)).map(c=>`
+    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
+      <input type="checkbox" id="orgImportCat-${c.id}" ${c.defaultOn?'checked':''}>
+      <span>${t(c.labelKey)} (${c.arr.length})${c.defaultOn ? '' : ' — ' + t('label_global_warnhinweis')}</span>
+    </label>`).join('');
+  document.getElementById('orgImportPreview').style.display = '';
+}
+
+document.getElementById('btnCancelOrgImport').addEventListener('click', ()=>{
+  pendingOrgImportData = null;
+  document.getElementById('orgImportPreview').style.display = 'none';
+});
+
+document.getElementById('btnConfirmOrgImport').addEventListener('click', async ()=>{
+  if(!pendingOrgImportData) return;
+  const statusEl = document.getElementById('orgExportStatus');
+  const data = pendingOrgImportData;
+  const selected = id => document.getElementById('orgImportCat-'+id) && document.getElementById('orgImportCat-'+id).checked;
+
+  statusEl.textContent = t('msg_saving');
+  const importedParts = [];
+
+  if(Array.isArray(data.entries) && selected('entries')){
+    entries = data.entries;
+    await save();
+    importedParts.push(`${entries.length} ${t('tab_bestand')}`);
+  }
+  if(Array.isArray(data.needs) && selected('needs')){
+    needs = data.needs;
+    await saveNeeds();
+    importedParts.push(`${needs.length} ${t('tab_bedarf')}`);
+  }
+  if(Array.isArray(data.projects) && selected('projects')){
+    projects = data.projects;
+    await saveProjects();
+    importedParts.push(`${projects.length} ${t('tab_projekte')}`);
+  }
+  if(Array.isArray(data.collectibles) && selected('collectibles')){
+    collectibles = data.collectibles;
+    await saveCollectibles();
+    importedParts.push(`${collectibles.length} ${t('tab_sammelobjekte')}`);
+  }
+  // Global: bewusst ausserhalb der obigen, organisationsgebundenen
+  // save()-Aufrufe -- MATERIALS/LOCATIONS werden ueber saveMaterials()/
+  // saveLocations() OHNE orgKey() gespeichert, siehe deren Definition.
+  if(Array.isArray(data.materials) && selected('materials')){
+    MATERIALS = data.materials;
+    await saveMaterials();
+    importedParts.push(`${MATERIALS.length} ${t('label_material_katalog_global')}`);
+  }
+  if(Array.isArray(data.locations) && selected('locations')){
+    LOCATIONS = data.locations;
+    await saveLocations();
+    importedParts.push(`${LOCATIONS.length} ${t('label_lagerort_katalog_global')}`);
+  }
+
+  await logAction('Datensicherung wiederhergestellt', importedParts.join(', ') || t('label_nichts_ausgewaehlt'));
+
+  pendingOrgImportData = null;
+  document.getElementById('orgImportPreview').style.display = 'none';
+  statusEl.textContent = importedParts.length
+    ? t('msg_import_done').replace('{parts}', importedParts.join(', '))
+    : t('label_nichts_ausgewaehlt');
+  setTimeout(()=>{ statusEl.textContent=''; }, 6000);
+
+  // Umfassendes Neu-Rendern, damit alle betroffenen Ansichten sofort den
+  // wiederhergestellten Stand zeigen. Bei einem Katalog-Import (Material/
+  // Lagerort) empfiehlt sich zusaetzlich ein manueller Neuladen der
+  // Seite, da davon abgeleitete Dropdown-Listen an vielen Stellen der
+  // Anwendung nicht alle einzeln neu aufgebaut werden.
+  render();
+  renderNeeds();
+  renderProjects();
+  renderCollectibles();
+  updateProjectAvailability();
+  scheduleRenderDashboard();
+  if(selected('materials') || selected('locations')){
+    statusEl.textContent += ' ' + t('hint_seite_neu_laden_katalog');
+  }
+});
+
 // Einmalige, automatische Migration der bisherigen (nicht
 // organisationsgebundenen) Daten in die erste Organisation "Nightwolf" —
 // läuft beim ersten Login nach dieser Umstellung genau einmal, erkennbar
@@ -6313,6 +6500,13 @@ function completeLogin(user){
   document.getElementById('adminPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   document.getElementById('orgBrandingPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   document.getElementById('orgExportPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+  // Die Wiederherstellung (im Unterschied zum reinen Export) ist deutlich
+  // risikoreicher -- ersetzt bestehende Daten vollstaendig und
+  // unwiderruflich. Bewusst NUR fuer owner sichtbar, auch wenn das
+  // umschliessende Panel selbst bereits ab org_admin sichtbar ist (der
+  // reine Export bleibt dort weiterhin verfuegbar). Siehe Nutzerwunsch
+  // vom 12. August 2026.
+  document.getElementById('orgImportSection').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('catalogPanel').style.display = user.role==='owner' ? '' : 'none';
   // Ab 8. August 2026: nicht mehr nur owner, sondern bereits org_admin
   // aufwaerts -- betrifft dabei ausschliesslich die EIGENE Organisation
@@ -14117,6 +14311,35 @@ function maxMengePrivate(){
   return myPrivateEntries().reduce((m,e)=>Math.max(m, e.menge||0), 0) || 1;
 }
 
+// Aehnlich zu buildTotalStockBreakdownHTML() (geteilter Bestand), aber
+// fuer den privaten Bestand angepasst: Da hier ohnehin immer dieselbe
+// Person (man selbst) betroffen ist, ergibt eine "Owner"-Spalte keinen
+// Mehrwert -- stattdessen zeigt die Aufschluesselung Lagerort UND
+// Qualitaet je Eintrag, damit auf einen Blick ersichtlich ist, wo genau
+// wie viel in welcher Qualitaetsstufe liegt. Genutzt fuer den Hover auf
+// der "Gesamt"-Spalte in der Zusammenfassung nach Material (Privat).
+// Siehe Nutzerwunsch vom 12. August 2026.
+function buildPrivateTotalStockBreakdownHTML(material){
+  const matching = myPrivateEntries().filter(e=>e.material===material);
+  let body;
+  if(matching.length === 0){
+    body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
+  } else {
+    const sorted = [...matching].sort((a,b)=> b.qualitaet - a.qualitaet || a.lagerort.localeCompare(b.lagerort));
+    body = `<table><thead><tr><th style="width:32%;">${t('col_lagerort')}</th><th style="width:24%;">${t('label_qualitaet')}</th><th style="width:24%;">${t('col_projekt')}</th><th style="width:20%;">${t('label_menge')}</th></tr></thead><tbody>`;
+    sorted.forEach(e=>{
+      body += `<tr>
+        <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(shortLocLabel(e.lagerort))}</span></td>
+        <td><span class="badge ${badgeClass(e.qualitaet)}">${e.qualitaet}</span></td>
+        <td>${e.projekt ? escapeHtml(e.projekt) : '<span style="color:var(--ink-soft);">—</span>'}</td>
+        <td class="qty-cell">${Math.round(e.menge*100)/100} ${e.einheit}</td>
+      </tr>`;
+    });
+    body += `</tbody></table>`;
+  }
+  return `<div class="stock-hover-title">${t('label_beitraege_aufschluesselung')}</div>${body}`;
+}
+
 function renderPrivateSummary(){
   const container = document.getElementById('privateSummaryContainer');
   const mine = myPrivateEntries();
@@ -14155,7 +14378,7 @@ function renderPrivateSummary(){
       <td><div class="sum-cell ${r.low===0?'zero':''}"><span class="sum-dot" style="background:#FF3B5C"></span>${fmt(r.low)}</div></td>
       <td><div class="sum-cell ${r.med===0?'zero':''}"><span class="sum-dot" style="background:#FFC93C"></span>${fmt(r.med)}</div></td>
       <td><div class="sum-cell ${r.high===0?'zero':''}"><span class="sum-dot" style="background:#2CFFA0"></span>${fmt(r.high)}</div></td>
-      <td class="sum-total">${fmt(total)}</td>
+      <td class="sum-total"><span class="qty-cell stock-hover-wrap" style="cursor:help;">${fmt(total)}<span class="stock-hover-tooltip">${buildPrivateTotalStockBreakdownHTML(r.material)}</span></span></td>
       <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${fmt(r.reserviert)}</span>` : `<span style="color:var(--ink-soft);">${fmt(0)}</span>`}</td>
       <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${fmt(frei)}</span></td>
       <td>${estValue!=null ? `<span class="qty-cell stock-hover-wrap">${fmt(estValue)} aUEC<span class="stock-hover-tooltip">${buildSellLocationTooltipHTML(price)}</span></span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
