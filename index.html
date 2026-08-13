@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.057 -->
+<!-- Version: 0.059 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -7239,6 +7239,15 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
   statusEl.textContent = t('msg_entry_saved');
   renderCollectibles();
   scheduleRenderDashboard();
+  // Bislang fehlend: Materialien rufen nach dem Speichern bereits
+  // updateProjectAvailability()+renderProjects() auf (siehe dortiger
+  // Handler), Sammelobjekte taten das nie -- eine einem Projekt
+  // zugeordnete Menge wurde dadurch zwar korrekt gespeichert, aber die
+  // sichtbare Projekt-Liste zeigte den neuen Stand erst nach einem
+  // ANDEREN Neu-Rendern (z.B. Tab-Wechsel), nicht unmittelbar. Siehe
+  // Nutzerwunsch vom 12. August 2026.
+  updateProjectAvailability();
+  renderProjects();
   setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 });
 
@@ -7342,6 +7351,8 @@ function renderCollectibles(){
         renderCollectibles();
         renderCollectibleSummary();
         scheduleRenderDashboard();
+        updateProjectAvailability();
+        renderProjects();
       });
     });
   });
@@ -7393,6 +7404,8 @@ function renderCollectibles(){
       renderCollectibles();
       renderCollectibleSummary();
       scheduleRenderDashboard();
+      updateProjectAvailability();
+      renderProjects();
     });
   }
   renderCollectibleSummary();
@@ -7538,6 +7551,10 @@ document.getElementById('btnAddPrivateCollectible').addEventListener('click', as
 
   statusEl.textContent = t('msg_entry_saved');
   renderPrivateCollectibles();
+  // Siehe Kommentar beim geteilten Pendant weiter oben -- dieselbe
+  // Luecke bestand auch hier.
+  updatePrivateProjectAvailability();
+  renderPrivateProjects();
   setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 });
 
@@ -7582,6 +7599,15 @@ async function transferPrivateCollectible(id){
   renderCollectibleSummary();
   scheduleRenderDashboard();
   renderPrivateCollectibles();
+  // Betrifft sowohl das GETEILTE Ziel-Projekt (falls das uebertragene
+  // Sammelobjekt einem geteilten Projekt zugeordnet ist) als auch ein
+  // etwaiges PRIVATES Projekt, dem es zuvor zugeordnet war -- daher
+  // beide Seiten aktualisieren, siehe Kommentar bei den einzelnen
+  // Anlage-/Bearbeiten-Handlern weiter oben.
+  updateProjectAvailability();
+  renderProjects();
+  updatePrivateProjectAvailability();
+  renderPrivateProjects();
   document.getElementById('privateCollectibleStatus').textContent = match ? t('msg_stock_extended_private') : t('msg_transferred_to_general_collectibles');
   setTimeout(()=>{ document.getElementById('privateCollectibleStatus').textContent=''; }, 3000);
 }
@@ -7693,6 +7719,8 @@ function renderPrivateCollectibles(){
         await savePrivateCollectibles();
         if(c) await logAction('Privates Sammelobjekt gelöscht', `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''} — ${c.anzahl}x`);
         renderPrivateCollectibles();
+        updatePrivateProjectAvailability();
+        renderPrivateProjects();
       });
     });
   });
@@ -7740,6 +7768,8 @@ function renderPrivateCollectibles(){
       editingPrivateCollectibleId = null;
       await savePrivateCollectibles();
       renderPrivateCollectibles();
+      updatePrivateProjectAvailability();
+      renderPrivateProjects();
     });
   }
   renderPrivateCollectibleSummary();
@@ -8318,8 +8348,24 @@ function stockForMaterial(material, projekt){
 // wirken). Dient rein der Anzeige: "X wurde bereits privat zugesagt,
 // aber noch nicht uebertragen" inkl. direktem Uebertragen-Button fuer
 // den jeweiligen Eigentuemer. Siehe Nutzerwunsch vom 7. August 2026.
+//
+// Erweitert am 12. August 2026 um privateCollectibles() -- galt bislang
+// nur fuer reguläre Materialien, Sammelobjekte fielen komplett durch
+// dieselbe Luecke wie die bereits an anderer Stelle behobene fehlende
+// Bestandszaehlung. Beide Quellen werden zu einer gemeinsamen Liste
+// vereinheitlicht (__kind kennzeichnet, woher ein Eintrag stammt, damit
+// der Uebertragen-Button unten weiss, welche der beiden Uebertragungs-
+// funktionen er aufrufen muss) -- Sammelobjekte haben andere Feldnamen
+// (anzahl statt menge, keine eigene Einheit, kein separates
+// Person-Feld) und werden hier entsprechend auf dieselbe Form gebracht.
 function getPendingPrivateCommitments(material, ziel){
-  return privateEntries.filter(e=>e.material===material && e.projekt===ziel && e.projektTyp==='shared');
+  const fromMaterials = privateEntries
+    .filter(e=>e.material===material && e.projekt===ziel && e.projektTyp==='shared')
+    .map(e=>({ ...e, __kind: 'material' }));
+  const fromCollectibles = privateCollectibles
+    .filter(c=>c.objekt===material && c.projekt===ziel && c.projektTyp==='shared')
+    .map(c=>({ ...c, __kind: 'collectible', menge: c.anzahl, einheit: 'Stück', person: c.owner }));
+  return [...fromMaterials, ...fromCollectibles];
 }
 
 // Kuerzt einen Lagerort-Namen fuer die Anzeige in den kleinen
@@ -10441,7 +10487,7 @@ function renderProjects(){
                   const isOwn = c.owner===currentUser.username;
                   return `<div style="font-size:10.5px;color:var(--med);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                     <span>⏳ ${t('label_privat_zugesagt').replace('{menge}', c.menge).replace('{einheit}', escapeHtml(c.einheit)).replace('{person}', escapeHtml(c.person))}</span>
-                    ${isOwn ? `<button class="btn-ghost" data-action="transfer-committed-private" data-id="${c.id}" style="font-size:10px;padding:2px 8px;">${t('btn_jetzt_uebertragen')}</button>` : ''}
+                    ${isOwn ? `<button class="btn-ghost" data-action="transfer-committed-private" data-id="${c.id}" data-kind="${c.__kind}" style="font-size:10px;padding:2px 8px;">${t('btn_jetzt_uebertragen')}</button>` : ''}
                   </div>`;
                 }).join('');
               })()}
@@ -10480,6 +10526,16 @@ function renderProjects(){
       // transferPrivateEntry() bereits selbst aufgerufen, aktualisiert
       // die Anzeige also automatisch. Erst das Teilmengen-Modal fragen,
       // statt sofort die volle Menge zu uebertragen.
+      //
+      // Ab 12. August 2026: data-kind unterscheidet Material vs.
+      // Sammelobjekt (siehe getPendingPrivateCommitments weiter oben) --
+      // Sammelobjekte nutzen eine eigene, bewusst einfachere
+      // Uebertragungsfunktion ohne Teilmengen-Unterstuetzung (siehe dort),
+      // daher hier direkt aufgerufen statt ueber das Teilmengen-Modal.
+      if(btn.dataset.kind === 'collectible'){
+        armConfirm(btn, async ()=>{ await transferPrivateCollectible(btn.dataset.id); });
+        return;
+      }
       const e = privateEntries.find(pe=>pe.id===btn.dataset.id);
       if(!e) return;
       openPartialAssignModal({
