@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.067 -->
+<!-- Version: 0.068 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1281,6 +1281,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </button>
     </div>
     <button class="btn-primary" id="btnLogin" data-i18n="btn_login">Anmelden</button>
+    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;margin-top:12px;font-size:13px;color:var(--ink-soft);">
+      <input type="checkbox" id="loginRemember">
+      <span data-i18n="label_angemeldet_bleiben">Angemeldet bleiben</span>
+    </label>
     <div id="loginProgress" style="display:none;height:3px;border-radius:2px;overflow:hidden;background:rgba(0,210,255,0.12);margin-top:10px;">
       <div id="loginProgressBar" style="height:100%;width:40%;background:var(--cyan);border-radius:2px;animation:loginProgressSlide 1.1s ease-in-out infinite;"></div>
     </div>
@@ -2700,6 +2704,7 @@ const I18N = {
   "login_subtitle": "Bitte anmelden, um fortzufahren",
   "label_username": "Benutzer",
   "label_password": "Passwort",
+  "label_angemeldet_bleiben": "Angemeldet bleiben",
   "placeholder_username": "Benutzername",
   "placeholder_password": "Passwort",
   "btn_login": "Anmelden",
@@ -3332,6 +3337,7 @@ const I18N = {
   "login_subtitle": "Please sign in to continue",
   "label_username": "Username",
   "label_password": "Password",
+  "label_angemeldet_bleiben": "Stay signed in",
   "placeholder_username": "Username",
   "placeholder_password": "Password",
   "btn_login": "Sign in",
@@ -3964,6 +3970,7 @@ const I18N = {
   "login_subtitle": "Veuillez vous connecter pour continuer",
   "label_username": "Utilisateur",
   "label_password": "Mot de passe",
+  "label_angemeldet_bleiben": "Rester connecté",
   "placeholder_username": "Nom d'utilisateur",
   "placeholder_password": "Mot de passe",
   "btn_login": "Se connecter",
@@ -6486,12 +6493,25 @@ async function doLogin(){
 
   if(password === currentOrgDefaultPassword){
     // Erster Login mit Standardpasswort — individuelles Passwort ist Pflicht.
+    // "Angemeldet bleiben" wird hier zwischengespeichert (siehe
+    // pendingRememberLogin), da die Login-Maske gleich durch den
+    // erzwungenen Passwort-Bildschirm ersetzt wird und die Checkbox
+    // dabei aus dem sichtbaren Formular verschwindet -- erst
+    // submitForcedPassword() wertet diesen zwischengespeicherten Wert
+    // tatsaechlich aus.
+    pendingRememberLogin = document.getElementById('loginRemember').checked;
     setLoginBusy(false);
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('forcedPwScreen').style.display = 'flex';
     document.getElementById('forcedPwWho').textContent = user.username;
     document.getElementById('forced-pw-new').focus();
     return;
+  }
+
+  if(document.getElementById('loginRemember').checked){
+    saveRememberedLogin(user.username, currentOrgId);
+  } else {
+    clearRememberedLogin();
   }
 
   completeLogin(user);
@@ -6945,6 +6965,11 @@ async function submitForcedPassword(){
   document.getElementById('forced-pw-new').value = '';
   document.getElementById('forced-pw-confirm').value = '';
   statusEl.textContent = '';
+  if(pendingRememberLogin){
+    saveRememberedLogin(currentUser.username, currentOrgId);
+  } else {
+    clearRememberedLogin();
+  }
   completeLogin(currentUser);
 }
 
@@ -6979,12 +7004,40 @@ function isWatermarkTriggerPrefix(buffer){
 // Listener mit Capturing-Phase-Trick hat sich als nicht zuverlaessig
 // genug erwiesen und wurde entfernt.
 
+// "Angemeldet bleiben" -- speichert bei aktivierter Checkbox NUR
+// Benutzername und Organisations-ID in localStorage, bewusst NIEMALS
+// das Passwort selbst (auch nicht verschluesselt) -- beim naechsten
+// Seitenaufruf wird direkt eingeloggt, ohne das Passwort erneut
+// abzufragen. Rein clientseitig (kein Server-Sitzungs-Token, da diese
+// Anwendung ohnehin keine serverseitige Sitzungsverwaltung besitzt) --
+// wer Zugriff auf den Browser-Speicher dieses Geraets hat, koennte
+// dadurch als der gemerkte Benutzer angemeldet bleiben, daher bewusst
+// als abwaehlbare Opt-in-Checkbox umgesetzt (Standard: aus), nicht als
+// automatisches Verhalten. Siehe Nutzerwunsch vom 14. August 2026.
+const REMEMBER_LOGIN_KEY = 'mb_remembered_login';
+let pendingRememberLogin = false;
+
+function saveRememberedLogin(username, organizationId){
+  try{ localStorage.setItem(REMEMBER_LOGIN_KEY, JSON.stringify({username, organizationId})); }
+  catch(e){ /* localStorage evtl. blockiert (z.B. privater Modus) -- Login funktioniert trotzdem normal weiter */ }
+}
+function clearRememberedLogin(){
+  try{ localStorage.removeItem(REMEMBER_LOGIN_KEY); }catch(e){}
+}
+function loadRememberedLogin(){
+  try{
+    const raw = localStorage.getItem(REMEMBER_LOGIN_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+
 document.getElementById('btnCloseWatermark').addEventListener('click', ()=>{
   document.getElementById('watermarkModal').style.display = 'none';
 });
 
 function doLogout(){
   currentUser = null;
+  clearRememberedLogin();
   document.getElementById('pwPanel').style.display = 'none';
   document.getElementById('pw-current').value = '';
   document.getElementById('pw-new').value = '';
@@ -7049,6 +7102,29 @@ async function savePassword(){
     (async ()=>{ await loadLanguagePref(); applyI18n(); })(),
     loadUsers()
   ]);
+
+  // "Angemeldet bleiben": Falls ein gueltiger, gemerkter Login vorliegt,
+  // direkt anmelden -- ohne Passwort-Abfrage, die Login-Maske bleibt
+  // dabei unsichtbar. Derselbe Ablauf wie ein normaler erfolgreicher
+  // Login (siehe doLogin), nur ohne den Passwort-Vergleich selbst.
+  // Existiert der gemerkte Benutzer nicht mehr (z.B. inzwischen
+  // geloescht), wird der Merker verworfen und die normale Login-Maske
+  // gezeigt, statt in einem Fehlerzustand haengen zu bleiben.
+  const remembered = loadRememberedLogin();
+  if(remembered){
+    const user = USERS.find(u=>u.username.toLowerCase()===remembered.username.toLowerCase());
+    if(user){
+      await Promise.all([ensureCredentialsLoaded(), loadOrganizations()]);
+      await runOrgMigrationIfNeeded();
+      currentUser = user;
+      currentOrgId = user.organizationId || LEGACY_ORG_ID;
+      await loadOrgDefaultPassword(currentOrgId);
+      await loadOrgDiscordSettings();
+      completeLogin(user);
+    } else {
+      clearRememberedLogin();
+    }
+  }
 })();
 document.querySelectorAll('.flag-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{ changeLanguage(btn.dataset.lang); });
