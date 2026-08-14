@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.072 -->
+<!-- Version: 0.073 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1467,6 +1467,18 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div style="display:flex;justify-content:flex-end;gap:10px;">
       <button class="btn-ghost" id="btnTemplateImportCancel" data-i18n="btn_cancel">Abbrechen</button>
       <button class="btn-primary" id="btnTemplateImportConfirm" style="background:var(--low);" data-i18n="btn_trotzdem_importieren">Trotzdem importieren</button>
+    </div>
+  </div>
+</div>
+
+<div id="overflowWarningModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:247;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid #FF3B5C;border-radius:var(--radius);padding:26px 28px;max-width:440px;width:100%;box-shadow:0 0 40px rgba(255,59,92,0.3);">
+    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:#FF3B5C;margin:0 0 14px;">⚠ <span data-i18n="modal_ueberschuss_titel">Mehr als benötigt?</span></h3>
+    <p id="overflowWarningText" style="font-size:14px;line-height:1.5;color:var(--ink);margin:0 0 18px;"></p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn-primary" id="btnOverflowCap"></button>
+      <button class="btn-ghost" id="btnOverflowFull" data-i18n="btn_ueberschuss_trotzdem_alle">Trotzdem die volle Menge zuweisen</button>
+      <button class="btn-ghost" id="btnOverflowCancel" data-i18n="btn_cancel">Abbrechen</button>
     </div>
   </div>
 </div>
@@ -3253,6 +3265,10 @@ const I18N = {
   "val_current_password_wrong": "Aktuelles Passwort ist falsch.",
   "val_new_password_empty": "Neues Passwort darf nicht leer sein.",
   "val_new_passwords_no_match": "Neue Passwörter stimmen nicht überein.",
+  "modal_ueberschuss_titel": "Mehr als benötigt?",
+  "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
+  "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
+  "btn_ueberschuss_trotzdem_alle": "Trotzdem die volle Menge zuweisen",
   "val_object_qty_required": "Bitte Objekt und Anzahl angeben.",
   "val_category_name_required": "Bitte Kategorie und Materialname angeben.",
   "val_material_exists": "Dieses Material existiert in dieser Kategorie bereits.",
@@ -3893,6 +3909,10 @@ const I18N = {
   "val_current_password_wrong": "Current password is incorrect.",
   "val_new_password_empty": "New password cannot be empty.",
   "val_new_passwords_no_match": "New passwords do not match.",
+  "modal_ueberschuss_titel": "More than needed?",
+  "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
+  "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
+  "btn_ueberschuss_trotzdem_alle": "Assign the full amount anyway",
   "val_object_qty_required": "Please enter item and quantity.",
   "val_category_name_required": "Please enter category and material name.",
   "val_material_exists": "This material already exists in this category.",
@@ -4533,6 +4553,10 @@ const I18N = {
   "val_current_password_wrong": "Le mot de passe actuel est incorrect.",
   "val_new_password_empty": "Le nouveau mot de passe ne peut pas être vide.",
   "val_new_passwords_no_match": "Les nouveaux mots de passe ne correspondent pas.",
+  "modal_ueberschuss_titel": "Plus que nécessaire ?",
+  "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
+  "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
+  "btn_ueberschuss_trotzdem_alle": "Attribuer quand même la quantité totale",
   "val_object_qty_required": "Veuillez indiquer l'objet et la quantité.",
   "val_category_name_required": "Veuillez indiquer la catégorie et le nom du matériau.",
   "val_material_exists": "Ce matériau existe déjà dans cette catégorie.",
@@ -7564,40 +7588,53 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
     tier = tierSel ? tierSel.value : item.tiers[0];
   }
 
-  collectibles.push({
-    id: collectibleUid(),
-    kategorie: item ? item.category : '',
-    objekt, tier,
-    anzahl: parseFloat(anzahl),
-    standort,
-    projekt: projektAssign.ziel,
-    projektTyp: projektAssign.typ,
-    besitzer
+  const einheit = getDefaultEinheitForMaterial(objekt);
+  checkAndResolveProjectOverflow(objekt, projektAssign.ziel, projektAssign.typ, parseFloat(anzahl), false, einheit, async (finalMenge, restMenge)=>{
+    if(finalMenge == null) return; // Nutzer hat abgebrochen
+
+    collectibles.push({
+      id: collectibleUid(),
+      kategorie: item ? item.category : '',
+      objekt, tier,
+      anzahl: finalMenge,
+      standort,
+      projekt: projektAssign.ziel,
+      projektTyp: projektAssign.typ,
+      besitzer
+    });
+    // Ueberschuss (falls "Menge kappen" gewaehlt wurde) als zweiter,
+    // NICHT dem Projekt zugeordneter Eintrag -- bleibt dadurch im
+    // freien Pool statt verloren zu gehen. Siehe checkAndResolveProjectOverflow.
+    if(restMenge > 0){
+      collectibles.push({
+        id: collectibleUid(),
+        kategorie: item ? item.category : '',
+        objekt, tier,
+        anzahl: restMenge,
+        standort,
+        projekt: '',
+        projektTyp: null,
+        besitzer
+      });
+    }
+
+    setStatusMsg(statusEl, t('msg_saving'), false);
+    await saveCollectibles();
+    await logAction('Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${finalMenge}x (${besitzer})${standort ? ' @ '+standort : ''}${projektAssign.ziel ? ' [Projekt: '+projektAssign.ziel+']' : ''}${restMenge>0 ? `, ${restMenge}x zusaetzlich ohne Projekt-Zuordnung (Ueberschuss)` : ''}`);
+
+    document.getElementById('coll-item').value = '';
+    document.getElementById('coll-anzahl').value = '';
+    document.getElementById('coll-standort').value = '';
+    document.getElementById('coll-projekt').value = '';
+    updateCollectibleTierField();
+
+    setStatusMsg(statusEl, t('msg_entry_saved'), false);
+    renderCollectibles();
+    scheduleRenderDashboard();
+    updateProjectAvailability();
+    renderProjects();
+    setTimeout(()=>{ statusEl.textContent=''; }, 2500);
   });
-
-  setStatusMsg(statusEl, t('msg_saving'), false);
-  await saveCollectibles();
-  await logAction('Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${anzahl}x (${besitzer})${standort ? ' @ '+standort : ''}${projektAssign.ziel ? ' [Projekt: '+projektAssign.ziel+']' : ''}`);
-
-  document.getElementById('coll-item').value = '';
-  document.getElementById('coll-anzahl').value = '';
-  document.getElementById('coll-standort').value = '';
-  document.getElementById('coll-projekt').value = '';
-  updateCollectibleTierField();
-
-  setStatusMsg(statusEl, t('msg_entry_saved'), false);
-  renderCollectibles();
-  scheduleRenderDashboard();
-  // Bislang fehlend: Materialien rufen nach dem Speichern bereits
-  // updateProjectAvailability()+renderProjects() auf (siehe dortiger
-  // Handler), Sammelobjekte taten das nie -- eine einem Projekt
-  // zugeordnete Menge wurde dadurch zwar korrekt gespeichert, aber die
-  // sichtbare Projekt-Liste zeigte den neuen Stand erst nach einem
-  // ANDEREN Neu-Rendern (z.B. Tab-Wechsel), nicht unmittelbar. Siehe
-  // Nutzerwunsch vom 12. August 2026.
-  updateProjectAvailability();
-  renderProjects();
-  setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 });
 
 function getFilteredCollectibles(){
@@ -7878,33 +7915,48 @@ document.getElementById('btnAddPrivateCollectible').addEventListener('click', as
     tier = tierSel ? tierSel.value : item.tiers[0];
   }
 
-  privateCollectibles.push({
-    id: privateCollectibleUid(),
-    kategorie: item ? item.category : '',
-    objekt, tier,
-    anzahl: parseFloat(anzahl),
-    standort,
-    projekt: projektAssign.ziel,
-    projektTyp: projektAssign.typ,
-    owner: currentUser.username
+  const einheit = getDefaultEinheitForMaterial(objekt);
+  checkAndResolveProjectOverflow(objekt, projektAssign.ziel, projektAssign.typ, parseFloat(anzahl), true, einheit, async (finalMenge, restMenge)=>{
+    if(finalMenge == null) return; // Nutzer hat abgebrochen
+
+    privateCollectibles.push({
+      id: privateCollectibleUid(),
+      kategorie: item ? item.category : '',
+      objekt, tier,
+      anzahl: finalMenge,
+      standort,
+      projekt: projektAssign.ziel,
+      projektTyp: projektAssign.typ,
+      owner: currentUser.username
+    });
+    if(restMenge > 0){
+      privateCollectibles.push({
+        id: privateCollectibleUid(),
+        kategorie: item ? item.category : '',
+        objekt, tier,
+        anzahl: restMenge,
+        standort,
+        projekt: '',
+        projektTyp: null,
+        owner: currentUser.username
+      });
+    }
+
+    await savePrivateCollectibles();
+    await logAction('Privates Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${finalMenge}x${standort ? ' @ '+standort : ''}${projektAssign.ziel ? ' [Projekt: '+projektAssign.ziel+']' : ''}${restMenge>0 ? `, ${restMenge}x zusaetzlich ohne Projekt-Zuordnung (Ueberschuss)` : ''}`);
+
+    document.getElementById('priv-coll-item').value = '';
+    document.getElementById('priv-coll-anzahl').value = '';
+    document.getElementById('priv-coll-standort').value = '';
+    document.getElementById('priv-coll-projekt').value = '';
+    updatePrivateCollectibleTierField();
+
+    setStatusMsg(statusEl, t('msg_entry_saved'), false);
+    renderPrivateCollectibles();
+    updatePrivateProjectAvailability();
+    renderPrivateProjects();
+    setTimeout(()=>{ statusEl.textContent=''; }, 2500);
   });
-
-  await savePrivateCollectibles();
-  await logAction('Privates Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${anzahl}x${standort ? ' @ '+standort : ''}${projektAssign.ziel ? ' [Projekt: '+projektAssign.ziel+']' : ''}`);
-
-  document.getElementById('priv-coll-item').value = '';
-  document.getElementById('priv-coll-anzahl').value = '';
-  document.getElementById('priv-coll-standort').value = '';
-  document.getElementById('priv-coll-projekt').value = '';
-  updatePrivateCollectibleTierField();
-
-  setStatusMsg(statusEl, t('msg_entry_saved'), false);
-  renderPrivateCollectibles();
-  // Siehe Kommentar beim geteilten Pendant weiter oben -- dieselbe
-  // Luecke bestand auch hier.
-  updatePrivateProjectAvailability();
-  renderPrivateProjects();
-  setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 });
 
 async function transferPrivateCollectible(id){
@@ -9988,6 +10040,74 @@ function openPartialAssignModal(config){
 function closePartialAssignModal(){
   partialAssignConfig = null;
   document.getElementById('partialAssignModal').style.display = 'none';
+}
+
+// Prueft VOR dem tatsaechlichen Anlegen eines neuen, einem Projekt
+// zugeordneten Bestands-/Sammelobjekt-Eintrags, ob die eingegebene Menge
+// den TATSAECHLICHEN Restbedarf dieser Ressource im gewaehlten Projekt
+// uebersteigt -- und zeigt bei Ueberschuss ein Warn-Modal mit drei
+// Optionen (Menge kappen / trotzdem alle zuweisen / abbrechen), statt
+// stillschweigend mehr als noetig zu reservieren (siehe Nutzerfrage vom
+// 14. August 2026: ueberschuessig zugeordnete Mengen blieben bislang
+// dauerhaft "reserviert" und damit fuer andere Zwecke gesperrt, auch
+// nachdem der Bedarf laengst gedeckt war).
+//
+// Ruft callback(finalMenge, restMenge) auf:
+// - Kein Ueberschuss (oder kein Projekt gewaehlt, oder Projekt kennt
+//   diese Ressource gar nicht): finalMenge = eingegebene Menge unveraendert, restMenge = 0.
+// - "Menge kappen" gewaehlt: finalMenge = tatsaechlicher Restbedarf,
+//   restMenge = Ueberschuss (vom Aufrufer als ZWEITER, NICHT dem
+//   Projekt zugeordneter Eintrag anzulegen -- bleibt dadurch im
+//   freien Pool statt verloren zu gehen).
+// - "Trotzdem alle zuweisen" gewaehlt: finalMenge = eingegebene Menge
+//   unveraendert, restMenge = 0 (bewusste Entscheidung des Nutzers,
+//   z.B. als Vorrat/Puffer).
+// - "Abbrechen" gewaehlt: finalMenge = null (Aufrufer bricht die
+//   gesamte Aktion ab, legt gar nichts an).
+function checkAndResolveProjectOverflow(material, projekt, projektTyp, enteredMenge, isPrivate, einheit, callback){
+  if(!projekt || enteredMenge == null || enteredMenge <= 0){ callback(enteredMenge, 0); return; }
+  const projectList = projektTyp === 'private' ? privateProjects : projects;
+  const project = projectList.find(p=>p.ziel === projekt);
+  if(!project){ callback(enteredMenge, 0); return; }
+  const resource = project.resources.map(normalizeResource).find(r=>r.material === material);
+  if(!resource || resource.menge == null){ callback(enteredMenge, 0); return; }
+
+  const effMenge = effectiveResourceMenge(project, resource);
+  // Bereits vorhandener Bestand VOR diesem neuen Eintrag -- der neue
+  // Eintrag selbst ist zu diesem Zeitpunkt noch nicht angelegt, zaehlt
+  // also korrekt noch nicht mit.
+  const currentAvail = isPrivate
+    ? privateStockAmount(material, projekt, undefined, projektTyp)
+    : stockAmount(material, projekt);
+  const remaining = Math.max(0, Math.round((effMenge - currentAvail) * 1000) / 1000);
+
+  if(enteredMenge <= remaining){ callback(enteredMenge, 0); return; }
+
+  const einheitLabel = einheit || getDefaultEinheitForMaterial(material);
+  document.getElementById('overflowWarningText').textContent = t('text_ueberschuss_warnung')
+    .replace('{material}', material)
+    .replace('{remaining}', remaining)
+    .replace('{entered}', enteredMenge)
+    .replace('{einheit}', einheitLabel);
+  document.getElementById('btnOverflowCap').textContent = t('btn_ueberschuss_kappen').replace('{remaining}', remaining).replace('{einheit}', einheitLabel);
+  document.getElementById('overflowWarningModal').style.display = 'flex';
+
+  const btnCap = document.getElementById('btnOverflowCap');
+  const btnFull = document.getElementById('btnOverflowFull');
+  const btnCancel = document.getElementById('btnOverflowCancel');
+  const cleanup = ()=>{
+    document.getElementById('overflowWarningModal').style.display = 'none';
+    btnCap.replaceWith(btnCap.cloneNode(true));
+    btnFull.replaceWith(btnFull.cloneNode(true));
+    btnCancel.replaceWith(btnCancel.cloneNode(true));
+  };
+  // cloneNode() oben entfernt saemtliche vorherigen Listener wieder --
+  // notwendig, da dieses Modal bei jedem Aufruf neu "verdrahtet" wird
+  // und sonst nach mehrfacher Nutzung mehrere alte Listener gleichzeitig
+  // ausgeloest wuerden.
+  document.getElementById('btnOverflowCap').addEventListener('click', ()=>{ cleanup(); callback(remaining, Math.round((enteredMenge - remaining)*1000)/1000); });
+  document.getElementById('btnOverflowFull').addEventListener('click', ()=>{ cleanup(); callback(enteredMenge, 0); });
+  document.getElementById('btnOverflowCancel').addEventListener('click', ()=>{ cleanup(); callback(null, null); });
 }
 
 document.querySelectorAll('input[name="partialAssignMode"]').forEach(radio=>{
@@ -12755,56 +12875,73 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
     return;
   }
 
-  // Passenden bestehenden Eintrag suchen (gleiches Material, gleiche
-  // Qualität, gleicher Lagerort, gleiche Einheit, gleiches Projektziel)
-  // und dessen Menge erweitern, statt die Tabelle mit Duplikaten zu füllen.
-  const match = entries.find(e=>
-    e.material === material &&
-    e.qualitaet === qualitaet &&
-    e.lagerort === lagerort &&
-    e.einheit === einheit &&
-    (e.projekt||'') === (projekt||'')
-  );
+  checkAndResolveProjectOverflow(material, projekt, 'shared', mengeNum, false, einheit, async (finalMenge, restMenge)=>{
+    if(finalMenge == null) return; // Nutzer hat abgebrochen
 
-  let logDetail;
-  if(match){
-    match.menge = Math.round((match.menge + mengeNum) * 100) / 100;
-    logDetail = `${material}, +${mengeNum} ${einheit} @ ${lagerort} (neuer Bestand: ${match.menge} ${einheit})`;
-  } else {
-    entries.push({
-      id: uid(),
-      material, qualitaet,
-      menge: mengeNum, einheit,
-      lagerort, person, projekt,
-      createdAt: new Date().toISOString()
-    });
-    logDetail = `${material}, ${mengeNum} ${einheit} @ ${lagerort}${projekt ? ' [Projekt: '+projekt+']' : ''}`;
-  }
+    // Passenden bestehenden Eintrag suchen (gleiches Material, gleiche
+    // Qualität, gleicher Lagerort, gleiche Einheit, gleiches Projektziel)
+    // und dessen Menge erweitern, statt die Tabelle mit Duplikaten zu füllen.
+    const match = entries.find(e=>
+      e.material === material &&
+      e.qualitaet === qualitaet &&
+      e.lagerort === lagerort &&
+      e.einheit === einheit &&
+      (e.projekt||'') === (projekt||'')
+    );
 
-  document.getElementById('f-material').value='';
-  document.getElementById('f-qualitaet').value='';
-  document.getElementById('f-menge').value='';
-  document.getElementById('f-lagerort').value='';
-  document.getElementById('f-projekt').value='';
-  // Einheiten-Sperre (siehe automatische Zuordnung/Sperrung fuer
-  // Handabbau-Materialien weiter oben) muss beim Zuruecksetzen des
-  // Formulars ebenfalls aufgehoben werden -- sonst bliebe sie faelschlich
-  // fuer den naechsten, potenziell ganz anderen Eintrag aktiv, bis
-  // erneut ein Material ausgewaehlt wird.
-  const fEinheitEl = document.getElementById('f-einheit');
-  fEinheitEl.disabled = false;
-  fEinheitEl.title = '';
-  fEinheitEl.value = 'SCU';
+    let logDetail;
+    if(match){
+      match.menge = Math.round((match.menge + finalMenge) * 100) / 100;
+      logDetail = `${material}, +${finalMenge} ${einheit} @ ${lagerort} (neuer Bestand: ${match.menge} ${einheit})`;
+    } else {
+      entries.push({
+        id: uid(),
+        material, qualitaet,
+        menge: finalMenge, einheit,
+        lagerort, person, projekt,
+        createdAt: new Date().toISOString()
+      });
+      logDetail = `${material}, ${finalMenge} ${einheit} @ ${lagerort}${projekt ? ' [Projekt: '+projekt+']' : ''}`;
+    }
+    // Ueberschuss (falls "Menge kappen" gewaehlt wurde) als zweiter,
+    // NICHT dem Projekt zugeordneter Eintrag -- bleibt dadurch im
+    // freien Pool statt verloren zu gehen. Siehe checkAndResolveProjectOverflow.
+    if(restMenge > 0){
+      entries.push({
+        id: uid(),
+        material, qualitaet,
+        menge: restMenge, einheit,
+        lagerort, person, projekt: '',
+        createdAt: new Date().toISOString()
+      });
+      logDetail += `, ${restMenge} ${einheit} zusaetzlich ohne Projekt-Zuordnung (Ueberschuss)`;
+    }
 
-  setStatus(t('msg_saving'));
-  await save();
-  await logAction('Bestand hinzugefügt', logDetail);
-  render();
-  updateProjectAvailability();
-  renderProjects();
-  renderNeeds();
-  scheduleRenderDashboard();
-  setStatus(match ? t('msg_stock_extended') : t('msg_entry_saved'));
+    document.getElementById('f-material').value='';
+    document.getElementById('f-qualitaet').value='';
+    document.getElementById('f-menge').value='';
+    document.getElementById('f-lagerort').value='';
+    document.getElementById('f-projekt').value='';
+    // Einheiten-Sperre (siehe automatische Zuordnung/Sperrung fuer
+    // Handabbau-Materialien weiter oben) muss beim Zuruecksetzen des
+    // Formulars ebenfalls aufgehoben werden -- sonst bliebe sie faelschlich
+    // fuer den naechsten, potenziell ganz anderen Eintrag aktiv, bis
+    // erneut ein Material ausgewaehlt wird.
+    const fEinheitEl = document.getElementById('f-einheit');
+    fEinheitEl.disabled = false;
+    fEinheitEl.title = '';
+    fEinheitEl.value = 'SCU';
+
+    setStatus(t('msg_saving'));
+    await save();
+    await logAction('Bestand hinzugefügt', logDetail);
+    render();
+    updateProjectAvailability();
+    renderProjects();
+    renderNeeds();
+    scheduleRenderDashboard();
+    setStatus(match ? t('msg_stock_extended') : t('msg_entry_saved'));
+  });
 });
 
 document.getElementById('search').addEventListener('input', debounce(render, 200));
@@ -15159,29 +15296,52 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
     return;
   }
 
-  privateEntries.push({
-    id: privateUid(),
-    material, qualitaet: privQualitaet,
-    menge: privMenge, einheit,
-    lagerort, person, projekt, projektTyp,
-    owner: currentUser.username
+  checkAndResolveProjectOverflow(material, projekt, projektTyp, privMenge, true, einheit, async (finalMenge, restMenge)=>{
+    if(finalMenge == null) return; // Nutzer hat abgebrochen
+
+    privateEntries.push({
+      id: privateUid(),
+      material, qualitaet: privQualitaet,
+      menge: finalMenge, einheit,
+      lagerort, person, projekt, projektTyp,
+      owner: currentUser.username
+    });
+    let logDetail = `${material}, ${finalMenge} ${einheit} @ ${lagerort}${projekt ? ' [Projekt: '+projekt+']' : ''}`;
+    // Ueberschuss (falls "Menge kappen" gewaehlt wurde) als zweiter,
+    // NICHT dem Projekt zugeordneter Eintrag -- bleibt dadurch im
+    // freien Pool statt verloren zu gehen. Siehe checkAndResolveProjectOverflow.
+    if(restMenge > 0){
+      privateEntries.push({
+        id: privateUid(),
+        material, qualitaet: privQualitaet,
+        menge: restMenge, einheit,
+        lagerort, person, projekt: '', projektTyp: null,
+        owner: currentUser.username
+      });
+      logDetail += `, ${restMenge} ${einheit} zusaetzlich ohne Projekt-Zuordnung (Ueberschuss)`;
+    }
+
+    document.getElementById('priv-material').value='';
+    document.getElementById('priv-qualitaet').value='';
+    document.getElementById('priv-menge').value='';
+    document.getElementById('priv-lagerort').value='';
+    document.getElementById('priv-projekt').value='';
+    const privEinheitEl = document.getElementById('priv-einheit');
+    privEinheitEl.disabled = false;
+    privEinheitEl.title = '';
+    privEinheitEl.value = 'SCU';
+
+    setPrivateStatus(t('msg_saving'));
+    await savePrivateEntries();
+    await logAction('Privatbestand hinzugefügt', logDetail);
+    renderPrivate();
+    // Siehe Kommentar bei den Sammelobjekt-Handlern weiter oben --
+    // dieselbe, urspruenglich fehlende Sofort-Aktualisierung der
+    // Projekt-Ansicht betraf auch private Material-Eintraege.
+    updatePrivateProjectAvailability();
+    renderPrivateProjects();
+    setPrivateStatus(t('msg_entry_saved'));
   });
-
-  document.getElementById('priv-material').value='';
-  document.getElementById('priv-qualitaet').value='';
-  document.getElementById('priv-menge').value='';
-  document.getElementById('priv-lagerort').value='';
-  document.getElementById('priv-projekt').value='';
-  const privEinheitEl = document.getElementById('priv-einheit');
-  privEinheitEl.disabled = false;
-  privEinheitEl.title = '';
-  privEinheitEl.value = 'SCU';
-
-  setPrivateStatus(t('msg_saving'));
-  await savePrivateEntries();
-  await logAction('Privatbestand hinzugefügt', `${material}, ${menge} ${einheit} @ ${lagerort}${projekt ? ' [Projekt: '+projekt+']' : ''}`);
-  renderPrivate();
-  setPrivateStatus(t('msg_entry_saved'));
 });
 
 document.getElementById('priv-search').addEventListener('input', debounce(renderPrivate, 200));
