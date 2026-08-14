@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.064 -->
+<!-- Version: 0.067 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -883,6 +883,32 @@ tbody tr:hover{background:rgba(0,216,255,0.05);}
   font-family:'Share Tech Mono', monospace;
   margin-top:10px;
   min-height:16px;
+  transition:color 0.15s ease;
+}
+/* Alarm-Darstellung fuer Fehlermeldungen -- deutlich abgesetzt von der
+   normalen (Erfolgs-/Info-)Cyan-Faerbung, die bislang fuer BEIDES
+   genutzt wurde und dadurch eine Fehlermeldung optisch kaum von einer
+   normalen Statusmeldung unterschied. Kraeftiges Rot, fett, mit
+   dezentem Hintergrund-Schimmer und Rahmen -- soll unmoeglich zu
+   uebersehen sein. Wird ueber setStatusMsg()/showFieldError() (siehe
+   dort) automatisch gesetzt/entfernt, nicht manuell im Markup.
+   Siehe Nutzerwunsch vom 13. August 2026. */
+.status-msg.status-msg-error{
+  color:#FF3B5C;
+  font-weight:700;
+  background:rgba(255,59,92,0.08);
+  border-left:3px solid #FF3B5C;
+  padding:6px 10px;
+  border-radius:var(--radius);
+}
+/* Markiert das konkrete, fehlerhafte Eingabefeld selbst -- ergaenzt die
+   Fehlermeldung um eine direkte visuelle Verbindung zum betroffenen
+   Feld, statt nur einen allgemeinen Text irgendwo auf der Seite zu
+   zeigen. Wird per JS temporaer gesetzt und beim naechsten Tippen im
+   Feld wieder entfernt (siehe showFieldError). */
+.field-error{
+  border-color:#FF3B5C !important;
+  box-shadow:0 0 0 1px #FF3B5C, 0 0 8px rgba(255,59,92,0.35) !important;
 }
 
 @media (max-width:800px){
@@ -2163,6 +2189,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div id="privProjResourcesContainer"></div>
         <button type="button" class="btn-add-row" id="btnAddPrivProjResource"><span class="plus-icon">+</span><span data-i18n="btn_add_resource">Weitere Ressource hinzufügen</span></button>
       </div>
+      <div class="field" style="margin-top:12px;">
+        <label for="priv-proj-notiz" data-i18n="label_anmerkung">Anmerkung (optional)</label>
+        <textarea id="priv-proj-notiz" rows="2" placeholder="z. B. für wen, warum, besondere Hinweise …" data-i18n-placeholder="placeholder_anmerkung" style="width:100%;resize:vertical;font-family:'Rajdhani', sans-serif;font-size:14px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
+      </div>
       <div style="margin-top:14px;">
         <button class="btn-primary" id="btnAddPrivProject" data-i18n="btn_projekt_anlegen">Projekt anlegen</button>
       </div>
@@ -2401,6 +2431,11 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div id="projResourcesContainer"></div>
         <button type="button" class="btn-add-row" id="btnAddProjResource"><span class="plus-icon">+</span><span data-i18n="btn_add_resource">Weitere Ressource hinzufügen</span></button>
       </div>
+      <div class="field" style="margin-top:12px;">
+        <label for="proj-notiz" data-i18n="label_anmerkung">Anmerkung (optional)</label>
+        <textarea id="proj-notiz" rows="2" placeholder="z. B. für wen, warum, besondere Hinweise …" data-i18n-placeholder="placeholder_anmerkung" style="width:100%;resize:vertical;font-family:'Rajdhani', sans-serif;font-size:14px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
+        <div class="user-note" style="margin-top:4px;" data-i18n="hint_anmerkung_sichtbarkeit">Sichtbar für alle Mitglieder dieser Organisation, unabhängig von der Rolle.</div>
+      </div>
       <div style="margin-top:14px;">
         <button class="btn-primary" id="btnAddProject" data-i18n="btn_projekt_anlegen">Projekt anlegen</button>
       </div>
@@ -2508,9 +2543,9 @@ if(!BULK_CSV_MODE_ENABLED){
 // ============================================================
 // window.storage — Anbindung an Supabase als echtes, gemeinsames
 // Backend. Die Schnittstelle (get/set/delete/list mit key, value,
-// shared) entspricht exakt der ursprünglichen Claude-eigenen API,
-// wodurch der gesamte übrige Code der Anwendung unverändert bleibt
-// und nichts von dieser Umstellung mitbekommt.
+// shared) entspricht exakt der ursprünglichen, plattformseitig
+// bereitgestellten API, wodurch der gesamte übrige Code der Anwendung
+// unverändert bleibt und nichts von dieser Umstellung mitbekommt.
 // ============================================================
 const SUPABASE_URL = 'https://pjirgwkadongyrxznkdc.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_ZsMAT05too3GZrb3_6A4QQ_Vq-H19dc';
@@ -2767,6 +2802,9 @@ const I18N = {
   "prio_hoch": "Hoch",
   "prio_kritisch": "Kritisch",
   "panel_projekte": "Projekte",
+  "label_anmerkung": "Anmerkung (optional)",
+  "placeholder_anmerkung": "z. B. für wen, warum, besondere Hinweise …",
+  "hint_anmerkung_sichtbarkeit": "Sichtbar für alle Mitglieder dieser Organisation, unabhängig von der Rolle.",
   "label_ziel": "Ziel",
   "label_anzahl": "Anzahl",
   "label_benoetigte_ressource": "Benötigte Ressource",
@@ -3172,6 +3210,8 @@ const I18N = {
   "val_system_code_name_required": "Bitte System, Code und Name angeben.",
   "val_location_exists": "Dieser Lagerort existiert in diesem System bereits.",
   "val_projekt_name_existiert": "Ein Projekt mit diesem Namen existiert bereits — bitte einen eindeutigen Namen wählen (wichtig für die korrekte Zuordnung von Bestand/Sammelobjekten).",
+  "val_ziel_required": "Bitte ein Ziel angeben.",
+  "val_anzahl_required": "Bitte eine Anzahl angeben.",
   "val_goal_qty_required": "Bitte mindestens Ziel und Anzahl angeben.",
   "msg_project_saved": "Projekt gespeichert.",
   "val_need_required": "Bitte Material, Mindest-Qualität und Menge angeben.",
@@ -3394,6 +3434,9 @@ const I18N = {
   "prio_hoch": "High",
   "prio_kritisch": "Critical",
   "panel_projekte": "Projects",
+  "label_anmerkung": "Note (optional)",
+  "placeholder_anmerkung": "e.g. who it's for, why, special notes …",
+  "hint_anmerkung_sichtbarkeit": "Visible to all members of this organization, regardless of role.",
   "label_ziel": "Goal",
   "label_anzahl": "Quantity",
   "label_benoetigte_ressource": "Required resource",
@@ -3799,6 +3842,8 @@ const I18N = {
   "val_system_code_name_required": "Please enter system, code and name.",
   "val_location_exists": "This location already exists in this system.",
   "val_projekt_name_existiert": "A project with this name already exists — please choose a unique name (important for correctly assigning inventory/collectibles).",
+  "val_ziel_required": "Please enter a goal.",
+  "val_anzahl_required": "Please enter a quantity.",
   "val_goal_qty_required": "Please enter at least a goal and quantity.",
   "msg_project_saved": "Project saved.",
   "val_need_required": "Please enter material, minimum quality and quantity.",
@@ -4021,6 +4066,9 @@ const I18N = {
   "prio_hoch": "Élevée",
   "prio_kritisch": "Critique",
   "panel_projekte": "Projets",
+  "label_anmerkung": "Remarque (facultatif)",
+  "placeholder_anmerkung": "p. ex. pour qui, pourquoi, remarques particulières …",
+  "hint_anmerkung_sichtbarkeit": "Visible par tous les membres de cette organisation, quel que soit leur rôle.",
   "label_ziel": "Objectif",
   "label_anzahl": "Quantité",
   "label_benoetigte_ressource": "Ressource requise",
@@ -4426,6 +4474,8 @@ const I18N = {
   "val_system_code_name_required": "Veuillez indiquer le système, le code et le nom.",
   "val_location_exists": "Cet emplacement existe déjà dans ce système.",
   "val_projekt_name_existiert": "Un projet portant ce nom existe déjà — veuillez choisir un nom unique (important pour l'attribution correcte du stock/objets de collection).",
+  "val_ziel_required": "Veuillez indiquer un objectif.",
+  "val_anzahl_required": "Veuillez indiquer une quantité.",
   "val_goal_qty_required": "Veuillez indiquer au moins un objectif et une quantité.",
   "msg_project_saved": "Projet enregistré.",
   "val_need_required": "Veuillez indiquer le matériau, la qualité minimale et la quantité.",
@@ -5186,21 +5236,21 @@ async function confirmResetPassword(){
   const statusEl = document.getElementById('resetPasswordStatus');
   if(resetPasswordUserIdx == null) return;
   const user = USERS[resetPasswordUserIdx];
-  if(!user){ statusEl.textContent = t('val_user_not_found'); return; }
+  if(!user){ setStatusMsg(statusEl, t('val_user_not_found'), true); return; }
 
   const next = document.getElementById('resetPasswordNew').value;
   const confirmVal = document.getElementById('resetPasswordConfirm').value;
   if(!next || next !== confirmVal){
-    statusEl.textContent = t('val_new_passwords_match_notempty');
+    setStatusMsg(statusEl, t('val_new_passwords_match_notempty'), true);
     return;
   }
 
   await ensureCredentialsLoaded();
   credentials[user.username] = next;
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveCredentials();
   if(!ok){
-    statusEl.textContent = t('msg_save_failed');
+    setStatusMsg(statusEl, t('msg_save_failed'), false);
     return;
   }
   await logAction('Passwort zurückgesetzt', `Für Benutzer: ${user.username}`);
@@ -5225,26 +5275,26 @@ async function addUser(){
     : currentUser.organizationId;
 
   if(!username){
-    statusEl.textContent = t('val_username_required');
+    setStatusMsg(statusEl, t('val_username_required'), true);
     return;
   }
   if(USERS.some(u=>u.username.toLowerCase() === username.toLowerCase())){
-    statusEl.textContent = t('val_username_exists');
+    setStatusMsg(statusEl, t('val_username_exists'), true);
     return;
   }
   if(!getAssignableRoles(currentUser.role).includes(role)){
-    statusEl.textContent = t('val_no_permission_role');
+    setStatusMsg(statusEl, t('val_no_permission_role'), true);
     return;
   }
 
   USERS.push({username, role, email, organizationId});
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveUsers();
   if(ok) await logAction('Benutzer angelegt', `${username} (${roleLabel(role)})${email ? ', E-Mail hinterlegt' : ''}`);
   nameInput.value = '';
   emailInput.value = '';
   buildNewUserRoleOptions();
-  statusEl.textContent = ok ? t('msg_user_added').replace('{name}', username) : t('msg_save_failed');
+  setStatusMsg(statusEl, ok ? t('msg_user_added').replace('{name}', username) : t('msg_save_failed'), !ok);
   renderUserList();
   setTimeout(()=>{ statusEl.textContent=''; }, 4000);
 }
@@ -5258,21 +5308,21 @@ async function saveUserEdit(idx){
   const oldRole = USERS[idx].role;
 
   if(!newUsername){
-    statusEl.textContent = t('val_username_empty');
+    setStatusMsg(statusEl, t('val_username_empty'), true);
     return;
   }
   const duplicate = USERS.some((u,i)=> i!==idx && u.username.toLowerCase()===newUsername.toLowerCase());
   if(duplicate){
-    statusEl.textContent = t('val_username_exists');
+    setStatusMsg(statusEl, t('val_username_exists'), true);
     return;
   }
   if(!getAssignableRoles(currentUser.role).includes(newRole)){
-    statusEl.textContent = t('val_no_permission_role');
+    setStatusMsg(statusEl, t('val_no_permission_role'), true);
     return;
   }
   const otherOwners = USERS.filter((u,i)=> i!==idx && u.role==='owner');
   if(oldRole==='owner' && newRole!=='owner' && otherOwners.length===0){
-    statusEl.textContent = t('val_min_one_owner');
+    setStatusMsg(statusEl, t('val_min_one_owner'), true);
     return;
   }
 
@@ -5316,7 +5366,7 @@ async function saveUserEdit(idx){
   const selectedCategories = Array.from(document.querySelectorAll(`.edit-user-category-cb[data-idx="${idx}"]:checked`)).map(cb=>cb.value);
   USERS[idx] = {...USERS[idx], username:newUsername, role:newRole, email:newEmail, categoryRestriction: selectedCategories.length>0 ? selectedCategories : undefined};
   editingUserIndex = null;
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   await saveUsers();
   await logAction('Benutzer bearbeitet', `${oldUsername} → ${newUsername} (${roleLabel(newRole)})`);
 
@@ -5344,7 +5394,7 @@ async function saveUserEdit(idx){
     document.getElementById('collectibleAddSection').style.display = newRole==='viewer' ? 'none' : '';
   }
 
-  statusEl.textContent = t('msg_user_updated');
+  setStatusMsg(statusEl, t('msg_user_updated'), false);
   renderUserList();
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
 }
@@ -5369,25 +5419,25 @@ async function deleteUser(idx){
   const user = USERS[idx];
 
   if(currentUser && user.username === currentUser.username){
-    statusEl.textContent = t('val_cannot_delete_self');
+    setStatusMsg(statusEl, t('val_cannot_delete_self'), true);
     return;
   }
   // Sicherheitsnetz: ein Organisations-Administrator darf ausschließlich
   // Benutzer der eigenen Organisation löschen, selbst wenn er auf anderem
   // Weg an einen fremden Index gelangen würde.
   if(currentUser.role !== 'owner' && user.organizationId !== currentUser.organizationId){
-    statusEl.textContent = t('val_no_permission_role');
+    setStatusMsg(statusEl, t('val_no_permission_role'), true);
     return;
   }
   const otherOwners = USERS.filter((u,i)=> i!==idx && u.role==='owner');
   if(user.role==='owner' && otherOwners.length===0){
-    statusEl.textContent = t('val_min_one_owner');
+    setStatusMsg(statusEl, t('val_min_one_owner'), true);
     return;
   }
 
   const usage = countUserPrivateData(user.username);
   USERS.splice(idx,1);
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   await ensureCredentialsLoaded();
   if(credentials[user.username] !== undefined){
     delete credentials[user.username];
@@ -5404,7 +5454,7 @@ async function deleteUser(idx){
     await Promise.all([savePrivateEntries(), savePrivateCollectibles(), savePrivateProjects()]);
   }
   await logAction('Benutzer gelöscht', `${user.username}${usage.total>0 ? ` (${usage.total} private(r) Eintrag/Einträge mitgelöscht)` : ''}`);
-  statusEl.textContent = t('msg_user_deleted').replace('{name}', user.username);
+  setStatusMsg(statusEl, t('msg_user_deleted').replace('{name}', user.username), false);
   renderUserList();
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
 }
@@ -5425,21 +5475,21 @@ async function addOrganization(){
   const webhookUrl = webhookInput.value.trim();
 
   if(!name){
-    statusEl.textContent = t('val_org_name_required');
+    setStatusMsg(statusEl, t('val_org_name_required'), true);
     return;
   }
   if(ORGANIZATIONS.some(o=>o.name.toLowerCase()===name.toLowerCase())){
-    statusEl.textContent = t('val_org_name_exists');
+    setStatusMsg(statusEl, t('val_org_name_exists'), true);
     return;
   }
   if(webhookUrl && !webhookUrl.startsWith('https://discord.com/api/webhooks/') && !webhookUrl.startsWith('https://discordapp.com/api/webhooks/')){
-    statusEl.textContent = t('val_discord_webhook_invalid');
+    setStatusMsg(statusEl, t('val_discord_webhook_invalid'), true);
     return;
   }
 
   const id = 'org_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7);
   ORGANIZATIONS.push({ id, name, createdAt: new Date().toISOString() });
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveOrganizations();
   if(ok) await logAction('Organisation angelegt', name);
   // Webhook-URL optional gleich bei der Neuanlage mitgeben -- nutzt
@@ -5453,7 +5503,7 @@ async function addOrganization(){
   }
   nameInput.value = '';
   webhookInput.value = '';
-  statusEl.textContent = ok ? t('msg_org_added').replace('{name}', name) : t('msg_save_failed');
+  setStatusMsg(statusEl, ok ? t('msg_org_added').replace('{name}', name) : t('msg_save_failed'), !(ok));
   renderOrgManagementList();
   renderOrgSwitcher();
   buildNewUserRoleOptions(); // Organisationsauswahl im "Benutzer anlegen"-Formular aktualisieren
@@ -5530,11 +5580,11 @@ async function saveOrgEdit(idx){
   const newWebhook = document.getElementById('edit-org-webhook-'+idx).value.trim();
 
   if(!newName){
-    statusEl.textContent = t('val_org_name_required');
+    setStatusMsg(statusEl, t('val_org_name_required'), true);
     return;
   }
   if(!newDefaultPw){
-    statusEl.textContent = t('val_default_password_required');
+    setStatusMsg(statusEl, t('val_default_password_required'), true);
     return;
   }
   // Webhook-URL ist bewusst OPTIONAL (anders als das Standard-Passwort) --
@@ -5542,18 +5592,18 @@ async function saveOrgEdit(idx){
   // Benachrichtigungen verzichten. Nur bei tatsaechlicher Eingabe wird
   // das Format grob geprueft.
   if(newWebhook && !newWebhook.startsWith('https://discord.com/api/webhooks/') && !newWebhook.startsWith('https://discordapp.com/api/webhooks/')){
-    statusEl.textContent = t('val_discord_webhook_invalid');
+    setStatusMsg(statusEl, t('val_discord_webhook_invalid'), true);
     return;
   }
   const duplicate = ORGANIZATIONS.some((o,i)=> i!==idx && o.name.toLowerCase()===newName.toLowerCase());
   if(duplicate){
-    statusEl.textContent = t('val_org_name_exists');
+    setStatusMsg(statusEl, t('val_org_name_exists'), true);
     return;
   }
 
   ORGANIZATIONS[idx].name = newName;
   editingOrgIndex = null;
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveOrganizations();
   const pwOk = await saveSpecificOrgDefaultPassword(ORGANIZATIONS[idx].id, newDefaultPw);
   // Bereits vorhandene Ereignis-Zuschaltungen dieser Organisation bleiben
@@ -5565,7 +5615,7 @@ async function saveOrgEdit(idx){
   if(ok) await logAction('Organisation umbenannt', newName);
   if(pwOk) await logAction('Standard-Passwort geändert', `${t('label_default_password')} (${newName})`);
   if(webhookOk) await logAction('Discord-Webhook geändert', `${newName} (${newWebhook ? t('label_discord_aktiv') : t('label_discord_deaktiviert')})`);
-  statusEl.textContent = (ok && pwOk && webhookOk) ? t('msg_org_renamed') : t('msg_save_failed');
+  setStatusMsg(statusEl, (ok && pwOk && webhookOk) ? t('msg_org_renamed') : t('msg_save_failed'), !((ok && pwOk && webhookOk)));
   renderOrgManagementList();
   renderOrgSwitcher();
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
@@ -5825,7 +5875,7 @@ async function handleEmblemFile(file){
   const statusEl = document.getElementById('orgBrandingStatus');
   if(!file) return;
   if(file.size > EMBLEM_MAX_SOURCE_BYTES){
-    statusEl.textContent = t('val_emblem_too_large_source');
+    setStatusMsg(statusEl, t('val_emblem_too_large_source'), true);
     return;
   }
   let objectUrl;
@@ -5857,7 +5907,7 @@ async function handleEmblemFile(file){
     }
 
     if(dataUrl.length > EMBLEM_TARGET_BYTES){
-      statusEl.textContent = t('val_emblem_still_too_large');
+      setStatusMsg(statusEl, t('val_emblem_still_too_large'), true);
       return;
     }
 
@@ -5870,9 +5920,9 @@ async function handleEmblemFile(file){
     const liveEmblem = document.getElementById('customEmblemWatermark');
     liveEmblem.src = dataUrl;
     liveEmblem.style.display = '';
-    statusEl.textContent = t('msg_emblem_uploaded').replace('{size}', Math.round(dataUrl.length/1024));
+    setStatusMsg(statusEl, t('msg_emblem_uploaded').replace('{size}', Math.round(dataUrl.length/1024)), false);
   }catch(e){
-    statusEl.textContent = t('val_emblem_processing_failed');
+    setStatusMsg(statusEl, t('val_emblem_processing_failed'), true);
   }finally{
     if(objectUrl) URL.revokeObjectURL(objectUrl);
   }
@@ -6037,7 +6087,7 @@ function renderExportReminder(){
 async function saveOrgBranding(){
   const statusEl = document.getElementById('orgBrandingStatus');
   const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
-  if(!org){ statusEl.textContent = t('msg_save_failed'); return; }
+  if(!org){ setStatusMsg(statusEl, t('msg_save_failed'), true); return; }
 
   org.motto = document.getElementById('orgMottoInput').value.trim();
   org.accentColor = selectedAccentPreset;
@@ -6046,12 +6096,12 @@ async function saveOrgBranding(){
   if(pendingEmblemDataUrl === null) delete org.emblem;
   else if(typeof pendingEmblemDataUrl === 'string') org.emblem = pendingEmblemDataUrl;
 
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveOrganizations();
   if(ok) await logAction('Organisation individualisiert', org.name);
   pendingEmblemDataUrl = undefined;
   applyOrgBranding();
-  statusEl.textContent = ok ? t('msg_org_branding_saved') : t('msg_save_failed');
+  setStatusMsg(statusEl, ok ? t('msg_org_branding_saved') : t('msg_save_failed'), !ok);
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
 }
 document.getElementById('btnSaveOrgBranding').addEventListener('click', saveOrgBranding);
@@ -6061,12 +6111,12 @@ document.getElementById('btnSaveDefaultPassword').addEventListener('click', asyn
   const input = document.getElementById('defaultPasswordInput');
   const newValue = input.value.trim();
   if(!newValue){
-    statusEl.textContent = t('val_default_password_required');
+    setStatusMsg(statusEl, t('val_default_password_required'), true);
     return;
   }
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveOrgDefaultPassword(newValue);
-  statusEl.textContent = ok ? t('msg_default_password_saved') : t('msg_save_failed');
+  setStatusMsg(statusEl, ok ? t('msg_default_password_saved') : t('msg_save_failed'), !(ok));
   if(ok) await logAction('Standard-Passwort geändert', t('label_default_password'));
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
 });
@@ -6087,12 +6137,12 @@ document.getElementById('btnSaveDiscord').addEventListener('click', async ()=>{
   // Webhook-URL grob validieren -- verhindert nicht jeden Tippfehler,
   // faengt aber den haeufigsten Fall ab (komplett falsche/vergessene URL).
   if(settings.webhookUrl && !settings.webhookUrl.startsWith('https://discord.com/api/webhooks/') && !settings.webhookUrl.startsWith('https://discordapp.com/api/webhooks/')){
-    statusEl.textContent = t('val_discord_webhook_invalid');
+    setStatusMsg(statusEl, t('val_discord_webhook_invalid'), true);
     return;
   }
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveOrgDiscordSettings(settings);
-  statusEl.textContent = ok ? t('msg_discord_saved') : t('msg_save_failed');
+  setStatusMsg(statusEl, ok ? t('msg_discord_saved') : t('msg_save_failed'), !(ok));
   if(ok) await logAction('Discord-Benachrichtigungen geändert', settings.webhookUrl ? t('label_discord_aktiv') : t('label_discord_deaktiviert'));
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
 });
@@ -6101,10 +6151,10 @@ document.getElementById('btnTestDiscord').addEventListener('click', async ()=>{
   const statusEl = document.getElementById('discordStatus');
   const webhookUrl = document.getElementById('discordWebhookInput').value.trim();
   if(!webhookUrl){
-    statusEl.textContent = t('val_discord_webhook_required');
+    setStatusMsg(statusEl, t('val_discord_webhook_required'), true);
     return;
   }
-  statusEl.textContent = t('msg_discord_testing');
+  setStatusMsg(statusEl, t('msg_discord_testing'), false);
   try{
     const res = await fetch(webhookUrl, {
       method: 'POST',
@@ -6114,9 +6164,9 @@ document.getElementById('btnTestDiscord').addEventListener('click', async ()=>{
     // Discord-Webhooks antworten bei Erfolg mit Status 204 (kein Inhalt).
     // Alles ausserhalb 200-299 deutet auf eine falsche/geloeschte
     // Webhook-URL oder fehlende Berechtigung hin.
-    statusEl.textContent = res.ok ? t('msg_discord_test_success') : t('msg_discord_test_failed');
+    setStatusMsg(statusEl, res.ok ? t('msg_discord_test_success') : t('msg_discord_test_failed'), !(res.ok));
   }catch(e){
-    statusEl.textContent = t('msg_discord_test_failed');
+    setStatusMsg(statusEl, t('msg_discord_test_failed'), false);
   }
   setTimeout(()=>{ statusEl.textContent=''; }, 5000);
 });
@@ -6183,7 +6233,7 @@ document.getElementById('orgImportFileInput').addEventListener('change', (e)=>{
     try{
       data = JSON.parse(ev.target.result);
     }catch(err){
-      statusEl.textContent = t('val_import_datei_ungueltig');
+      setStatusMsg(statusEl, t('val_import_datei_ungueltig'), true);
       return;
     }
     // Grobe Format-Pruefung -- verhindert, dass eine voellig fremde
@@ -6192,7 +6242,7 @@ document.getElementById('orgImportFileInput').addEventListener('change', (e)=>{
       (Array.isArray(data.entries) || Array.isArray(data.needs) || Array.isArray(data.projects) ||
        Array.isArray(data.collectibles) || Array.isArray(data.materials) || Array.isArray(data.locations));
     if(!hasExpectedShape){
-      statusEl.textContent = t('val_import_datei_ungueltig');
+      setStatusMsg(statusEl, t('val_import_datei_ungueltig'), true);
       return;
     }
     pendingOrgImportData = data;
@@ -6232,7 +6282,7 @@ document.getElementById('btnConfirmOrgImport').addEventListener('click', async (
   const data = pendingOrgImportData;
   const selected = id => document.getElementById('orgImportCat-'+id) && document.getElementById('orgImportCat-'+id).checked;
 
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const importedParts = [];
 
   if(Array.isArray(data.entries) && selected('entries')){
@@ -6273,9 +6323,9 @@ document.getElementById('btnConfirmOrgImport').addEventListener('click', async (
 
   pendingOrgImportData = null;
   document.getElementById('orgImportPreview').style.display = 'none';
-  statusEl.textContent = importedParts.length
+  setStatusMsg(statusEl, importedParts.length
     ? t('msg_import_done').replace('{parts}', importedParts.join(', '))
-    : t('label_nichts_ausgewaehlt');
+    : t('label_nichts_ausgewaehlt'), !importedParts.length);
   setTimeout(()=>{ statusEl.textContent=''; }, 6000);
 
   // Umfassendes Neu-Rendern, damit alle betroffenen Ansichten sofort den
@@ -6828,11 +6878,11 @@ async function submitForgotPassword(){
   const confirmVal = document.getElementById('forgot-pw-confirm').value;
 
   if(!username || !email){
-    statusEl.textContent = t('val_username_email_required');
+    setStatusMsg(statusEl, t('val_username_email_required'), true);
     return;
   }
   if(!next || next !== confirmVal){
-    statusEl.textContent = t('val_new_passwords_match_notempty');
+    setStatusMsg(statusEl, t('val_new_passwords_match_notempty'), true);
     return;
   }
 
@@ -6840,19 +6890,19 @@ async function submitForgotPassword(){
   const user = USERS.find(u=>u.username.toLowerCase()===username.toLowerCase());
 
   if(!user || !user.email || user.email.toLowerCase() !== email.toLowerCase()){
-    statusEl.textContent = t('val_forgot_pw_mismatch');
+    setStatusMsg(statusEl, t('val_forgot_pw_mismatch'), true);
     return;
   }
 
   credentials[user.username] = next;
   const ok = await saveCredentials();
   if(!ok){
-    statusEl.textContent = t('msg_save_failed');
+    setStatusMsg(statusEl, t('msg_save_failed'), false);
     return;
   }
   await logAction('Passwort über "Passwort vergessen" zurückgesetzt', user.username, user.username);
 
-  statusEl.textContent = t('msg_password_reset_success');
+  setStatusMsg(statusEl, t('msg_password_reset_success'), false);
   setTimeout(()=>{ backToLoginFromForgot(); }, 2000);
 }
 document.getElementById('btnResetForgotPw').addEventListener('click', submitForgotPassword);
@@ -6871,15 +6921,15 @@ async function submitForcedPassword(){
   const statusEl = document.getElementById('forcedPwStatus');
 
   if(!next){
-    statusEl.textContent = t('val_new_password_required');
+    setStatusMsg(statusEl, t('val_new_password_required'), true);
     return;
   }
   if(next === currentOrgDefaultPassword){
-    statusEl.textContent = t('val_new_password_not_default');
+    setStatusMsg(statusEl, t('val_new_password_not_default'), true);
     return;
   }
   if(next !== confirmVal){
-    statusEl.textContent = t('val_passwords_no_match');
+    setStatusMsg(statusEl, t('val_passwords_no_match'), true);
     return;
   }
 
@@ -6888,7 +6938,7 @@ async function submitForcedPassword(){
   const ok = await saveCredentials();
   if(!ok){
     setForcedPwBusy(false);
-    statusEl.textContent = t('msg_save_failed');
+    setStatusMsg(statusEl, t('msg_save_failed'), false);
     return;
   }
   await logAction('Passwort beim ersten Login festgelegt', currentUser.username);
@@ -6966,26 +7016,26 @@ async function savePassword(){
   const statusEl = document.getElementById('pwStatus');
 
   if(current !== getPassword(currentUser.username)){
-    statusEl.textContent = t('val_current_password_wrong');
+    setStatusMsg(statusEl, t('val_current_password_wrong'), true);
     return;
   }
   if(!next){
-    statusEl.textContent = t('val_new_password_empty');
+    setStatusMsg(statusEl, t('val_new_password_empty'), true);
     return;
   }
   if(next !== confirmVal){
-    statusEl.textContent = t('val_new_passwords_no_match');
+    setStatusMsg(statusEl, t('val_new_passwords_no_match'), true);
     return;
   }
 
   credentials[currentUser.username] = next;
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveCredentials();
   if(ok) await logAction('Passwort geändert', currentUser.username);
   document.getElementById('pw-current').value = '';
   document.getElementById('pw-new').value = '';
   document.getElementById('pw-confirm').value = '';
-  statusEl.textContent = ok ? t('msg_password_updated') : t('msg_save_failed');
+  setStatusMsg(statusEl, ok ? t('msg_password_updated') : t('msg_save_failed'), !ok);
   if(ok) setTimeout(()=>{ document.getElementById('pwPanel').style.display = 'none'; statusEl.textContent=''; }, 1500);
 }
 
@@ -7343,7 +7393,7 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
   const item = findCollectible(objekt);
 
   if(!objekt || anzahl === ''){
-    statusEl.textContent = t('val_object_qty_required');
+    setStatusMsg(statusEl, t('val_object_qty_required'), true);
     return;
   }
 
@@ -7364,7 +7414,7 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
     besitzer
   });
 
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   await saveCollectibles();
   await logAction('Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${anzahl}x (${besitzer})${standort ? ' @ '+standort : ''}${projektAssign.ziel ? ' [Projekt: '+projektAssign.ziel+']' : ''}`);
 
@@ -7374,7 +7424,7 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
   document.getElementById('coll-projekt').value = '';
   updateCollectibleTierField();
 
-  statusEl.textContent = t('msg_entry_saved');
+  setStatusMsg(statusEl, t('msg_entry_saved'), false);
   renderCollectibles();
   scheduleRenderDashboard();
   // Bislang fehlend: Materialien rufen nach dem Speichern bereits
@@ -7657,7 +7707,7 @@ document.getElementById('btnAddPrivateCollectible').addEventListener('click', as
   const item = findCollectible(objekt);
 
   if(!objekt || anzahl === ''){
-    statusEl.textContent = t('val_object_qty_required');
+    setStatusMsg(statusEl, t('val_object_qty_required'), true);
     return;
   }
 
@@ -7687,7 +7737,7 @@ document.getElementById('btnAddPrivateCollectible').addEventListener('click', as
   document.getElementById('priv-coll-projekt').value = '';
   updatePrivateCollectibleTierField();
 
-  statusEl.textContent = t('msg_entry_saved');
+  setStatusMsg(statusEl, t('msg_entry_saved'), false);
   renderPrivateCollectibles();
   // Siehe Kommentar beim geteilten Pendant weiter oben -- dieselbe
   // Luecke bestand auch hier.
@@ -8124,7 +8174,7 @@ async function addMaterial(){
   // "owner" vorbehalten (nicht nur ueber die Panel-Sichtbarkeit, sondern
   // auch direkt hier abgesichert).
   if(currentUser.role !== 'owner'){
-    statusEl.textContent = t('val_nur_owner');
+    setStatusMsg(statusEl, t('val_nur_owner'), true);
     return;
   }
 
@@ -8133,23 +8183,23 @@ async function addMaterial(){
   const minStock = minStockInput.value !== '' ? parseFloat(minStockInput.value) : null;
 
   if(!category || !name){
-    statusEl.textContent = t('val_category_name_required');
+    setStatusMsg(statusEl, t('val_category_name_required'), true);
     return;
   }
   const duplicate = MATERIALS.some(m=>m.category.toLowerCase()===category.toLowerCase() && m.name.toLowerCase()===name.toLowerCase());
   if(duplicate){
-    statusEl.textContent = t('val_material_exists');
+    setStatusMsg(statusEl, t('val_material_exists'), true);
     return;
   }
 
   MATERIALS.push({category, name, minStock});
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveMaterials();
   if(ok) await logAction('Material hinzugefügt', `${name} (${category})${minStock!=null ? ', Sollbestand: '+minStock : ''}`);
   catInput.value = '';
   nameInput.value = '';
   minStockInput.value = '';
-  statusEl.textContent = ok ? t('msg_material_added').replace('{name}', name).replace('{category}', category) : t('msg_save_failed');
+  setStatusMsg(statusEl, ok ? t('msg_material_added').replace('{name}', name).replace('{category}', category) : t('msg_save_failed'), !(ok));
   renderCatalogLists();
   await refreshCatalogDropdowns();
   setTimeout(()=>{ statusEl.textContent=''; }, 3500);
@@ -8198,7 +8248,7 @@ async function addLocation(){
   const statusEl = document.getElementById('locFormStatus');
 
   if(currentUser.role !== 'owner'){
-    statusEl.textContent = t('val_nur_owner');
+    setStatusMsg(statusEl, t('val_nur_owner'), true);
     return;
   }
 
@@ -8207,23 +8257,23 @@ async function addLocation(){
   const name = nameInput.value.trim();
 
   if(!system || !code || !name){
-    statusEl.textContent = t('val_system_code_name_required');
+    setStatusMsg(statusEl, t('val_system_code_name_required'), true);
     return;
   }
   const duplicate = LOCATIONS.some(l=>l.system.toLowerCase()===system.toLowerCase() && l.code.toLowerCase()===code.toLowerCase() && l.name.toLowerCase()===name.toLowerCase());
   if(duplicate){
-    statusEl.textContent = t('val_location_exists');
+    setStatusMsg(statusEl, t('val_location_exists'), true);
     return;
   }
 
   LOCATIONS.push({system, code, name});
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveLocations();
   if(ok) await logAction('Lagerort hinzugefügt', `${code} – ${name} (${system})`);
   sysInput.value = '';
   codeInput.value = '';
   nameInput.value = '';
-  statusEl.textContent = ok ? t('msg_location_added').replace('{name}', `${code} – ${name}`).replace('{system}', system) : t('msg_save_failed');
+  setStatusMsg(statusEl, ok ? t('msg_location_added').replace('{name}', `${code} – ${name}`).replace('{system}', system) : t('msg_save_failed'), !(ok));
   renderCatalogLists();
   await refreshCatalogDropdowns();
   setTimeout(()=>{ statusEl.textContent=''; }, 3500);
@@ -9360,7 +9410,7 @@ async function saveTemplateEdit(){
   const category = document.getElementById('templateEditCategory').value.trim();
   const name = document.getElementById('templateEditName').value.trim();
   if(!category || !name){
-    statusEl.textContent = t('val_kategorie_name_required');
+    setStatusMsg(statusEl, t('val_kategorie_name_required'), true);
     return;
   }
 
@@ -9378,7 +9428,7 @@ async function saveTemplateEdit(){
     });
   });
   if(materials.length === 0){
-    statusEl.textContent = t('val_mindestens_ein_material');
+    setStatusMsg(statusEl, t('val_mindestens_ein_material'), true);
     return;
   }
 
@@ -9391,7 +9441,7 @@ async function saveTemplateEdit(){
   }
   cfg.setArray(array);
 
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await cfg.save();
   if(ok){
     await logAction(index==null ? 'Vorlage hinzugefügt' : 'Vorlage bearbeitet', `${category};${name} (${kind})`);
@@ -9399,7 +9449,7 @@ async function saveTemplateEdit(){
     renderTemplateManageList(kind);
     if(kind==='rezepte') renderTemplateCount(); else renderWikeloCount();
   } else {
-    statusEl.textContent = t('msg_save_failed');
+    setStatusMsg(statusEl, t('msg_save_failed'), false);
   }
 }
 
@@ -9670,12 +9720,12 @@ document.getElementById('btnPartialAssignConfirm').addEventListener('click', asy
   if(isPartial){
     amount = parseFloat(document.getElementById('partialAssignMenge').value);
     if(isNaN(amount) || amount<=0){
-      errorEl.textContent = t('val_menge_required');
+      setStatusMsg(errorEl, t('val_menge_required'), true);
       errorEl.style.display = 'block';
       return;
     }
     if(amount > partialAssignConfig.fullAmount){
-      errorEl.textContent = t('val_teilmenge_zu_gross');
+      setStatusMsg(errorEl, t('val_teilmenge_zu_gross'), true);
       errorEl.style.display = 'block';
       return;
     }
@@ -9792,15 +9842,15 @@ async function updateBackupRestoreButtons(){
 document.getElementById('btnRestoreTemplatesBackup').addEventListener('click', ()=>{
   armConfirm(document.getElementById('btnRestoreTemplatesBackup'), async ()=>{
     const statusEl = document.getElementById('templateImportStatus');
-    statusEl.textContent = t('msg_saving');
+    setStatusMsg(statusEl, t('msg_saving'), false);
     const ok = await restoreProjectTemplatesBackup();
     if(ok){
       await logAction('Projekt-Vorlagen wiederhergestellt', `${projectTemplates.length} Vorlagen (vorherige globale Version)`);
-      statusEl.textContent = t('msg_backup_restored').replace('{count}', projectTemplates.length);
+      setStatusMsg(statusEl, t('msg_backup_restored').replace('{count}', projectTemplates.length), false);
       renderTemplateCount();
       renderTemplateManageList('rezepte');
     } else {
-      statusEl.textContent = t('msg_backup_restore_failed');
+      setStatusMsg(statusEl, t('msg_backup_restore_failed'), false);
     }
     setTimeout(()=>{ statusEl.textContent=''; }, 4000);
   });
@@ -9809,15 +9859,15 @@ document.getElementById('btnRestoreTemplatesBackup').addEventListener('click', (
 document.getElementById('btnRestoreWikeloBackup').addEventListener('click', ()=>{
   armConfirm(document.getElementById('btnRestoreWikeloBackup'), async ()=>{
     const statusEl = document.getElementById('wikeloImportStatus');
-    statusEl.textContent = t('msg_saving');
+    setStatusMsg(statusEl, t('msg_saving'), false);
     const ok = await restoreWikeloTemplatesBackup();
     if(ok){
       await logAction('Wikelo-Handelsangebote wiederhergestellt', `${wikeloTemplates.length} Angebote (vorherige globale Version)`);
-      statusEl.textContent = t('msg_backup_restored').replace('{count}', wikeloTemplates.length);
+      setStatusMsg(statusEl, t('msg_backup_restored').replace('{count}', wikeloTemplates.length), false);
       renderWikeloCount();
       renderTemplateManageList('wikelo');
     } else {
-      statusEl.textContent = t('msg_backup_restore_failed');
+      setStatusMsg(statusEl, t('msg_backup_restore_failed'), false);
     }
     setTimeout(()=>{ statusEl.textContent=''; }, 4000);
   });
@@ -9959,10 +10009,10 @@ document.getElementById('templateFileInput').addEventListener('change', (e)=>{
   const reader = new FileReader();
   reader.onload = (ev)=>{
     document.getElementById('templateImportText').value = ev.target.result;
-    statusEl.textContent = t('msg_file_loaded').replace('{name}', file.name);
+    setStatusMsg(statusEl, t('msg_file_loaded').replace('{name}', file.name), false);
   };
   reader.onerror = ()=>{
-    statusEl.textContent = t('val_file_read_error');
+    setStatusMsg(statusEl, t('val_file_read_error'), true);
   };
   reader.readAsText(file, 'UTF-8');
   e.target.value = '';
@@ -10048,7 +10098,7 @@ document.getElementById('btnTemplateImportConfirm').addEventListener('click', as
 
   if(kind === 'rezepte'){
     const statusEl = document.getElementById('templateImportStatus');
-    statusEl.textContent = t('msg_saving');
+    setStatusMsg(statusEl, t('msg_saving'), false);
     await backupProjectTemplatesBeforeImport();
     projectTemplates = parsed;
     projectTemplatesImportedAt = new Date().toISOString();
@@ -10056,7 +10106,7 @@ document.getElementById('btnTemplateImportConfirm').addEventListener('click', as
     await saveProjectTemplates();
     await logAction('Projekt-Vorlagen importiert', `${parsed.length} Vorlagen${versionLabel ? ' ('+versionLabel+')' : ''} (globale Liste, vorherige Version gesichert)`);
 
-    statusEl.textContent = t('msg_templates_imported').replace('{count}', parsed.length);
+    setStatusMsg(statusEl, t('msg_templates_imported').replace('{count}', parsed.length), false);
     renderTemplateCount();
     renderTemplateManageList('rezepte');
     updateBackupRestoreButtons();
@@ -10064,7 +10114,7 @@ document.getElementById('btnTemplateImportConfirm').addEventListener('click', as
     setTimeout(()=>{ statusEl.textContent=''; }, 4000);
   } else {
     const statusEl = document.getElementById('wikeloImportStatus');
-    statusEl.textContent = t('msg_saving');
+    setStatusMsg(statusEl, t('msg_saving'), false);
     await backupWikeloTemplatesBeforeImport();
     wikeloTemplates = parsed;
     wikeloTemplatesImportedAt = new Date().toISOString();
@@ -10072,7 +10122,7 @@ document.getElementById('btnTemplateImportConfirm').addEventListener('click', as
     await saveWikeloTemplates();
     await logAction('Wikelo-Handelsangebote importiert', `${parsed.length} Angebote${versionLabel ? ' ('+versionLabel+')' : ''} (globale Liste, vorherige Version gesichert)`);
 
-    statusEl.textContent = t('msg_wikelo_imported').replace('{count}', parsed.length);
+    setStatusMsg(statusEl, t('msg_wikelo_imported').replace('{count}', parsed.length), false);
     renderWikeloCount();
     renderTemplateManageList('wikelo');
     updateBackupRestoreButtons();
@@ -10088,7 +10138,7 @@ document.getElementById('btnImportTemplates').addEventListener('click', async ()
   const allLines = rawFull.split('\n').map(l=>l.trim()).filter(l=>l);
 
   if(allLines.length === 0){
-    statusEl.textContent = t('val_template_import_empty');
+    setStatusMsg(statusEl, t('val_template_import_empty'), true);
     return;
   }
 
@@ -10105,7 +10155,7 @@ document.getElementById('btnImportTemplates').addEventListener('click', async ()
   const parsed = looksLikeScmdbRawFormat(raw) ? parseScmdbRawFormat(raw) : parseSimpleTemplateFormat(lines);
 
   if(parsed.length === 0){
-    statusEl.textContent = t('val_template_import_empty');
+    setStatusMsg(statusEl, t('val_template_import_empty'), true);
     return;
   }
 
@@ -10126,10 +10176,10 @@ document.getElementById('wikeloFileInput').addEventListener('change', (e)=>{
   const reader = new FileReader();
   reader.onload = (ev)=>{
     document.getElementById('wikeloImportText').value = ev.target.result;
-    statusEl.textContent = t('msg_file_loaded').replace('{name}', file.name);
+    setStatusMsg(statusEl, t('msg_file_loaded').replace('{name}', file.name), false);
   };
   reader.onerror = ()=>{
-    statusEl.textContent = t('val_file_read_error');
+    setStatusMsg(statusEl, t('val_file_read_error'), true);
   };
   reader.readAsText(file, 'UTF-8');
   e.target.value = '';
@@ -10141,7 +10191,7 @@ document.getElementById('btnImportWikelo').addEventListener('click', async ()=>{
   const allLines = rawFull.split('\n').map(l=>l.trim()).filter(l=>l);
 
   if(allLines.length === 0){
-    statusEl.textContent = t('val_wikelo_import_empty');
+    setStatusMsg(statusEl, t('val_wikelo_import_empty'), true);
     return;
   }
 
@@ -10149,7 +10199,7 @@ document.getElementById('btnImportWikelo').addEventListener('click', async ()=>{
   const parsed = parseSimpleTemplateFormat(lines);
 
   if(parsed.length === 0){
-    statusEl.textContent = t('val_wikelo_import_empty');
+    setStatusMsg(statusEl, t('val_wikelo_import_empty'), true);
     return;
   }
 
@@ -10171,10 +10221,10 @@ document.getElementById('locationFileInput').addEventListener('change', (e)=>{
   const reader = new FileReader();
   reader.onload = (ev)=>{
     document.getElementById('locationImportText').value = ev.target.result;
-    statusEl.textContent = t('msg_file_loaded').replace('{name}', file.name);
+    setStatusMsg(statusEl, t('msg_file_loaded').replace('{name}', file.name), false);
   };
   reader.onerror = ()=>{
-    statusEl.textContent = t('val_file_read_error');
+    setStatusMsg(statusEl, t('val_file_read_error'), true);
   };
   reader.readAsText(file, 'UTF-8');
   e.target.value = '';
@@ -10207,11 +10257,11 @@ document.getElementById('btnImportLocations').addEventListener('click', async ()
 
   const parsed = parseLocationImportFormat(allLines);
   if(parsed.length === 0){
-    statusEl.textContent = t('val_location_import_empty');
+    setStatusMsg(statusEl, t('val_location_import_empty'), true);
     return;
   }
 
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
 
   let addedCount = 0;
   let skippedCount = 0;
@@ -10231,7 +10281,7 @@ document.getElementById('btnImportLocations').addEventListener('click', async ()
     await refreshCatalogDropdowns();
   }
 
-  statusEl.textContent = t('msg_locations_imported').replace('{added}', addedCount).replace('{skipped}', skippedCount);
+  setStatusMsg(statusEl, t('msg_locations_imported').replace('{added}', addedCount).replace('{skipped}', skippedCount), false);
   renderCatalogLists();
   document.getElementById('locationImportText').value = '';
   setTimeout(()=>{ statusEl.textContent=''; }, 5000);
@@ -10359,7 +10409,7 @@ async function applyProjectTemplate(isPrivate, tpl){
   });
 
   const statusEl = document.getElementById(isPrivate ? 'privProjectStatus' : 'projectStatus');
-  if(statusEl) statusEl.textContent = t('msg_template_applied');
+  if(statusEl) setStatusMsg(statusEl, t('msg_template_applied'), false);
 }
 
 function setupTemplatePicker(isPrivate){
@@ -10447,8 +10497,12 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
     };
   }).filter(r=>r.material);
 
-  if(!ziel || anzahl === ''){
-    statusEl.textContent = t('val_goal_qty_required');
+  if(!ziel){
+    showFieldError(statusEl, t('val_ziel_required'), document.getElementById('proj-ziel'));
+    return;
+  }
+  if(anzahl === ''){
+    showFieldError(statusEl, t('val_anzahl_required'), document.getElementById('proj-anzahl'));
     return;
   }
   // Neu ab 12. August 2026: Die gesamte Zuordnung von Bestand/Sammel-
@@ -10463,7 +10517,7 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
   // Case-insensitiver Vergleich, analog zum bereits etablierten Muster
   // bei Organisationsnamen. Siehe Nutzerwunsch vom 12. August 2026.
   if(projects.some(p=>p.ziel.toLowerCase() === ziel.toLowerCase())){
-    statusEl.textContent = t('val_projekt_name_existiert');
+    setStatusMsg(statusEl, t('val_projekt_name_existiert'), true);
     return;
   }
 
@@ -10472,6 +10526,7 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
     ziel, anzahl: parseFloat(anzahl),
     resources,
     prioritaet,
+    notiz: document.getElementById('proj-notiz').value.trim(),
     // Ab 5. August 2026: neu angelegte Projekte interpretieren die pro
     // Material eingegebene Menge als "pro Einheit" -- die tatsaechlich
     // benoetigte Gesamtmenge ergibt sich aus Menge x Anzahl (siehe
@@ -10481,7 +10536,7 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
     perUnit: true
   });
 
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   await saveProjects();
   await logAction('Projekt angelegt', `${ziel} (${anzahl}x, Priorität: ${prioritaet})`);
   const resourceList = buildDiscordResourceList(resources, parseFloat(anzahl));
@@ -10489,12 +10544,13 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
 
   document.getElementById('proj-ziel').value = '';
   document.getElementById('proj-anzahl').value = '';
+  document.getElementById('proj-notiz').value = '';
   document.getElementById('proj-prioritaet').value = 'Mittel';
   resContainer.innerHTML = '';
   for(let i=0;i<3;i++) addProjectResourceRow(false, resContainer);
   scheduleRenderDashboard();
 
-  statusEl.textContent = t('msg_project_saved');
+  setStatusMsg(statusEl, t('msg_project_saved'), false);
   renderProjects();
   setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 });
@@ -10594,6 +10650,7 @@ function renderProjects(){
             `).join('')}
           </div>
           <button type="button" class="btn-add-row" data-action="add-edit-project-resource" style="margin-top:8px;padding:6px 12px;font-size:11px;"><span class="plus-icon">+</span> ${t('btn_add_resource')}</button>
+          <textarea id="edit-proj-notiz" rows="2" placeholder="${t('placeholder_anmerkung')}" style="width:100%;margin-top:8px;resize:vertical;font-family:'Rajdhani', sans-serif;font-size:13px;padding:8px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;">${escapeHtml(p.notiz||'')}</textarea>
         </td>
         <td class="actions-cell">
           <button class="btn-icon" data-action="save-project" data-id="${p.id}" title="${t('btn_save')}">✓</button>
@@ -10641,7 +10698,7 @@ function renderProjects(){
         <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
         <td data-label="${t('label_prioritaet')}"><span class="badge ${PRIORITY_CLASS[p.prioritaet||'Mittel']}">${escapeHtml(prioLabel(p.prioritaet||'Mittel'))}</span></td>
-        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}</td>
+        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}${p.notiz ? `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--panel-border);font-size:12px;color:var(--ink-soft);font-style:italic;">📝 ${escapeHtml(p.notiz)}</div>` : ''}</td>
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon" data-action="reapply-project" data-id="${p.id}" title="${t('tooltip_projekt_erneut_anlegen')}">🔁</button>
@@ -10702,7 +10759,7 @@ function renderProjects(){
         await saveNeeds();
         await logAction('Bedarf aktualisiert', `${material}: ${oldMenge} → ${menge} ${getDefaultEinheitForMaterial(material)} — aus Projekt „${ziel}“ (verknüpfter Bedarf angepasst statt Duplikat)`);
         renderNeeds();
-        btn.textContent = t('msg_need_updated');
+        setStatusMsg(btn, t('msg_need_updated'), false);
       } else {
         needs.push({
           id: needUid(),
@@ -10718,7 +10775,7 @@ function renderProjects(){
         await logAction('Bedarf hinzugefügt', `${material}, ${menge} ${getDefaultEinheitForMaterial(material)} (Hoch) — aus Projekt „${ziel}“`);
         await sendDiscordNotification('projektBedarf', `📦 **Bedarf aus Projekt gemeldet**: ${material}, ${menge} ${getDefaultEinheitForMaterial(material)} — für Projekt „${ziel}“`);
         renderNeeds();
-        btn.textContent = t('msg_added_as_need');
+        setStatusMsg(btn, t('msg_added_as_need'), false);
       }
       btn.disabled = true;
     });
@@ -10766,7 +10823,7 @@ function renderProjects(){
         }
         renderNeeds();
       }
-      btn.textContent = t('msg_added_as_need');
+      setStatusMsg(btn, t('msg_added_as_need'), false);
       btn.disabled = true;
     });
   });
@@ -10882,6 +10939,7 @@ function renderProjects(){
           ziel: newZiel,
           anzahl: parseFloat(document.getElementById('edit-proj-anzahl').value)||0,
           prioritaet: document.getElementById('edit-proj-prioritaet').value,
+          notiz: document.getElementById('edit-proj-notiz').value.trim(),
           resources
         };
         const renamedCount = await renameProjectReferences(oldZiel, newZiel, 'shared');
@@ -11019,8 +11077,12 @@ document.getElementById('btnAddPrivProject').addEventListener('click', async ()=
     };
   }).filter(r=>r.material);
 
-  if(!ziel || anzahl === ''){
-    statusEl.textContent = t('val_goal_qty_required');
+  if(!ziel){
+    showFieldError(statusEl, t('val_ziel_required'), document.getElementById('priv-proj-ziel'));
+    return;
+  }
+  if(anzahl === ''){
+    showFieldError(statusEl, t('val_anzahl_required'), document.getElementById('priv-proj-anzahl'));
     return;
   }
   // Siehe ausfuehrlichen Kommentar bei der geteilten Projekt-Anlage
@@ -11031,7 +11093,7 @@ document.getElementById('btnAddPrivProject').addEventListener('click', async ()=
   // Projekten gleichen Namens wuerden sich technisch nicht in die Quere
   // kommen, wohl aber zwei eigene private Projekte mit identischem Namen.
   if(privateProjects.some(p=>p.owner===currentUser.username && p.ziel.toLowerCase() === ziel.toLowerCase())){
-    statusEl.textContent = t('val_projekt_name_existiert');
+    setStatusMsg(statusEl, t('val_projekt_name_existiert'), true);
     return;
   }
 
@@ -11040,20 +11102,22 @@ document.getElementById('btnAddPrivProject').addEventListener('click', async ()=
     ziel, anzahl: parseFloat(anzahl),
     resources,
     owner: currentUser.username,
+    notiz: document.getElementById('priv-proj-notiz').value.trim(),
     // Siehe Kommentar bei der geteilten Projekt-Anlage weiter oben.
     perUnit: true
   });
 
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   await savePrivateProjects();
   await logAction('Privates Projekt angelegt', `${ziel} (${anzahl}x)`);
 
   document.getElementById('priv-proj-ziel').value = '';
   document.getElementById('priv-proj-anzahl').value = '';
+  document.getElementById('priv-proj-notiz').value = '';
   resContainer.innerHTML = '';
   for(let i=0;i<3;i++) addProjectResourceRow(true, resContainer);
 
-  statusEl.textContent = t('msg_project_saved');
+  setStatusMsg(statusEl, t('msg_project_saved'), false);
   renderPrivateProjects();
   setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 });
@@ -11103,6 +11167,7 @@ function renderPrivateProjects(){
             `).join('')}
           </div>
           <button type="button" class="btn-add-row" data-action="add-edit-priv-project-resource" style="margin-top:8px;padding:6px 12px;font-size:11px;"><span class="plus-icon">+</span> ${t('btn_add_resource')}</button>
+          <textarea id="edit-priv-proj-notiz" rows="2" placeholder="${t('placeholder_anmerkung')}" style="width:100%;margin-top:8px;resize:vertical;font-family:'Rajdhani', sans-serif;font-size:13px;padding:8px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;">${escapeHtml(p.notiz||'')}</textarea>
         </td>
         <td class="actions-cell">
           <button class="btn-icon" data-action="save-priv-project" data-id="${p.id}" title="${t('btn_save')}">✓</button>
@@ -11138,7 +11203,7 @@ function renderPrivateProjects(){
         <td><input type="checkbox" class="priv-project-select-cb" data-id="${p.id}" ${selectedPrivProjectIds.has(p.id)?'checked':''}></td>
         <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
-        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}</td>
+        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}${p.notiz ? `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--panel-border);font-size:12px;color:var(--ink-soft);font-style:italic;">📝 ${escapeHtml(p.notiz)}</div>` : ''}</td>
         <td class="actions-cell">
           <button class="btn-icon" data-action="edit-priv-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon" data-action="reapply-priv-project" data-id="${p.id}" title="${t('tooltip_projekt_erneut_anlegen')}">🔁</button>
@@ -11169,7 +11234,7 @@ function renderPrivateProjects(){
         await saveNeeds();
         await logAction('Bedarf aktualisiert', `${material}: ${oldMenge} → ${menge} ${getDefaultEinheitForMaterial(material)} — aus privatem Projekt „${ziel}“ (verknüpfter Bedarf angepasst statt Duplikat)`);
         renderNeeds();
-        btn.textContent = t('msg_need_updated');
+        setStatusMsg(btn, t('msg_need_updated'), false);
       } else {
         needs.push({
           id: needUid(),
@@ -11184,7 +11249,7 @@ function renderPrivateProjects(){
         await saveNeeds();
         await logAction('Bedarf hinzugefügt', `${material}, ${menge} ${getDefaultEinheitForMaterial(material)} (Hoch) — aus privatem Projekt „${ziel}“`);
         renderNeeds();
-        btn.textContent = t('msg_added_as_need');
+        setStatusMsg(btn, t('msg_added_as_need'), false);
       }
       btn.disabled = true;
     });
@@ -11228,7 +11293,7 @@ function renderPrivateProjects(){
         await logAction('Bedarf hinzugefügt (Sammel)', `${parts.join(', ')} aus privatem Projekt „${p.ziel}“`);
         renderNeeds();
       }
-      btn.textContent = t('msg_added_as_need');
+      setStatusMsg(btn, t('msg_added_as_need'), false);
       btn.disabled = true;
     });
   });
@@ -11322,6 +11387,7 @@ function renderPrivateProjects(){
           ...privateProjects[idx],
           ziel: newZiel,
           anzahl: parseFloat(document.getElementById('edit-priv-proj-anzahl').value)||0,
+          notiz: document.getElementById('edit-priv-proj-notiz').value.trim(),
           resources
         };
         const renamedCount = await renameProjectReferences(oldZiel, newZiel, 'private');
@@ -11380,7 +11446,7 @@ document.getElementById('btnAddNeed').addEventListener('click', async ()=>{
   const statusEl = document.getElementById('needStatus');
 
   if(!material || qualitaetRaw === '' || !menge){
-    statusEl.textContent = t('val_need_required');
+    setStatusMsg(statusEl, t('val_need_required'), true);
     return;
   }
 
@@ -11410,14 +11476,14 @@ document.getElementById('btnAddNeed').addEventListener('click', async ()=>{
   needEinheitEl.title = '';
   needEinheitEl.value = 'SCU';
 
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   await saveNeeds();
   await logAction('Bedarf hinzugefügt', `${material}, ${menge} ${einheit} (${prioritaet})`);
   if(prioritaet === 'Kritisch'){
     await sendDiscordNotification('kritischerBedarf', `⚠ **Kritischer Bedarf gemeldet**: ${material}, ${menge} ${einheit} — gemeldet von ${currentUser.username}`);
   }
   renderNeeds();
-  statusEl.textContent = t('msg_need_saved');
+  setStatusMsg(statusEl, t('msg_need_saved'), false);
   setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 });
 
@@ -11610,7 +11676,7 @@ btnBulkDeleteNeeds.addEventListener('click', ()=>{
     renderNeeds();
     const statusEl = document.getElementById('needStatus');
     if(statusEl){
-      statusEl.textContent = t('msg_bulk_deleted').replace('{count}', toDelete.length);
+      setStatusMsg(statusEl, t('msg_bulk_deleted').replace('{count}', toDelete.length), false);
       setTimeout(()=>{ statusEl.textContent=''; }, 2500);
     }
   });
@@ -12492,7 +12558,7 @@ async function submitBulkTable(isPrivate){
   const projekt = document.getElementById(prefix+'bulkTableProjekt').value;
 
   if(!lagerort){
-    statusEl.textContent = t('val_bestand_required');
+    setStatusMsg(statusEl, t('val_bestand_required'), true);
     return;
   }
 
@@ -12521,11 +12587,11 @@ async function submitBulkTable(isPrivate){
   });
 
   if(added === 0){
-    statusEl.textContent = t('val_no_valid_bulk_rows');
+    setStatusMsg(statusEl, t('val_no_valid_bulk_rows'), true);
     return;
   }
 
-  statusEl.textContent = t('msg_saving');
+  setStatusMsg(statusEl, t('msg_saving'), false);
   if(isPrivate){
     await savePrivateEntries();
     await logAction('Privatbestand per Tabellen-Massen-Eingabe hinzugefügt', `${added} Einträge, Lagerort: ${lagerort}`);
@@ -12600,7 +12666,7 @@ document.getElementById('btnSubmitBulk').addEventListener('click', async ()=>{
   const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l);
 
   if(lines.length===0){
-    statusEl.textContent = t('val_at_least_one_line');
+    setStatusMsg(statusEl, t('val_at_least_one_line'), true);
     return;
   }
 
@@ -12664,7 +12730,7 @@ document.getElementById('priv-btnSubmitBulk').addEventListener('click', async ()
   const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l);
 
   if(lines.length===0){
-    statusEl.textContent = t('val_at_least_one_line');
+    setStatusMsg(statusEl, t('val_at_least_one_line'), true);
     return;
   }
 
@@ -13590,14 +13656,14 @@ oder "Name (×X)" (stückweise gezählte Materialien, z. B. Sammelobjekte/
 Loot) — beide Formen werden erkannt und korrekt der passenden Einheit
 zugeordnet.
 
-WICHTIGER HINWEIS (ehrlich, nicht schöngeredet)
+WICHTIGER HINWEIS
 ------------------------------------------------
-Ich (Claude) konnte scmdb.net weiterhin nicht selbst live aufrufen —
-diese zweite Fassung basiert auf einem echten HTML-Ausschnitt (drei
-Beispiel-Karten), den du mir aus einem tatsächlichen Testlauf
-geschickt hast, nicht auf eigener Beobachtung der ganzen Seite. Drei
-Dinge, die ich dadurch NICHT sicher weiß und die sich beim nächsten
-Testlauf zeigen werden:
+scmdb.net konnte zum Zeitpunkt der Erstellung dieses Skripts nicht
+live aufgerufen werden — diese zweite Fassung basiert auf einem
+echten HTML-Ausschnitt (drei Beispiel-Karten) aus einem tatsächlichen
+Testlauf, nicht auf einer vollständigen Analyse der ganzen Seite. Drei
+Dinge sind dadurch NICHT sicher bekannt und zeigen sich erst beim
+nächsten Testlauf:
 
 1. **Qualität/Grade**: Keine der drei Beispiel-Karten zeigte eine
    Qualitätsstufe — möglicherweise, weil es sich um einfache
@@ -13666,9 +13732,9 @@ SLOT_MAT_SELECTOR = ".fab-card-slot-mat"
 # Noch UNBESTÄTIGTE Vermutung für eine moegliche Qualitaets-/Grade-
 # Angabe innerhalb eines Slots -- keine der drei Beispiel-Karten zeigte
 # ein solches Element, daher rein vorsorglich. Liefert das Skript im
-# Log "0 Materialien mit erkannter Mindestqualitaet", obwohl du auf der
-# Seite welche siehst, bitte kurz melden, dann korrigiere ich den
-# Selektor gezielt.
+# Log "0 Materialien mit erkannter Mindestqualitaet", obwohl auf der
+# Seite tatsaechlich welche sichtbar sind, muesste dieser Selektor
+# entsprechend angepasst werden.
 SLOT_QUALITY_SELECTOR = ".fab-card-slot-quality, .fab-card-slot-grade"
 
 # Erkennt "Materialname (12 SCU)" ODER "Materialname (×4)" und trennt
@@ -14062,6 +14128,43 @@ function updateTabBadges(){
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Setzt eine Status-/Validierungsmeldung UND steuert dabei automatisch
+// die Alarm-Darstellung (siehe .status-msg-error im CSS) -- ersetzt das
+// bisherige, direkte "el.textContent = t('val_...')"-Muster, das keine
+// visuelle Unterscheidung zwischen Fehler- und normalen Erfolgs-/Info-
+// Meldungen bot (beide erschienen in derselben neutralen Cyan-Faerbung).
+// isError=true faerbt die Meldung in Alarmrot mit Hintergrund-Schimmer
+// und Rahmen, sonst bleibt die bisherige, neutrale Darstellung erhalten.
+function setStatusMsg(el, message, isError){
+  if(!el) return;
+  el.textContent = message;
+  el.classList.toggle('status-msg-error', !!isError);
+}
+
+// Wie setStatusMsg(), markiert zusaetzlich das konkrete, fehlerhafte
+// Eingabefeld selbst (roter Rahmen + Leuchteffekt, siehe .field-error im
+// CSS) und setzt den Fokus dorthin -- damit die Fehlermeldung nicht nur
+// sichtbar ist, sondern auch eindeutig auf das betroffene Feld verweist,
+// statt nur einen allgemeinen Text irgendwo auf der Seite zu zeigen. Die
+// Markierung verschwindet automatisch, sobald im Feld getippt/eine neue
+// Auswahl getroffen wird. Optionales drittes Argument, da nicht jede
+// Fehlermeldung einem einzelnen Feld eindeutig zuzuordnen ist (z.B.
+// wenn mehrere Felder gleichzeitig fehlen) -- in solchen Faellen
+// genuegt setStatusMsg() allein. Siehe Nutzerwunsch vom 13. August 2026.
+function showFieldError(statusEl, message, fieldEl){
+  setStatusMsg(statusEl, message, true);
+  if(!fieldEl) return;
+  fieldEl.classList.add('field-error');
+  fieldEl.focus();
+  const clearOnInput = ()=>{
+    fieldEl.classList.remove('field-error');
+    fieldEl.removeEventListener('input', clearOnInput);
+    fieldEl.removeEventListener('change', clearOnInput);
+  };
+  fieldEl.addEventListener('input', clearOnInput);
+  fieldEl.addEventListener('change', clearOnInput);
 }
 
 // ============================================================
