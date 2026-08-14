@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.060 -->
+<!-- Version: 0.064 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1443,7 +1443,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
 <div id="resetPasswordModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:246;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
   <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:26px 28px;max-width:420px;width:100%;box-shadow:0 0 40px var(--cyan-glow);">
-    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 6px;">🔑 <span data-i18n="modal_passwort_zuruecksetzen">Passwort zurücksetzen</span></h3>
+    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 6px;">🔑 <span data-i18n="modal_passwort_aendern">Passwort ändern</span></h3>
     <p id="resetPasswordModalUsername" style="font-size:13px;color:var(--ink-soft);margin:0 0 16px;"></p>
     <div class="field">
       <label for="resetPasswordNew" data-i18n="label_neues_passwort">Neues Passwort</label>
@@ -1453,11 +1453,11 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <label for="resetPasswordConfirm" data-i18n="label_passwort_bestaetigen">Passwort bestätigen</label>
       <input type="password" id="resetPasswordConfirm" autocomplete="new-password">
     </div>
-    <div class="user-note" style="margin-top:12px;" data-i18n="hint_passwort_reset_erzwingt_nicht">Der betroffene Benutzer wird beim nächsten Login NICHT zur Änderung aufgefordert — falls gewünscht, das neue Passwort bitte separat mitteilen.</div>
+    <div class="user-note" style="margin-top:12px;" data-i18n="hint_passwort_reset_erzwingt_nicht">Ein individuelles, eigenes Passwort löst beim nächsten Login KEINEN erzwungenen Wechsel aus — nur falls du hier exakt das aktuelle organisationsweite Standard-Passwort einträgst, greift dieselbe Erst-Login-Pflicht wie bei neuen Benutzern. Das neue Passwort bitte separat mitteilen.</div>
     <div class="status-msg" id="resetPasswordStatus" style="margin-top:8px;"></div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
       <button class="btn-ghost" id="btnResetPasswordCancel" data-i18n="btn_cancel">Abbrechen</button>
-      <button class="btn-primary" id="btnResetPasswordConfirm" data-i18n="btn_zuruecksetzen">Zurücksetzen</button>
+      <button class="btn-primary" id="btnResetPasswordConfirm" data-i18n="btn_speichern_passwort">Speichern</button>
     </div>
   </div>
 </div>
@@ -3004,12 +3004,13 @@ const I18N = {
   "empty_template_search": "Keine passende Vorlage gefunden.",
   "msg_template_applied": "Vorlage übernommen — bitte Anzahl und Mengen prüfen.",
   "label_vorlage": "Vorlage (optional)",
-  "modal_passwort_zuruecksetzen": "Passwort zurücksetzen",
+  "modal_passwort_aendern": "Passwort ändern",
   "label_neues_passwort": "Neues Passwort",
   "label_passwort_bestaetigen": "Passwort bestätigen",
-  "hint_passwort_reset_erzwingt_nicht": "Der betroffene Benutzer wird beim nächsten Login NICHT zur Änderung aufgefordert — falls gewünscht, das neue Passwort bitte separat mitteilen.",
-  "btn_zuruecksetzen": "Zurücksetzen",
-  "tooltip_passwort_zuruecksetzen": "Passwort zurücksetzen (nur Besitzer)",
+  "hint_passwort_reset_erzwingt_nicht": "Ein individuelles, eigenes Passwort löst beim nächsten Login KEINEN erzwungenen Wechsel aus — nur falls du hier exakt das aktuelle organisationsweite Standard-Passwort einträgst, greift dieselbe Erst-Login-Pflicht wie bei neuen Benutzern. Das neue Passwort bitte separat mitteilen.",
+  "btn_speichern_passwort": "Speichern",
+  "tooltip_passwort_aendern": "Passwort ändern (nur Besitzer)",
+  "tooltip_passwort_auf_standard_zuruecksetzen": "Auf Standard-Passwort der Organisation zurücksetzen (nur Besitzer)",
   "val_user_not_found": "Benutzer nicht gefunden.",
   "btn_datei_auswaehlen": "Datei auswählen …",
   "msg_file_loaded": "Datei „{name}“ geladen — bitte prüfen und auf „Importieren“ klicken.",
@@ -3630,12 +3631,13 @@ const I18N = {
   "empty_template_search": "No matching template found.",
   "msg_template_applied": "Template applied — please check quantity and amounts.",
   "label_vorlage": "Template (optional)",
-  "modal_passwort_zuruecksetzen": "Reset password",
+  "modal_passwort_aendern": "Change password",
   "label_neues_passwort": "New password",
   "label_passwort_bestaetigen": "Confirm password",
-  "hint_passwort_reset_erzwingt_nicht": "The affected user will NOT be prompted to change it at next login — if desired, please share the new password separately.",
-  "btn_zuruecksetzen": "Reset",
-  "tooltip_passwort_zuruecksetzen": "Reset password (owner only)",
+  "hint_passwort_reset_erzwingt_nicht": "A custom, individual password will NOT trigger a forced change at next login — only if you enter exactly the organization's current default password does the same first-login requirement as for new users apply. Please share the new password separately.",
+  "btn_speichern_passwort": "Save",
+  "tooltip_passwort_aendern": "Change password (owner only)",
+  "tooltip_passwort_auf_standard_zuruecksetzen": "Reset to organization's default password (owner only)",
   "val_user_not_found": "User not found.",
   "btn_datei_auswaehlen": "Select file …",
   "msg_file_loaded": "File “{name}” loaded — please review and click “Import”.",
@@ -4256,12 +4258,13 @@ const I18N = {
   "empty_template_search": "Aucun modèle correspondant trouvé.",
   "msg_template_applied": "Modèle appliqué — veuillez vérifier la quantité et les montants.",
   "label_vorlage": "Modèle (facultatif)",
-  "modal_passwort_zuruecksetzen": "Réinitialiser le mot de passe",
+  "modal_passwort_aendern": "Modifier le mot de passe",
   "label_neues_passwort": "Nouveau mot de passe",
   "label_passwort_bestaetigen": "Confirmer le mot de passe",
-  "hint_passwort_reset_erzwingt_nicht": "L'utilisateur concerné ne sera PAS invité à le changer à sa prochaine connexion — si souhaité, veuillez communiquer le nouveau mot de passe séparément.",
-  "btn_zuruecksetzen": "Réinitialiser",
-  "tooltip_passwort_zuruecksetzen": "Réinitialiser le mot de passe (propriétaire uniquement)",
+  "hint_passwort_reset_erzwingt_nicht": "Un mot de passe individuel et personnalisé ne déclenche AUCUN changement forcé à la prochaine connexion — seule la saisie exacte du mot de passe par défaut actuel de l'organisation déclenche la même obligation qu'à la première connexion des nouveaux utilisateurs. Veuillez communiquer le nouveau mot de passe séparément.",
+  "btn_speichern_passwort": "Enregistrer",
+  "tooltip_passwort_aendern": "Modifier le mot de passe (propriétaire uniquement)",
+  "tooltip_passwort_auf_standard_zuruecksetzen": "Réinitialiser au mot de passe par défaut de l'organisation (propriétaire uniquement)",
   "val_user_not_found": "Utilisateur introuvable.",
   "btn_datei_auswaehlen": "Sélectionner un fichier …",
   "msg_file_loaded": "Fichier « {name} » chargé — veuillez vérifier puis cliquer sur « Importer ».",
@@ -5090,7 +5093,8 @@ function renderUserList(){
         ${u.categoryRestriction && u.categoryRestriction.length>0 ? `<span class="badge project-reserved" title="${t('label_kategorie_beschraenkung')}">🔒 ${u.categoryRestriction.map(escapeHtml).join(', ')}</span>` : ''}
       </div>
       <div class="actions-cell">
-        ${isOwner ? `<button class="btn-icon" data-action="reset-password" data-idx="${idx}" title="${t('tooltip_passwort_zuruecksetzen')}">🔑</button>` : ''}
+        ${isOwner ? `<button class="btn-icon" data-action="change-password" data-idx="${idx}" title="${t('tooltip_passwort_aendern')}">🔑</button>` : ''}
+        ${isOwner ? `<button class="btn-icon" data-action="reset-to-default-password" data-idx="${idx}" title="${t('tooltip_passwort_auf_standard_zuruecksetzen')}">🔄</button>` : ''}
         <button class="btn-icon" data-action="edit-user" data-idx="${idx}" title="${t('btn_edit')}">✎</button>
         <button class="btn-icon danger" data-action="delete-user" data-idx="${idx}" title="${t('btn_delete')}">🗑</button>
       </div>
@@ -5106,8 +5110,13 @@ function renderUserList(){
   container.querySelectorAll('[data-action="save-user"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ saveUserEdit(parseInt(btn.dataset.idx)); });
   });
-  container.querySelectorAll('[data-action="reset-password"]').forEach(btn=>{
+  container.querySelectorAll('[data-action="change-password"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ openResetPasswordModal(parseInt(btn.dataset.idx)); });
+  });
+  container.querySelectorAll('[data-action="reset-to-default-password"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      armConfirm(btn, ()=>{ resetUserToDefaultPassword(parseInt(btn.dataset.idx)); });
+    });
   });
   container.querySelectorAll('[data-action="delete-user"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -5146,6 +5155,31 @@ function openResetPasswordModal(idx){
 function closeResetPasswordModal(){
   document.getElementById('resetPasswordModal').style.display = 'none';
   resetPasswordUserIdx = null;
+}
+
+// Setzt einen Benutzer per einem einzigen Klick (Zwei-Klick-Bestaetigung)
+// auf das aktuelle Standard-Passwort der Organisation zurueck -- OHNE
+// Eingabe eines konkreten Werts. Technisch entfernt das den etwaigen
+// individuellen Eintrag aus credentials[] wieder komplett, statt einen
+// Klartext-String zu kopieren: getPassword() faellt dadurch wieder auf
+// currentOrgDefaultPassword zurueck, GENAU wie bei einem brandneuen,
+// noch nie eingeloggten Benutzer -- inklusive der bereits bestehenden
+// Erst-Login-Pflicht (siehe doLogin: password === currentOrgDefaultPassword
+// loest den erzwungenen Passwort-Wechsel aus). Aendert sich das
+// Standard-Passwort der Organisation SPAETER erneut, folgt dieser
+// Benutzer automatisch dem neuen Wert (kein fixierter, veralteter
+// Klartext-Reset-Wert). Bewusst als eigene, zweite Aktion getrennt von
+// "Passwort ändern" (individueller, vom Owner frei gewaehlter Wert,
+// siehe confirmResetPassword) -- klare Semantik statt einer einzigen
+// Funktion mit unterschiedlichem Verhalten je nach eingegebenem Wert.
+// Siehe Nutzerwunsch vom 12. August 2026.
+async function resetUserToDefaultPassword(idx){
+  const user = USERS[idx];
+  if(!user) return;
+  await ensureCredentialsLoaded();
+  delete credentials[user.username];
+  const ok = await saveCredentials();
+  if(ok) await logAction('Passwort auf Standard zurückgesetzt', `Für Benutzer: ${user.username}`);
 }
 
 async function confirmResetPassword(){
@@ -7088,6 +7122,8 @@ let MATERIALS = [
   {category:'Ship Mineables', name:'Silicon'},
   {category:'Ship Mineables', name:'Quartz'},
   {category:'Ship Mineables', name:'Corundum'},
+  {category:'Ship Mineables', name:'Carinite'},
+  {category:'Ship Mineables', name:'Carinite (Pure)'},
   {category:'Ship Mineables', name:'Tin'},
   {category:'Ship Mineables', name:'Pressurized Ice'},
   {category:'Non-Ship Mineables', name:'Beradom (ROC / ATLS GEO)'},
