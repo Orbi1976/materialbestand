@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.071 -->
+<!-- Version: 0.072 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1927,6 +1927,43 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="locFormStatus"></div>
     <div class="user-list" id="locationListContainer" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
     <div class="user-note" data-i18n="hint_auto_category">Neue Kategorien bzw. Systeme entstehen automatisch, sobald du einen noch nicht existierenden Namen einträgst.</div>
+
+    <h3 data-i18n="heading_sammelobjekt_hinzufuegen" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px 0;color:var(--steel);">Sammelobjekt hinzufügen</h3>
+    <div class="form-grid-flex">
+      <div class="field">
+        <label for="newCollCategory" data-i18n="label_kategorie">Kategorie</label>
+        <input type="text" id="newCollCategory" list="collCategoryList" placeholder="bestehend wählen oder neu eingeben" data-i18n-placeholder="placeholder_bestehend_oder_neu">
+        <datalist id="collCategoryList"></datalist>
+      </div>
+      <div class="field">
+        <label for="newCollName" data-i18n="label_name">Name</label>
+        <input type="text" id="newCollName" placeholder="z. B. Neues Artefakt">
+      </div>
+      <div class="field">
+        <label for="newCollEinheit" data-i18n="label_mengeneinheit">Mengeneinheit</label>
+        <select id="newCollEinheit">
+          <option value="Stück" selected>Stück</option>
+          <option value="SCU">SCU</option>
+        </select>
+      </div>
+      <div class="field">
+        <button class="btn-primary" id="btnAddCollectibleCatalog" data-i18n="btn_hinzufuegen">Hinzufügen</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:10px;">
+      <label for="newCollTiers" data-i18n="label_qualitaetsstufen_optional">Qualitätsstufen (optional, durch Komma getrennt)</label>
+      <input type="text" id="newCollTiers" placeholder="z. B. Damaged, Worn, Pristine">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:11px;color:var(--ink-soft);align-self:center;" data-i18n="label_schnellauswahl">Schnellauswahl:</span>
+        <button type="button" class="btn-ghost" data-tiers-preset="Damaged,Worn,Pristine" style="font-size:11px;padding:3px 10px;">Damaged / Worn / Pristine</button>
+        <button type="button" class="btn-ghost" data-tiers-preset="Grade B,Grade A,Grade AA,Grade AAA" style="font-size:11px;padding:3px 10px;">Grade B–AAA</button>
+        <button type="button" class="btn-ghost" data-tiers-preset="Juvenile,Adult,Apex" style="font-size:11px;padding:3px 10px;">Juvenile / Adult / Apex</button>
+        <button type="button" class="btn-ghost" data-tiers-preset="" style="font-size:11px;padding:3px 10px;" data-i18n="btn_keine_stufen">Keine</button>
+      </div>
+      <div class="user-note" style="margin-top:4px;" data-i18n="hint_qualitaetsstufen_frei">Schnellauswahl füllt das Feld nur vor — danach frei editierbar, um bestehende Sätze anzupassen oder eigene Stufen zu definieren.</div>
+    </div>
+    <div class="status-msg" id="collCatalogFormStatus"></div>
+    <div class="user-list" id="collectibleCatalogListContainer" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
   </div>
 
   <div class="panel" id="logPanel" style="display:none;">
@@ -2900,6 +2937,13 @@ const I18N = {
   "btn_alle_bedarfe_eintragen": "Alle fehlenden Mengen als Bedarf eintragen",
   "placeholder_pw_vergessen_hint": "für Passwort-vergessen-Funktion",
   "heading_material_hinzufuegen": "Material hinzufügen",
+  "heading_sammelobjekt_hinzufuegen": "Sammelobjekt hinzufügen",
+  "label_mengeneinheit": "Mengeneinheit",
+  "label_qualitaetsstufen_optional": "Qualitätsstufen (optional, durch Komma getrennt)",
+  "label_schnellauswahl": "Schnellauswahl:",
+  "btn_keine_stufen": "Keine",
+  "hint_qualitaetsstufen_frei": "Schnellauswahl füllt das Feld nur vor — danach frei editierbar, um bestehende Sätze anzupassen oder eigene Stufen zu definieren.",
+  "msg_collectible_catalog_added": "„{name}“ zum Sammelobjekte-Katalog hinzugefügt.",
   "heading_lagerort_hinzufuegen": "Lagerort hinzufügen",
   "placeholder_bestehend_oder_neu": "bestehend wählen oder neu eingeben",
   "hint_default_password": "Neue Benutzer erhalten automatisch das von der Organisation festgelegte Standard-Passwort (siehe Einstellung weiter unten), das sie nach der Anmeldung durch ein persönliches Passwort ersetzen müssen.",
@@ -3533,6 +3577,13 @@ const I18N = {
   "btn_alle_bedarfe_eintragen": "Add all missing amounts as needs",
   "placeholder_pw_vergessen_hint": "for the forgot-password feature",
   "heading_material_hinzufuegen": "Add material",
+  "heading_sammelobjekt_hinzufuegen": "Add collectible",
+  "label_mengeneinheit": "Unit of quantity",
+  "label_qualitaetsstufen_optional": "Quality tiers (optional, comma-separated)",
+  "label_schnellauswahl": "Quick pick:",
+  "btn_keine_stufen": "None",
+  "hint_qualitaetsstufen_frei": "Quick pick only pre-fills the field — freely editable afterwards to adjust existing sets or define your own tiers.",
+  "msg_collectible_catalog_added": "\"{name}\" added to the collectibles catalog.",
   "heading_lagerort_hinzufuegen": "Add location",
   "placeholder_bestehend_oder_neu": "select existing or enter new",
   "hint_default_password": "New users automatically receive the organization's configured default password (see setting further below), which they must replace with a personal password after logging in.",
@@ -4166,6 +4217,13 @@ const I18N = {
   "btn_alle_bedarfe_eintragen": "Ajouter toutes les quantités manquantes comme besoins",
   "placeholder_pw_vergessen_hint": "pour la fonction mot de passe oublié",
   "heading_material_hinzufuegen": "Ajouter un matériau",
+  "heading_sammelobjekt_hinzufuegen": "Ajouter un objet de collection",
+  "label_mengeneinheit": "Unité de quantité",
+  "label_qualitaetsstufen_optional": "Niveaux de qualité (facultatif, séparés par des virgules)",
+  "label_schnellauswahl": "Sélection rapide :",
+  "btn_keine_stufen": "Aucun",
+  "hint_qualitaetsstufen_frei": "La sélection rapide ne fait que pré-remplir le champ — librement modifiable ensuite pour adapter des ensembles existants ou définir ses propres niveaux.",
+  "msg_collectible_catalog_added": "« {name} » ajouté au catalogue des objets de collection.",
   "heading_lagerort_hinzufuegen": "Ajouter un emplacement",
   "placeholder_bestehend_oder_neu": "sélectionner existant ou en saisir un nouveau",
   "hint_default_password": "Les nouveaux utilisateurs reçoivent automatiquement le mot de passe par défaut défini par l'organisation (voir paramètre plus bas), qu'ils doivent remplacer par un mot de passe personnel après connexion.",
@@ -7288,9 +7346,21 @@ let MATERIALS = [
 // Ship-Mineable-Erz. Reduziert zugleich die Notwendigkeit, jede
 // einzelne Luecke im COLLECTIBLES-Katalog manuell nachzupflegen. Siehe
 // Nutzerwunsch vom 8. August 2026 (zweite Rueckmeldung).
+// Nur Materialien, die EXPLIZIT als "Ship Mineables" katalogisiert sind,
+// bekommen automatisch SCU. Ein Sammelobjekt bekommt Stück, ES SEI DENN
+// es traegt selbst ein explizites einheit-Feld (ab 14. August 2026
+// moeglich, siehe Sammelobjekt-Katalog-Verwaltung) -- ermoeglicht z.B.
+// grossvolumige Sammelstuecke, die sinnvoller in SCU statt stueckweise
+// gezaehlt werden. Alle bislang bestehenden, eingebauten Sammelobjekte
+// haben KEIN einheit-Feld und bleiben dadurch unveraendert bei Stück.
+// Komplett unbekannte Namen (weder Material noch Sammelobjekt) bekommen
+// ebenfalls Stück, siehe Kommentar-Historie in fruehren Versionen.
 function getDefaultEinheitForMaterial(materialName){
   const m = MATERIALS.find(x=>x.name===materialName);
-  return (m && m.category==='Ship Mineables') ? 'SCU' : 'Stück';
+  if(m) return m.category==='Ship Mineables' ? 'SCU' : 'Stück';
+  const c = COLLECTIBLES.find(x=>x.name===materialName);
+  if(c && c.einheit) return c.einheit;
+  return 'Stück';
 }
 
 function buildMaterialSelectHTML(id, selected, extraClass, restrictCategories){
@@ -7371,7 +7441,14 @@ function locLabel(loc){
 // Sammelobjekte & Artefakte — Katalog mit Kategorie und optionalen
 // Qualitätsstufen je Objekt (leer = keine Qualitätsstufen).
 // ============================================================
-const COLLECTIBLES = [
+// Ab 14. August 2026: von const auf let umgestellt, damit der Katalog
+// selbst (anders als bisher, wo nur BESTANDS-Eintraege fuer diese
+// Sammelobjekte gespeichert werden konnten, siehe COLLECTIBLES_KEY
+// weiter unten) dynamisch um neue Sammelobjekt-DEFINITIONEN erweitert
+// werden kann -- analog zu MATERIALS. Dieses Array bleibt die
+// Ausgangs-/Standardliste, die per loadCollectiblesCatalog() bei
+// vorhandenen gespeicherten Daten ueberschrieben wird (siehe dort).
+let COLLECTIBLES = [
   {category:'Artefakte', name:'Large Artifact Fragment', tiers:['Damaged','Worn','Pristine']},
   {category:'Artefakte', name:'Medium Artifact Fragment', tiers:['Damaged','Worn','Pristine']},
   {category:'Artefakte', name:'Small Artifact Fragment', tiers:['Damaged','Worn','Pristine']},
@@ -8154,6 +8231,38 @@ async function saveMaterials(){
   }
 }
 
+// Analog zu loadMaterials()/saveMaterials() weiter oben. Eigener,
+// bewusst anderslautender Speicherschluessel (nicht COLLECTIBLES_KEY!)
+// -- jener wird bereits fuer die tatsaechlichen BESTANDS-Eintraege der
+// Sammelobjekte verwendet (wie viel wovon wo liegt), waehrend dies hier
+// den KATALOG selbst betrifft (welche Sammelobjekte es ueberhaupt gibt,
+// mit welchen Qualitaetsstufen und welcher Mengeneinheit) -- exakt die
+// gleiche Trennung wie zwischen MATERIALS (Katalog) und entries
+// (Bestand). Siehe Nutzerwunsch vom 14. August 2026.
+const COLLECTIBLES_CATALOG_KEY = 'collectibles-catalog';
+let collectiblesCatalogLoaded = false;
+async function loadCollectiblesCatalog(){
+  if(collectiblesCatalogLoaded) return;
+  try{
+    const res = await window.storage.get(COLLECTIBLES_CATALOG_KEY, true);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      if(Array.isArray(parsed) && parsed.length) COLLECTIBLES = parsed;
+    }
+  }catch(e){
+    // Kein gespeicherter Katalog vorhanden — die eingebaute Ausgangsliste bleibt aktiv.
+  }
+  collectiblesCatalogLoaded = true;
+}
+async function saveCollectiblesCatalog(){
+  try{
+    await window.storage.set(COLLECTIBLES_CATALOG_KEY, JSON.stringify(COLLECTIBLES), true);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
 function renderCatalogLists(){
   const matContainer = document.getElementById('materialListContainer');
   if(matContainer){
@@ -8207,6 +8316,34 @@ function renderCatalogLists(){
   const sysList = document.getElementById('locSystemList');
   if(sysList){
     sysList.innerHTML = [...new Set(LOCATIONS.map(l=>l.system))].map(s=>`<option value="${escapeHtml(s)}">`).join('');
+  }
+
+  const collCatContainer = document.getElementById('collectibleCatalogListContainer');
+  if(collCatContainer){
+    collCatContainer.innerHTML = COLLECTIBLES.map((c,idx)=>`
+      <div class="user-row">
+        <div class="user-info">
+          <span style="color:var(--ink-soft);font-size:11px;white-space:nowrap;">${escapeHtml(c.category)}</span>
+          <span>${escapeHtml(c.name)}</span>
+          <span style="color:var(--steel);font-size:11px;white-space:nowrap;">${escapeHtml(c.einheit || 'Stück')}</span>
+          ${c.tiers && c.tiers.length ? `<span style="color:var(--ink-soft);font-size:11px;">${c.tiers.map(escapeHtml).join(' / ')}</span>` : ''}
+        </div>
+        <div class="actions-cell"><button class="btn-icon danger" data-action="delete-collectible-catalog" data-idx="${idx}" title="${t('btn_delete')}">🗑</button></div>
+      </div>
+    `).join('');
+    collCatContainer.querySelectorAll('[data-action="delete-collectible-catalog"]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const idx = parseInt(btn.dataset.idx);
+        const item = COLLECTIBLES[idx];
+        const usage = item ? countCollectibleCatalogUsage(item.name) : {total:0};
+        const confirmTitle = usage.total > 0 ? t('tooltip_material_loeschen_betroffen').replace('{count}', usage.total) : undefined;
+        armConfirm(btn, ()=>{ deleteCollectibleCatalogEntry(idx); }, confirmTitle);
+      });
+    });
+  }
+  const collCatList = document.getElementById('collCategoryList');
+  if(collCatList){
+    collCatList.innerHTML = [...new Set(COLLECTIBLES.map(c=>c.category))].map(c=>`<option value="${escapeHtml(c)}">`).join('');
   }
 }
 
@@ -8324,6 +8461,91 @@ async function deleteMaterial(idx){
   render();
   renderPrivate();
 }
+
+// Analog zu countMaterialUsage() weiter oben -- Sammelobjekte nutzen
+// allerdings .objekt statt .material als Feldname, daher eine eigene
+// Funktion statt Wiederverwendung.
+function countCollectibleCatalogUsage(name){
+  const collCount = collectibles.filter(c=>c.objekt===name).length;
+  const privCollCount = privateCollectibles.filter(c=>c.objekt===name).length;
+  return { total: collCount + privCollCount, collCount, privCollCount };
+}
+
+async function deleteCollectibleCatalogEntry(idx){
+  if(currentUser.role !== 'owner') return;
+  const item = COLLECTIBLES[idx];
+  if(!item) return;
+  const usage = countCollectibleCatalogUsage(item.name);
+  COLLECTIBLES.splice(idx,1);
+  await saveCollectiblesCatalog();
+  // Siehe Kommentar bei deleteMaterial() weiter oben -- dasselbe
+  // Prinzip: nach Bestaetigung werden verwaiste Bestands-Eintraege
+  // konsequent mitgeloescht, statt als Karteileichen liegen zu bleiben.
+  if(usage.total > 0){
+    collectibles = collectibles.filter(c=>c.objekt!==item.name);
+    privateCollectibles = privateCollectibles.filter(c=>c.objekt!==item.name);
+    await Promise.all([saveCollectibles(), savePrivateCollectibles()]);
+  }
+  await logAction('Sammelobjekt-Katalogeintrag gelöscht', `${item.name} (${item.category})${usage.total>0 ? `, ${usage.total} verwaiste(r) Bestand-Eintrag/Einträge mitgelöscht` : ''}`);
+  renderCatalogLists();
+  renderCollectibles();
+  renderPrivateCollectibles();
+}
+
+async function addCollectibleCatalogEntry(){
+  const catInput = document.getElementById('newCollCategory');
+  const nameInput = document.getElementById('newCollName');
+  const einheitInput = document.getElementById('newCollEinheit');
+  const tiersInput = document.getElementById('newCollTiers');
+  const statusEl = document.getElementById('collCatalogFormStatus');
+
+  // Strukturelle Aenderungen am Katalog sind ausschliesslich der Rolle
+  // "owner" vorbehalten -- analog zu addMaterial() weiter oben.
+  if(currentUser.role !== 'owner'){
+    setStatusMsg(statusEl, t('val_nur_owner'), true);
+    return;
+  }
+
+  const category = catInput.value.trim();
+  const name = nameInput.value.trim();
+  const einheit = einheitInput.value;
+  // Qualitaetsstufen: durch Komma getrennt, optional -- leeres Feld
+  // ergibt ein leeres tiers-Array (kein Qualitaets-Auswahlfeld beim
+  // Anlegen eines Bestands-Eintrags, analog zu z.B. "Wikelo Favor").
+  const tiers = tiersInput.value.split(',').map(s=>s.trim()).filter(s=>s);
+
+  if(!category || !name){
+    showFieldError(statusEl, t('val_category_name_required'), !category ? catInput : nameInput);
+    return;
+  }
+  const duplicate = COLLECTIBLES.some(c=>c.category.toLowerCase()===category.toLowerCase() && c.name.toLowerCase()===name.toLowerCase());
+  if(duplicate){
+    showFieldError(statusEl, t('val_material_exists'), nameInput);
+    return;
+  }
+
+  COLLECTIBLES.push({category, name, tiers, einheit});
+  setStatusMsg(statusEl, t('msg_saving'), false);
+  const ok = await saveCollectiblesCatalog();
+  if(ok) await logAction('Sammelobjekt-Katalogeintrag hinzugefügt', `${name} (${category}, ${einheit}${tiers.length ? ', Stufen: '+tiers.join('/') : ''})`);
+
+  catInput.value = '';
+  nameInput.value = '';
+  tiersInput.value = '';
+  einheitInput.value = 'Stück';
+  setStatusMsg(statusEl, ok ? t('msg_collectible_catalog_added').replace('{name}', name) : t('msg_save_failed'), !ok);
+  renderCatalogLists();
+  renderCollectibles();
+  renderPrivateCollectibles();
+  setTimeout(()=>{ statusEl.textContent=''; statusEl.classList.remove('status-msg-error'); }, 3000);
+}
+
+document.getElementById('btnAddCollectibleCatalog').addEventListener('click', addCollectibleCatalogEntry);
+document.querySelectorAll('[data-tiers-preset]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById('newCollTiers').value = btn.dataset.tiersPreset;
+  });
+});
 
 async function addLocation(){
   const sysInput = document.getElementById('newLocSystem');
@@ -11895,6 +12117,7 @@ async function load(){
 
   await Promise.all([
     loadMaterials(),
+    loadCollectiblesCatalog(),
     loadLocations(),
     entriesPromise,
     needsPromise,
