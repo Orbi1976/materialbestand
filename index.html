@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.080 -->
+<!-- Version: 0.081 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -13949,7 +13949,23 @@ async function runDigitFocusedPass(cropCanvas, targetDim, thresholds, worker, st
       });
       perThresholdRows.push(rows.map(r=>{
         r.numbers.sort((a,b)=>a.x-b.x);
-        return { yCenter: r.yCenter, quality: r.numbers[0]!=null?r.numbers[0].val:null, menge: r.numbers[1]!=null?r.numbers[1].val:null };
+        // WICHTIG: Die Spalte "MATERIALS YIELDED (CSCU)" im Spiel zeigt die
+        // Menge in Hundertstel-SCU (cSCU) -- der Hauptdurchlauf (siehe
+        // runOcrEnsemble weiter unten) rechnet das bereits durch Division
+        // durch 100 in SCU um, bevor der Wert in den Mehrheitsentscheid-Topf
+        // (candidates.menge) einfliesst. Dieser ziffernfokussierte Durchlauf
+        // schrieb den rohen, UNUMGERECHNETEN cSCU-Wert bislang direkt in
+        // denselben Topf -- da dieser Durchlauf ueber alle sieben
+        // Schwellenwerte hinweg tendenziell konsistenter erkennt als der
+        // Hauptdurchlauf, konnte der falsche Rohwert (z.B. 37 statt 0.37)
+        // die Mehrheitsentscheidung gewinnen. Ab hier konsistent ebenfalls
+        // durch 100 geteilt, damit beide Durchlaeufe dieselbe Einheit (SCU)
+        // in den Topf einspeisen. Bei einer Nutzermeldung am 15. August 2026
+        // gefunden (Beispiel: Kupfer-Zeile mit Rohwert 37 cSCU wurde als
+        // Menge 37 statt 0.37 SCU uebernommen).
+        const rawMenge = r.numbers[1]!=null ? r.numbers[1].val : null;
+        const menge = rawMenge!=null ? Math.round((rawMenge/100)*100)/100 : null;
+        return { yCenter: r.yCenter, quality: r.numbers[0]!=null?r.numbers[0].val:null, menge };
       }));
     }
   } finally {
