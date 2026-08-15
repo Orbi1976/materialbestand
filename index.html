@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.073 -->
+<!-- Version: 0.080 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1748,6 +1748,15 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <h2 data-i18n="panel_org_export">Datensicherung</h2>
     <div class="user-note" data-i18n="hint_org_export">Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.</div>
     <div id="exportReminderHint" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(255,166,48,0.08);border:1px solid var(--accent);border-radius:var(--radius);font-family:'Share Tech Mono', monospace;font-size:12px;color:var(--ink);"></div>
+    <div id="exportOrgSelectWrap" style="display:none;margin-top:12px;">
+      <label for="exportOrgSelect" data-i18n="label_export_organisation">Organisation für den Export</label>
+      <select id="exportOrgSelect"></select>
+    </div>
+    <label style="display:flex;align-items:flex-start;gap:8px;font-weight:normal;cursor:pointer;margin-top:14px;font-size:13px;">
+      <input type="checkbox" id="exportIncludeUsers" style="margin-top:2px;">
+      <span data-i18n="label_export_benutzer_einschliessen">Benutzer &amp; Zugangsdaten einschließen</span>
+    </label>
+    <div class="user-note" style="margin-top:4px;border-left:2px solid #FF3B5C;padding-left:10px;" data-i18n="hint_export_benutzer_sicherheit">⚠ Enthält Benutzernamen, E-Mail-Adressen, individuelle Passwörter sowie das organisationsweite Standard-Passwort — alles im Klartext, unverschlüsselt in der heruntergeladenen Datei. Diese Datei entsprechend sicher aufbewahren und nicht unnötig weitergeben.</div>
     <div style="margin-top:12px;">
       <button class="btn-ghost" id="btnExportOrgData" data-i18n="btn_export_org_data">Alles exportieren (JSON)</button>
     </div>
@@ -2988,12 +2997,26 @@ const I18N = {
   "hint_import_ueberschreibt": "⚠ Die ausgewählten Bereiche werden vollständig ersetzt — nicht rückgängig zu machen (außer durch einen erneuten Export vorher).",
   "btn_wiederherstellen": "Wiederherstellen",
   "val_import_datei_ungueltig": "Diese Datei sieht nicht nach einer gültigen Datensicherung aus.",
+  "label_import_private_bestaende": "Private Bestände (alle Mitglieder)",
+  "label_import_private_sammelobjekte": "Private Sammelobjekte (alle Mitglieder)",
+  "label_import_private_projekte": "Private Projekte (alle Mitglieder)",
+  "label_import_protokoll": "Aktivitäts-Protokoll",
+  "label_import_sammelobjekt_katalog_global": "Sammelobjekt-Katalog (global, alle Organisationen)",
+  "label_import_rezept_vorlagen_global": "Rezepte-Vorlagen (global, alle Organisationen)",
+  "label_import_wikelo_vorlagen_global": "Wikelo-Vorlagen (global, alle Organisationen)",
+  "label_import_discord_einstellungen": "Discord-Einstellungen",
+  "label_import_org_branding": "Organisations-Individualisierung (Motto, Farbe, Symbol)",
+  "label_import_benutzer_zugangsdaten": "Benutzer & Zugangsdaten",
+  "hint_import_benutzer_sicherheit": "⚠ Ersetzt bestehende Benutzer dieser Organisation samt individueller Passwörter durch den Stand der Sicherungsdatei — aktuelle, seither geänderte Passwörter gehen dabei verloren. Nur aktivieren, wenn das ausdrücklich gewünscht ist.",
   "label_material_katalog_global": "Material-Katalog (global, alle Organisationen)",
   "label_lagerort_katalog_global": "Lagerort-Katalog (global, alle Organisationen)",
   "label_global_warnhinweis": "betrifft ALLE Organisationen, nicht nur diese",
   "msg_import_done": "Wiederhergestellt: {parts}.",
   "label_nichts_ausgewaehlt": "Nichts ausgewählt — kein Bereich wurde geändert.",
   "hint_seite_neu_laden_katalog": "Bitte die Seite neu laden, damit Dropdown-Listen überall den neuen Katalog-Stand zeigen.",
+  "label_export_benutzer_einschliessen": "Benutzer & Zugangsdaten einschließen",
+  "hint_export_benutzer_sicherheit": "⚠ Enthält Benutzernamen, E-Mail-Adressen, individuelle Passwörter sowie das organisationsweite Standard-Passwort — alles im Klartext, unverschlüsselt in der heruntergeladenen Datei. Diese Datei entsprechend sicher aufbewahren und nicht unnötig weitergeben.",
+  "label_export_organisation": "Organisation für den Export",
   "panel_org_export": "Datensicherung",
   "hint_org_export": "Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.",
   "btn_export_org_data": "Alles exportieren (JSON)",
@@ -3632,12 +3655,26 @@ const I18N = {
   "hint_import_ueberschreibt": "⚠ The selected sections will be fully replaced — cannot be undone (except by an export taken beforehand).",
   "btn_wiederherstellen": "Restore",
   "val_import_datei_ungueltig": "This file doesn't look like a valid data backup.",
+  "label_import_private_bestaende": "Private stock (all members)",
+  "label_import_private_sammelobjekte": "Private collectibles (all members)",
+  "label_import_private_projekte": "Private projects (all members)",
+  "label_import_protokoll": "Activity log",
+  "label_import_sammelobjekt_katalog_global": "Collectibles catalog (global, all organizations)",
+  "label_import_rezept_vorlagen_global": "Recipe templates (global, all organizations)",
+  "label_import_wikelo_vorlagen_global": "Wikelo templates (global, all organizations)",
+  "label_import_discord_einstellungen": "Discord settings",
+  "label_import_org_branding": "Organization branding (motto, color, symbol)",
+  "label_import_benutzer_zugangsdaten": "Users & credentials",
+  "hint_import_benutzer_sicherheit": "⚠ Replaces this organization's existing users, including individual passwords, with the backup file's state — current passwords changed since then will be lost. Only enable this if that is explicitly intended.",
   "label_material_katalog_global": "Material catalog (global, all organizations)",
   "label_lagerort_katalog_global": "Location catalog (global, all organizations)",
   "label_global_warnhinweis": "affects ALL organizations, not just this one",
   "msg_import_done": "Restored: {parts}.",
   "label_nichts_ausgewaehlt": "Nothing selected — no section was changed.",
   "hint_seite_neu_laden_katalog": "Please reload the page so dropdown lists everywhere show the new catalog state.",
+  "label_export_benutzer_einschliessen": "Include users & credentials",
+  "hint_export_benutzer_sicherheit": "⚠ Includes usernames, email addresses, individual passwords, and the organization-wide default password — all in plain text, unencrypted, in the downloaded file. Keep this file secure and do not share it unnecessarily.",
+  "label_export_organisation": "Organization to export",
   "panel_org_export": "Data backup",
   "hint_org_export": "Downloads a single file with all shared data of the current organization (inventory, needs, projects, collectibles, catalogs) — independent of Supabase, e.g. for your own backup.",
   "btn_export_org_data": "Export everything (JSON)",
@@ -4276,12 +4313,26 @@ const I18N = {
   "hint_import_ueberschreibt": "⚠ Les sections sélectionnées seront entièrement remplacées — irréversible (sauf via un export effectué au préalable).",
   "btn_wiederherstellen": "Restaurer",
   "val_import_datei_ungueltig": "Ce fichier ne ressemble pas à une sauvegarde de données valide.",
+  "label_import_private_bestaende": "Stocks privés (tous les membres)",
+  "label_import_private_sammelobjekte": "Objets de collection privés (tous les membres)",
+  "label_import_private_projekte": "Projets privés (tous les membres)",
+  "label_import_protokoll": "Journal d'activité",
+  "label_import_sammelobjekt_katalog_global": "Catalogue d'objets de collection (global, toutes organisations)",
+  "label_import_rezept_vorlagen_global": "Modèles de recettes (global, toutes organisations)",
+  "label_import_wikelo_vorlagen_global": "Modèles Wikelo (global, toutes organisations)",
+  "label_import_discord_einstellungen": "Paramètres Discord",
+  "label_import_org_branding": "Personnalisation de l'organisation (devise, couleur, symbole)",
+  "label_import_benutzer_zugangsdaten": "Utilisateurs et identifiants",
+  "hint_import_benutzer_sicherheit": "⚠ Remplace les utilisateurs existants de cette organisation, y compris les mots de passe individuels, par l'état du fichier de sauvegarde — les mots de passe actuels modifiés depuis seront perdus. N'activez que si cela est expressément souhaité.",
   "label_material_katalog_global": "Catalogue de matériaux (global, toutes organisations)",
   "label_lagerort_katalog_global": "Catalogue d'emplacements (global, toutes organisations)",
   "label_global_warnhinweis": "concerne TOUTES les organisations, pas seulement celle-ci",
   "msg_import_done": "Restauré : {parts}.",
   "label_nichts_ausgewaehlt": "Rien de sélectionné — aucune section n'a été modifiée.",
   "hint_seite_neu_laden_katalog": "Veuillez recharger la page pour que les listes déroulantes affichent partout le nouvel état du catalogue.",
+  "label_export_benutzer_einschliessen": "Inclure les utilisateurs et identifiants",
+  "hint_export_benutzer_sicherheit": "⚠ Contient les noms d'utilisateur, adresses e-mail, mots de passe individuels ainsi que le mot de passe par défaut de l'organisation — tout en texte brut, non chiffré, dans le fichier téléchargé. Conservez ce fichier en lieu sûr et ne le partagez pas inutilement.",
+  "label_export_organisation": "Organisation à exporter",
   "panel_org_export": "Sauvegarde des données",
   "hint_org_export": "Télécharge un seul fichier contenant toutes les données partagées de l'organisation actuelle (stock, besoins, projets, objets de collection, catalogues) — indépendamment de Supabase, par exemple pour votre propre sauvegarde.",
   "btn_export_org_data": "Tout exporter (JSON)",
@@ -5339,7 +5390,7 @@ async function confirmResetPassword(){
   setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveCredentials();
   if(!ok){
-    setStatusMsg(statusEl, t('msg_save_failed'), false);
+    setStatusMsg(statusEl, t('msg_save_failed'), true);
     return;
   }
   await logAction('Passwort zurückgesetzt', `Für Benutzer: ${user.username}`);
@@ -6155,6 +6206,29 @@ function renderOrgBrandingForm(){
 // eine Weile zurückliegt (oder noch nie erstellt wurde) — rein informativ,
 // erzwingt nichts.
 const EXPORT_REMINDER_DAYS = 28;
+// Nur fuer die Rolle owner sichtbar: eigenstaendige Organisations-Auswahl
+// speziell fuer den Export, unabhaengig vom allgemeinen Organisations-
+// Umschalter (orgSwitcher). Vermeidet, dass der Export versehentlich die
+// "gerade zufaellig aktive" Organisation trifft, wenn der Owner eigentlich
+// eine ANDERE Organisation sichern moechte, ohne dafuer erst seinen
+// gesamten Arbeitskontext umzuschalten. Ein org_admin sieht dieses Feld
+// gar nicht -- fuer diese Rolle bleibt es unveraendert bei der eigenen
+// (einzigen erreichbaren) Organisation. Siehe Nutzerwunsch vom
+// 15. August 2026.
+function renderExportOrgSelect(){
+  const wrap = document.getElementById('exportOrgSelectWrap');
+  const select = document.getElementById('exportOrgSelect');
+  if(!wrap || !select) return;
+  if(currentUser.role !== 'owner'){
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = '';
+  select.innerHTML = ORGANIZATIONS.map(o=>
+    `<option value="${escapeHtml(o.id)}" ${o.id===currentOrgId?'selected':''}>${escapeHtml(o.name)}</option>`
+  ).join('');
+}
+
 function renderExportReminder(){
   const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
   const hint = document.getElementById('exportReminderHint');
@@ -6255,7 +6329,7 @@ document.getElementById('btnTestDiscord').addEventListener('click', async ()=>{
     // Webhook-URL oder fehlende Berechtigung hin.
     setStatusMsg(statusEl, res.ok ? t('msg_discord_test_success') : t('msg_discord_test_failed'), !(res.ok));
   }catch(e){
-    setStatusMsg(statusEl, t('msg_discord_test_failed'), false);
+    setStatusMsg(statusEl, t('msg_discord_test_failed'), true);
   }
   setTimeout(()=>{ statusEl.textContent=''; }, 5000);
 });
@@ -6266,18 +6340,122 @@ document.getElementById('btnTestDiscord').addEventListener('click', async ()=>{
 // Privatbestände einzelner Benutzer, da das sonst fremde, nicht-geteilte
 // Daten in eine gemeinsame Sicherungsdatei mischen würde.
 // ============================================================
+// Laedt die exportrelevanten Daten einer BELIEBIGEN Organisation direkt
+// aus dem Speicher, ohne die aktuell aktive Sitzung (currentOrgId,
+// bereits geladene entries/needs/projects/... etc.) in irgendeiner Form
+// zu veraendern -- wird ausschliesslich vom Export genutzt, wenn ein
+// owner eine ANDERE als die gerade aktive Organisation exportieren
+// moechte. Nutzt denselben Schluessel-Aufbau wie orgKey(), aber mit der
+// explizit uebergebenen Ziel-Organisations-ID statt currentOrgId.
+//
+// WICHTIG: Material- und Lagerort-Katalog werden bewusst NICHT
+// organisationsspezifisch geladen -- beide sind (siehe loadMaterials()/
+// loadLocations()) global ueber alle Organisationen hinweg gueltig,
+// nicht ueber orgKey() gebunden. Es gibt daher keine "Materialien von
+// Organisation X" zu laden -- die bereits geladenen, global gueltigen
+// MATERIALS/LOCATIONS werden unveraendert uebernommen, unabhaengig
+// davon, welche Organisation exportiert wird.
+async function fetchOrgScopedDataFor(targetOrgId){
+  const key = base => `${base}__org_${targetOrgId}`;
+  const load = async (base, fallback) => {
+    try{
+      const res = await window.storage.get(key(base), true);
+      return res && res.value ? JSON.parse(res.value) : fallback;
+    }catch(e){ return fallback; }
+  };
+  // Bestand/Bedarf/Projekte/Sammelobjekte weiterhin wie bisher; ab
+  // 15. August 2026 zusaetzlich private Bestaende ALLER Mitglieder,
+  // Discord-Einstellungen und Protokoll -- ebenfalls organisationsgebunden
+  // (siehe orgKey()), bislang aber nicht im Export enthalten. Bewusst
+  // IMMER frisch geladen (nicht aus bereits geladenen Sitzungsvariablen),
+  // da diese fuenf zusaetzlichen Kategorien fuer die aktuell aktive
+  // Organisation bislang gar nicht zwingend im Speicher vorlagen
+  // (Discord-Einstellungen etwa nur ab org_admin geladen) -- ein
+  // einheitlicher, immer frischer Abruf ist hier einfacher und robuster
+  // als zwei verschiedene Pfade zu pflegen.
+  const [e, n, p, c, pe, pc, pp, ds, log] = await Promise.all([
+    load(STORAGE_KEY, []), load(NEEDS_KEY, []), load(PROJECTS_KEY, []),
+    load(COLLECTIBLES_KEY, []),
+    load(PRIVATE_STORAGE_KEY, []), load(PRIVATE_COLLECTIBLES_KEY, []), load(PRIVATE_PROJECTS_KEY, []),
+    load(DISCORD_SETTINGS_KEY, defaultDiscordSettings()), load(LOG_KEY, [])
+  ]);
+  return {
+    entries: e, needs: n, projects: p, collectibles: c,
+    materials: MATERIALS, locations: LOCATIONS,
+    privateEntries: pe, privateCollectibles: pc, privateProjects: pp,
+    discordSettings: ds, activityLog: log
+  };
+}
+
 async function exportOrgDataJSON(){
-  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  // owner kann ueber die eigenstaendige Export-Auswahl (siehe
+  // renderExportOrgSelect) eine ANDERE als die gerade aktive Organisation
+  // waehlen -- org_admin sieht dieses Feld gar nicht und exportiert daher
+  // weiterhin ausschliesslich die eigene, aktuell aktive Organisation.
+  const exportSelect = document.getElementById('exportOrgSelect');
+  const targetOrgId = (currentUser.role === 'owner' && exportSelect && exportSelect.value)
+    ? exportSelect.value
+    : currentOrgId;
+
+  const org = ORGANIZATIONS.find(o=>o.id===targetOrgId);
+  // Bewusst IMMER ueber fetchOrgScopedDataFor() geladen (nicht mehr
+  // unterschieden nach "aktive Organisation = bereits geladen"), seit
+  // die zusaetzlichen fuenf Kategorien (private Bestaende, Discord,
+  // Protokoll) hinzugekommen sind -- siehe Kommentar dort.
+  const data = await fetchOrgScopedDataFor(targetOrgId);
+
   const payload = {
     exportedAt: new Date().toISOString(),
-    organization: org ? org.name : currentOrgId,
+    organization: org ? org.name : targetOrgId,
     _src: WATERMARK_ID,
-    entries, needs, projects, collectibles,
-    materials: MATERIALS, locations: LOCATIONS
+    entries: data.entries, needs: data.needs, projects: data.projects, collectibles: data.collectibles,
+    materials: data.materials, locations: data.locations,
+    privateEntries: data.privateEntries, privateCollectibles: data.privateCollectibles, privateProjects: data.privateProjects,
+    discordSettings: data.discordSettings, activityLog: data.activityLog,
+    // Kataloge/Vorlagen ohne Organisationsbezug (siehe Kommentar vom
+    // 15. August 2026 zur Export-Organisationsauswahl) -- gehoeren nicht
+    // zu EINER bestimmten Organisation, werden aber der Vollstaendigkeit
+    // halber mit gesichert, da sie fuer eine vollstaendige
+    // Wiederherstellung ebenfalls benoetigt wuerden.
+    collectiblesCatalog: COLLECTIBLES,
+    organizationBranding: org ? { motto: org.motto, accentColor: org.accentColor, background: org.background, symbol: org.symbol, emblem: org.emblem } : null
   };
+
+  // Vorlagen (Rezepte/Wikelo) sind ebenfalls global, werden aber nicht
+  // zwingend bereits in dieser Sitzung geladen (nur bei Besuch des
+  // entsprechenden Bereichs) -- daher hier explizit sichergestellt.
+  await Promise.all([loadProjectTemplates(), loadWikeloTemplates()]);
+  payload.projectTemplates = projectTemplates;
+  payload.wikeloTemplates = wikeloTemplates;
+
+  // Benutzer & Zugangsdaten NUR bei explizit aktivierter Checkbox --
+  // bewusst als eigene, klar gekennzeichnete Option mit Sicherheitshinweis
+  // (siehe Formular), da hier individuelle Passwoerter sowie das
+  // organisationsweite Standard-Passwort im Klartext in der
+  // heruntergeladenen Datei landen wuerden. Siehe Nutzerwunsch vom
+  // 15. August 2026.
+  const includeUsersEl = document.getElementById('exportIncludeUsers');
+  if(includeUsersEl && includeUsersEl.checked){
+    await Promise.all([loadUsers(), ensureCredentialsLoaded()]);
+    const orgUsers = USERS.filter(u=>(u.organizationId||LEGACY_ORG_ID)===targetOrgId);
+    const orgUsernames = new Set(orgUsers.map(u=>u.username));
+    const orgCredentials = {};
+    Object.keys(credentials).forEach(username=>{
+      if(orgUsernames.has(username)) orgCredentials[username] = credentials[username];
+    });
+    let defaultPw = DEFAULT_PASSWORD;
+    try{
+      const res = await window.storage.get(`${DEFAULT_PASSWORD_KEY}__org_${targetOrgId}`, true);
+      if(res && res.value) defaultPw = res.value;
+    }catch(e){ /* Standard-Passwort bleibt beim eingebauten Ausgangswert */ }
+    payload.users = orgUsers;
+    payload.credentials = orgCredentials;
+    payload.defaultPassword = defaultPw;
+  }
+
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
-  const safeName = (org ? org.name : currentOrgId).replace(/[^a-z0-9]/gi, '_');
+  const safeName = (org ? org.name : targetOrgId).replace(/[^a-z0-9]/gi, '_');
   const a = document.createElement('a');
   a.href = url;
   a.download = `materialbestand-export-${safeName}-${new Date().toISOString().slice(0,10)}.json`;
@@ -6288,7 +6466,10 @@ async function exportOrgDataJSON(){
   if(org){
     org.lastExportAt = new Date().toISOString();
     await saveOrganizations();
-    renderExportReminder();
+    // Der Sicherungs-Hinweis (renderExportReminder) bezieht sich immer
+    // auf die aktuell AKTIVE Organisation, nicht zwingend die gerade
+    // exportierte -- nur bei Uebereinstimmung sinnvoll aktualisieren.
+    if(targetOrgId === currentOrgId) renderExportReminder();
   }
   document.getElementById('orgExportStatus').textContent = t('msg_export_done');
   setTimeout(()=>{ document.getElementById('orgExportStatus').textContent=''; }, 3000);
@@ -6327,9 +6508,15 @@ document.getElementById('orgImportFileInput').addEventListener('change', (e)=>{
     }
     // Grobe Format-Pruefung -- verhindert, dass eine voellig fremde
     // JSON-Datei versehentlich als Datensicherung interpretiert wird.
+    // Ab 15. August 2026 um alle seit demselben Tag zusaetzlich
+    // exportierten Kategorien erweitert.
     const hasExpectedShape = data && typeof data === 'object' &&
       (Array.isArray(data.entries) || Array.isArray(data.needs) || Array.isArray(data.projects) ||
-       Array.isArray(data.collectibles) || Array.isArray(data.materials) || Array.isArray(data.locations));
+       Array.isArray(data.collectibles) || Array.isArray(data.materials) || Array.isArray(data.locations) ||
+       Array.isArray(data.privateEntries) || Array.isArray(data.privateCollectibles) || Array.isArray(data.privateProjects) ||
+       Array.isArray(data.activityLog) || Array.isArray(data.collectiblesCatalog) ||
+       Array.isArray(data.projectTemplates) || Array.isArray(data.wikeloTemplates) ||
+       Array.isArray(data.users));
     if(!hasExpectedShape){
       setStatusMsg(statusEl, t('val_import_datei_ungueltig'), true);
       return;
@@ -6344,19 +6531,64 @@ document.getElementById('orgImportFileInput').addEventListener('change', (e)=>{
 function renderOrgImportPreview(data){
   const listEl = document.getElementById('orgImportCategoryList');
   // { checkbox-id-suffix, label-key, array-in-file, standardmaessig angehakt }
+  // Ab 15. August 2026 um alle neuen, seit demselben Tag auch im Export
+  // enthaltenen Kategorien erweitert (siehe dortiger Changelog-Eintrag) --
+  // dieselbe Aufteilung in organisationsgebunden (Standard: an) und
+  // global/sensibel (Standard: aus, mit Warnhinweis).
   const categories = [
     { id:'entries', labelKey:'tab_bestand', arr:data.entries, defaultOn:true },
     { id:'needs', labelKey:'tab_bedarf', arr:data.needs, defaultOn:true },
     { id:'projects', labelKey:'tab_projekte', arr:data.projects, defaultOn:true },
     { id:'collectibles', labelKey:'tab_sammelobjekte', arr:data.collectibles, defaultOn:true },
+    { id:'privateEntries', labelKey:'label_import_private_bestaende', arr:data.privateEntries, defaultOn:true },
+    { id:'privateCollectibles', labelKey:'label_import_private_sammelobjekte', arr:data.privateCollectibles, defaultOn:true },
+    { id:'privateProjects', labelKey:'label_import_private_projekte', arr:data.privateProjects, defaultOn:true },
+    { id:'activityLog', labelKey:'label_import_protokoll', arr:data.activityLog, defaultOn:true },
     { id:'materials', labelKey:'label_material_katalog_global', arr:data.materials, defaultOn:false },
     { id:'locations', labelKey:'label_lagerort_katalog_global', arr:data.locations, defaultOn:false },
+    { id:'collectiblesCatalog', labelKey:'label_import_sammelobjekt_katalog_global', arr:data.collectiblesCatalog, defaultOn:false },
+    { id:'projectTemplates', labelKey:'label_import_rezept_vorlagen_global', arr:data.projectTemplates, defaultOn:false },
+    { id:'wikeloTemplates', labelKey:'label_import_wikelo_vorlagen_global', arr:data.wikeloTemplates, defaultOn:false },
   ];
-  listEl.innerHTML = categories.filter(c=>Array.isArray(c.arr)).map(c=>`
+  let html = categories.filter(c=>Array.isArray(c.arr)).map(c=>`
     <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
       <input type="checkbox" id="orgImportCat-${c.id}" ${c.defaultOn?'checked':''}>
       <span>${t(c.labelKey)} (${c.arr.length})${c.defaultOn ? '' : ' — ' + t('label_global_warnhinweis')}</span>
     </label>`).join('');
+
+  // Discord-Einstellungen und Organisations-Individualisierung sind
+  // Objekte, keine Arrays -- eigene Darstellung ohne Anzahl, aber sonst
+  // gleich behandelt (organisationsgebunden, Standard: an).
+  if(data.discordSettings && typeof data.discordSettings === 'object'){
+    html += `
+    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
+      <input type="checkbox" id="orgImportCat-discordSettings" checked>
+      <span>${t('label_import_discord_einstellungen')}</span>
+    </label>`;
+  }
+  if(data.organizationBranding && typeof data.organizationBranding === 'object'){
+    html += `
+    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;">
+      <input type="checkbox" id="orgImportCat-organizationBranding" checked>
+      <span>${t('label_import_org_branding')}</span>
+    </label>`;
+  }
+  // Benutzer & Zugangsdaten -- nur anzeigen, wenn die Datei ueberhaupt
+  // welche enthaelt (beim Export bewusst optional, siehe dortiger
+  // Changelog-Eintrag). Deutlich abgesetzt, standardmaessig AUS, mit
+  // eigenem Sicherheitshinweis -- ein Wiederherstellen wuerde bestehende,
+  // AKTUELLE Passwoerter durch den zum Sicherungszeitpunkt gueltigen,
+  // moeglicherweise laengst veraenderten Stand ersetzen.
+  if(Array.isArray(data.users) && data.users.length){
+    html += `
+    <label style="display:flex;align-items:flex-start;gap:8px;font-weight:normal;cursor:pointer;margin-top:6px;">
+      <input type="checkbox" id="orgImportCat-users" style="margin-top:2px;">
+      <span>${t('label_import_benutzer_zugangsdaten')} (${data.users.length})</span>
+    </label>
+    <div class="user-note" style="margin-left:24px;border-left:2px solid #FF3B5C;padding-left:10px;">${t('hint_import_benutzer_sicherheit')}</div>`;
+  }
+
+  listEl.innerHTML = html;
   document.getElementById('orgImportPreview').style.display = '';
 }
 
@@ -6394,6 +6626,45 @@ document.getElementById('btnConfirmOrgImport').addEventListener('click', async (
     await saveCollectibles();
     importedParts.push(`${collectibles.length} ${t('tab_sammelobjekte')}`);
   }
+  // Ab 15. August 2026: private Bestaende ALLER Mitglieder dieser
+  // Organisation, analog zu den bereits bestehenden geteilten Kategorien
+  // oben -- organisationsgebunden ueber orgKey(), siehe jeweilige
+  // save-Funktion.
+  if(Array.isArray(data.privateEntries) && selected('privateEntries')){
+    privateEntries = data.privateEntries;
+    await savePrivateEntries();
+    importedParts.push(`${privateEntries.length} ${t('label_import_private_bestaende')}`);
+  }
+  if(Array.isArray(data.privateCollectibles) && selected('privateCollectibles')){
+    privateCollectibles = data.privateCollectibles;
+    await savePrivateCollectibles();
+    importedParts.push(`${privateCollectibles.length} ${t('label_import_private_sammelobjekte')}`);
+  }
+  if(Array.isArray(data.privateProjects) && selected('privateProjects')){
+    privateProjects = data.privateProjects;
+    await savePrivateProjects();
+    importedParts.push(`${privateProjects.length} ${t('label_import_private_projekte')}`);
+  }
+  if(Array.isArray(data.activityLog) && selected('activityLog')){
+    await window.storage.set(orgKey(LOG_KEY), JSON.stringify(data.activityLog), true);
+    importedParts.push(`${data.activityLog.length} ${t('label_import_protokoll')}`);
+  }
+  if(data.discordSettings && typeof data.discordSettings === 'object' && selected('discordSettings')){
+    currentOrgDiscordSettings = data.discordSettings;
+    await window.storage.set(orgKey(DISCORD_SETTINGS_KEY), JSON.stringify(data.discordSettings), true);
+    loadDiscordSettingsIntoForm();
+    importedParts.push(t('label_import_discord_einstellungen'));
+  }
+  if(data.organizationBranding && typeof data.organizationBranding === 'object' && selected('organizationBranding')){
+    const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+    if(org){
+      Object.assign(org, data.organizationBranding);
+      await saveOrganizations();
+      applyOrgBranding();
+      renderOrgBrandingForm();
+      importedParts.push(t('label_import_org_branding'));
+    }
+  }
   // Global: bewusst ausserhalb der obigen, organisationsgebundenen
   // save()-Aufrufe -- MATERIALS/LOCATIONS werden ueber saveMaterials()/
   // saveLocations() OHNE orgKey() gespeichert, siehe deren Definition.
@@ -6406,6 +6677,53 @@ document.getElementById('btnConfirmOrgImport').addEventListener('click', async (
     LOCATIONS = data.locations;
     await saveLocations();
     importedParts.push(`${LOCATIONS.length} ${t('label_lagerort_katalog_global')}`);
+  }
+  // Ebenfalls global (siehe Kommentar-Historie vom 15. August 2026 bei
+  // der Export-Organisationsauswahl): Sammelobjekt-Katalog sowie beide
+  // Vorlagen-Arten.
+  if(Array.isArray(data.collectiblesCatalog) && selected('collectiblesCatalog')){
+    COLLECTIBLES = data.collectiblesCatalog;
+    await saveCollectiblesCatalog();
+    importedParts.push(`${COLLECTIBLES.length} ${t('label_import_sammelobjekt_katalog_global')}`);
+  }
+  if(Array.isArray(data.projectTemplates) && selected('projectTemplates')){
+    projectTemplates = data.projectTemplates;
+    await saveProjectTemplates();
+    importedParts.push(`${projectTemplates.length} ${t('label_import_rezept_vorlagen_global')}`);
+  }
+  if(Array.isArray(data.wikeloTemplates) && selected('wikeloTemplates')){
+    wikeloTemplates = data.wikeloTemplates;
+    await saveWikeloTemplates();
+    importedParts.push(`${wikeloTemplates.length} ${t('label_import_wikelo_vorlagen_global')}`);
+  }
+  // Benutzer & Zugangsdaten -- nur bei explizit aktivierter Checkbox
+  // (siehe renderOrgImportPreview, standardmaessig AUS). Benutzerliste
+  // und Zugangsdaten sind GLOBAL gespeichert (siehe saveUsers()/
+  // saveCredentials(), kein orgKey()) -- ein einfaches Ersetzen wuerde
+  // dadurch faelschlich auch Benutzer ANDERER Organisationen entfernen.
+  // Stattdessen werden ausschliesslich die Benutzer DIESER Organisation
+  // aus der globalen Liste entfernt und durch die importierten ersetzt --
+  // Benutzer anderer Organisationen bleiben unangetastet. Bei den
+  // Zugangsdaten reicht ein Zusammenfuehren (Object.assign), da die
+  // Export-Datei ohnehin bereits nur Zugangsdaten dieser Organisation
+  // enthaelt (siehe dortige Filterung). Siehe Nutzerwunsch vom
+  // 15. August 2026.
+  if(Array.isArray(data.users) && selected('users')){
+    USERS = USERS.filter(u=>(u.organizationId||LEGACY_ORG_ID)!==currentOrgId).concat(data.users);
+    await saveUsers();
+    importedParts.push(`${data.users.length} ${t('label_import_benutzer_zugangsdaten')}`);
+    if(data.credentials && typeof data.credentials === 'object'){
+      await ensureCredentialsLoaded();
+      Object.assign(credentials, data.credentials);
+      await saveCredentials();
+    }
+    if(data.defaultPassword){
+      await window.storage.set(`${DEFAULT_PASSWORD_KEY}__org_${currentOrgId}`, data.defaultPassword, true);
+      currentOrgDefaultPassword = data.defaultPassword;
+      const defaultPwInput = document.getElementById('defaultPasswordInput');
+      if(defaultPwInput) defaultPwInput.value = data.defaultPassword;
+    }
+    renderUserList();
   }
 
   await logAction('Datensicherung wiederhergestellt', importedParts.join(', ') || t('label_nichts_ausgewaehlt'));
@@ -6894,7 +7212,7 @@ function completeLogin(user){
   document.getElementById('orgSwitcherWrap').style.display = user.role==='owner' ? '' : 'none';
   if(user.role==='owner'){ renderOrgSwitcher(); renderOrgManagementList(); renderTemplateCount(); renderWikeloCount(); updateBackupRestoreButtons(); renderTemplateManageList('rezepte'); renderTemplateManageList('wikelo'); }
   applyOrgBranding();
-  if(isOrgAdminOrAbove){ renderOrgBrandingForm(); renderExportReminder(); }
+  if(isOrgAdminOrAbove){ renderOrgBrandingForm(); renderExportReminder(); renderExportOrgSelect(); }
   switchTab('uebersicht');
   if(isOrgAdminOrAbove){ buildNewUserRoleOptions(); renderUserList(); }
   load().then(()=>{
@@ -6930,9 +7248,19 @@ async function switchOrganization(newOrgId){
   currentOrgId = newOrgId;
   materialsLoaded = false;
   locationsLoaded = false;
+  // Ab 14. August 2026, als der Sammelobjekt-Katalog von einer festen
+  // Konstante auf dynamisches Laden/Speichern umgestellt wurde (siehe
+  // loadCollectiblesCatalog): hier vergessen worden, obwohl exakt
+  // dasselbe Prinzip wie bei Materialien gilt -- ohne diesen Reset
+  // wuerde der Sammelobjekt-Katalog beim Organisationswechsel faelschlich
+  // WEITERHIN den Stand der zuvor aktiven Organisation zeigen, statt neu
+  // zu laden. Bei einer systematischen Ende-zu-Ende-Pruefung am
+  // 15. August 2026 gefunden und korrigiert.
+  collectiblesCatalogLoaded = false;
   applyOrgBranding();
   renderOrgBrandingForm();
   renderExportReminder();
+  renderExportOrgSelect();
   // WICHTIG: currentOrgDiscordSettings (und currentOrgDefaultPassword)
   // haengen ueber orgKey() an currentOrgId und MUESSEN beim Wechsel neu
   // geladen werden -- ohne dies wuerde eine z.B. ausgeloeste
@@ -6999,7 +7327,7 @@ async function submitForgotPassword(){
   credentials[user.username] = next;
   const ok = await saveCredentials();
   if(!ok){
-    setStatusMsg(statusEl, t('msg_save_failed'), false);
+    setStatusMsg(statusEl, t('msg_save_failed'), true);
     return;
   }
   await logAction('Passwort über "Passwort vergessen" zurückgesetzt', user.username, user.username);
@@ -7040,7 +7368,7 @@ async function submitForcedPassword(){
   const ok = await saveCredentials();
   if(!ok){
     setForcedPwBusy(false);
-    setStatusMsg(statusEl, t('msg_save_failed'), false);
+    setStatusMsg(statusEl, t('msg_save_failed'), true);
     return;
   }
   await logAction('Passwort beim ersten Login festgelegt', currentUser.username);
@@ -7773,25 +8101,60 @@ function renderCollectibles(){
         const standortSel = document.getElementById('edit-coll-standort');
         const projektSel = document.getElementById('edit-coll-projekt');
         const projektAssign = projektSel ? parseProjectAssignmentValue(projektSel.value) : { ziel: collectibles[idx].projekt, typ: collectibles[idx].projektTyp };
-        collectibles[idx] = {
-          ...collectibles[idx],
-          kategorie: newItem ? newItem.category : '',
-          objekt: newObjekt,
-          tier: tierSel ? tierSel.value : null,
-          standort: standortSel ? standortSel.value : collectibles[idx].standort,
-          anzahl: parseFloat(document.getElementById('edit-coll-anzahl').value)||0,
-          projekt: projektAssign.ziel,
-          projektTyp: projektAssign.typ
-        };
-        await logAction('Sammelobjekt bearbeitet', `${collectibles[idx].objekt}${collectibles[idx].tier ? ' ('+collectibles[idx].tier+')' : ''} — ${collectibles[idx].anzahl}x (${collectibles[idx].besitzer||'–'})`);
+        const newAnzahl = parseFloat(document.getElementById('edit-coll-anzahl').value)||0;
+        const oldProjekt = collectibles[idx].projekt||'';
+        const oldProjektTyp = collectibles[idx].projektTyp||null;
+        // Nur wenn Ziel-Projekt UNVERAENDERT bleibt, trug dieser Eintrag
+        // bereits zum aktuellen Bestand dieses Projekts bei -- siehe
+        // Kommentar bei checkAndResolveProjectOverflow.
+        const sameTarget = projektAssign.ziel === oldProjekt && projektAssign.typ === oldProjektTyp;
+        const excludeAmount = sameTarget ? collectibles[idx].anzahl : 0;
+        const einheit = getDefaultEinheitForMaterial(newObjekt);
+
+        checkAndResolveProjectOverflow(newObjekt, projektAssign.ziel, projektAssign.typ, newAnzahl, false, einheit, async (finalMenge, restMenge)=>{
+          if(finalMenge == null) return; // Nutzer hat abgebrochen -- Bearbeiten-Modus bleibt offen
+
+          const tier = tierSel ? tierSel.value : null;
+          const standort = standortSel ? standortSel.value : collectibles[idx].standort;
+          collectibles[idx] = {
+            ...collectibles[idx],
+            kategorie: newItem ? newItem.category : '',
+            objekt: newObjekt,
+            tier,
+            standort,
+            anzahl: finalMenge,
+            projekt: projektAssign.ziel,
+            projektTyp: projektAssign.typ
+          };
+          let logDetail = `${collectibles[idx].objekt}${collectibles[idx].tier ? ' ('+collectibles[idx].tier+')' : ''} — ${collectibles[idx].anzahl}x (${collectibles[idx].besitzer||'–'})`;
+          // Ueberschuss (falls "Menge kappen" gewaehlt wurde) als
+          // zweiter, NICHT dem Projekt zugeordneter Eintrag -- bleibt
+          // dadurch im freien Pool statt verloren zu gehen.
+          if(restMenge > 0){
+            collectibles.push({
+              id: collectibleUid(),
+              kategorie: newItem ? newItem.category : '',
+              objekt: newObjekt, tier, standort,
+              anzahl: restMenge,
+              projekt: '', projektTyp: null,
+              besitzer: collectibles[idx].besitzer
+            });
+            logDetail += `, ${restMenge} zusaetzlich ohne Projekt-Zuordnung (Ueberschuss)`;
+          }
+          await logAction('Sammelobjekt bearbeitet', logDetail);
+
+          editingCollectibleId = null;
+          await saveCollectibles();
+          renderCollectibles();
+          renderCollectibleSummary();
+          scheduleRenderDashboard();
+          updateProjectAvailability();
+          renderProjects();
+        }, excludeAmount);
+      } else {
+        editingCollectibleId = null;
+        renderCollectibles();
       }
-      editingCollectibleId = null;
-      await saveCollectibles();
-      renderCollectibles();
-      renderCollectibleSummary();
-      scheduleRenderDashboard();
-      updateProjectAvailability();
-      renderProjects();
     });
   }
   renderCollectibleSummary();
@@ -7941,9 +8304,19 @@ document.getElementById('btnAddPrivateCollectible').addEventListener('click', as
         owner: currentUser.username
       });
     }
+    // Siehe Kommentar bei der privaten Material-Anlage weiter oben --
+    // dieselbe automatische Uebertragung bei Zuordnung zu einem
+    // GETEILTEN Projekt, statt den manuellen Uebertragen-Schritt zu
+    // erfordern.
+    const autoTransferId = (projektAssign.typ === 'shared' && projektAssign.ziel)
+      ? privateCollectibles[privateCollectibles.length - (restMenge>0?2:1)].id
+      : null;
 
     await savePrivateCollectibles();
     await logAction('Privates Sammelobjekt hinzugefügt', `${objekt}${tier ? ' ('+tier+')' : ''} — ${finalMenge}x${standort ? ' @ '+standort : ''}${projektAssign.ziel ? ' [Projekt: '+projektAssign.ziel+']' : ''}${restMenge>0 ? `, ${restMenge}x zusaetzlich ohne Projekt-Zuordnung (Ueberschuss)` : ''}`);
+    if(autoTransferId){
+      await transferPrivateCollectible(autoTransferId);
+    }
 
     document.getElementById('priv-coll-item').value = '';
     document.getElementById('priv-coll-anzahl').value = '';
@@ -7963,6 +8336,14 @@ async function transferPrivateCollectible(id){
   const c = privateCollectibles.find(pc=>pc.id===id);
   if(!c) return;
 
+  // Siehe ausfuehrlicher Kommentar bei transferPrivateEntry() (Materialien)
+  // weiter oben -- dieselbe Luecke bestand auch hier: eine Zuordnung zu
+  // einem PRIVATEN Projekt wurde bislang unveraendert in den geteilten
+  // Bestand uebernommen, wo sie auf kein existierendes (geteiltes)
+  // Projekt verweist. Bei einer systematischen Tiefenpruefung am
+  // 15. August 2026 gefunden und korrigiert.
+  const effektivesProjekt = (c.projektTyp||'shared') === 'shared' ? (c.projekt||'') : '';
+
   // Wie bei transferPrivateEntry() (Materialien): Nur mit einem
   // bestehenden Eintrag zusammenfuehren, der auch dieselbe Projekt-
   // Zuordnung hat -- sonst wuerde die eigene Zuordnung beim Zusammen-
@@ -7973,21 +8354,24 @@ async function transferPrivateCollectible(id){
   // dieser Bug gemeldet wurde ("Sammelobjekt verliert die Projekt-
   // Zuordnung beim Uebertragen") -- Nutzerwunsch vom 12. August 2026.
   const match = collectibles.find(pub =>
-    pub.objekt === c.objekt && (pub.tier||'') === (c.tier||'') && (pub.projekt||'') === (c.projekt||'')
+    pub.objekt === c.objekt && (pub.tier||'') === (c.tier||'') && (pub.projekt||'') === effektivesProjekt
   );
 
   let logDetail;
   if(match){
     match.anzahl = Math.round((match.anzahl + c.anzahl) * 100) / 100;
-    logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, +${c.anzahl}x (neuer Bestand: ${match.anzahl}x)${c.projekt ? ' [Projekt: '+c.projekt+']' : ''}`;
+    logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, +${c.anzahl}x (neuer Bestand: ${match.anzahl}x)${effektivesProjekt ? ' [Projekt: '+effektivesProjekt+']' : ''}`;
   } else {
     collectibles.push({
       id: collectibleUid(),
       kategorie: c.kategorie, objekt: c.objekt, tier: c.tier,
       anzahl: c.anzahl, standort: c.standort, besitzer: currentUser.username,
-      projekt: c.projekt || ''
+      projekt: effektivesProjekt
     });
-    logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, ${c.anzahl}x (neuer Eintrag)${c.projekt ? ' [Projekt: '+c.projekt+']' : ''}`;
+    logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, ${c.anzahl}x (neuer Eintrag)${effektivesProjekt ? ' [Projekt: '+effektivesProjekt+']' : ''}`;
+  }
+  if(c.projektTyp==='private' && c.projekt){
+    logDetail += ` — private Projekt-Zuordnung „${c.projekt}“ beim Übertragen aufgelöst (im geteilten Bestand ohne Bedeutung)`;
   }
   await saveCollectibles();
 
@@ -8154,23 +8538,59 @@ function renderPrivateCollectibles(){
         const standortSel = document.getElementById('edit-priv-coll-standort');
         const projektSel = document.getElementById('edit-priv-coll-projekt');
         const projektAssign = projektSel ? parseProjectAssignmentValue(projektSel.value) : { ziel: privateCollectibles[idx].projekt, typ: privateCollectibles[idx].projektTyp };
-        privateCollectibles[idx] = {
-          ...privateCollectibles[idx],
-          kategorie: newItem ? newItem.category : '',
-          objekt: newObjekt,
-          tier: tierSel ? tierSel.value : null,
-          standort: standortSel ? standortSel.value : privateCollectibles[idx].standort,
-          anzahl: parseFloat(document.getElementById('edit-priv-coll-anzahl').value)||0,
-          projekt: projektAssign.ziel,
-          projektTyp: projektAssign.typ
-        };
-        await logAction('Privates Sammelobjekt bearbeitet', `${privateCollectibles[idx].objekt}${privateCollectibles[idx].tier ? ' ('+privateCollectibles[idx].tier+')' : ''} — ${privateCollectibles[idx].anzahl}x`);
+        const newAnzahl = parseFloat(document.getElementById('edit-priv-coll-anzahl').value)||0;
+        const oldProjekt = privateCollectibles[idx].projekt||'';
+        const oldProjektTyp = privateCollectibles[idx].projektTyp||null;
+        const sameTarget = projektAssign.ziel === oldProjekt && projektAssign.typ === oldProjektTyp;
+        const excludeAmount = sameTarget ? privateCollectibles[idx].anzahl : 0;
+        const einheit = getDefaultEinheitForMaterial(newObjekt);
+        const owner = privateCollectibles[idx].owner;
+
+        checkAndResolveProjectOverflow(newObjekt, projektAssign.ziel, projektAssign.typ, newAnzahl, true, einheit, async (finalMenge, restMenge)=>{
+          if(finalMenge == null) return; // Nutzer hat abgebrochen -- Bearbeiten-Modus bleibt offen
+
+          const tier = tierSel ? tierSel.value : null;
+          const standort = standortSel ? standortSel.value : privateCollectibles[idx].standort;
+          privateCollectibles[idx] = {
+            ...privateCollectibles[idx],
+            kategorie: newItem ? newItem.category : '',
+            objekt: newObjekt,
+            tier,
+            standort,
+            anzahl: finalMenge,
+            projekt: projektAssign.ziel,
+            projektTyp: projektAssign.typ
+          };
+          let logDetail = `${privateCollectibles[idx].objekt}${privateCollectibles[idx].tier ? ' ('+privateCollectibles[idx].tier+')' : ''} — ${privateCollectibles[idx].anzahl}x`;
+          if(restMenge > 0){
+            privateCollectibles.push({
+              id: privateCollectibleUid(),
+              kategorie: newItem ? newItem.category : '',
+              objekt: newObjekt, tier, standort,
+              anzahl: restMenge,
+              projekt: '', projektTyp: null,
+              owner
+            });
+            logDetail += `, ${restMenge} zusaetzlich ohne Projekt-Zuordnung (Ueberschuss)`;
+          }
+          await logAction('Privates Sammelobjekt bearbeitet', logDetail);
+
+          editingPrivateCollectibleId = null;
+          await savePrivateCollectibles();
+          // Siehe Kommentar bei der privaten Material-ANLAGE weiter oben --
+          // dieselbe automatische Uebertragung bei Zuordnung/Neuzuweisung
+          // zu einem GETEILTEN Projekt.
+          if(projektAssign.typ === 'shared' && projektAssign.ziel){
+            await transferPrivateCollectible(privateCollectibles[idx].id);
+          }
+          renderPrivateCollectibles();
+          updatePrivateProjectAvailability();
+          renderPrivateProjects();
+        }, excludeAmount);
+      } else {
+        editingPrivateCollectibleId = null;
+        renderPrivateCollectibles();
       }
-      editingPrivateCollectibleId = null;
-      await savePrivateCollectibles();
-      renderPrivateCollectibles();
-      updatePrivateProjectAvailability();
-      renderPrivateProjects();
     });
   }
   renderPrivateCollectibleSummary();
@@ -8930,17 +9350,34 @@ function shortLocLabel(fullLabel){
 // Baut die tabellarische Mouse-over-Aufschluesselung fuer ein Material
 // (im Kontext eines Projekts): wer hat wieviel beigetragen, und wo lagert
 // es. Genutzt in der Projekt-Uebersicht bei "Vorhanden".
+// Ab 15. August 2026: bezieht zusaetzlich Sammelobjekt-Beitraege mit ein
+// -- bislang wurden hier AUSSCHLIESSLICH Material-Eintraege (entries)
+// geprueft, obwohl stockAmount() (die Grundlage der Fortschritts-
+// berechnung selbst) bereits seit dem 12. August auch Sammelobjekte
+// einschliesst. Ein Projekt konnte dadurch bereits 100% Fortschritt bei
+// einer Sammelobjekt-Ressource zeigen, waehrend diese Aufschluesselung
+// faelschlich "noch kein Bestand" meldete -- die Anzeige war schlicht
+// nicht auf dem Stand der zugrundeliegenden Berechnung. Sammelobjekte
+// nutzen andere Feldnamen (besitzer statt person, anzahl statt menge,
+// keine eigene Einheit) und werden hier auf dieselbe Form gebracht, um
+// beide gemeinsam in einer Tabelle darzustellen.
 function buildStockBreakdownHTML(material, projekt){
-  const matching = entries.filter(e=>e.material===material && (e.projekt||'')===projekt);
+  const fromEntries = entries
+    .filter(e=>e.material===material && (e.projekt||'')===projekt)
+    .map(e=>({ person: e.person, lagerort: e.lagerort, menge: e.menge, einheit: e.einheit }));
+  const fromCollectibles = collectibles
+    .filter(c=>c.objekt===material && (c.projekt||'')===projekt)
+    .map(c=>({ person: c.besitzer, lagerort: c.standort||'–', menge: c.anzahl, einheit: 'Stück' }));
+  const matching = [...fromEntries, ...fromCollectibles];
   let body;
   if(matching.length === 0){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
-    const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
+    const sorted = [...matching].sort((a,b)=> (a.person||'').localeCompare(b.person||'') || (a.lagerort||'').localeCompare(b.lagerort||''));
     body = `<table><thead><tr><th style="width:34%;">Owner</th><th style="width:44%;">Loc</th><th style="width:22%;">${t('label_menge')}</th></tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
-        <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
+        <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person||'–')}</span></td>
         <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(shortLocLabel(e.lagerort))}</span></td>
         <td class="qty-cell">${Math.round(e.menge*100)/100} ${e.einheit}</td>
       </tr>`;
@@ -9807,7 +10244,7 @@ async function saveTemplateEdit(){
     renderTemplateManageList(kind);
     if(kind==='rezepte') renderTemplateCount(); else renderWikeloCount();
   } else {
-    setStatusMsg(statusEl, t('msg_save_failed'), false);
+    setStatusMsg(statusEl, t('msg_save_failed'), true);
   }
 }
 
@@ -10064,7 +10501,19 @@ function closePartialAssignModal(){
 //   z.B. als Vorrat/Puffer).
 // - "Abbrechen" gewaehlt: finalMenge = null (Aufrufer bricht die
 //   gesamte Aktion ab, legt gar nichts an).
-function checkAndResolveProjectOverflow(material, projekt, projektTyp, enteredMenge, isPrivate, einheit, callback){
+// excludeAmount (optional, Standard 0): Beim BEARBEITEN eines bereits
+// bestehenden, diesem Projekt bereits zugeordneten Eintrags traegt der
+// Eintrag selbst schon zum aktuellen Bestand (stockAmount/
+// privateStockAmount) bei -- ohne Herausrechnen dieses eigenen,
+// bisherigen Beitrags wuerde die Pruefung faelschlich einen bereits
+// zugeordneten Eintrag SELBST als "bereits verfuegbar" gegen sich
+// selbst gegenrechnen. Nur relevant, wenn Ziel-Projekt beim Bearbeiten
+// UNVERAENDERT bleibt (gleiches Projekt, ggf. andere Menge) -- bei
+// Neuzuweisung an ein ANDERES Projekt bleibt excludeAmount bei 0, da
+// der bisherige Eintrag zum NEUEN Projekt bislang gar nicht beitrug.
+// Siehe Nutzerwunsch vom 15. August 2026 (Nachruestung fuer Bearbeiten-
+// Formulare, analog zur bereits bestehenden Pruefung bei Neuanlage).
+function checkAndResolveProjectOverflow(material, projekt, projektTyp, enteredMenge, isPrivate, einheit, callback, excludeAmount){
   if(!projekt || enteredMenge == null || enteredMenge <= 0){ callback(enteredMenge, 0); return; }
   const projectList = projektTyp === 'private' ? privateProjects : projects;
   const project = projectList.find(p=>p.ziel === projekt);
@@ -10075,10 +10524,11 @@ function checkAndResolveProjectOverflow(material, projekt, projektTyp, enteredMe
   const effMenge = effectiveResourceMenge(project, resource);
   // Bereits vorhandener Bestand VOR diesem neuen Eintrag -- der neue
   // Eintrag selbst ist zu diesem Zeitpunkt noch nicht angelegt, zaehlt
-  // also korrekt noch nicht mit.
-  const currentAvail = isPrivate
+  // also korrekt noch nicht mit. Beim Bearbeiten wird der eigene,
+  // bisherige Beitrag ueber excludeAmount zusaetzlich herausgerechnet.
+  const currentAvail = (isPrivate
     ? privateStockAmount(material, projekt, undefined, projektTyp)
-    : stockAmount(material, projekt);
+    : stockAmount(material, projekt)) - (excludeAmount || 0);
   const remaining = Math.max(0, Math.round((effMenge - currentAvail) * 1000) / 1000);
 
   if(enteredMenge <= remaining){ callback(enteredMenge, 0); return; }
@@ -10276,7 +10726,7 @@ document.getElementById('btnRestoreTemplatesBackup').addEventListener('click', (
       renderTemplateCount();
       renderTemplateManageList('rezepte');
     } else {
-      setStatusMsg(statusEl, t('msg_backup_restore_failed'), false);
+      setStatusMsg(statusEl, t('msg_backup_restore_failed'), true);
     }
     setTimeout(()=>{ statusEl.textContent=''; }, 4000);
   });
@@ -10293,7 +10743,7 @@ document.getElementById('btnRestoreWikeloBackup').addEventListener('click', ()=>
       renderWikeloCount();
       renderTemplateManageList('wikelo');
     } else {
-      setStatusMsg(statusEl, t('msg_backup_restore_failed'), false);
+      setStatusMsg(statusEl, t('msg_backup_restore_failed'), true);
     }
     setTimeout(()=>{ statusEl.textContent=''; }, 4000);
   });
@@ -12676,13 +13126,15 @@ async function save(){
   try{
     await window.storage.set(orgKey(STORAGE_KEY), JSON.stringify(entries), true);
   }catch(e){
-    setStatus(t('msg_save_failed_local'));
+    setStatus(t('msg_save_failed_local'), true);
   }
 }
 
-function setStatus(msg){
-  document.getElementById('statusMsg').textContent = msg;
-  if(msg) setTimeout(()=>{ document.getElementById('statusMsg').textContent=''; }, 3000);
+function setStatus(msg, isError){
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.classList.toggle('status-msg-error', !!isError);
+  if(msg) setTimeout(()=>{ el.textContent=''; el.classList.remove('status-msg-error'); }, 3000);
 }
 
 function uid(){ return 'e' + Date.now() + Math.random().toString(36).slice(2,7); }
@@ -12849,7 +13301,7 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
   const projekt = document.getElementById('f-projekt').value;
 
   if(!material || qualitaetRaw === '' || !menge || !lagerort){
-    setStatus(t('val_bestand_required'));
+    setStatus(t('val_bestand_required'), true);
     return;
   }
 
@@ -12861,7 +13313,7 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
   if(categoryRestriction){
     const matDef = MATERIALS.find(m=>m.name===material);
     if(!matDef || !categoryRestriction.includes(matDef.category)){
-      setStatus(t('val_kategorie_nicht_erlaubt'));
+      setStatus(t('val_kategorie_nicht_erlaubt'), true);
       return;
     }
   }
@@ -12871,7 +13323,7 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
 
   const validationError = validateQualityAndMenge(qualitaet, mengeNum);
   if(validationError){
-    setStatus(validationError);
+    setStatus(validationError, true);
     return;
   }
 
@@ -15070,7 +15522,7 @@ function render(){
       // eigenen privaten Bestand).
       const recipients = USERS.filter(u=>u.organizationId===currentUser.organizationId && u.username!==currentUser.username).map(u=>u.username);
       if(recipients.length === 0){
-        setStatus(t('val_keine_empfaenger'));
+        setStatus(t('val_keine_empfaenger'), true);
         return;
       }
       openPartialAssignModal({
@@ -15139,7 +15591,7 @@ function render(){
       const newMenge = parseFloat(document.getElementById('edit-menge').value);
       const validationError = validateQualityAndMenge(newQualitaet, newMenge);
       if(validationError){
-        setStatus(validationError);
+        setStatus(validationError, true);
         return;
       }
       const newMaterial = document.getElementById('edit-material').value.trim();
@@ -15147,7 +15599,7 @@ function render(){
       if(categoryRestriction){
         const matDef = MATERIALS.find(m=>m.name===newMaterial);
         if(!matDef || !categoryRestriction.includes(matDef.category)){
-          setStatus(t('val_kategorie_nicht_erlaubt'));
+          setStatus(t('val_kategorie_nicht_erlaubt'), true);
           return;
         }
       }
@@ -15165,7 +15617,7 @@ function render(){
       // Projekt-Zuordnung mit der Restmenge, ein NEUER Eintrag erhaelt die
       // gewaehlte Teilmenge mit der neuen Projekt-Zuordnung (siehe
       // Nutzerwunsch vom 7. August 2026 zur Teilmengen-Zuweisung).
-      const applyEdit = async (assignMenge)=>{
+      const applyEdit = async (assignMenge, overflowExtra)=>{
         if(assignMenge != null && assignMenge < newMenge){
           const remainderMenge = Math.round((newMenge - assignMenge) * 1000) / 1000;
           entries[idx] = {
@@ -15191,6 +15643,18 @@ function render(){
           };
           await logAction('Bestand bearbeitet', `${entries[idx].material}, ${entries[idx].menge} ${entries[idx].einheit} @ ${entries[idx].lagerort}${entries[idx].projekt ? ' [Projekt: '+entries[idx].projekt+']' : ''}`);
         }
+        // Ueberschuss aus der Projekt-Restbedarfs-Pruefung (siehe
+        // checkAndResolveProjectOverflow) als weiterer, NICHT zugeordneter
+        // Eintrag -- bleibt dadurch im freien Pool statt verloren zu gehen.
+        if(overflowExtra > 0){
+          entries.push({
+            id: uid(),
+            material: newMaterial, qualitaet: newQualitaet,
+            menge: overflowExtra, einheit: newEinheit, lagerort: newLagerort,
+            person: oldPerson, projekt: '',
+            createdAt: new Date().toISOString()
+          });
+        }
         editingId = null;
         setStatus(t('msg_saving'));
         await save();
@@ -15212,10 +15676,59 @@ function render(){
           text: t('text_partial_assign').replace('{material}', newMaterial).replace('{project}', newProjekt),
           fullAmount: newMenge,
           einheit: newEinheit,
-          onConfirm: async (amount)=>{ await applyEdit(amount); }
+          onConfirm: async (amount)=>{
+            // Zusaetzlich zur bestehenden Teilmengen-Abfrage: prueft, ob
+            // die dem NEUEN Projekt zugewiesene Menge dessen tatsaechlichen
+            // Restbedarf uebersteigt (excludeAmount=0, da dieser Eintrag
+            // bislang NICHT zum neuen Projekt beitrug). Siehe Nutzerwunsch
+            // vom 15. August 2026 (Nachruestung fuer Bearbeiten-Formulare).
+            checkAndResolveProjectOverflow(newMaterial, newProjekt, 'shared', amount, false, newEinheit, async (finalMenge, restMenge)=>{
+              if(finalMenge == null) return; // Nutzer hat abgebrochen
+              await applyEdit(finalMenge, restMenge);
+            }, 0);
+          }
         });
+      } else if(newProjekt && newProjekt === oldProjekt){
+        // Zuordnung bleibt unveraendert (ggf. nur die Menge aendert sich) --
+        // der bisherige Beitrag dieses Eintrags zum Projekt wird ueber
+        // excludeAmount herausgerechnet, sonst wuerde der Eintrag
+        // faelschlich gegen sich selbst gegengerechnet.
+        checkAndResolveProjectOverflow(newMaterial, newProjekt, 'shared', newMenge, false, newEinheit, async (finalMenge, restMenge)=>{
+          if(finalMenge == null) return; // Nutzer hat abgebrochen
+          // finalMenge < newMenge bedeutet gekappt -- da hier KEIN
+          // Teilmengen-Modal lief, muss die Hauptmenge selbst reduziert
+          // werden (nicht ueber assignMenge/overflowExtra der Split-Logik,
+          // die fuer den "neues Projekt"-Fall gedacht ist).
+          if(finalMenge < newMenge){
+            entries[idx] = {
+              ...entries[idx],
+              material: newMaterial, qualitaet: newQualitaet,
+              menge: finalMenge, einheit: newEinheit, lagerort: newLagerort,
+              projekt: newProjekt
+            };
+            entries.push({
+              id: uid(),
+              material: newMaterial, qualitaet: newQualitaet,
+              menge: restMenge, einheit: newEinheit, lagerort: newLagerort,
+              person: oldPerson, projekt: '',
+              createdAt: new Date().toISOString()
+            });
+            await logAction('Bestand bearbeitet', `${newMaterial}, ${finalMenge} ${newEinheit} @ ${newLagerort} [Projekt: ${newProjekt}], ${restMenge} ${newEinheit} zusaetzlich ohne Projekt-Zuordnung (Ueberschuss)`);
+            editingId = null;
+            setStatus(t('msg_saving'));
+            await save();
+            render();
+            updateProjectAvailability();
+            renderProjects();
+            renderNeeds();
+            scheduleRenderDashboard();
+            setStatus(t('msg_entry_updated'));
+          } else {
+            await applyEdit(null, 0);
+          }
+        }, entries[idx].menge);
       } else {
-        await applyEdit(null);
+        await applyEdit(null, 0);
       }
     });
   }
@@ -15258,14 +15771,16 @@ async function savePrivateEntries(){
     await window.storage.set(orgKey(PRIVATE_STORAGE_KEY), JSON.stringify(privateEntries), true);
     return true;
   }catch(e){
-    setPrivateStatus(t('msg_save_failed_local'));
+    setPrivateStatus(t('msg_save_failed_local'), true);
     return false;
   }
 }
 function privateUid(){ return 'pe' + Date.now() + Math.random().toString(36).slice(2,7); }
-function setPrivateStatus(msg){
-  document.getElementById('privateStatusMsg').textContent = msg;
-  if(msg) setTimeout(()=>{ document.getElementById('privateStatusMsg').textContent=''; }, 3000);
+function setPrivateStatus(msg, isError){
+  const el = document.getElementById('privateStatusMsg');
+  el.textContent = msg;
+  el.classList.toggle('status-msg-error', !!isError);
+  if(msg) setTimeout(()=>{ el.textContent=''; el.classList.remove('status-msg-error'); }, 3000);
 }
 function myPrivateEntries(){
   if(!currentUser) return [];
@@ -15284,7 +15799,7 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
   const projektTyp = projektAssign.typ;
 
   if(!material || qualitaetRaw === '' || !menge || !lagerort){
-    setPrivateStatus(t('val_bestand_required'));
+    setPrivateStatus(t('val_bestand_required'), true);
     return;
   }
 
@@ -15292,7 +15807,7 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
   const privMenge = parseFloat(menge);
   const privValidationError = validateQualityAndMenge(privQualitaet, privMenge);
   if(privValidationError){
-    setPrivateStatus(privValidationError);
+    setPrivateStatus(privValidationError, true);
     return;
   }
 
@@ -15320,6 +15835,13 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
       });
       logDetail += `, ${restMenge} ${einheit} zusaetzlich ohne Projekt-Zuordnung (Ueberschuss)`;
     }
+    // Zugeordnete Menge, die auf ein GETEILTES Projekt verweist, wird als
+    // ID gemerkt -- unten automatisch uebertragen, statt manuell per
+    // Uebertragen-Button warten zu muessen (siehe Nutzerwunsch vom
+    // 15. August 2026: "die Zuordnung verweist ja bereits auf ein
+    // oeffentliches Projekt, der Umweg ueber den privaten Bestand ist
+    // dann unnoetig").
+    const autoTransferId = (projektTyp === 'shared' && projekt) ? privateEntries[privateEntries.length - (restMenge>0?2:1)].id : null;
 
     document.getElementById('priv-material').value='';
     document.getElementById('priv-qualitaet').value='';
@@ -15334,6 +15856,9 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
     setPrivateStatus(t('msg_saving'));
     await savePrivateEntries();
     await logAction('Privatbestand hinzugefügt', logDetail);
+    if(autoTransferId){
+      await transferPrivateEntry(autoTransferId, null);
+    }
     renderPrivate();
     // Siehe Kommentar bei den Sammelobjekt-Handlern weiter oben --
     // dieselbe, urspruenglich fehlende Sofort-Aktualisierung der
@@ -15529,6 +16054,19 @@ async function transferPrivateEntry(id, amount){
   const e = privateEntries.find(pe=>pe.id===id);
   if(!e) return;
 
+  // Der geteilte Bestand kennt ausschliesslich geteilte Projekte (siehe
+  // countProjectReferences: "geteilter Bestand kennt nur geteilte
+  // Projekte") -- war dieser private Eintrag einem PRIVATEN Projekt
+  // zugeordnet, haette die bisherige Logik diesen Namen unveraendert in
+  // den geteilten Bestand uebernommen, wo er auf gar kein existierendes
+  // (geteiltes) Projekt verweist -- eine "Geister-Zuordnung" ohne jede
+  // Wirkung auf die tatsaechliche Fortschrittsberechnung, aber weiterhin
+  // sichtbar als vermeintliche Reservierung. Nur eine Zuordnung zu einem
+  // GETEILTEN Projekt wird daher beim Uebertragen mitgenommen, eine
+  // private Zuordnung wird aufgeloest. Bei einer systematischen Tiefen-
+  // pruefung am 15. August 2026 gefunden und korrigiert.
+  const effektivesProjekt = (e.projektTyp||'shared') === 'shared' ? (e.projekt||'') : '';
+
   const fullAmount = e.menge;
   const transferAmount = (amount!=null && amount>0 && amount<fullAmount) ? amount : fullAmount;
   const remainderAmount = Math.round((fullAmount - transferAmount) * 1000) / 1000;
@@ -15541,7 +16079,7 @@ async function transferPrivateEntry(id, amount){
     pub.qualitaet === e.qualitaet &&
     pub.lagerort === e.lagerort &&
     pub.einheit === e.einheit &&
-    (pub.projekt||'') === (e.projekt||'')
+    (pub.projekt||'') === effektivesProjekt
   );
 
   let logDetail;
@@ -15553,10 +16091,13 @@ async function transferPrivateEntry(id, amount){
       id: uid(),
       material: e.material, qualitaet: e.qualitaet,
       menge: transferAmount, einheit: e.einheit,
-      lagerort: e.lagerort, person: e.person, projekt: e.projekt,
+      lagerort: e.lagerort, person: e.person, projekt: effektivesProjekt,
       createdAt: new Date().toISOString()
     });
     logDetail = `${e.material}, ${transferAmount} ${e.einheit} @ ${e.lagerort} (neuer Eintrag)`;
+  }
+  if(e.projektTyp==='private' && e.projekt){
+    logDetail += ` — private Projekt-Zuordnung „${e.projekt}“ beim Übertragen aufgelöst (im geteilten Bestand ohne Bedeutung)`;
   }
   await save();
 
@@ -15706,7 +16247,7 @@ function renderPrivate(){
       const newPrivMenge = parseFloat(document.getElementById('edit-priv-menge').value);
       const privEditValidationError = validateQualityAndMenge(newPrivQualitaet, newPrivMenge);
       if(privEditValidationError){
-        setPrivateStatus(privEditValidationError);
+        setPrivateStatus(privEditValidationError, true);
         return;
       }
       const newPrivMaterial = document.getElementById('edit-priv-material').value.trim();
@@ -15724,7 +16265,8 @@ function renderPrivate(){
       // (saveEdit-Handler) -- gleiches Prinzip, hier zusaetzlich mit
       // projektTyp, da private Eintraege sowohl geteilten als auch
       // privaten Projekten zugeordnet werden koennen.
-      const applyEdit = async (assignMenge)=>{
+      const applyEdit = async (assignMenge, overflowExtra)=>{
+        let autoTransferId = null;
         if(assignMenge != null && assignMenge < newPrivMenge){
           const remainderMenge = Math.round((newPrivMenge - assignMenge) * 1000) / 1000;
           privateEntries[idx] = {
@@ -15733,13 +16275,15 @@ function renderPrivate(){
             menge: remainderMenge, einheit: newPrivEinheit, lagerort: newPrivLagerort,
             projekt: oldProjekt, projektTyp: oldProjektTyp
           };
+          const newId = privateUid();
           privateEntries.push({
-            id: privateUid(),
+            id: newId,
             material: newPrivMaterial, qualitaet: newPrivQualitaet,
             menge: assignMenge, einheit: newPrivEinheit, lagerort: newPrivLagerort,
             person: oldPerson, owner: oldOwner,
             projekt: newProjekt, projektTyp: newProjektTyp
           });
+          if(newProjektTyp === 'shared' && newProjekt) autoTransferId = newId;
           await logAction('Privatbestand bearbeitet', `${newPrivMaterial}, ${newPrivMenge} ${newPrivEinheit} @ ${newPrivLagerort} — davon ${assignMenge} ${newPrivEinheit} neu zugewiesen an [Projekt: ${newProjekt}], Rest ${remainderMenge} ${newPrivEinheit} bleibt bei ${oldProjekt ? 'Projekt „'+oldProjekt+'“' : 'frei verfügbar'}`);
         } else {
           privateEntries[idx] = {
@@ -15748,13 +16292,29 @@ function renderPrivate(){
             menge: newPrivMenge, einheit: newPrivEinheit, lagerort: newPrivLagerort,
             projekt: newProjekt, projektTyp: newProjektTyp
           };
+          if(newProjektTyp === 'shared' && newProjekt) autoTransferId = privateEntries[idx].id;
           await logAction('Privatbestand bearbeitet', `${privateEntries[idx].material}, ${privateEntries[idx].menge} ${privateEntries[idx].einheit} @ ${privateEntries[idx].lagerort}`);
+        }
+        if(overflowExtra > 0){
+          privateEntries.push({
+            id: privateUid(),
+            material: newPrivMaterial, qualitaet: newPrivQualitaet,
+            menge: overflowExtra, einheit: newPrivEinheit, lagerort: newPrivLagerort,
+            person: oldPerson, owner: oldOwner,
+            projekt: '', projektTyp: null
+          });
         }
         editingPrivateId = null;
         setPrivateStatus(t('msg_saving'));
         await savePrivateEntries();
+        // Siehe Kommentar bei der privaten Material-ANLAGE weiter oben --
+        // dieselbe automatische Uebertragung, jetzt auch beim nachtraeglichen
+        // Bearbeiten/Neuzuweisen zu einem GETEILTEN Projekt.
+        if(autoTransferId) await transferPrivateEntry(autoTransferId, null);
         renderPrivate();
+        updateProjectAvailability();
         renderProjects();
+        updatePrivateProjectAvailability();
         renderPrivateProjects();
         setPrivateStatus(t('msg_entry_updated'));
       };
@@ -15765,10 +16325,51 @@ function renderPrivate(){
           text: t('text_partial_assign').replace('{material}', newPrivMaterial).replace('{project}', newProjekt),
           fullAmount: newPrivMenge,
           einheit: newPrivEinheit,
-          onConfirm: async (amount)=>{ await applyEdit(amount); }
+          onConfirm: async (amount)=>{
+            checkAndResolveProjectOverflow(newPrivMaterial, newProjekt, newProjektTyp, amount, true, newPrivEinheit, async (finalMenge, restMenge)=>{
+              if(finalMenge == null) return; // Nutzer hat abgebrochen
+              await applyEdit(finalMenge, restMenge);
+            }, 0);
+          }
         });
+      } else if(newProjekt){
+        // Zuordnung bleibt unveraendert -- eigener bisheriger Beitrag wird
+        // ueber excludeAmount herausgerechnet. Siehe Kommentar bei der
+        // analogen Stelle im geteilten Bestand.
+        checkAndResolveProjectOverflow(newPrivMaterial, newProjekt, newProjektTyp, newPrivMenge, true, newPrivEinheit, async (finalMenge, restMenge)=>{
+          if(finalMenge == null) return; // Nutzer hat abgebrochen
+          if(finalMenge < newPrivMenge){
+            privateEntries[idx] = {
+              ...privateEntries[idx],
+              material: newPrivMaterial, qualitaet: newPrivQualitaet,
+              menge: finalMenge, einheit: newPrivEinheit, lagerort: newPrivLagerort,
+              projekt: newProjekt, projektTyp: newProjektTyp
+            };
+            privateEntries.push({
+              id: privateUid(),
+              material: newPrivMaterial, qualitaet: newPrivQualitaet,
+              menge: restMenge, einheit: newPrivEinheit, lagerort: newPrivLagerort,
+              person: oldPerson, owner: oldOwner,
+              projekt: '', projektTyp: null
+            });
+            await logAction('Privatbestand bearbeitet', `${newPrivMaterial}, ${finalMenge} ${newPrivEinheit} @ ${newPrivLagerort} [Projekt: ${newProjekt}], ${restMenge} ${newPrivEinheit} zusaetzlich ohne Projekt-Zuordnung (Ueberschuss)`);
+            editingPrivateId = null;
+            setPrivateStatus(t('msg_saving'));
+            await savePrivateEntries();
+            // Siehe Kommentar bei der privaten Material-ANLAGE weiter oben.
+            if(newProjektTyp === 'shared') await transferPrivateEntry(privateEntries[idx].id, null);
+            renderPrivate();
+            updateProjectAvailability();
+            renderProjects();
+            updatePrivateProjectAvailability();
+            renderPrivateProjects();
+            setPrivateStatus(t('msg_entry_updated'));
+          } else {
+            await applyEdit(null, 0);
+          }
+        }, privateEntries[idx].menge);
       } else {
-        await applyEdit(null);
+        await applyEdit(null, 0);
       }
     });
   }
