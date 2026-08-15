@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.085 -->
+<!-- Version: 0.086 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2332,6 +2332,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="privProjectBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
       <button class="btn-icon danger" id="btnBulkDeletePrivProjects" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;margin-top:14px;font-size:13px;color:var(--ink-soft);">
+      <input type="checkbox" id="showCompletedPrivProjects">
+      <span data-i18n="label_abgeschlossene_anzeigen">Abgeschlossene Projekte anzeigen</span>
+    </label>
     <div id="privProjectTableContainer" style="margin-top:14px;"></div>
   </div>
 
@@ -2575,6 +2579,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="projectBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
       <button class="btn-icon danger" id="btnBulkDeleteProjects" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;margin-top:14px;font-size:13px;color:var(--ink-soft);">
+      <input type="checkbox" id="showCompletedProjects">
+      <span data-i18n="label_abgeschlossene_anzeigen">Abgeschlossene Projekte anzeigen</span>
+    </label>
     <div id="projectTableContainer" style="margin-top:14px;"></div>
   </div>
   </div>
@@ -2914,6 +2922,14 @@ const I18N = {
   "label_mind_qualitaet": "Mind. Qualität",
   "placeholder_mindestqualitaet": "Mind. Qualität (opt.)",
   "tooltip_projekt_mindestqualitaet": "Optional: Materialien unter dieser Qualität werden beim Zuordnen zu diesem Projekt mit einem Hinweis markiert",
+  "label_abgeschlossene_anzeigen": "Abgeschlossene Projekte anzeigen",
+  "label_abgeschlossen": "Abgeschlossen",
+  "label_abgeschlossen_am": "Abgeschlossen am {datum} von {person}",
+  "hint_ziel_erreicht": "Ziel erreicht!",
+  "btn_projekt_abschliessen": "Abschließen",
+  "tooltip_projekt_abschliessen": "Projekt als abgeschlossen markieren — Überschuss wird automatisch freigegeben",
+  "tooltip_projekt_abschliessen_bestaetigen": "Wirklich abschließen? Erneut klicken zum Bestätigen.",
+  "tooltip_projekt_wieder_eroeffnen": "Projekt wieder als aktiv markieren (bereits freigegebener Überschuss wird dabei nicht zurückgeholt)",
   "tooltip_projekt_erneut_anlegen": "Dieses Projekt (Ziel + Materialien) erneut als neues Projekt anlegen",
   "warn_quality_below_project": "Achtung: Qualität liegt unter der für „{material}“ im Projekt „{projekt}“ geforderten Mindestqualität von {min}.",
   "label_prioritaet": "Priorität",
@@ -3593,6 +3609,14 @@ const I18N = {
   "label_mind_qualitaet": "Min. quality",
   "placeholder_mindestqualitaet": "Min. quality (opt.)",
   "tooltip_projekt_mindestqualitaet": "Optional: materials below this quality are flagged with a warning when assigned to this project",
+  "label_abgeschlossene_anzeigen": "Show completed projects",
+  "label_abgeschlossen": "Completed",
+  "label_abgeschlossen_am": "Completed on {datum} by {person}",
+  "hint_ziel_erreicht": "Goal reached!",
+  "btn_projekt_abschliessen": "Complete",
+  "tooltip_projekt_abschliessen": "Mark project as completed — surplus is released automatically",
+  "tooltip_projekt_abschliessen_bestaetigen": "Really complete? Click again to confirm.",
+  "tooltip_projekt_wieder_eroeffnen": "Mark project as active again (already released surplus is not reclaimed)",
   "tooltip_projekt_erneut_anlegen": "Set up this project (target + materials) again as a new project",
   "warn_quality_below_project": "Warning: quality is below the minimum quality of {min} required for \"{material}\" in project \"{projekt}\".",
   "label_prioritaet": "Priority",
@@ -4272,6 +4296,14 @@ const I18N = {
   "label_mind_qualitaet": "Qualité min.",
   "placeholder_mindestqualitaet": "Qualité min. (opt.)",
   "tooltip_projekt_mindestqualitaet": "Optionnel : les matériaux en dessous de cette qualité sont signalés par un avertissement lorsqu'ils sont affectés à ce projet",
+  "label_abgeschlossene_anzeigen": "Afficher les projets terminés",
+  "label_abgeschlossen": "Terminé",
+  "label_abgeschlossen_am": "Terminé le {datum} par {person}",
+  "hint_ziel_erreicht": "Objectif atteint !",
+  "btn_projekt_abschliessen": "Terminer",
+  "tooltip_projekt_abschliessen": "Marquer le projet comme terminé — le surplus est libéré automatiquement",
+  "tooltip_projekt_abschliessen_bestaetigen": "Vraiment terminer ? Cliquez à nouveau pour confirmer.",
+  "tooltip_projekt_wieder_eroeffnen": "Marquer le projet à nouveau comme actif (le surplus déjà libéré n'est pas repris)",
   "tooltip_projekt_erneut_anlegen": "Ce projet (objectif + matériaux) à nouveau créer comme nouveau projet",
   "warn_quality_below_project": "Attention : la qualité est inférieure à la qualité minimale de {min} requise pour « {material} » dans le projet « {projekt} ».",
   "label_prioritaet": "Priorité",
@@ -10084,6 +10116,147 @@ function effectiveResourceMenge(project, resource){
   return resource.menge;
 }
 
+// Gibt beim Abschliessen eines Projekts NUR den tatsaechlichen
+// Ueberschuss frei (Material/Sammelobjekte ueber den Bedarf hinaus) --
+// die exakt benoetigte Menge bleibt bewusst weiterhin dem (nun
+// abgeschlossenen) Projekt zugeordnet, da sie fuer den Bau tatsaechlich
+// verwendet wurde. Bewahrt fuer den freigegebenen Anteil alle
+// Detail-Angaben (Besitzer/Person, Lagerort, Qualitaet) unveraendert --
+// reicht die zugeordnete Menge eines einzelnen Eintrags ueber den
+// verbleibenden Bedarf hinaus, wird dieser EINE Eintrag aufgeteilt
+// (Rest als neuer, nicht zugeordneter Eintrag mit denselben Detail-
+// Angaben), statt Informationen zu verwischen oder mehrere Eintraege
+// pauschal zusammenzufassen. Verarbeitet Ressourcen-Zeilen in ihrer
+// bestehenden Reihenfolge, matching-Eintraege ebenfalls in ihrer
+// bestehenden Reihenfolge -- welcher konkrete Eintrag als "benoetigt"
+// vs. "Ueberschuss" gilt, ist bei mehreren Beitraegen zwangslaeufig
+// eine Konvention, keine objektiv einzig richtige Zuordnung. Siehe
+// Nutzerwunsch vom 15. August 2026.
+function releaseProjectSurplus(project, typ){
+  const isPrivate = typ === 'private';
+  const resources = project.resources.map(normalizeResource).filter(r=>r.menge!=null && r.menge>0);
+  let releasedCount = 0;
+
+  resources.forEach(r=>{
+    const effMenge = effectiveResourceMenge(project, r);
+    let remaining = effMenge;
+
+    // -- Materialien --
+    const matList = isPrivate ? privateEntries : entries;
+    const matching = matList.filter(e => e.material===r.material && (isPrivate
+      ? (e.projekt===project.ziel && (e.projektTyp||'shared')==='private')
+      : ((e.projekt||'')===project.ziel)
+    ));
+    matching.forEach(e=>{
+      if(remaining >= e.menge){
+        remaining = Math.round((remaining - e.menge)*1000)/1000;
+        return; // vollstaendig benoetigt, bleibt unveraendert zugeordnet
+      }
+      const keepAmount = Math.max(0, remaining);
+      const releaseAmount = Math.round((e.menge - keepAmount)*1000)/1000;
+      remaining = 0;
+      if(keepAmount > 0){
+        // Teilweise Ueberschuss -- Eintrag aufteilen: der zugeordnete
+        // Eintrag behaelt nur den tatsaechlich benoetigten Teil, der
+        // Rest wird als neuer, freier Eintrag mit denselben Detail-
+        // Angaben angelegt.
+        e.menge = keepAmount;
+        matList.push(isPrivate ? {
+          id: privateUid(), material:e.material, qualitaet:e.qualitaet, menge:releaseAmount, einheit:e.einheit,
+          lagerort:e.lagerort, person:e.person, owner:e.owner, projekt:'', projektTyp:null
+        } : {
+          id: uid(), material:e.material, qualitaet:e.qualitaet, menge:releaseAmount, einheit:e.einheit,
+          lagerort:e.lagerort, person:e.person, projekt:'', createdAt:new Date().toISOString()
+        });
+      } else {
+        // Kompletter Eintrag ist Ueberschuss -- Zuordnung einfach
+        // geloest, alle Detail-Angaben bleiben unveraendert erhalten.
+        e.projekt = '';
+        if(isPrivate) e.projektTyp = null;
+      }
+      releasedCount++;
+    });
+
+    // -- Sammelobjekte -- (analog, anzahl statt menge)
+    const collList = isPrivate ? privateCollectibles : collectibles;
+    const matchingColl = collList.filter(c => c.objekt===r.material && (isPrivate
+      ? (c.projekt===project.ziel && (c.projektTyp||'shared')==='private')
+      : ((c.projekt||'')===project.ziel)
+    ));
+    matchingColl.forEach(c=>{
+      if(remaining >= c.anzahl){
+        remaining = Math.round((remaining - c.anzahl)*1000)/1000;
+        return;
+      }
+      const keepAmount = Math.max(0, remaining);
+      const releaseAmount = Math.round((c.anzahl - keepAmount)*1000)/1000;
+      remaining = 0;
+      if(keepAmount > 0){
+        c.anzahl = keepAmount;
+        collList.push(isPrivate ? {
+          id: privateCollectibleUid(), kategorie:c.kategorie, objekt:c.objekt, tier:c.tier, anzahl:releaseAmount,
+          standort:c.standort, owner:c.owner, projekt:'', projektTyp:null
+        } : {
+          id: collectibleUid(), kategorie:c.kategorie, objekt:c.objekt, tier:c.tier, anzahl:releaseAmount,
+          standort:c.standort, besitzer:c.besitzer, projekt:''
+        });
+      } else {
+        c.projekt = '';
+        if(isPrivate) c.projektTyp = null;
+      }
+      releasedCount++;
+    });
+  });
+
+  return releasedCount;
+}
+
+// Markiert ein Projekt als abgeschlossen -- gibt zunaechst etwaigen
+// Ueberschuss frei (siehe releaseProjectSurplus), setzt danach Status,
+// Zeitpunkt und ausfuehrende Person. Struktur (Ressourcen-Liste, Name
+// etc.) bleibt vollstaendig erhalten -- ausschliesslich fuer die
+// Anzeige/Filterung relevant, keine Loeschung. Siehe Nutzerwunsch vom
+// 15. August 2026.
+async function completeProject(id, typ){
+  const isPrivate = typ === 'private';
+  const list = isPrivate ? privateProjects : projects;
+  const project = list.find(p=>p.id===id);
+  if(!project) return;
+
+  const releasedCount = releaseProjectSurplus(project, typ);
+  project.status = 'completed';
+  project.completedAt = new Date().toISOString();
+  project.completedBy = currentUser.username;
+
+  if(isPrivate){
+    await Promise.all([savePrivateProjects(), savePrivateEntries(), savePrivateCollectibles()]);
+  } else {
+    await Promise.all([saveProjects(), save(), saveCollectibles()]);
+  }
+  await logAction(isPrivate ? 'Privates Projekt abgeschlossen' : 'Projekt abgeschlossen',
+    `${project.ziel}${releasedCount>0 ? ` — ${releasedCount} Überschuss-Eintrag/Einträge in den freien Bestand zurückgegeben` : ''}`);
+}
+
+// Macht ein zuvor abgeschlossenes Projekt wieder aktiv -- OHNE zuvor
+// freigegebenen Ueberschuss automatisch zurueckzuholen (siehe
+// ausfuehrliche Begruendung im Nutzerwunsch vom 15. August 2026: das
+// waere unzuverlaessig, da freigegebenes Material zwischenzeitlich
+// anderweitig verwendet worden sein kann). Macht das Projekt lediglich
+// wieder empfangsbereit fuer NEUE Zuordnungen.
+async function reopenProject(id, typ){
+  const isPrivate = typ === 'private';
+  const list = isPrivate ? privateProjects : projects;
+  const project = list.find(p=>p.id===id);
+  if(!project) return;
+
+  project.status = 'active';
+  delete project.completedAt;
+  delete project.completedBy;
+
+  await (isPrivate ? savePrivateProjects() : saveProjects());
+  await logAction(isPrivate ? 'Privates Projekt wieder eröffnet' : 'Projekt wieder eröffnet', project.ziel);
+}
+
 // Liefert die im Projekt hinterlegte Mindestqualität fuer ein bestimmtes
 // Material, oder null falls keine gesetzt ist / das Projekt/Material nicht
 // gefunden wird. Genutzt fuer den Qualitaets-Hinweis beim Zuordnen von
@@ -11773,12 +11946,17 @@ function renderProjects(){
   // waren.
   refreshCollectibleProjectDropdowns();
 
-  if(projects.length === 0){
+  const canManage = roleAtLeast(currentUser.role, 'admin');
+  const showCompleted = document.getElementById('showCompletedProjects') && document.getElementById('showCompletedProjects').checked;
+  const visibleProjects = showCompleted ? projects : projects.filter(p=>p.status!=='completed');
+  const completedCount = projects.filter(p=>p.status==='completed').length;
+  const showCompletedLabel = document.querySelector('#showCompletedProjects ~ span');
+  if(showCompletedLabel) showCompletedLabel.textContent = completedCount>0 ? `${t('label_abgeschlossene_anzeigen')} (${completedCount})` : t('label_abgeschlossene_anzeigen');
+
+  if(visibleProjects.length === 0){
     container.innerHTML = `<div class="empty"><div class="big">${t('empty_projects_title')}</div>${t('empty_projects_sub')}</div>`;
     return;
   }
-
-  const canManage = roleAtLeast(currentUser.role, 'admin');
 
   let html = `<table style="table-layout:fixed;"><thead><tr>
     <th style="width:4%;white-space:normal;"><input type="checkbox" id="selectAllProjects"></th>
@@ -11788,10 +11966,16 @@ function renderProjects(){
   // Sortiert nach Prioritaet (Kritisch zuerst) — Projekte ohne gesetzte
   // Prioritaet (aeltere Datenbestaende von vor Einfuehrung dieses
   // Merkmals) gelten dabei als "Mittel", damit sie weder unbegruendet
-  // ganz oben noch ganz unten einsortiert werden.
-  const sortedProjects = [...projects].sort((a,b)=>
-    PRIORITY_ORDER[a.prioritaet||'Mittel'] - PRIORITY_ORDER[b.prioritaet||'Mittel']
-  );
+  // ganz oben noch ganz unten einsortiert werden. Abgeschlossene
+  // Projekte (ab 15. August 2026) landen dabei stets unterhalb aller
+  // aktiven, unabhaengig von ihrer Prioritaet -- ein erledigtes Projekt
+  // ist nicht mehr aktiv relevant fuer die Priorisierung.
+  const sortedProjects = [...visibleProjects].sort((a,b)=>{
+    const aCompleted = a.status==='completed' ? 1 : 0;
+    const bCompleted = b.status==='completed' ? 1 : 0;
+    if(aCompleted !== bCompleted) return aCompleted - bCompleted;
+    return PRIORITY_ORDER[a.prioritaet||'Mittel'] - PRIORITY_ORDER[b.prioritaet||'Mittel'];
+  });
 
   sortedProjects.forEach(p=>{
     const resources = p.resources.map(normalizeResource);
@@ -11860,16 +12044,28 @@ function renderProjects(){
             </div>`;
           }).join('')
         : '<span style="color:var(--ink-soft);">—</span>';
-      html += `<tr>
+      const isCompleted = p.status === 'completed';
+      // Nutzt dieselbe Berechnung wie die bereits bestehende Discord-
+      // Fortschritts-Benachrichtigung (siehe calculateProjectProgress) --
+      // fuer den Hinweis "Ziel erreicht, abschliessen?" bei einem noch
+      // aktiven Projekt, das rechnerisch bereits 100% erreicht hat.
+      const overallProgress = calculateProjectProgress(p);
+      const showCompleteHint = !isCompleted && overallProgress === 100;
+      html += `<tr${isCompleted ? ' style="opacity:0.6;"' : ''}>
         <td>${canManage ? `<input type="checkbox" class="project-select-cb" data-id="${p.id}" ${selectedProjectIds.has(p.id)?'checked':''}>` : ''}</td>
-        <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}</td>
+        <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}${isCompleted ? ` <span class="badge" style="background:rgba(44,255,160,0.15);color:#2CFFA0;border:1px solid #2CFFA0;">✓ ${t('label_abgeschlossen')}</span>` : ''}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
         <td data-label="${t('label_prioritaet')}"><span class="badge ${PRIORITY_CLASS[p.prioritaet||'Mittel']}">${escapeHtml(prioLabel(p.prioritaet||'Mittel'))}</span></td>
-        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}${p.notiz ? `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--panel-border);font-size:12px;color:var(--ink-soft);font-style:italic;">📝 ${escapeHtml(p.notiz)}</div>` : ''}</td>
+        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}${p.notiz ? `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--panel-border);font-size:12px;color:var(--ink-soft);font-style:italic;">📝 ${escapeHtml(p.notiz)}</div>` : ''}${isCompleted ? `<div style="margin-top:8px;font-size:11px;color:var(--ink-soft);">${t('label_abgeschlossen_am').replace('{datum}', new Date(p.completedAt).toLocaleDateString('de-DE')).replace('{person}', escapeHtml(p.completedBy||'–'))}</div>` : ''}${showCompleteHint ? `<div style="margin-top:8px;padding:6px 10px;background:rgba(44,255,160,0.08);border-left:2px solid #2CFFA0;font-size:12px;">🎉 ${t('hint_ziel_erreicht')} ${canManage ? `<button class="btn-ghost" data-action="complete-project" data-id="${p.id}" style="font-size:10.5px;padding:3px 10px;margin-left:6px;">${t('btn_projekt_abschliessen')}</button>` : ''}</div>` : ''}</td>
         <td class="actions-cell">
-          ${canManage ? `<button class="btn-icon" data-action="edit-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
+          ${canManage ? (isCompleted
+            ? `<button class="btn-icon" data-action="reopen-project" data-id="${p.id}" title="${t('tooltip_projekt_wieder_eroeffnen')}">↺</button>
+               <button class="btn-icon danger" data-action="delete-project" data-id="${p.id}" title="${t('btn_delete')}">🗑</button>`
+            : `<button class="btn-icon" data-action="edit-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon" data-action="reapply-project" data-id="${p.id}" title="${t('tooltip_projekt_erneut_anlegen')}">🔁</button>
-          <button class="btn-icon danger" data-action="delete-project" data-id="${p.id}" title="${t('btn_delete')}">🗑</button>` : ''}
+          <button class="btn-icon" data-action="complete-project" data-id="${p.id}" title="${t('tooltip_projekt_abschliessen')}">✓</button>
+          <button class="btn-icon danger" data-action="delete-project" data-id="${p.id}" title="${t('btn_delete')}">🗑</button>`
+          ) : ''}
         </td>
       </tr>`;
     }
@@ -11998,6 +12194,24 @@ function renderProjects(){
   container.querySelectorAll('[data-action="edit-project"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingProjectId = btn.dataset.id; renderProjects(); });
   });
+  container.querySelectorAll('[data-action="complete-project"]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      armConfirm(e.currentTarget, async ()=>{
+        await completeProject(btn.dataset.id, 'shared');
+        renderProjects();
+        render();
+        renderCollectibles();
+        updateProjectAvailability();
+        scheduleRenderDashboard();
+      }, t('tooltip_projekt_abschliessen_bestaetigen'));
+    });
+  });
+  container.querySelectorAll('[data-action="reopen-project"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      await reopenProject(btn.dataset.id, 'shared');
+      renderProjects();
+    });
+  });
   container.querySelectorAll('[data-action="reapply-project"]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const p = projects.find(pr=>pr.id === btn.dataset.id);
@@ -12119,6 +12333,11 @@ function renderProjects(){
     });
   }
 }
+
+// Loest bei Aenderung ein Neu-Rendern aus, damit abgeschlossene Projekte
+// sofort ein-/ausgeblendet werden, ohne die Seite neu laden zu muessen.
+const showCompletedProjectsCb = document.getElementById('showCompletedProjects');
+if(showCompletedProjectsCb) showCompletedProjectsCb.addEventListener('change', renderProjects);
 
 // ============================================================
 // Private Projekte — strukturell identisch zu den geteilten Projekten,
@@ -12299,13 +12518,18 @@ function renderPrivateProjects(){
   refreshCollectibleProjectDropdowns();
 
   const mine = myPrivateProjects();
+  const showCompletedPriv = document.getElementById('showCompletedPrivProjects') && document.getElementById('showCompletedPrivProjects').checked;
+  const visiblePrivProjects = showCompletedPriv ? mine : mine.filter(p=>p.status!=='completed');
+  const completedPrivCount = mine.filter(p=>p.status==='completed').length;
+  const showCompletedPrivLabel = document.querySelector('#showCompletedPrivProjects ~ span');
+  if(showCompletedPrivLabel) showCompletedPrivLabel.textContent = completedPrivCount>0 ? `${t('label_abgeschlossene_anzeigen')} (${completedPrivCount})` : t('label_abgeschlossene_anzeigen');
 
   const zielList = document.getElementById('privProjZielList');
   if(zielList){
     zielList.innerHTML = mine.map(p=>`<option value="${escapeHtml(p.ziel)}">`).join('');
   }
 
-  if(mine.length === 0){
+  if(visiblePrivProjects.length === 0){
     container.innerHTML = `<div class="empty"><div class="big">${t('empty_private_projects_title')}</div>${t('empty_private_projects_sub')}</div>`;
     return;
   }
@@ -12315,7 +12539,15 @@ function renderPrivateProjects(){
     <th style="width:18%;white-space:normal;">${t('label_ziel')}</th><th style="width:9%;white-space:normal;">${t('label_anzahl')}</th><th style="width:55%;white-space:normal;">${t('col_ressourcen')}</th><th style="width:14%;white-space:normal;"></th>
   </tr></thead><tbody>`;
 
-  mine.forEach(p=>{
+  // Abgeschlossene private Projekte (ab 15. August 2026) landen stets
+  // unterhalb aller aktiven -- analog zu den geteilten Projekten.
+  const sortedPrivProjects = [...visiblePrivProjects].sort((a,b)=>{
+    const aCompleted = a.status==='completed' ? 1 : 0;
+    const bCompleted = b.status==='completed' ? 1 : 0;
+    return aCompleted - bCompleted;
+  });
+
+  sortedPrivProjects.forEach(p=>{
     const resources = p.resources.map(normalizeResource);
     if(editingPrivateProjectId === p.id){
       html += `<tr>
@@ -12366,15 +12598,29 @@ function renderPrivateProjects(){
             </div>`;
           }).join('')
         : '<span style="color:var(--ink-soft);">—</span>';
-      html += `<tr>
+      const isCompleted = p.status === 'completed';
+      // Kein privates Pendant zu calculateProjectProgress() noetig --
+      // resourceDetails wurde oben bereits mit privateStockAmount()
+      // berechnet, der Gesamtfortschritt wird hier direkt daraus
+      // gemittelt (identisches Prinzip wie calculateProjectProgress()
+      // intern, nur mit den privaten avail-Werten statt den geteilten).
+      const privPercentages = resourceDetails.filter(r=>r.effMenge!=null && r.effMenge>0).map(r=>Math.min(100, Math.round((r.avail/r.effMenge)*100)));
+      const overallProgress = privPercentages.length ? Math.round(privPercentages.reduce((s,v)=>s+v,0)/privPercentages.length) : null;
+      const showCompleteHint = !isCompleted && overallProgress === 100;
+      html += `<tr${isCompleted ? ' style="opacity:0.6;"' : ''}>
         <td><input type="checkbox" class="priv-project-select-cb" data-id="${p.id}" ${selectedPrivProjectIds.has(p.id)?'checked':''}></td>
-        <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}</td>
+        <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}${isCompleted ? ` <span class="badge" style="background:rgba(44,255,160,0.15);color:#2CFFA0;border:1px solid #2CFFA0;">✓ ${t('label_abgeschlossen')}</span>` : ''}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
-        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}${p.notiz ? `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--panel-border);font-size:12px;color:var(--ink-soft);font-style:italic;">📝 ${escapeHtml(p.notiz)}</div>` : ''}</td>
+        <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}${p.notiz ? `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--panel-border);font-size:12px;color:var(--ink-soft);font-style:italic;">📝 ${escapeHtml(p.notiz)}</div>` : ''}${isCompleted ? `<div style="margin-top:8px;font-size:11px;color:var(--ink-soft);">${t('label_abgeschlossen_am').replace('{datum}', new Date(p.completedAt).toLocaleDateString('de-DE')).replace('{person}', escapeHtml(p.completedBy||'–'))}</div>` : ''}${showCompleteHint ? `<div style="margin-top:8px;padding:6px 10px;background:rgba(44,255,160,0.08);border-left:2px solid #2CFFA0;font-size:12px;">🎉 ${t('hint_ziel_erreicht')} <button class="btn-ghost" data-action="complete-priv-project" data-id="${p.id}" style="font-size:10.5px;padding:3px 10px;margin-left:6px;">${t('btn_projekt_abschliessen')}</button></div>` : ''}</td>
         <td class="actions-cell">
-          <button class="btn-icon" data-action="edit-priv-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
+          ${isCompleted
+            ? `<button class="btn-icon" data-action="reopen-priv-project" data-id="${p.id}" title="${t('tooltip_projekt_wieder_eroeffnen')}">↺</button>
+               <button class="btn-icon danger" data-action="delete-priv-project" data-id="${p.id}" title="${t('btn_delete')}">🗑</button>`
+            : `<button class="btn-icon" data-action="edit-priv-project" data-id="${p.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon" data-action="reapply-priv-project" data-id="${p.id}" title="${t('tooltip_projekt_erneut_anlegen')}">🔁</button>
-          <button class="btn-icon danger" data-action="delete-priv-project" data-id="${p.id}" title="${t('btn_delete')}">🗑</button>
+          <button class="btn-icon" data-action="complete-priv-project" data-id="${p.id}" title="${t('tooltip_projekt_abschliessen')}">✓</button>
+          <button class="btn-icon danger" data-action="delete-priv-project" data-id="${p.id}" title="${t('btn_delete')}">🗑</button>`
+          }
         </td>
       </tr>`;
     }
@@ -12384,6 +12630,23 @@ function renderPrivateProjects(){
 
   container.querySelectorAll('[data-action="edit-priv-project"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingPrivateProjectId = btn.dataset.id; renderPrivateProjects(); });
+  });
+  container.querySelectorAll('[data-action="complete-priv-project"]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      armConfirm(e.currentTarget, async ()=>{
+        await completeProject(btn.dataset.id, 'private');
+        renderPrivateProjects();
+        renderPrivate();
+        renderPrivateCollectibles();
+        updatePrivateProjectAvailability();
+      }, t('tooltip_projekt_abschliessen_bestaetigen'));
+    });
+  });
+  container.querySelectorAll('[data-action="reopen-priv-project"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      await reopenProject(btn.dataset.id, 'private');
+      renderPrivateProjects();
+    });
   });
   container.querySelectorAll('[data-action="need-from-priv-project"]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
@@ -12566,6 +12829,9 @@ function renderPrivateProjects(){
     });
   }
 }
+
+const showCompletedPrivProjectsCb = document.getElementById('showCompletedPrivProjects');
+if(showCompletedPrivProjectsCb) showCompletedPrivProjectsCb.addEventListener('change', renderPrivateProjects);
 
 function buildLocationSelectHTML(id, selected, extraClass){
   const systems = [...new Set(LOCATIONS.map(l=>l.system))];
