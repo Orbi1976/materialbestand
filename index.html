@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.081 -->
+<!-- Version: 0.082 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1776,6 +1776,36 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     </div>
   </div>
 
+  <div class="panel" id="orgResetPanel" style="display:none;border:1px solid #FF3B5C;">
+    <h2 style="color:#FF3B5C;">⚠ <span data-i18n="panel_org_reset">Organisations-Inhalte zurücksetzen</span></h2>
+    <div class="user-note" style="border-left:3px solid #FF3B5C;padding-left:10px;" data-i18n="hint_org_reset">Setzt die <strong>aktuell aktive</strong> Organisation auf einen leeren Inhaltsstand zurück — für einen Neustart mit denselben Mitgliedern und Einstellungen, aber ohne alte Bestände.</div>
+    <div style="display:flex;gap:24px;margin-top:14px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--low);margin-bottom:6px;" data-i18n="label_org_reset_bleibt">Bleibt erhalten</div>
+        <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.7;">
+          <li data-i18n="label_org_reset_bleibt_1">Benutzer &amp; Rollen</li>
+          <li data-i18n="label_org_reset_bleibt_2">Zugangsdaten &amp; Standard-Passwort</li>
+          <li data-i18n="label_org_reset_bleibt_3">Organisations-Individualisierung &amp; Discord-Einstellungen</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#FF3B5C;margin-bottom:6px;" data-i18n="label_org_reset_geloescht">Wird gelöscht</div>
+        <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.7;">
+          <li data-i18n="label_org_reset_geloescht_1">Geteilter &amp; privater Bestand (aller Mitglieder)</li>
+          <li data-i18n="label_org_reset_geloescht_2">Geteilte &amp; private Sammelobjekte (aller Mitglieder)</li>
+          <li data-i18n="label_org_reset_geloescht_3">Geteilte &amp; private Projekte (aller Mitglieder)</li>
+          <li data-i18n="label_org_reset_geloescht_4">Bedarfe</li>
+        </ul>
+      </div>
+    </div>
+    <div class="field" style="margin-top:16px;max-width:420px;">
+      <label for="orgResetConfirmName"><span data-i18n="label_org_reset_bestaetigung">Zur Bestätigung Organisationsnamen eingeben:</span> <strong id="orgResetTargetName"></strong></label>
+      <input type="text" id="orgResetConfirmName" autocomplete="off" spellcheck="false">
+    </div>
+    <button class="btn-primary" id="btnOrgReset" style="background:#FF3B5C;margin-top:14px;" disabled data-i18n="btn_org_reset">Inhalte unwiderruflich zurücksetzen</button>
+    <div class="status-msg" id="orgResetStatus"></div>
+  </div>
+
   <div class="panel" id="adminPanel" style="display:none;">
     <h2 data-i18n="panel_benutzerverwaltung">Benutzerverwaltung</h2>
     <div class="form-grid-flex">
@@ -3017,6 +3047,21 @@ const I18N = {
   "label_export_benutzer_einschliessen": "Benutzer & Zugangsdaten einschließen",
   "hint_export_benutzer_sicherheit": "⚠ Enthält Benutzernamen, E-Mail-Adressen, individuelle Passwörter sowie das organisationsweite Standard-Passwort — alles im Klartext, unverschlüsselt in der heruntergeladenen Datei. Diese Datei entsprechend sicher aufbewahren und nicht unnötig weitergeben.",
   "label_export_organisation": "Organisation für den Export",
+  "panel_org_reset": "Organisations-Inhalte zurücksetzen",
+  "hint_org_reset": "Setzt die aktuell aktive Organisation auf einen leeren Inhaltsstand zurück — für einen Neustart mit denselben Mitgliedern und Einstellungen, aber ohne alte Bestände.",
+  "label_org_reset_bleibt": "Bleibt erhalten",
+  "label_org_reset_bleibt_1": "Benutzer & Rollen",
+  "label_org_reset_bleibt_2": "Zugangsdaten & Standard-Passwort",
+  "label_org_reset_bleibt_3": "Organisations-Individualisierung & Discord-Einstellungen",
+  "label_org_reset_geloescht": "Wird gelöscht",
+  "label_org_reset_geloescht_1": "Geteilter & privater Bestand (aller Mitglieder)",
+  "label_org_reset_geloescht_2": "Geteilte & private Sammelobjekte (aller Mitglieder)",
+  "label_org_reset_geloescht_3": "Geteilte & private Projekte (aller Mitglieder)",
+  "label_org_reset_geloescht_4": "Bedarfe",
+  "label_org_reset_bestaetigung": "Zur Bestätigung Organisationsnamen eingeben:",
+  "btn_org_reset": "Inhalte unwiderruflich zurücksetzen",
+  "msg_org_reset_done": "Organisations-Inhalte wurden zurückgesetzt.",
+  "tooltip_org_reset_bestaetigen": "Wirklich unwiderruflich zurücksetzen? Erneut klicken zum Bestätigen.",
   "panel_org_export": "Datensicherung",
   "hint_org_export": "Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.",
   "btn_export_org_data": "Alles exportieren (JSON)",
@@ -3675,6 +3720,21 @@ const I18N = {
   "label_export_benutzer_einschliessen": "Include users & credentials",
   "hint_export_benutzer_sicherheit": "⚠ Includes usernames, email addresses, individual passwords, and the organization-wide default password — all in plain text, unencrypted, in the downloaded file. Keep this file secure and do not share it unnecessarily.",
   "label_export_organisation": "Organization to export",
+  "panel_org_reset": "Reset organization content",
+  "hint_org_reset": "Resets the currently active organization's content to an empty state — for a fresh start with the same members and settings, but without old stock.",
+  "label_org_reset_bleibt": "Stays intact",
+  "label_org_reset_bleibt_1": "Users & roles",
+  "label_org_reset_bleibt_2": "Credentials & default password",
+  "label_org_reset_bleibt_3": "Organization branding & Discord settings",
+  "label_org_reset_geloescht": "Will be deleted",
+  "label_org_reset_geloescht_1": "Shared & private stock (all members)",
+  "label_org_reset_geloescht_2": "Shared & private collectibles (all members)",
+  "label_org_reset_geloescht_3": "Shared & private projects (all members)",
+  "label_org_reset_geloescht_4": "Needs",
+  "label_org_reset_bestaetigung": "Type the organization name to confirm:",
+  "btn_org_reset": "Reset content irreversibly",
+  "msg_org_reset_done": "Organization content has been reset.",
+  "tooltip_org_reset_bestaetigen": "Really reset irreversibly? Click again to confirm.",
   "panel_org_export": "Data backup",
   "hint_org_export": "Downloads a single file with all shared data of the current organization (inventory, needs, projects, collectibles, catalogs) — independent of Supabase, e.g. for your own backup.",
   "btn_export_org_data": "Export everything (JSON)",
@@ -4333,6 +4393,21 @@ const I18N = {
   "label_export_benutzer_einschliessen": "Inclure les utilisateurs et identifiants",
   "hint_export_benutzer_sicherheit": "⚠ Contient les noms d'utilisateur, adresses e-mail, mots de passe individuels ainsi que le mot de passe par défaut de l'organisation — tout en texte brut, non chiffré, dans le fichier téléchargé. Conservez ce fichier en lieu sûr et ne le partagez pas inutilement.",
   "label_export_organisation": "Organisation à exporter",
+  "panel_org_reset": "Réinitialiser le contenu de l'organisation",
+  "hint_org_reset": "Réinitialise le contenu de l'organisation actuellement active à un état vide — pour un nouveau départ avec les mêmes membres et paramètres, mais sans les anciens stocks.",
+  "label_org_reset_bleibt": "Reste conservé",
+  "label_org_reset_bleibt_1": "Utilisateurs et rôles",
+  "label_org_reset_bleibt_2": "Identifiants et mot de passe par défaut",
+  "label_org_reset_bleibt_3": "Personnalisation de l'organisation et paramètres Discord",
+  "label_org_reset_geloescht": "Sera supprimé",
+  "label_org_reset_geloescht_1": "Stocks partagés et privés (tous les membres)",
+  "label_org_reset_geloescht_2": "Objets de collection partagés et privés (tous les membres)",
+  "label_org_reset_geloescht_3": "Projets partagés et privés (tous les membres)",
+  "label_org_reset_geloescht_4": "Besoins",
+  "label_org_reset_bestaetigung": "Saisissez le nom de l'organisation pour confirmer :",
+  "btn_org_reset": "Réinitialiser le contenu de façon irréversible",
+  "msg_org_reset_done": "Le contenu de l'organisation a été réinitialisé.",
+  "tooltip_org_reset_bestaetigen": "Vraiment réinitialiser de façon irréversible ? Cliquez à nouveau pour confirmer.",
   "panel_org_export": "Sauvegarde des données",
   "hint_org_export": "Télécharge un seul fichier contenant toutes les données partagées de l'organisation actuelle (stock, besoins, projets, objets de collection, catalogues) — indépendamment de Supabase, par exemple pour votre propre sauvegarde.",
   "btn_export_org_data": "Tout exporter (JSON)",
@@ -5521,6 +5596,7 @@ async function saveUserEdit(idx){
     document.getElementById('catalogPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('logPanel').style.display = isAdminOrAbove ? '' : 'none';
     document.getElementById('orgManagementPanel').style.display = newRole==='owner' ? '' : 'none';
+    document.getElementById('orgResetPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('templateImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('scmdbImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('wikeloImportPanel').style.display = newRole==='owner' ? '' : 'none';
@@ -6228,6 +6304,81 @@ function renderExportOrgSelect(){
     `<option value="${escapeHtml(o.id)}" ${o.id===currentOrgId?'selected':''}>${escapeHtml(o.name)}</option>`
   ).join('');
 }
+
+// Befuellt/aktualisiert den "Organisations-Inhalte zuruecksetzen"-Bereich
+// (nur Rolle owner) -- zeigt den Namen der aktuell aktiven Organisation
+// zur Bestaetigung, setzt das Eingabefeld sowie den deaktivierten Zustand
+// des Buttons zurueck. Wird sowohl beim Login als auch bei jedem
+// Organisationswechsel neu aufgerufen, damit der angezeigte Name nie
+// veraltet ist und ein zuvor eingetippter Bestaetigungstext nicht
+// versehentlich fuer die FALSCHE (inzwischen wechselte) Organisation
+// weiterverwendet werden kann. Siehe Nutzerwunsch vom 15. August 2026.
+function renderOrgResetSection(){
+  const panel = document.getElementById('orgResetPanel');
+  if(!panel) return;
+  if(currentUser.role !== 'owner'){
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = '';
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  document.getElementById('orgResetTargetName').textContent = org ? org.name : currentOrgId;
+  document.getElementById('orgResetConfirmName').value = '';
+  document.getElementById('btnOrgReset').disabled = true;
+}
+
+document.getElementById('orgResetConfirmName').addEventListener('input', ()=>{
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  const targetName = org ? org.name : currentOrgId;
+  document.getElementById('btnOrgReset').disabled =
+    document.getElementById('orgResetConfirmName').value !== targetName;
+});
+
+// Setzt saemtliche INHALTE (nicht die STRUKTUR) der aktuell aktiven
+// Organisation zurueck: geteilter wie privater Bestand, Sammelobjekte
+// und Projekte aller Mitglieder, sowie Bedarfe. Benutzer, Rollen,
+// Zugangsdaten, Organisations-Individualisierung und Discord-
+// Einstellungen bleiben bewusst unangetastet -- fuer einen inhaltlichen
+// Neustart mit denselben Mitgliedern und Einstellungen. Nutzt dieselben,
+// bereits bewaehrten save-Funktionen wie ueberall sonst -- alle sind
+// ueber orgKey() an currentOrgId gebunden, betreffen also ausschliesslich
+// die aktuell aktive Organisation, keine andere. Siehe Nutzerwunsch vom
+// 15. August 2026.
+async function resetOrganizationContent(){
+  const statusEl = document.getElementById('orgResetStatus');
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  const orgName = org ? org.name : currentOrgId;
+
+  setStatusMsg(statusEl, t('msg_saving'), false);
+
+  entries = []; needs = []; projects = []; collectibles = [];
+  privateEntries = []; privateCollectibles = []; privateProjects = [];
+
+  await Promise.all([
+    save(), saveNeeds(), saveProjects(), saveCollectibles(),
+    savePrivateEntries(), savePrivateCollectibles(), savePrivateProjects()
+  ]);
+  await logAction('Organisations-Inhalte zurückgesetzt', `Bestand, Bedarf, Projekte und Sammelobjekte (geteilt und privat, alle Mitglieder) der Organisation „${orgName}“ wurden vollständig geleert. Benutzer und Organisationseinstellungen blieben unverändert.`);
+
+  render();
+  renderNeeds();
+  renderProjects();
+  renderCollectibles();
+  renderPrivate();
+  renderPrivateProjects();
+  renderPrivateCollectibles();
+  updateProjectAvailability();
+  updatePrivateProjectAvailability();
+  scheduleRenderDashboard();
+  renderOrgResetSection();
+
+  setStatusMsg(statusEl, t('msg_org_reset_done'), false);
+  setTimeout(()=>{ statusEl.textContent=''; }, 6000);
+}
+
+document.getElementById('btnOrgReset').addEventListener('click', (e)=>{
+  armConfirm(e.currentTarget, resetOrganizationContent, t('tooltip_org_reset_bestaetigen'));
+});
 
 function renderExportReminder(){
   const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
@@ -7205,6 +7356,7 @@ function completeLogin(user){
   document.getElementById('collectibleAddSection').style.display = user.role==='viewer' ? 'none' : '';
   document.getElementById('tabBtn-verwaltung').style.display = isAdminOrAbove ? '' : 'none';
   document.getElementById('orgManagementPanel').style.display = user.role==='owner' ? '' : 'none';
+  renderOrgResetSection();
   document.getElementById('templateImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('scmdbImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('wikeloImportPanel').style.display = user.role==='owner' ? '' : 'none';
@@ -7261,6 +7413,7 @@ async function switchOrganization(newOrgId){
   renderOrgBrandingForm();
   renderExportReminder();
   renderExportOrgSelect();
+  renderOrgResetSection();
   // WICHTIG: currentOrgDiscordSettings (und currentOrgDefaultPassword)
   // haengen ueber orgKey() an currentOrgId und MUESSEN beim Wechsel neu
   // geladen werden -- ohne dies wuerde eine z.B. ausgeloeste
