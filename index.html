@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.084 -->
+<!-- Version: 0.085 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1556,6 +1556,36 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
     <div id="ocrStep2" style="display:none;">
       <div class="user-note" style="margin:0 0 12px 0;" data-i18n="ocr_select_hint">Ziehe ein Rechteck über die Tabelle mit Materialname, Qualität und Menge.</div>
+
+      <!-- Rein illustratives Beispiel, WIE eine gute Markierung aussieht --
+           bewusst ein eigenstaendiges, statisches SVG-Element (ocrExampleImg),
+           voellig getrennt von ocrPreviewImg (dem tatsaechlichen Foto des
+           Nutzers) und dem Auswahl-Mechanismus darunter. Fliesst an KEINER
+           Stelle in die eigentliche Bilderfassung/-erkennung ein -- rein
+           dekorativ, dient nur der Erklaerung. Siehe Nutzerwunsch vom
+           15. August 2026. -->
+      <details style="margin-bottom:14px;">
+        <summary style="cursor:pointer;font-size:12px;color:var(--cyan);" data-i18n="ocr_example_toggle">Beispiel: So sollte die Markierung aussehen</summary>
+        <div style="margin-top:8px;padding:10px;background:rgba(0,10,16,0.5);border:1px solid var(--line);border-radius:var(--radius);">
+          <svg id="ocrExampleImg" viewBox="0 0 420 190" style="width:100%;max-width:420px;display:block;margin:0 auto;" role="img" aria-hidden="true">
+            <rect x="0" y="0" width="420" height="190" fill="#12181f" rx="4"/>
+            <text x="12" y="20" font-family="monospace" font-size="10" fill="#5a6a78">MATERIALS YIELDED</text>
+            <text x="12" y="38" font-family="monospace" font-size="9" fill="#5a6a78">MATERIAL</text>
+            <text x="230" y="38" font-family="monospace" font-size="9" fill="#5a6a78">QUALITY</text>
+            <text x="320" y="38" font-family="monospace" font-size="9" fill="#5a6a78">YIELD</text>
+            <g font-family="monospace" font-size="11" fill="#c8d4dc">
+              <text x="12" y="62">TIN</text><text x="230" y="62">537</text><text x="320" y="62">77</text>
+              <text x="12" y="84">COPPER</text><text x="230" y="84">359</text><text x="320" y="84">677</text>
+              <text x="12" y="106">COPPER</text><text x="230" y="106">742</text><text x="320" y="106">35</text>
+              <text x="12" y="128">COPPER</text><text x="230" y="128">855</text><text x="320" y="128">29</text>
+            </g>
+            <rect x="6" y="48" width="404" height="90" fill="rgba(0,216,255,0.12)" stroke="#00D8FF" stroke-width="2" stroke-dasharray="5,3" rx="3"/>
+            <text x="12" y="168" font-family="'Rajdhani', sans-serif" font-size="12" fill="#00D8FF" font-weight="600" data-i18n="ocr_example_caption_good">✓ Eng um die Datenzeilen — Kopfzeile und Ränder bleiben außen vor</text>
+          </svg>
+          <div class="user-note" style="margin-top:8px;" data-i18n="ocr_example_hint">Je enger die Markierung um Materialname, Qualität und Menge gezogen wird — ohne Kopfzeile, Rahmen oder andere Bildschirmbereiche —, desto zuverlässiger die Erkennung.</div>
+        </div>
+      </details>
+
       <div id="ocrImageWrap" style="position:relative;max-width:100%;max-height:50vh;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);touch-action:none;display:flex;align-items:center;justify-content:center;background:#000;">
         <img id="ocrPreviewImg" style="max-width:100%;max-height:50vh;display:block;user-select:none;-webkit-user-select:none;">
         <div id="ocrSelectionBox" style="position:absolute;border:2px solid var(--cyan);background:rgba(0,216,255,0.15);display:none;pointer-events:none;"></div>
@@ -3366,6 +3396,9 @@ const I18N = {
   "ocr_title": "Per Foto erfassen",
   "ocr_open_btn": "Per Foto erfassen",
   "ocr_hint": "Lade ein Foto oder einen Screenshot der Materialtabelle hoch (z. B. Raffinerie-Ergebnis). Möglichst gerade von vorne fotografieren, Spiegelungen vermeiden.",
+  "ocr_example_toggle": "Beispiel: So sollte die Markierung aussehen",
+  "ocr_example_caption_good": "✓ Eng um die Datenzeilen — Kopfzeile und Ränder bleiben außen vor",
+  "ocr_example_hint": "Je enger die Markierung um Materialname, Qualität und Menge gezogen wird — ohne Kopfzeile, Rahmen oder andere Bildschirmbereiche —, desto zuverlässiger die Erkennung.",
   "ocr_select_hint": "Ziehe ein Rechteck über die Tabelle mit Materialname, Qualität und Menge.",
   "ocr_run": "Erkennen",
   "ocr_running_digits": "Zahlen-Feinabgleich…",
@@ -4042,6 +4075,9 @@ const I18N = {
   "ocr_title": "Capture from photo",
   "ocr_open_btn": "Capture from photo",
   "ocr_hint": "Upload a photo or screenshot of the material table (e.g. refinery result). Photograph as straight-on as possible and avoid reflections.",
+  "ocr_example_toggle": "Example: what a good selection looks like",
+  "ocr_example_caption_good": "✓ Tight around the data rows — header and borders stay outside",
+  "ocr_example_hint": "The tighter the selection is drawn around material name, quality and quantity — without header, borders or other screen areas — the more reliable the recognition.",
   "ocr_select_hint": "Drag a rectangle over the table with material name, quality and quantity.",
   "ocr_run": "Recognize",
   "ocr_running_digits": "Refining numbers…",
@@ -4718,6 +4754,9 @@ const I18N = {
   "ocr_title": "Saisie par photo",
   "ocr_open_btn": "Saisie par photo",
   "ocr_hint": "Téléversez une photo ou une capture d'écran du tableau de matériaux (p. ex. résultat de raffinerie). Photographiez si possible bien droit et évitez les reflets.",
+  "ocr_example_toggle": "Exemple : à quoi devrait ressembler la sélection",
+  "ocr_example_caption_good": "✓ Serré autour des lignes de données — en-tête et bords restent en dehors",
+  "ocr_example_hint": "Plus la sélection est resserrée autour du nom du matériau, de la qualité et de la quantité — sans en-tête, bordures ni autres zones de l'écran —, plus la reconnaissance est fiable.",
   "ocr_select_hint": "Faites glisser un rectangle sur le tableau avec le nom du matériau, la qualité et la quantité.",
   "ocr_run": "Reconnaître",
   "ocr_running_digits": "Affinage des nombres…",
