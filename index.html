@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.082 -->
+<!-- Version: 0.084 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1770,7 +1770,11 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <div id="orgImportPreview" style="display:none;margin-top:14px;">
         <div class="user-note" style="border-left:3px solid var(--low);padding-left:10px;" data-i18n="hint_import_ueberschreibt">⚠ Die ausgewählten Bereiche werden vollständig ersetzt — nicht rückgängig zu machen (außer durch einen erneuten Export vorher).</div>
         <div id="orgImportCategoryList" style="display:flex;flex-direction:column;gap:6px;margin:10px 0;"></div>
-        <button class="btn-primary" id="btnConfirmOrgImport" style="background:var(--low);" data-i18n="btn_wiederherstellen">Wiederherstellen</button>
+        <div class="field" style="max-width:420px;">
+          <label for="orgImportConfirmName" data-i18n="label_import_bestaetigung">Zur Bestätigung Namen der aktuell aktiven Organisation eingeben:</label>
+          <input type="text" id="orgImportConfirmName" autocomplete="off" spellcheck="false">
+        </div>
+        <button class="btn-primary" id="btnConfirmOrgImport" style="background:var(--low);margin-top:10px;" disabled data-i18n="btn_wiederherstellen">Wiederherstellen</button>
         <button class="btn-ghost" id="btnCancelOrgImport" data-i18n="btn_cancel">Abbrechen</button>
       </div>
     </div>
@@ -1778,7 +1782,11 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
   <div class="panel" id="orgResetPanel" style="display:none;border:1px solid #FF3B5C;">
     <h2 style="color:#FF3B5C;">⚠ <span data-i18n="panel_org_reset">Organisations-Inhalte zurücksetzen</span></h2>
-    <div class="user-note" style="border-left:3px solid #FF3B5C;padding-left:10px;" data-i18n="hint_org_reset">Setzt die <strong>aktuell aktive</strong> Organisation auf einen leeren Inhaltsstand zurück — für einen Neustart mit denselben Mitgliedern und Einstellungen, aber ohne alte Bestände.</div>
+    <div class="user-note" style="border-left:3px solid #FF3B5C;padding-left:10px;" data-i18n="hint_org_reset">Setzt die gewählte Organisation auf einen leeren Inhaltsstand zurück — für einen Neustart mit denselben Mitgliedern und Einstellungen, aber ohne alte Bestände.</div>
+    <div class="field" style="margin-top:14px;max-width:420px;">
+      <label for="orgResetSelect" data-i18n="label_org_reset_organisation">Organisation</label>
+      <select id="orgResetSelect"></select>
+    </div>
     <div style="display:flex;gap:24px;margin-top:14px;flex-wrap:wrap;">
       <div>
         <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--low);margin-bottom:6px;" data-i18n="label_org_reset_bleibt">Bleibt erhalten</div>
@@ -1799,7 +1807,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </div>
     </div>
     <div class="field" style="margin-top:16px;max-width:420px;">
-      <label for="orgResetConfirmName"><span data-i18n="label_org_reset_bestaetigung">Zur Bestätigung Organisationsnamen eingeben:</span> <strong id="orgResetTargetName"></strong></label>
+      <label for="orgResetConfirmName"><span data-i18n="label_org_reset_bestaetigung">Zur Bestätigung Namen der oben gewählten Organisation eingeben:</span></label>
       <input type="text" id="orgResetConfirmName" autocomplete="off" spellcheck="false">
     </div>
     <button class="btn-primary" id="btnOrgReset" style="background:#FF3B5C;margin-top:14px;" disabled data-i18n="btn_org_reset">Inhalte unwiderruflich zurücksetzen</button>
@@ -3058,9 +3066,12 @@ const I18N = {
   "label_org_reset_geloescht_2": "Geteilte & private Sammelobjekte (aller Mitglieder)",
   "label_org_reset_geloescht_3": "Geteilte & private Projekte (aller Mitglieder)",
   "label_org_reset_geloescht_4": "Bedarfe",
-  "label_org_reset_bestaetigung": "Zur Bestätigung Organisationsnamen eingeben:",
+  "label_org_reset_bestaetigung": "Zur Bestätigung Namen der oben gewählten Organisation eingeben:",
   "btn_org_reset": "Inhalte unwiderruflich zurücksetzen",
-  "msg_org_reset_done": "Organisations-Inhalte wurden zurückgesetzt.",
+  "label_org_reset_organisation": "Organisation",
+  "msg_org_reset_done": "Inhalte von „{org}“ wurden zurückgesetzt.",
+  "label_import_bestaetigung": "Zur Bestätigung Namen der aktuell aktiven Organisation eingeben:",
+  "tooltip_org_import_bestaetigen": "Wirklich unwiderruflich wiederherstellen (bestehende Daten werden ersetzt)? Erneut klicken zum Bestätigen.",
   "tooltip_org_reset_bestaetigen": "Wirklich unwiderruflich zurücksetzen? Erneut klicken zum Bestätigen.",
   "panel_org_export": "Datensicherung",
   "hint_org_export": "Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.",
@@ -3731,9 +3742,12 @@ const I18N = {
   "label_org_reset_geloescht_2": "Shared & private collectibles (all members)",
   "label_org_reset_geloescht_3": "Shared & private projects (all members)",
   "label_org_reset_geloescht_4": "Needs",
-  "label_org_reset_bestaetigung": "Type the organization name to confirm:",
+  "label_org_reset_bestaetigung": "Type the name of the organization selected above to confirm:",
   "btn_org_reset": "Reset content irreversibly",
-  "msg_org_reset_done": "Organization content has been reset.",
+  "label_org_reset_organisation": "Organization",
+  "msg_org_reset_done": "Content of \"{org}\" has been reset.",
+  "label_import_bestaetigung": "Type the name of the currently active organization to confirm:",
+  "tooltip_org_import_bestaetigen": "Really restore irreversibly (existing data will be replaced)? Click again to confirm.",
   "tooltip_org_reset_bestaetigen": "Really reset irreversibly? Click again to confirm.",
   "panel_org_export": "Data backup",
   "hint_org_export": "Downloads a single file with all shared data of the current organization (inventory, needs, projects, collectibles, catalogs) — independent of Supabase, e.g. for your own backup.",
@@ -4404,9 +4418,12 @@ const I18N = {
   "label_org_reset_geloescht_2": "Objets de collection partagés et privés (tous les membres)",
   "label_org_reset_geloescht_3": "Projets partagés et privés (tous les membres)",
   "label_org_reset_geloescht_4": "Besoins",
-  "label_org_reset_bestaetigung": "Saisissez le nom de l'organisation pour confirmer :",
+  "label_org_reset_bestaetigung": "Saisissez le nom de l'organisation sélectionnée ci-dessus pour confirmer :",
   "btn_org_reset": "Réinitialiser le contenu de façon irréversible",
-  "msg_org_reset_done": "Le contenu de l'organisation a été réinitialisé.",
+  "label_org_reset_organisation": "Organisation",
+  "msg_org_reset_done": "Le contenu de « {org} » a été réinitialisé.",
+  "label_import_bestaetigung": "Saisissez le nom de l'organisation actuellement active pour confirmer :",
+  "tooltip_org_import_bestaetigen": "Vraiment restaurer de façon irréversible (les données existantes seront remplacées) ? Cliquez à nouveau pour confirmer.",
   "tooltip_org_reset_bestaetigen": "Vraiment réinitialiser de façon irréversible ? Cliquez à nouveau pour confirmer.",
   "panel_org_export": "Sauvegarde des données",
   "hint_org_export": "Télécharge un seul fichier contenant toutes les données partagées de l'organisation actuelle (stock, besoins, projets, objets de collection, catalogues) — indépendamment de Supabase, par exemple pour votre propre sauvegarde.",
@@ -6313,71 +6330,111 @@ function renderExportOrgSelect(){
 // veraltet ist und ein zuvor eingetippter Bestaetigungstext nicht
 // versehentlich fuer die FALSCHE (inzwischen wechselte) Organisation
 // weiterverwendet werden kann. Siehe Nutzerwunsch vom 15. August 2026.
+// Befuellt das Organisations-Auswahlfeld im "Inhalte zuruecksetzen"-
+// Bereich (nur Rolle owner) -- unabhaengig vom allgemeinen Organisations-
+// Umschalter, analog zur bereits bestehenden Export-Organisationsauswahl
+// (siehe renderExportOrgSelect). Setzt bei jeder Neubefuellung (Login,
+// allgemeiner Organisationswechsel, oder Auswahl-Wechsel innerhalb dieses
+// Feldes selbst) das Bestaetigungs-Eingabefeld sowie den deaktivierten
+// Button-Zustand zurueck -- ein zuvor fuer eine ANDERE Organisation
+// eingetippter Name darf niemals fuer eine neu ausgewaehlte Organisation
+// weiterhin gueltig bleiben. Ursprünglich (15. August 2026) auf die
+// jeweils aktive Organisation beschraenkt, auf ausdruecklichen
+// Nutzerwunsch noch am selben Tag um eine freie Auswahl erweitert.
 function renderOrgResetSection(){
   const panel = document.getElementById('orgResetPanel');
+  const select = document.getElementById('orgResetSelect');
   if(!panel) return;
   if(currentUser.role !== 'owner'){
     panel.style.display = 'none';
     return;
   }
   panel.style.display = '';
-  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
-  document.getElementById('orgResetTargetName').textContent = org ? org.name : currentOrgId;
+  select.innerHTML = ORGANIZATIONS.map(o=>
+    `<option value="${escapeHtml(o.id)}" ${o.id===currentOrgId?'selected':''}>${escapeHtml(o.name)}</option>`
+  ).join('');
+  resetOrgResetConfirmState();
+}
+
+function resetOrgResetConfirmState(){
   document.getElementById('orgResetConfirmName').value = '';
   document.getElementById('btnOrgReset').disabled = true;
 }
 
+document.getElementById('orgResetSelect').addEventListener('change', resetOrgResetConfirmState);
+
 document.getElementById('orgResetConfirmName').addEventListener('input', ()=>{
-  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
-  const targetName = org ? org.name : currentOrgId;
+  const targetOrgId = document.getElementById('orgResetSelect').value;
+  const org = ORGANIZATIONS.find(o=>o.id===targetOrgId);
+  const targetName = org ? org.name : targetOrgId;
   document.getElementById('btnOrgReset').disabled =
     document.getElementById('orgResetConfirmName').value !== targetName;
 });
 
-// Setzt saemtliche INHALTE (nicht die STRUKTUR) der aktuell aktiven
+// Setzt saemtliche INHALTE (nicht die STRUKTUR) der GEWAEHLTEN
 // Organisation zurueck: geteilter wie privater Bestand, Sammelobjekte
 // und Projekte aller Mitglieder, sowie Bedarfe. Benutzer, Rollen,
 // Zugangsdaten, Organisations-Individualisierung und Discord-
 // Einstellungen bleiben bewusst unangetastet -- fuer einen inhaltlichen
-// Neustart mit denselben Mitgliedern und Einstellungen. Nutzt dieselben,
-// bereits bewaehrten save-Funktionen wie ueberall sonst -- alle sind
-// ueber orgKey() an currentOrgId gebunden, betreffen also ausschliesslich
-// die aktuell aktive Organisation, keine andere. Siehe Nutzerwunsch vom
-// 15. August 2026.
-async function resetOrganizationContent(){
+// Neustart mit denselben Mitgliedern und Einstellungen.
+//
+// Schreibt bewusst DIREKT ueber window.storage (nicht ueber die
+// bestehenden save()/saveNeeds()/... Funktionen), da jene stets an
+// currentOrgId gebunden sind (siehe orgKey()) -- fuer eine ANDERE als
+// die gerade aktive Organisation waeren sie hier nicht anwendbar, ohne
+// zunaechst die gesamte aktive Sitzung dorthin umzuschalten (was den
+// Arbeitskontext des Owners unnoetig stoeren wuerde, siehe bereits
+// etabliertes Muster bei fetchOrgScopedDataFor() fuer den Export).
+// Betrifft NUR dann auch die lokalen, bereits geladenen Sitzungs-
+// Variablen und die sichtbare Oberflaeche, wenn die gewaehlte
+// Organisation zufaellig der gerade aktiven entspricht -- sonst bleibt
+// die aktuelle Ansicht des Owners unangetastet, waehrend im Hintergrund
+// eine ANDERE Organisation zurueckgesetzt wird. Siehe Nutzerwunsch vom
+// 15. August 2026 (zunaechst auf die aktive Organisation beschraenkt,
+// noch am selben Tag um freie Auswahl erweitert).
+async function resetOrganizationContentFor(targetOrgId){
   const statusEl = document.getElementById('orgResetStatus');
-  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
-  const orgName = org ? org.name : currentOrgId;
+  const org = ORGANIZATIONS.find(o=>o.id===targetOrgId);
+  const orgName = org ? org.name : targetOrgId;
 
   setStatusMsg(statusEl, t('msg_saving'), false);
 
-  entries = []; needs = []; projects = []; collectibles = [];
-  privateEntries = []; privateCollectibles = []; privateProjects = [];
-
+  const empty = JSON.stringify([]);
+  const key = base => `${base}__org_${targetOrgId}`;
   await Promise.all([
-    save(), saveNeeds(), saveProjects(), saveCollectibles(),
-    savePrivateEntries(), savePrivateCollectibles(), savePrivateProjects()
+    window.storage.set(key(STORAGE_KEY), empty, true),
+    window.storage.set(key(NEEDS_KEY), empty, true),
+    window.storage.set(key(PROJECTS_KEY), empty, true),
+    window.storage.set(key(COLLECTIBLES_KEY), empty, true),
+    window.storage.set(key(PRIVATE_STORAGE_KEY), empty, true),
+    window.storage.set(key(PRIVATE_COLLECTIBLES_KEY), empty, true),
+    window.storage.set(key(PRIVATE_PROJECTS_KEY), empty, true)
   ]);
   await logAction('Organisations-Inhalte zurückgesetzt', `Bestand, Bedarf, Projekte und Sammelobjekte (geteilt und privat, alle Mitglieder) der Organisation „${orgName}“ wurden vollständig geleert. Benutzer und Organisationseinstellungen blieben unverändert.`);
 
-  render();
-  renderNeeds();
-  renderProjects();
-  renderCollectibles();
-  renderPrivate();
-  renderPrivateProjects();
-  renderPrivateCollectibles();
-  updateProjectAvailability();
-  updatePrivateProjectAvailability();
-  scheduleRenderDashboard();
+  if(targetOrgId === currentOrgId){
+    entries = []; needs = []; projects = []; collectibles = [];
+    privateEntries = []; privateCollectibles = []; privateProjects = [];
+    render();
+    renderNeeds();
+    renderProjects();
+    renderCollectibles();
+    renderPrivate();
+    renderPrivateProjects();
+    renderPrivateCollectibles();
+    updateProjectAvailability();
+    updatePrivateProjectAvailability();
+    scheduleRenderDashboard();
+  }
   renderOrgResetSection();
 
-  setStatusMsg(statusEl, t('msg_org_reset_done'), false);
+  setStatusMsg(statusEl, t('msg_org_reset_done').replace('{org}', orgName), false);
   setTimeout(()=>{ statusEl.textContent=''; }, 6000);
 }
 
 document.getElementById('btnOrgReset').addEventListener('click', (e)=>{
-  armConfirm(e.currentTarget, resetOrganizationContent, t('tooltip_org_reset_bestaetigen'));
+  const targetOrgId = document.getElementById('orgResetSelect').value;
+  armConfirm(e.currentTarget, ()=>resetOrganizationContentFor(targetOrgId), t('tooltip_org_reset_bestaetigen'));
 });
 
 function renderExportReminder(){
@@ -6730,7 +6787,14 @@ function renderOrgImportPreview(data){
   // eigenem Sicherheitshinweis -- ein Wiederherstellen wuerde bestehende,
   // AKTUELLE Passwoerter durch den zum Sicherungszeitpunkt gueltigen,
   // moeglicherweise laengst veraenderten Stand ersetzen.
-  if(Array.isArray(data.users) && data.users.length){
+  // Ab 15. August 2026, im Zuge der Erweiterung des Imports auf
+  // org_admin: Diese Kategorie bleibt bewusst weiterhin exklusiv der
+  // Rolle owner vorbehalten (currentUser.role-Pruefung ergaenzt) --
+  // konsistent mit derselben Einschraenkung beim Export (siehe dortiger
+  // Changelog-Eintrag vom selben Tag). Ein org_admin sieht diese
+  // Checkbox dadurch erst gar nicht, selbst wenn die gewaehlte Datei
+  // Benutzer/Zugangsdaten enthaelt.
+  if(Array.isArray(data.users) && data.users.length && currentUser.role === 'owner'){
     html += `
     <label style="display:flex;align-items:flex-start;gap:8px;font-weight:normal;cursor:pointer;margin-top:6px;">
       <input type="checkbox" id="orgImportCat-users" style="margin-top:2px;">
@@ -6741,6 +6805,11 @@ function renderOrgImportPreview(data){
 
   listEl.innerHTML = html;
   document.getElementById('orgImportPreview').style.display = '';
+  // Namens-Bestaetigung bei jeder neuen Vorschau (neu ausgewaehlte Datei)
+  // zuruecksetzen -- ein zuvor eingetippter, ggf. laengst korrekter Name
+  // darf nicht stillschweigend fuer eine andere/neue Datei weitergelten.
+  document.getElementById('orgImportConfirmName').value = '';
+  document.getElementById('btnConfirmOrgImport').disabled = true;
 }
 
 document.getElementById('btnCancelOrgImport').addEventListener('click', ()=>{
@@ -6748,7 +6817,23 @@ document.getElementById('btnCancelOrgImport').addEventListener('click', ()=>{
   document.getElementById('orgImportPreview').style.display = 'none';
 });
 
-document.getElementById('btnConfirmOrgImport').addEventListener('click', async ()=>{
+// Zweite Sicherheitsstufe (neben der bereits bestehenden Zwei-Klick-
+// Bestaetigung am Button selbst, siehe armConfirm() im Klick-Handler
+// weiter unten): Der Name der AKTUELL AKTIVEN Organisation muss exakt
+// eingetippt werden, bevor der Wiederherstellen-Button ueberhaupt aktiv
+// wird -- unabhaengig davon, ob ein org_admin (kann ohnehin nur die
+// eigene Organisation erreichen) oder ein owner (koennte theoretisch
+// zuvor zu einer anderen gewechselt haben) diese Aktion ausloest. Siehe
+// Nutzerwunsch vom 15. August 2026 (Erweiterung des Imports auf
+// org_admin, mit entsprechend verstaerkter Absicherung).
+document.getElementById('orgImportConfirmName').addEventListener('input', ()=>{
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  const targetName = org ? org.name : currentOrgId;
+  document.getElementById('btnConfirmOrgImport').disabled =
+    document.getElementById('orgImportConfirmName').value !== targetName;
+});
+
+async function performOrgImport(){
   if(!pendingOrgImportData) return;
   const statusEl = document.getElementById('orgExportStatus');
   const data = pendingOrgImportData;
@@ -6859,7 +6944,13 @@ document.getElementById('btnConfirmOrgImport').addEventListener('click', async (
   // Export-Datei ohnehin bereits nur Zugangsdaten dieser Organisation
   // enthaelt (siehe dortige Filterung). Siehe Nutzerwunsch vom
   // 15. August 2026.
-  if(Array.isArray(data.users) && selected('users')){
+  // Zusaetzliche Absicherung (siehe bereits vorhandene Rollenpruefung in
+  // renderOrgImportPreview): selected('users') liefert fuer org_admin
+  // ohnehin bereits false, da die Checkbox dort gar nicht erst gerendert
+  // wird -- currentUser.role==='owner' hier trotzdem zusaetzlich explizit
+  // geprueft, statt sich ausschliesslich auf das Fehlen des UI-Elements
+  // zu verlassen.
+  if(Array.isArray(data.users) && selected('users') && currentUser.role === 'owner'){
     USERS = USERS.filter(u=>(u.organizationId||LEGACY_ORG_ID)!==currentOrgId).concat(data.users);
     await saveUsers();
     importedParts.push(`${data.users.length} ${t('label_import_benutzer_zugangsdaten')}`);
@@ -6900,6 +6991,10 @@ document.getElementById('btnConfirmOrgImport').addEventListener('click', async (
   if(selected('materials') || selected('locations')){
     statusEl.textContent += ' ' + t('hint_seite_neu_laden_katalog');
   }
+}
+
+document.getElementById('btnConfirmOrgImport').addEventListener('click', (e)=>{
+  armConfirm(e.currentTarget, performOrgImport, t('tooltip_org_import_bestaetigen'));
 });
 
 // Einmalige, automatische Migration der bisherigen (nicht
@@ -7325,11 +7420,15 @@ function completeLogin(user){
   document.getElementById('orgExportPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   // Die Wiederherstellung (im Unterschied zum reinen Export) ist deutlich
   // risikoreicher -- ersetzt bestehende Daten vollstaendig und
-  // unwiderruflich. Bewusst NUR fuer owner sichtbar, auch wenn das
-  // umschliessende Panel selbst bereits ab org_admin sichtbar ist (der
-  // reine Export bleibt dort weiterhin verfuegbar). Siehe Nutzerwunsch
-  // vom 12. August 2026.
-  document.getElementById('orgImportSection').style.display = user.role==='owner' ? '' : 'none';
+  // unwiderruflich. Ab 12. August 2026 zunaechst bewusst nur fuer owner
+  // sichtbar gewesen, auch wenn das umschliessende Panel selbst bereits
+  // ab org_admin sichtbar war. Auf ausdruecklichen Nutzerwunsch am
+  // 15. August 2026 auf org_admin erweitert, dafuer im Gegenzug um zwei
+  // zusaetzliche Sicherheitsstufen ergaenzt (siehe orgImportConfirmName-
+  // Eingabefeld und armConfirm() im Bestaetigungs-Handler weiter unten) --
+  // ein org_admin sieht dabei ohnehin ausschliesslich die eigene,
+  // zugeordnete Organisation (kann gar nicht zu einer anderen wechseln).
+  document.getElementById('orgImportSection').style.display = isOrgAdminOrAbove ? '' : 'none';
   document.getElementById('catalogPanel').style.display = user.role==='owner' ? '' : 'none';
   // Ab 8. August 2026: nicht mehr nur owner, sondern bereits org_admin
   // aufwaerts -- betrifft dabei ausschliesslich die EIGENE Organisation
