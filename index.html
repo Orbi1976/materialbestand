@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.093 -->
+<!-- Version: 0.094 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -14811,6 +14811,46 @@ function prepareOcrGrayscale(cropCanvas, targetDim){
   return { width: out.width, height: out.height, gray };
 }
 
+// Otsu-Methode: berechnet automatisch den optimal trennenden
+// Schwellenwert FUER EIN BESTIMMTES BILD, basierend auf dessen
+// tatsaechlichem Helligkeits-Histogramm -- statt sich ausschliesslich
+// auf die sieben festen, verallgemeinerten Werte (90-210) zu verlassen.
+// Findet denjenigen Schwellenwert, der die Varianz ZWISCHEN den beiden
+// resultierenden Gruppen (heller/dunkler Bereich) maximiert -- entspricht
+// der bestmoeglichen Trennschaerfe zwischen Vorder- und Hintergrund fuer
+// GENAU dieses Bild. Etabliertes, bewaehrtes Standardverfahren der
+// Bildverarbeitung (Otsu, 1979). Wird in runOcrEnsemble() als
+// zusaetzlicher, achter Durchlauf neben den sieben festen Werten
+// eingesetzt -- faengt speziell die Ausreisser-Faelle ab, fuer die
+// keiner der festen Werte gut passt. Siehe Nutzerwunsch vom
+// 16. August 2026.
+function computeOtsuThreshold(gray){
+  const histogram = new Array(256).fill(0);
+  for(let i=0;i<gray.length;i++) histogram[gray[i]]++;
+  const total = gray.length;
+  if(total === 0) return 128;
+
+  let sum = 0;
+  for(let t=0;t<256;t++) sum += t * histogram[t];
+
+  let sumB = 0, wB = 0, maxVariance = 0, threshold = 128;
+  for(let t=0;t<256;t++){
+    wB += histogram[t];
+    if(wB === 0) continue;
+    const wF = total - wB;
+    if(wF === 0) break;
+    sumB += t * histogram[t];
+    const mB = sumB / wB;
+    const mF = (sum - sumB) / wF;
+    const variance = wB * wF * (mB - mF) * (mB - mF);
+    if(variance > maxVariance){
+      maxVariance = variance;
+      threshold = t;
+    }
+  }
+  return threshold;
+}
+
 // Wendet EINEN Schwellenwert auf ein bereits vorbereitetes (skaliertes,
 // weichgezeichnetes, kontrast-normalisiertes) Graustufen-Ergebnis an --
 // bewusst getrennt von prepareOcrGrayscale(), damit diese aufwendigere
@@ -14851,7 +14891,14 @@ async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offse
   // der drei Testbilder vom 7. August 2026) -- mit Sicherheitsabstand
   // nach links, damit die Spalte nicht versehentlich abgeschnitten wird.
   const xStartFrac = 0.56;
-  await worker.setParameters({ tessedit_char_whitelist: '0123456789' });
+  // PSM 11 (SPARSE_TEXT, "Finde so viel Text wie moeglich, ohne
+  // Reihenfolge/Layout anzunehmen") -- bislang unveraendert Tesseracts
+  // Standard-Seitensegmentierung, die einen zusammenhaengenden Textblock
+  // vermutet. Bei einem eng zugeschnittenen Tabellenausschnitt mit
+  // verstreuten, durch Symbole/Spalten getrennten Zahlen passt diese
+  // Annahme aber schlecht -- SPARSE_TEXT ist fuer genau diesen Fall
+  // vorgesehen. Siehe Nutzerwunsch vom 16. August 2026.
+  await worker.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '11' });
   const perThresholdRows = [];
   try{
     for(let i=0;i<thresholds.length;i++){
@@ -14875,7 +14922,7 @@ async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offse
         const yCenter = (w.bbox.y0 + w.bbox.y1) / 2;
         let row = rows.find(r=>Math.abs(r.yCenter-yCenter) < 50);
         if(!row){ row = { yCenter, numbers: [] }; rows.push(row); }
-        row.numbers.push({ x: w.bbox.x0, val: parseInt(w.text.trim(),10) });
+        row.numbers.push({ x: w.bbox.x0, val: parseInt(w.text.trim(),10), confidence: w.confidence!=null ? w.confidence : 50 });
       });
       perThresholdRows.push(rows.map(r=>{
         r.numbers.sort((a,b)=>a.x-b.x);
@@ -14895,7 +14942,13 @@ async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offse
         // Menge 37 statt 0.37 SCU uebernommen).
         const rawMenge = r.numbers[1]!=null ? r.numbers[1].val : null;
         const menge = rawMenge!=null ? Math.round((rawMenge/100)*100)/100 : null;
-        return { yCenter: r.yCenter, quality: r.numbers[0]!=null?r.numbers[0].val:null, menge };
+        return {
+          yCenter: r.yCenter,
+          quality: r.numbers[0]!=null?r.numbers[0].val:null,
+          qualityConfidence: r.numbers[0]!=null?r.numbers[0].confidence:null,
+          menge,
+          mengeConfidence: r.numbers[1]!=null?r.numbers[1].confidence:null
+        };
       }));
     }
   } finally {
@@ -14912,13 +14965,6 @@ async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offse
 // durch unterschiedliche Belichtung/Kontrast deutlich besser ab als ein
 // einzelner Durchlauf.
 async function runOcrEnsemble(cropCanvas, statusEl){
-  // Schwellenwert-Bandbreite erweitert (urspruenglich 110-190) --
-  // Tests mit echten Screenshots vom 7. August 2026 zeigten, dass der
-  // optimale Einzel-Schwellenwert zwischen Bildern erheblich schwankt
-  // (je nach Spiel-interner Beleuchtung/Kontrast an der jeweiligen
-  // Station); 90 und 210 als zusaetzliche Randwerte ergaenzt, um diese
-  // Schwankungsbreite zuverlaessiger abzudecken.
-  const thresholds = [90, 110, 130, 150, 170, 190, 210];
   const targetDim = 2200;
   const perThresholdRows = [];
 
@@ -14928,14 +14974,44 @@ async function runOcrEnsemble(cropCanvas, statusEl){
   // Schwellenwerte erneut -- siehe ausfuehrlicher Kommentar bei
   // prepareOcrGrayscale(). Wird sowohl vom Hauptdurchlauf unten als
   // auch von runDigitFocusedPass() (derselbe Zuschnitt) gemeinsam
-  // genutzt.
+  // genutzt. Bewusst VOR der thresholds-Liste berechnet (statt wie
+  // urspruenglich danach), da die Otsu-Ergaenzung direkt im Anschluss
+  // den bereits vorbereiteten Graustufen-Ausschnitt benoetigt.
   const prepared = prepareOcrGrayscale(cropCanvas, targetDim);
+
+  // Schwellenwert-Bandbreite erweitert (urspruenglich 110-190) --
+  // Tests mit echten Screenshots vom 7. August 2026 zeigten, dass der
+  // optimale Einzel-Schwellenwert zwischen Bildern erheblich schwankt
+  // (je nach Spiel-interner Beleuchtung/Kontrast an der jeweiligen
+  // Station); 90 und 210 als zusaetzliche Randwerte ergaenzt, um diese
+  // Schwankungsbreite zuverlaessiger abzudecken.
+  //
+  // Ab 16. August 2026: zusaetzlich zu den sieben FESTEN, verall-
+  // gemeinerten Werten wird per Otsu-Methode (siehe computeOtsuThreshold())
+  // ein achter, individuell fuer GENAU dieses Bild berechneter optimaler
+  // Schwellenwert ergaenzt -- faengt speziell die Ausreisser-Faelle ab,
+  // fuer die keiner der sieben festen Werte gut passt. Nur ergaenzt, wenn
+  // er sich deutlich (>10) von allen bereits vorhandenen festen Werten
+  // unterscheidet -- sonst waere es ein verschwendeter, redundanter
+  // achter Durchlauf, der ohnehin schon nahezu dasselbe Ergebnis wie ein
+  // bestehender fester Wert liefern wuerde. Siehe Nutzerwunsch vom
+  // 16. August 2026.
+  const fixedThresholds = [90, 110, 130, 150, 170, 190, 210];
+  const otsuThreshold = computeOtsuThreshold(prepared.gray);
+  const thresholds = fixedThresholds.some(t=>Math.abs(t-otsuThreshold)<=10)
+    ? fixedThresholds
+    : [...fixedThresholds, otsuThreshold];
 
   // Einen einzigen Worker für alle fünf Durchläufe wiederverwenden statt
   // pro Durchlauf einen neuen zu erzeugen — das Sprachmodell muss dadurch
   // nur einmal geladen werden statt fünfmal, was besonders auf
   // Mobilgeräten spürbar Zeit spart.
   const worker = await window.Tesseract.createWorker('eng');
+  // Siehe ausfuehrlicher Kommentar bei runDigitFocusedPass() -- dieselbe
+  // Umstellung auf SPARSE_TEXT gilt auch fuer den Hauptdurchlauf, der
+  // sowohl Materialnamen als auch Zahlen im selben, eng zugeschnittenen
+  // Tabellenausschnitt erkennen muss.
+  await worker.setParameters({ tessedit_pageseg_mode: '11' });
   let digitFocusedRows = [];
   try{
     for(let i=0;i<thresholds.length;i++){
@@ -14965,14 +15041,22 @@ async function runOcrEnsemble(cropCanvas, statusEl){
 
   const finalRows = allRowCenters.map(yCenter=>{
     const candidates = { material: [], quality: [], menge: [] };
+    // Ab 16. August 2026: parallele Konfidenz-Werte (0-100) zu jeder
+    // Qualitaets-/Mengen-Lesung, Grundlage fuer die gewichtete Abstimmung
+    // weiter unten. Fuer Materialnamen bewusst nicht eingefuehrt -- die
+    // Materialerkennung durchlaeuft ohnehin bereits einen eigenen,
+    // robusten Abgleich gegen den bekannten Material-Katalog
+    // (fuzzyMatchMaterial), eine zusaetzliche Gewichtung dort waere
+    // vermutlich nur geringer Zusatznutzen bei mehr Komplexitaet.
+    const confidences = { quality: [], menge: [] };
     let yMinSum = 0, yMaxSum = 0, matchCount = 0;
     let firstMaterialRaw = null;
     perThresholdRows.forEach(rows=>{
       const match = rows.find(r=>Math.abs(r.yCenter-yCenter) < 50);
       if(match){
         if(match.material) candidates.material.push(match.material);
-        if(match.quality!=null) candidates.quality.push(String(match.quality));
-        if(match.menge!=null) candidates.menge.push(String(match.menge));
+        if(match.quality!=null){ candidates.quality.push(String(match.quality)); confidences.quality.push(match.qualityConfidence); }
+        if(match.menge!=null){ candidates.menge.push(String(match.menge)); confidences.menge.push(match.mengeConfidence); }
         yMinSum += match.yMin; yMaxSum += match.yMax; matchCount++;
         if(firstMaterialRaw===null && match.materialRaw) firstMaterialRaw = match.materialRaw;
       }
@@ -14986,13 +15070,13 @@ async function runOcrEnsemble(cropCanvas, statusEl){
     digitFocusedRows.forEach(rows=>{
       const match = rows.find(r=>Math.abs(r.yCenter-yCenter) < 50);
       if(match){
-        if(match.quality!=null) candidates.quality.push(String(match.quality));
-        if(match.menge!=null) candidates.menge.push(String(match.menge));
+        if(match.quality!=null){ candidates.quality.push(String(match.quality)); confidences.quality.push(match.qualityConfidence); }
+        if(match.menge!=null){ candidates.menge.push(String(match.menge)); confidences.menge.push(match.mengeConfidence); }
       }
     });
     const mat = mostCommonWithConfidence(candidates.material);
-    const qual = mostCommonWithConfidence(candidates.quality);
-    const men = mostCommonWithConfidence(candidates.menge);
+    const qual = mostCommonWithConfidence(candidates.quality, confidences.quality);
+    const men = mostCommonWithConfidence(candidates.menge, confidences.menge);
     return {
       material: mat.value,
       materialConfident: mat.confident,
@@ -15019,15 +15103,34 @@ function mostCommon(arr){
 // der Vorschau. Als "sicher" gilt ein Wert nur, wenn mindestens 60% der
 // Durchläufe übereinstimmen UND mindestens 3 Durchläufe überhaupt einen
 // Wert an dieser Stelle erkannt haben.
-function mostCommonWithConfidence(arr){
+//
+// Ab 16. August 2026: nimmt optional ein paralleles Array von Tesseracts
+// eigenen Konfidenz-Werten (0-100) je Element entgegen und gewichtet die
+// Abstimmung entsprechend -- eine Lesung, bei der Tesseract selbst schon
+// unsicher war (z.B. 35), zaehlt dadurch weniger stark als eine, bei der
+// Tesseract sich sehr sicher war (z.B. 95). Bislang zaehlte jede Lesung
+// unabhaengig von dieser Selbsteinschaetzung exakt gleich viel. Ohne
+// uebergebene Konfidenz-Werte (zweiter Parameter weggelassen, z.B. beim
+// Materialnamen) faellt die Funktion automatisch auf die urspruengliche,
+// gleichgewichtete Zaehlung zurueck -- vollstaendig abwaertskompatibel.
+// Siehe Nutzerwunsch vom 16. August 2026.
+function mostCommonWithConfidence(arr, confidences){
   if(arr.length===0) return { value: null, confident: false };
-  const counts = {};
-  arr.forEach(v=>{ counts[v] = (counts[v]||0)+1; });
-  let best = arr[0], bestCount = 0;
-  Object.keys(counts).forEach(k=>{
-    if(counts[k] > bestCount){ bestCount = counts[k]; best = k; }
+  const weights = {};
+  let totalWeight = 0;
+  arr.forEach((v,i)=>{
+    // Mindestgewicht 1 statt 0 -- ein Konfidenz-Wert von 0 (oder ein
+    // fehlender Wert) soll die Lesung nicht komplett aus der Abstimmung
+    // ausschliessen, nur deutlich schwaecher werten als eine sichere Lesung.
+    const w = (confidences && confidences[i]!=null) ? Math.max(1, confidences[i]) : 100;
+    weights[v] = (weights[v]||0) + w;
+    totalWeight += w;
   });
-  const ratio = bestCount / arr.length;
+  let best = arr[0], bestWeight = 0;
+  Object.keys(weights).forEach(k=>{
+    if(weights[k] > bestWeight){ bestWeight = weights[k]; best = k; }
+  });
+  const ratio = bestWeight / totalWeight;
   const confident = ratio >= 0.6 && arr.length >= 3;
   return { value: best, confident };
 }
@@ -15066,23 +15169,30 @@ function clusterWordsIntoRows(words){
   return rows.map(row=>{
     row.words.sort((a,b)=> a.bbox.x0 - b.bbox.x0);
     const nameParts = [];
+    // Ab 16. August 2026: haelt zusaetzlich zum reinen Zahlenwert
+    // Tesseracts eigene Konfidenz-Einschaetzung (0-100) fuer genau dieses
+    // Wort fest -- Grundlage fuer die konfidenz-gewichtete Abstimmung in
+    // mostCommonWithConfidence() weiter unten, statt jede Lesung
+    // unabhaengig von Tesseracts eigener Unsicherheit gleich zu werten.
     const numbers = [];
     row.words.forEach(w=>{
       const txt = w.text.trim().replace(/^[^\wäöüÄÖÜ]+|[^\wäöüÄÖÜ]+$/g,'');
       if(!txt) return;
       if(/^\d+$/.test(txt)){
-        numbers.push(parseInt(txt,10));
+        numbers.push({ value: parseInt(txt,10), confidence: w.confidence!=null ? w.confidence : 50 });
       } else if(/^[a-zA-Zäöü]{2,}$/.test(txt)){
         nameParts.push(txt);
       }
     });
     const materialRaw = nameParts.join(' ');
     const material = nameParts.length ? fuzzyMatchMaterial(materialRaw) : null;
-    const quality = numbers.length>=1 ? numbers[0] : null;
+    const quality = numbers.length>=1 ? numbers[0].value : null;
+    const qualityConfidence = numbers.length>=1 ? numbers[0].confidence : null;
     // Menge: erste Ziffernfolge nach der Qualität, von cSCU auf SCU umgerechnet
-    const yieldRaw = numbers.length>=2 ? numbers[1] : null;
+    const yieldRaw = numbers.length>=2 ? numbers[1].value : null;
+    const yieldConfidence = numbers.length>=2 ? numbers[1].confidence : null;
     const menge = yieldRaw!=null ? Math.round((yieldRaw/100)*100)/100 : null;
-    return { yCenter: row.yCenter, yMin: row.yMin, yMax: row.yMax, material, materialRaw, quality, menge };
+    return { yCenter: row.yCenter, yMin: row.yMin, yMax: row.yMax, material, materialRaw, quality, qualityConfidence, menge, mengeConfidence: yieldConfidence };
   });
 }
 
