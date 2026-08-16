@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.090 -->
+<!-- Version: 0.091 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -14660,25 +14660,82 @@ document.getElementById('ocrScPathCode').addEventListener('click', async ()=>{
 
 let ocrCurrentObjectUrl = null;
 
-// Einfache Vergroesserung der Auswahl-Vorschau (ab 16. August 2026) --
-// nutzt bewusst eine CSS-transform:scale() auf dem Bild-Element selbst,
-// KEINE Skalierung der zugrundeliegenden Bilddaten. Die bestehende
-// Auswahl-Logik (siehe setupOcrSelection() weiter unten) ermittelt bei
-// jedem Ziehen ueber getBoundingClientRect() die tatsaechlich sichtbare
-// Groesse des Bildes -- das beruecksichtigt CSS-Transformationen
-// automatisch korrekt, wodurch die Koordinatenberechnung fuer die
-// Auswahlbox OHNE jede Aenderung auch bei aktivem Zoom weiterhin exakt
-// stimmt. Vier feste Stufen statt einer stufenlosen Eingabe, bewusst
+// Einfache Vergroesserung der Auswahl-Vorschau (ab 16. August 2026, am
+// selben Tag korrigiert -- siehe Kommentar bei applyOcrZoom() weiter
+// unten). Vier feste Stufen statt einer stufenlosen Eingabe, bewusst
 // "einfach" gehalten wie vom Nutzer gewuenscht.
 const OCR_ZOOM_LEVELS = [1, 1.5, 2, 3];
 let ocrZoomLevel = 1;
 let ocrPanMode = false;
+// Tatsaechliche, per CSS (max-width/max-height) begrenzte Darstellungs-
+// groesse des Bildes bei 100% Zoom -- einmalig beim Laden des Bildes
+// gemessen (siehe handleOcrFileSelected()), dient als Basis fuer die
+// Pixel-Berechnung bei hoeheren Zoom-Stufen.
+let ocrBaseImgSize = {w:0, h:0};
 
+// KORREKTUR vom 16. August 2026 (noch am selben Tag wie die urspruengliche
+// Einfuehrung): Die urspruengliche Umsetzung nutzte eine reine CSS-
+// transform:scale() auf dem Bild-Element -- funktional einwandfrei fuer
+// die Koordinatenberechnung der Auswahlbox (transform wird von
+// getBoundingClientRect() korrekt beruecksichtigt), aber mit einem
+// grundlegenden CSS-Webfehler: transform aendert AUSSCHLIESSLICH die
+// optische Darstellung, NICHT die fuer Overflow-Berechnungen massgebliche
+// Layout-Groesse des Elements. Der umgebende Container (overflow:auto)
+// hatte dadurch schlicht NICHTS zum tatsaechlichen Scrollen -- das visuell
+// vergroesserte Bild ragte zwar ueber den sichtbaren Bereich hinaus, war
+// darueber hinaus aber nicht erreichbar, weder per Scrollen noch per
+// Verschieben-Modus. Nutzermeldung samt Screenshot am 16. August 2026:
+// Nach dem Vergroessern liess sich keine Markierung mehr ziehen (fuer den
+// eigentlich benoetigten Bereich schlicht nicht mehr erreichbar).
+//
+// Behoben durch echte Pixel-Groessenaenderung (width/height in px) statt
+// transform -- das aendert die tatsaechliche Layout-Groesse und laesst
+// overflow:auto dadurch korrekt und zuverlaessig scrollen. max-width/
+// max-height muessen dafuer bei aktivem Zoom explizit aufgehoben werden,
+// da sie sonst die gesetzte, groessere Pixel-Breite/-Hoehe wieder
+// zurueckstutzen wuerden (max-width:100% bezieht sich auf die Breite des
+// Containers, nicht auf die urspruengliche Bildgroesse). Die bestehende
+// Koordinatenberechnung der Auswahlbox bleibt davon unberuehrt -- sie
+// funktioniert bei einer echten Groessenaenderung identisch korrekt wie
+// zuvor bei transform, da getBoundingClientRect() so oder so stets die
+// tatsaechliche, aktuell gerenderte Groesse liefert.
 function applyOcrZoom(){
   const img = document.getElementById('ocrPreviewImg');
   const wrap = document.getElementById('ocrImageWrap');
-  img.style.transform = ocrZoomLevel > 1 ? `scale(${ocrZoomLevel})` : '';
-  img.style.transformOrigin = 'top left';
+  if(ocrZoomLevel > 1 && ocrBaseImgSize.w > 0){
+    img.style.maxWidth = 'none';
+    img.style.maxHeight = 'none';
+    img.style.width = Math.round(ocrBaseImgSize.w * ocrZoomLevel) + 'px';
+    img.style.height = Math.round(ocrBaseImgSize.h * ocrZoomLevel) + 'px';
+    // ocrImageWrap ist ein Flex-Container (fuer die Zentrierung bei 100%
+    // Zoom) -- ohne flex-shrink:0 wuerde der Flex-Algorithmus die soeben
+    // explizit gesetzte, groessere Breite/Hoehe automatisch wieder auf
+    // die verfuegbare Containerflaeche zurueckschrumpfen (Standard ist
+    // flex-shrink:1), was die gesamte Groessenaenderung wirkungslos
+    // gemacht haette. Bei der urspruenglichen Korrektur (transform ->
+    // echte Pixel-Groesse) zunaechst uebersehen, bei genauerer Pruefung
+    // noch am selben Tag ergaenzt.
+    img.style.flexShrink = '0';
+    // Zusaetzliche Vorsichtsmassnahme gegen eine bekannte CSS-Eigenheit:
+    // Ein zentrierter Flex-Container (justify-content/align-items:
+    // center) macht bei ueberlaufendem Inhalt haeufig die dem Zentrum
+    // ABGEWANDTE Seite (hier: oben/links) unerreichbar, da ein Scrollen
+    // in den "negativen" Bereich browserseitig nicht vorgesehen ist --
+    // nur die dem Zentrum zugewandte Seite (unten/rechts) liesse sich
+    // dann erreichen. Bei aktivem Zoom wird daher auf flex-start
+    // umgeschaltet (das Bild haengt sich oben/links ein), wodurch der
+    // gesamte Bildbereich zuverlaessig scrollbar erreichbar bleibt.
+    wrap.style.alignItems = 'flex-start';
+    wrap.style.justifyContent = 'flex-start';
+  } else {
+    img.style.maxWidth = '';
+    img.style.maxHeight = '';
+    img.style.width = '';
+    img.style.height = '';
+    img.style.flexShrink = '';
+    wrap.style.alignItems = '';
+    wrap.style.justifyContent = '';
+  }
   document.getElementById('ocrZoomLabel').textContent = Math.round(ocrZoomLevel*100)+'%';
   // Nur bei aktivem Zoom ueberhaupt scrollbar -- bei 100% bliebe
   // "auto" ohnehin folgenlos, "hidden" vermeidet aber unnoetig
@@ -14750,7 +14807,13 @@ function handleOcrFileSelected(file){
     // nicht faelschlich fuer ein neues Bild uebernommen werden.
     ocrZoomLevel = 1;
     ocrPanMode = false;
-    applyOcrZoom();
+    applyOcrZoom(); // setzt zunaechst alle Groessen-Overrides zurueck (100%)
+    // Erst NACH dem obigen Zuruecksetzen messen -- an dieser Stelle greift
+    // wieder die reine CSS-Begrenzung (max-width:100%/max-height:50vh),
+    // getBoundingClientRect() liefert dadurch zuverlaessig die tatsaechliche
+    // 100%-Darstellungsgroesse als Basis fuer hoehere Zoom-Stufen.
+    const baseRect = img.getBoundingClientRect();
+    ocrBaseImgSize = { w: baseRect.width, h: baseRect.height };
     updateOcrPanMode();
     setupOcrSelection();
   };
