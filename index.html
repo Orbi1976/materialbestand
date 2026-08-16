@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.092 -->
+<!-- Version: 0.093 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1603,13 +1603,6 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         </div>
       </details>
 
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-        <button type="button" class="btn-ghost" id="ocrZoomOut" title="Verkleinern" data-i18n-title="tooltip_ocr_verkleinern" style="padding:4px 12px;">−</button>
-        <span id="ocrZoomLabel" style="font-family:'Share Tech Mono', monospace;font-size:12px;min-width:48px;text-align:center;color:var(--ink-soft);">100%</span>
-        <button type="button" class="btn-ghost" id="ocrZoomIn" title="Vergrößern" data-i18n-title="tooltip_ocr_vergroessern" style="padding:4px 12px;">+</button>
-        <button type="button" class="btn-ghost" id="ocrPanToggle" style="display:none;padding:4px 12px;font-size:12px;" data-i18n="ocr_pan_mode">✋ Verschieben</button>
-      </div>
-      <div id="ocrPanHint" style="display:none;margin:0 0 8px 0;font-size:12px;color:var(--cyan);"></div>
       <div id="ocrImageWrap" style="position:relative;max-width:100%;max-height:50vh;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);touch-action:none;display:flex;align-items:center;justify-content:center;background:#000;">
         <img id="ocrPreviewImg" style="max-width:100%;max-height:50vh;display:block;user-select:none;-webkit-user-select:none;">
         <div id="ocrSelectionBox" style="position:absolute;border:2px solid var(--cyan);background:rgba(0,216,255,0.15);display:none;pointer-events:none;"></div>
@@ -3476,12 +3469,6 @@ const I18N = {
   "ocr_title": "Per Foto erfassen",
   "ocr_open_btn": "Per Foto erfassen",
   "ocr_hint": "Lade ein Foto oder einen Screenshot der Materialtabelle hoch (z. B. Raffinerie-Ergebnis). Möglichst gerade von vorne fotografieren, Spiegelungen vermeiden.",
-  "tooltip_ocr_verkleinern": "Verkleinern",
-  "tooltip_ocr_vergroessern": "Vergrößern",
-  "ocr_pan_mode_active": "✏️ Zum Zeichnen zurück",
-  "hint_ocr_pan_active": "Verschiebe das Bild per Ziehen zum gewünschten Bereich — klicke danach auf \"Zum Zeichnen zurück\", um die Markierung zu setzen.",
-  "hint_ocr_pan_inactive": "Tipp: Über \"Verschieben\" lässt sich das vergrößerte Bild zum gewünschten Bereich verschieben — danach hier zurückwechseln, um zu markieren.",
-  "ocr_pan_mode": "✋ Verschieben",
   "ocr_example_toggle": "Beispiel: So sollte die Markierung aussehen",
   "ocr_example_caption_good": "✓ Eng um die Datenzeilen — Kopfzeile und Ränder bleiben außen vor",
   "ocr_example_hint": "Je enger die Markierung um Materialname, Qualität und Menge gezogen wird — ohne Kopfzeile, Rahmen oder andere Bildschirmbereiche —, desto zuverlässiger die Erkennung.",
@@ -4181,12 +4168,6 @@ const I18N = {
   "ocr_title": "Capture from photo",
   "ocr_open_btn": "Capture from photo",
   "ocr_hint": "Upload a photo or screenshot of the material table (e.g. refinery result). Photograph as straight-on as possible and avoid reflections.",
-  "tooltip_ocr_verkleinern": "Zoom out",
-  "tooltip_ocr_vergroessern": "Zoom in",
-  "ocr_pan_mode_active": "✏️ Back to drawing",
-  "hint_ocr_pan_active": "Drag to move the image to the desired area — then click \"Back to drawing\" to set the selection.",
-  "hint_ocr_pan_inactive": "Tip: Use \"Pan\" to move the zoomed image to the desired area — then switch back here to draw the selection.",
-  "ocr_pan_mode": "✋ Pan",
   "ocr_example_toggle": "Example: what a good selection looks like",
   "ocr_example_caption_good": "✓ Tight around the data rows — header and borders stay outside",
   "ocr_example_hint": "The tighter the selection is drawn around material name, quality and quantity — without header, borders or other screen areas — the more reliable the recognition.",
@@ -4886,12 +4867,6 @@ const I18N = {
   "ocr_title": "Saisie par photo",
   "ocr_open_btn": "Saisie par photo",
   "ocr_hint": "Téléversez une photo ou une capture d'écran du tableau de matériaux (p. ex. résultat de raffinerie). Photographiez si possible bien droit et évitez les reflets.",
-  "tooltip_ocr_verkleinern": "Réduire",
-  "tooltip_ocr_vergroessern": "Agrandir",
-  "ocr_pan_mode_active": "✏️ Retour au dessin",
-  "hint_ocr_pan_active": "Faites glisser pour déplacer l'image vers la zone souhaitée — puis cliquez sur « Retour au dessin » pour définir la sélection.",
-  "hint_ocr_pan_inactive": "Astuce : utilisez « Déplacer » pour amener l'image agrandie sur la zone souhaitée — puis revenez ici pour dessiner la sélection.",
-  "ocr_pan_mode": "✋ Déplacer",
   "ocr_example_toggle": "Exemple : à quoi devrait ressembler la sélection",
   "ocr_example_caption_good": "✓ Serré autour des lignes de données — en-tête et bords restent en dehors",
   "ocr_example_hint": "Plus la sélection est resserrée autour du nom du matériau, de la qualité et de la quantité — sans en-tête, bordures ni autres zones de l'écran —, plus la reconnaissance est fiable.",
@@ -14670,163 +14645,6 @@ document.getElementById('ocrScPathCode').addEventListener('click', async ()=>{
 
 let ocrCurrentObjectUrl = null;
 
-// Einfache Vergroesserung der Auswahl-Vorschau (ab 16. August 2026, am
-// selben Tag korrigiert -- siehe Kommentar bei applyOcrZoom() weiter
-// unten). Vier feste Stufen statt einer stufenlosen Eingabe, bewusst
-// "einfach" gehalten wie vom Nutzer gewuenscht.
-const OCR_ZOOM_LEVELS = [1, 1.5, 2, 3];
-let ocrZoomLevel = 1;
-let ocrPanMode = false;
-// Tatsaechliche, per CSS (max-width/max-height) begrenzte Darstellungs-
-// groesse des Bildes bei 100% Zoom -- einmalig beim Laden des Bildes
-// gemessen (siehe handleOcrFileSelected()), dient als Basis fuer die
-// Pixel-Berechnung bei hoeheren Zoom-Stufen.
-let ocrBaseImgSize = {w:0, h:0};
-
-// KORREKTUR vom 16. August 2026 (noch am selben Tag wie die urspruengliche
-// Einfuehrung): Die urspruengliche Umsetzung nutzte eine reine CSS-
-// transform:scale() auf dem Bild-Element -- funktional einwandfrei fuer
-// die Koordinatenberechnung der Auswahlbox (transform wird von
-// getBoundingClientRect() korrekt beruecksichtigt), aber mit einem
-// grundlegenden CSS-Webfehler: transform aendert AUSSCHLIESSLICH die
-// optische Darstellung, NICHT die fuer Overflow-Berechnungen massgebliche
-// Layout-Groesse des Elements. Der umgebende Container (overflow:auto)
-// hatte dadurch schlicht NICHTS zum tatsaechlichen Scrollen -- das visuell
-// vergroesserte Bild ragte zwar ueber den sichtbaren Bereich hinaus, war
-// darueber hinaus aber nicht erreichbar, weder per Scrollen noch per
-// Verschieben-Modus. Nutzermeldung samt Screenshot am 16. August 2026:
-// Nach dem Vergroessern liess sich keine Markierung mehr ziehen (fuer den
-// eigentlich benoetigten Bereich schlicht nicht mehr erreichbar).
-//
-// Behoben durch echte Pixel-Groessenaenderung (width/height in px) statt
-// transform -- das aendert die tatsaechliche Layout-Groesse und laesst
-// overflow:auto dadurch korrekt und zuverlaessig scrollen. max-width/
-// max-height muessen dafuer bei aktivem Zoom explizit aufgehoben werden,
-// da sie sonst die gesetzte, groessere Pixel-Breite/-Hoehe wieder
-// zurueckstutzen wuerden (max-width:100% bezieht sich auf die Breite des
-// Containers, nicht auf die urspruengliche Bildgroesse). Die bestehende
-// Koordinatenberechnung der Auswahlbox bleibt davon unberuehrt -- sie
-// funktioniert bei einer echten Groessenaenderung identisch korrekt wie
-// zuvor bei transform, da getBoundingClientRect() so oder so stets die
-// tatsaechliche, aktuell gerenderte Groesse liefert.
-function applyOcrZoom(){
-  const img = document.getElementById('ocrPreviewImg');
-  const wrap = document.getElementById('ocrImageWrap');
-  if(ocrZoomLevel > 1 && ocrBaseImgSize.w > 0){
-    img.style.maxWidth = 'none';
-    img.style.maxHeight = 'none';
-    img.style.width = Math.round(ocrBaseImgSize.w * ocrZoomLevel) + 'px';
-    img.style.height = Math.round(ocrBaseImgSize.h * ocrZoomLevel) + 'px';
-    // ocrImageWrap ist ein Flex-Container (fuer die Zentrierung bei 100%
-    // Zoom) -- ohne flex-shrink:0 wuerde der Flex-Algorithmus die soeben
-    // explizit gesetzte, groessere Breite/Hoehe automatisch wieder auf
-    // die verfuegbare Containerflaeche zurueckschrumpfen (Standard ist
-    // flex-shrink:1), was die gesamte Groessenaenderung wirkungslos
-    // gemacht haette. Bei der urspruenglichen Korrektur (transform ->
-    // echte Pixel-Groesse) zunaechst uebersehen, bei genauerer Pruefung
-    // noch am selben Tag ergaenzt.
-    img.style.flexShrink = '0';
-    // Zusaetzliche Vorsichtsmassnahme gegen eine bekannte CSS-Eigenheit:
-    // Ein zentrierter Flex-Container (justify-content/align-items:
-    // center) macht bei ueberlaufendem Inhalt haeufig die dem Zentrum
-    // ABGEWANDTE Seite (hier: oben/links) unerreichbar, da ein Scrollen
-    // in den "negativen" Bereich browserseitig nicht vorgesehen ist --
-    // nur die dem Zentrum zugewandte Seite (unten/rechts) liesse sich
-    // dann erreichen. Bei aktivem Zoom wird daher auf flex-start
-    // umgeschaltet (das Bild haengt sich oben/links ein), wodurch der
-    // gesamte Bildbereich zuverlaessig scrollbar erreichbar bleibt.
-    wrap.style.alignItems = 'flex-start';
-    wrap.style.justifyContent = 'flex-start';
-  } else {
-    img.style.maxWidth = '';
-    img.style.maxHeight = '';
-    img.style.width = '';
-    img.style.height = '';
-    img.style.flexShrink = '';
-    wrap.style.alignItems = '';
-    wrap.style.justifyContent = '';
-  }
-  document.getElementById('ocrZoomLabel').textContent = Math.round(ocrZoomLevel*100)+'%';
-  // Nur bei aktivem Zoom ueberhaupt scrollbar -- bei 100% bliebe
-  // "auto" ohnehin folgenlos, "hidden" vermeidet aber unnoetig
-  // sichtbare Scrollleisten-Artefakte in manchen Browsern.
-  wrap.style.overflow = ocrZoomLevel > 1 ? 'auto' : 'hidden';
-  document.getElementById('ocrPanToggle').style.display = ocrZoomLevel > 1 ? '' : 'none';
-  document.getElementById('ocrZoomOut').disabled = ocrZoomLevel === OCR_ZOOM_LEVELS[0];
-  document.getElementById('ocrZoomIn').disabled = ocrZoomLevel === OCR_ZOOM_LEVELS[OCR_ZOOM_LEVELS.length-1];
-  // Wird herausgezoomt bis 100%, ergibt ein weiterhin aktiver
-  // Verschieben-Modus keinen Sinn mehr (nichts mehr zu verschieben) --
-  // automatisch zurueck in den Zeichnen-Modus wechseln.
-  if(ocrZoomLevel <= 1 && ocrPanMode) ocrPanMode = false;
-  // IMMER aufrufen (nicht nur beim automatischen Zuruecksetzen oben) --
-  // der begleitende Hinweistext haengt vom aktuellen Zoom-Stand ab
-  // (siehe updateOcrPanMode()) und muss daher auch bei reinem Hinein-
-  // /Herauszoomen ohne Moduswechsel aktuell gehalten werden.
-  updateOcrPanMode();
-}
-
-// Wechselt zwischen "Zeichnen" (Standard -- Ziehen zeichnet die
-// Auswahlbox, wie bisher) und "Verschieben" (Ziehen scrollt/verschiebt
-// das vergroesserte Bild im Container). Bewusst als expliziter
-// Umschalter statt gleichzeitiger Gestenerkennung (z.B. Ein-Finger
-// zeichnet, Zwei-Finger verschiebt) -- deutlich einfacher, eindeutig
-// vorhersehbar fuer den Nutzer, und funktioniert identisch auf Maus wie
-// Touch, ohne Geste-gegen-Geste-Konflikte. Siehe Nutzerwunsch vom
-// 16. August 2026.
-// Ab 16. August 2026 (zweite Korrekturrunde am selben Tag, nach
-// Nutzermeldung): Die Beschriftung des Umschalt-Buttons blieb bislang
-// IMMER "Verschieben", egal ob der Modus gerade aktiv war oder nicht --
-// nur eine (leicht zu uebersehende) CSS-Hervorhebung zeigte den
-// tatsaechlichen Zustand an. Fuer einen Nutzer, der neu in dieses
-// zweistufige Vorgehen (erst verschieben, DANN zurueck zum Zeichnen
-// wechseln) kommt, war dadurch nicht klar ersichtlich, dass er nach dem
-// Verschieben aktiv zurueckwechseln muss, um ueberhaupt wieder eine
-// Markierung ziehen zu koennen. Die Beschriftung wechselt jetzt
-// zwischen den beiden Zustaenden ("✋ Verschieben" im Zeichnen-Modus als
-// Einladung zum Wechseln, "✏️ Zum Zeichnen zurück" im Verschieben-Modus
-// als Aufforderung zum Zurueckwechseln) -- macht die naechste
-// sinnvolle Aktion direkt am Button selbst ersichtlich, ohne dass die
-// CSS-Hervorhebung allein die einzige Orientierung waere. Zusaetzlich
-// ein begleitender, sich mitaendernder Hinweistext direkt darunter.
-function updateOcrPanMode(){
-  const img = document.getElementById('ocrPreviewImg');
-  const wrap = document.getElementById('ocrImageWrap');
-  const btn = document.getElementById('ocrPanToggle');
-  const hint = document.getElementById('ocrPanHint');
-  if(ocrPanMode){
-    img.style.touchAction = 'pan-x pan-y pinch-zoom';
-    img.style.cursor = 'grab';
-    wrap.style.cursor = 'grab';
-    btn.classList.add('btn-active');
-    btn.textContent = t('ocr_pan_mode_active');
-    if(hint){ hint.textContent = t('hint_ocr_pan_active'); hint.style.display = ''; }
-  } else {
-    img.style.touchAction = 'none';
-    img.style.cursor = '';
-    wrap.style.cursor = 'crosshair';
-    btn.classList.remove('btn-active');
-    btn.textContent = t('ocr_pan_mode');
-    // Hinweis nur zeigen, wenn ueberhaupt gezoomt ist (bei 100% ist der
-    // Verschieben-Button ohnehin unsichtbar, siehe applyOcrZoom()) --
-    // sonst wuerde bei jeder normalen, ungezoomten Nutzung ein
-    // ueberfluessiger Hinweis erscheinen.
-    if(hint){ hint.textContent = ocrZoomLevel > 1 ? t('hint_ocr_pan_inactive') : ''; hint.style.display = ocrZoomLevel > 1 ? '' : 'none'; }
-  }
-}
-
-document.getElementById('ocrZoomIn').addEventListener('click', ()=>{
-  const idx = OCR_ZOOM_LEVELS.indexOf(ocrZoomLevel);
-  if(idx < OCR_ZOOM_LEVELS.length-1){ ocrZoomLevel = OCR_ZOOM_LEVELS[idx+1]; applyOcrZoom(); }
-});
-document.getElementById('ocrZoomOut').addEventListener('click', ()=>{
-  const idx = OCR_ZOOM_LEVELS.indexOf(ocrZoomLevel);
-  if(idx > 0){ ocrZoomLevel = OCR_ZOOM_LEVELS[idx-1]; applyOcrZoom(); }
-});
-document.getElementById('ocrPanToggle').addEventListener('click', ()=>{
-  ocrPanMode = !ocrPanMode;
-  updateOcrPanMode();
-});
-
 function handleOcrFileSelected(file){
   if(!file) return;
 
@@ -14841,18 +14659,6 @@ function handleOcrFileSelected(file){
     ocrImageNaturalSize = { w: img.naturalWidth, h: img.naturalHeight };
     document.getElementById('ocrStep1').style.display = 'none';
     document.getElementById('ocrStep2').style.display = '';
-    // Zoom/Verschieben-Zustand fuer jedes neu ausgewaehlte Bild
-    // zuruecksetzen -- ein bei einem vorherigen Bild aktiver Zoom soll
-    // nicht faelschlich fuer ein neues Bild uebernommen werden.
-    ocrZoomLevel = 1;
-    ocrPanMode = false;
-    applyOcrZoom(); // setzt zunaechst alle Groessen-Overrides zurueck (100%)
-    // Erst NACH dem obigen Zuruecksetzen messen -- an dieser Stelle greift
-    // wieder die reine CSS-Begrenzung (max-width:100%/max-height:50vh),
-    // getBoundingClientRect() liefert dadurch zuverlaessig die tatsaechliche
-    // 100%-Darstellungsgroesse als Basis fuer hoehere Zoom-Stufen.
-    const baseRect = img.getBoundingClientRect();
-    ocrBaseImgSize = { w: baseRect.width, h: baseRect.height };
     setupOcrSelection();
   };
   img.src = ocrCurrentObjectUrl;
@@ -14879,28 +14685,10 @@ function setupOcrSelection(){
   // Auswahlbox liegt als Kind des Containers, ihre Koordinaten müssen also
   // um die Position des Bildes innerhalb des Containers verschoben werden,
   // damit sie exakt über dem sichtbaren Bild und nicht daneben erscheint.
-  // KORREKTUR vom 16. August 2026 (Nutzermeldung: Markierung funktioniert
-  // nach dem Verschieben im Zoom weiterhin nicht): Die Auswahlbox (box)
-  // ist position:absolute innerhalb von wrap (position:relative) --
-  // ihre "left"/"top"-Werte werden dadurch vom BROWSER relativ zum
-  // UNGESCROLLTEN Inhalts-Ursprung von wrap interpretiert, nicht relativ
-  // zur aktuell sichtbaren (gescrollten) Ansicht. imgRect/wrapRect
-  // (per getBoundingClientRect()) liefern aber stets nur die aktuell
-  // SICHTBAREN, bereits um die Scroll-Position verschobenen Positionen
-  // im Ansichtsfenster -- ohne die Scroll-Position selbst zusaetzlich
-  // wieder aufzuaddieren, landete die Box dadurch stets so, als waere
-  // ueberhaupt nicht gescrollt worden: bei Scroll-Position 0 (Zoom
-  // gerade erst aktiviert) fiel das nicht auf, sobald aber tatsaechlich
-  // zum benoetigten Bildbereich gescrollt/verschoben wurde, war die
-  // Markierung dadurch faktisch unbrauchbar bzw. gar nicht mehr im
-  // sichtbaren Bereich platzierbar.
   function getImgOffset(){
     const imgRect = img.getBoundingClientRect();
     const wrapRect = wrap.getBoundingClientRect();
-    return {
-      left: imgRect.left - wrapRect.left + wrap.scrollLeft,
-      top: imgRect.top - wrapRect.top + wrap.scrollTop
-    };
+    return { left: imgRect.left - wrapRect.left, top: imgRect.top - wrapRect.top };
   }
 
   function getRelPos(rect, e){
@@ -14910,13 +14698,6 @@ function setupOcrSelection(){
   }
 
   img.onpointerdown = (e)=>{
-    // Im Verschieben-Modus (siehe updateOcrPanMode()) soll ein Ziehen
-    // das vergroesserte Bild im Container scrollen, nicht die
-    // Auswahlbox aufziehen -- der Browser uebernimmt das Scrollen dann
-    // selbst (touchAction wurde in updateOcrPanMode() entsprechend
-    // freigegeben), diese Funktion greift in diesem Modus bewusst gar
-    // nicht erst ein.
-    if(ocrPanMode) return;
     e.preventDefault();
     // Position von Bild und Container ändert sich während einer einzelnen
     // Ziehgeste nicht — einmalig zu Beginn berechnen und für die Dauer der
