@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.088 -->
+<!-- Version: 0.089 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2288,94 +2288,8 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="privatbestand" style="display:none;">
-  <div class="panel">
-    <h2 data-i18n="panel_zusammenfassung_privat">Zusammenfassung nach Material (Privat)</h2>
-    <!-- min-height bewusst ergaenzt: Das umschliessende .panel-Element
-         schneidet per clip-path (siehe dortiger Kommentar) JEDEN Inhalt
-         ab, der ueber die tatsaechliche, durch den Inhalt bestimmte
-         Panel-Hoehe hinausragt -- unabhaengig vom Browser-Fenster/
-         verfuegbarem Platz auf der Seite. Bei wenigen Materialien war
-         das Panel entsprechend kurz, wodurch das Hover-Info-Fenster bei
-         der "Gesamt"-Spalte abgeschnitten wurde, selbst wenn im Browser-
-         Fenster selbst reichlich Platz vorhanden gewesen waere (die neue
-         automatische Oben/Unten-Positionierung von eben wirkt NUR gegen
-         den Viewport-Rand, nicht gegen diese Panel-eigene Begrenzung).
-         Die Mindesthoehe stellt sicher, dass auch bei einer kurzen
-         Tabelle genug Panel-Flaeche fuer ein vollstaendiges Info-Fenster
-         vorhanden ist. Bewusst als Mindesthoehe (nicht feste Hoehe) --
-         waechst die Tabelle durch mehr Materialien natuerlich darueber
-         hinaus, bleibt sie weiterhin uneingeschraenkt mitwachsend. Siehe
-         Nutzerwunsch vom 12. August 2026. -->
-    <div id="privateSummaryContainer" style="min-height:420px;"></div>
-  </div>
 
-  <div class="panel">
-    <h2 data-i18n="panel_privatbestand">Privatbestand</h2>
-    <div class="filters">
-      <input type="text" id="priv-search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
-      <select id="priv-filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
-      <input type="number" id="priv-filterQualitaet" placeholder="Qualität ≥" step="0.01" style="max-width:140px;" data-i18n-placeholder="placeholder_qualitaet_ge">
-    </div>
-    <div id="privateTableContainer"></div>
-  </div>
-
-  <div class="panel">
-    <h2 data-i18n="panel_projekte_privat">Projekte (Privat)</h2>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privat_projekte">Nur du siehst diese Vorhaben. Der Fortschritt bezieht sich ausschließlich auf deinen eigenen Privatbestand, nicht auf den allgemeinen Bestand der Organisation.</span></div>
-    <div id="privProjectAddSection">
-      <div class="field template-picker-wrap" style="margin-bottom:12px;">
-        <label for="priv-proj-template-search" data-i18n="label_vorlage">Vorlage (optional)</label>
-        <input type="text" id="priv-proj-template-search" placeholder="Vorlage suchen (optional) …" data-i18n-placeholder="placeholder_vorlage_suchen" autocomplete="off">
-        <div id="priv-proj-template-dropdown" class="template-dropdown"></div>
-      </div>
-      <div class="form-grid" style="grid-template-columns:1.4fr 0.8fr;">
-        <div class="field">
-          <label for="priv-proj-ziel" data-i18n="label_ziel">Ziel</label>
-          <input type="text" id="priv-proj-ziel" list="privProjZielList" placeholder="z. B. Idris-P bauen">
-          <datalist id="privProjZielList"></datalist>
-        </div>
-        <div class="field">
-          <label for="priv-proj-anzahl" data-i18n="label_anzahl">Anzahl</label>
-          <input type="number" id="priv-proj-anzahl" min="0" step="1" placeholder="1">
-        </div>
-      </div>
-      <div style="margin-top:12px;">
-        <label data-i18n="label_benoetigte_ressourcen" style="display:block;margin-bottom:8px;">Benötigte Ressourcen</label>
-        <div id="privProjResourcesContainer"></div>
-        <button type="button" class="btn-add-row" id="btnAddPrivProjResource"><span class="plus-icon">+</span><span data-i18n="btn_add_resource">Weitere Ressource hinzufügen</span></button>
-      </div>
-      <div class="field" style="margin-top:12px;">
-        <label for="priv-proj-notiz" data-i18n="label_anmerkung">Anmerkung (optional)</label>
-        <textarea id="priv-proj-notiz" rows="2" placeholder="z. B. für wen, warum, besondere Hinweise …" data-i18n-placeholder="placeholder_anmerkung" style="width:100%;resize:vertical;font-family:'Rajdhani', sans-serif;font-size:14px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
-      </div>
-      <div style="margin-top:14px;">
-        <button class="btn-primary" id="btnAddPrivProject" data-i18n="btn_projekt_anlegen">Projekt anlegen</button>
-      </div>
-      <div class="status-msg" id="privProjectStatus"></div>
-    </div>
-    <div id="privProjectBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
-      <span id="privProjectBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
-      <button class="btn-icon danger" id="btnBulkDeletePrivProjects" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
-    </div>
-    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;margin-top:14px;font-size:13px;color:var(--ink-soft);">
-      <input type="checkbox" id="showCompletedPrivProjects">
-      <span data-i18n="label_abgeschlossene_anzeigen">Abgeschlossene Projekte anzeigen</span>
-    </label>
-    <div id="privProjectTableContainer" style="margin-top:14px;"></div>
-  </div>
-
-  <div class="panel">
-    <h2 data-i18n="panel_rueckwaertssuche">Wo wird das gebraucht?</h2>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rueckwaertssuche">Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.</span></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
-      <div class="field" style="flex:1;min-width:220px;margin:0;">
-        <label for="privUsageSearchInput" data-i18n="label_material_oder_objekt">Material oder Sammelobjekt</label>
-        <input type="text" id="privUsageSearchInput" list="privUsageSearchOptions" placeholder="z. B. Titanium" data-i18n-placeholder="placeholder_usage_search" autocomplete="off">
-        <datalist id="privUsageSearchOptions"></datalist>
-      </div>
-    </div>
-    <div id="privUsageSearchResult" style="margin-top:14px;"></div>
-  </div>
+  <!-- ===== NEUANLAGE ===== -->
 
   <div class="panel">
     <h2 data-i18n="panel_neuer_eintrag_privat">Neuer Eintrag (Privat)</h2>
@@ -2463,7 +2377,43 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="panel">
-    <h2 data-i18n="panel_sammelobjekte_privat">Sammelobjekte &amp; Artefakte (Privat)</h2>
+    <h2 data-i18n="panel_projekt_anlegen_privat">Projekt anlegen (Privat)</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privat_projekte">Nur du siehst diese Vorhaben. Der Fortschritt bezieht sich ausschließlich auf deinen eigenen Privatbestand, nicht auf den allgemeinen Bestand der Organisation.</span></div>
+    <div id="privProjectAddSection">
+      <div class="field template-picker-wrap" style="margin-bottom:12px;">
+        <label for="priv-proj-template-search" data-i18n="label_vorlage">Vorlage (optional)</label>
+        <input type="text" id="priv-proj-template-search" placeholder="Vorlage suchen (optional) …" data-i18n-placeholder="placeholder_vorlage_suchen" autocomplete="off">
+        <div id="priv-proj-template-dropdown" class="template-dropdown"></div>
+      </div>
+      <div class="form-grid" style="grid-template-columns:1.4fr 0.8fr;">
+        <div class="field">
+          <label for="priv-proj-ziel" data-i18n="label_ziel">Ziel</label>
+          <input type="text" id="priv-proj-ziel" list="privProjZielList" placeholder="z. B. Idris-P bauen">
+          <datalist id="privProjZielList"></datalist>
+        </div>
+        <div class="field">
+          <label for="priv-proj-anzahl" data-i18n="label_anzahl">Anzahl</label>
+          <input type="number" id="priv-proj-anzahl" min="0" step="1" placeholder="1">
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label data-i18n="label_benoetigte_ressourcen" style="display:block;margin-bottom:8px;">Benötigte Ressourcen</label>
+        <div id="privProjResourcesContainer"></div>
+        <button type="button" class="btn-add-row" id="btnAddPrivProjResource"><span class="plus-icon">+</span><span data-i18n="btn_add_resource">Weitere Ressource hinzufügen</span></button>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label for="priv-proj-notiz" data-i18n="label_anmerkung">Anmerkung (optional)</label>
+        <textarea id="priv-proj-notiz" rows="2" placeholder="z. B. für wen, warum, besondere Hinweise …" data-i18n-placeholder="placeholder_anmerkung" style="width:100%;resize:vertical;font-family:'Rajdhani', sans-serif;font-size:14px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn-primary" id="btnAddPrivProject" data-i18n="btn_projekt_anlegen">Projekt anlegen</button>
+      </div>
+      <div class="status-msg" id="privProjectStatus"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="panel_sammelobjekt_eintragen_privat">Sammelobjekt eintragen (Privat)</h2>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_privat_sammelobjekte">Nur du siehst diese Einträge. Sie fließen nur ein, wenn du sie ausdrücklich in die allgemeinen Sammelobjekte übernimmst.</span></div>
     <div class="form-grid-flex">
       <div class="field">
@@ -2491,6 +2441,56 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </div>
     </div>
     <div class="status-msg" id="privateCollectibleStatus"></div>
+  </div>
+
+  <!-- ===== ÜBERSICHTEN ===== -->
+
+  <div class="panel">
+    <h2 data-i18n="panel_zusammenfassung_privat">Zusammenfassung nach Material (Privat)</h2>
+    <!-- min-height bewusst ergaenzt: Das umschliessende .panel-Element
+         schneidet per clip-path (siehe dortiger Kommentar) JEDEN Inhalt
+         ab, der ueber die tatsaechliche, durch den Inhalt bestimmte
+         Panel-Hoehe hinausragt -- unabhaengig vom Browser-Fenster/
+         verfuegbarem Platz auf der Seite. Bei wenigen Materialien war
+         das Panel entsprechend kurz, wodurch das Hover-Info-Fenster bei
+         der "Gesamt"-Spalte abgeschnitten wurde, selbst wenn im Browser-
+         Fenster selbst reichlich Platz vorhanden gewesen waere (die neue
+         automatische Oben/Unten-Positionierung von eben wirkt NUR gegen
+         den Viewport-Rand, nicht gegen diese Panel-eigene Begrenzung).
+         Die Mindesthoehe stellt sicher, dass auch bei einer kurzen
+         Tabelle genug Panel-Flaeche fuer ein vollstaendiges Info-Fenster
+         vorhanden ist. Bewusst als Mindesthoehe (nicht feste Hoehe) --
+         waechst die Tabelle durch mehr Materialien natuerlich darueber
+         hinaus, bleibt sie weiterhin uneingeschraenkt mitwachsend. Siehe
+         Nutzerwunsch vom 12. August 2026. -->
+    <div id="privateSummaryContainer" style="min-height:420px;"></div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="panel_privatbestand">Privatbestand</h2>
+    <div class="filters">
+      <input type="text" id="priv-search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
+      <select id="priv-filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
+      <input type="number" id="priv-filterQualitaet" placeholder="Qualität ≥" step="0.01" style="max-width:140px;" data-i18n-placeholder="placeholder_qualitaet_ge">
+    </div>
+    <div id="privateTableContainer"></div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="panel_projekte_privat">Projekte (Privat)</h2>
+    <div id="privProjectBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="privProjectBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-icon danger" id="btnBulkDeletePrivProjects" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;margin-top:14px;font-size:13px;color:var(--ink-soft);">
+      <input type="checkbox" id="showCompletedPrivProjects">
+      <span data-i18n="label_abgeschlossene_anzeigen">Abgeschlossene Projekte anzeigen</span>
+    </label>
+    <div id="privProjectTableContainer" style="margin-top:14px;"></div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="panel_sammelobjekte_privat">Sammelobjekte &amp; Artefakte (Privat)</h2>
     <div class="filters">
       <input type="text" id="priv-coll-search" placeholder="Suche nach Objekt, Kategorie, Lagerort …" data-i18n-placeholder="placeholder_search_collectibles">
       <select id="priv-coll-filterKategorie"><option value="" data-i18n="filter_alle_kategorien">Alle Kategorien</option></select>
@@ -2504,6 +2504,22 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <h3 data-i18n="panel_zusammenfassung_objekt_privat" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px 0;color:var(--steel);">Zusammenfassung nach Objekt (Privat)</h3>
     <div id="privateCollectibleSummaryContainer"></div>
   </div>
+
+  <!-- ===== REST ===== -->
+
+  <div class="panel">
+    <h2 data-i18n="panel_rueckwaertssuche">Wo wird das gebraucht?</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rueckwaertssuche">Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="flex:1;min-width:220px;margin:0;">
+        <label for="privUsageSearchInput" data-i18n="label_material_oder_objekt">Material oder Sammelobjekt</label>
+        <input type="text" id="privUsageSearchInput" list="privUsageSearchOptions" placeholder="z. B. Titanium" data-i18n-placeholder="placeholder_usage_search" autocomplete="off">
+        <datalist id="privUsageSearchOptions"></datalist>
+      </div>
+    </div>
+    <div id="privUsageSearchResult" style="margin-top:14px;"></div>
+  </div>
+
   </div>
 
   <div class="tab-content" data-tab="bedarfe" style="display:none;">
@@ -2982,6 +2998,7 @@ const I18N = {
   "label_benoetigte_ressource": "Benötigte Ressource",
   "col_ressourcen": "Ressourcen (benötigt / vorhanden)",
   "panel_sammelobjekte": "Sammelobjekte & Artefakte",
+  "panel_sammelobjekt_eintragen_privat": "Sammelobjekt eintragen (Privat)",
   "panel_sammelobjekte_privat": "Sammelobjekte & Artefakte (Privat)",
   "label_objekt": "Objekt",
   "label_qualitaet_stufe": "Qualität / Stufe",
@@ -3218,6 +3235,7 @@ const I18N = {
   "tour_step7_title": "Später Hilfe nötig?",
   "tour_step7_text": "Der \"?\"-Button unten rechts ist immer erreichbar und erklärt Rollen, Reiter und alle Verwaltungsbereiche im Detail. Viel Erfolg beim Fördern!",
   "msg_saving": "Wird gespeichert …",
+  "panel_projekt_anlegen_privat": "Projekt anlegen (Privat)",
   "panel_projekte_privat": "Projekte (Privat)",
   "hint_privat_projekte": "Nur du siehst diese Vorhaben. Der Fortschritt bezieht sich ausschließlich auf deinen eigenen Privatbestand, nicht auf den allgemeinen Bestand der Organisation.",
   "empty_private_projects_title": "Noch keine privaten Projekte",
@@ -3679,6 +3697,7 @@ const I18N = {
   "label_benoetigte_ressource": "Required resource",
   "col_ressourcen": "Resources (needed / available)",
   "panel_sammelobjekte": "Collectibles & Artifacts",
+  "panel_sammelobjekt_eintragen_privat": "Add collectible (Private)",
   "panel_sammelobjekte_privat": "Collectibles & Artifacts (Private)",
   "label_objekt": "Item",
   "label_qualitaet_stufe": "Quality / Tier",
@@ -3915,6 +3934,7 @@ const I18N = {
   "tour_step7_title": "Need help later?",
   "tour_step7_text": "The \"?\" button in the bottom right is always available and explains roles, tabs, and all administration areas in detail. Happy mining!",
   "msg_saving": "Saving …",
+  "panel_projekt_anlegen_privat": "Create project (Private)",
   "panel_projekte_privat": "Projects (Private)",
   "hint_privat_projekte": "Only you see these plans. Progress is based solely on your own private stock, not the organization's shared inventory.",
   "empty_private_projects_title": "No private projects yet",
@@ -4376,6 +4396,7 @@ const I18N = {
   "label_benoetigte_ressource": "Ressource requise",
   "col_ressourcen": "Ressources (nécessaire / disponible)",
   "panel_sammelobjekte": "Objets de collection et artefacts",
+  "panel_sammelobjekt_eintragen_privat": "Ajouter un objet de collection (privé)",
   "panel_sammelobjekte_privat": "Objets de collection et artefacts (Privé)",
   "label_objekt": "Objet",
   "label_qualitaet_stufe": "Qualité / Niveau",
@@ -4612,6 +4633,7 @@ const I18N = {
   "tour_step7_title": "Besoin d'aide plus tard ?",
   "tour_step7_text": "Le bouton « ? » en bas à droite est toujours disponible et explique en détail les rôles, les onglets et toutes les sections d'administration. Bon minage !",
   "msg_saving": "Enregistrement en cours …",
+  "panel_projekt_anlegen_privat": "Créer un projet (privé)",
   "panel_projekte_privat": "Projets (privé)",
   "hint_privat_projekte": "Vous seul voyez ces projets. La progression se base uniquement sur votre propre stock privé, pas sur le stock partagé de l'organisation.",
   "empty_private_projects_title": "Aucun projet privé pour le moment",
