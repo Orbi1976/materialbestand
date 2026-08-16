@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.096 -->
+<!-- Version: 0.097 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -14959,12 +14959,17 @@ async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offse
         // nicht mehr zur Abstimmung bei, statt sie mit einer moeglicherweise
         // falschen, aber selbstbewusst wirkenden Lesung zu verfaelschen.
         const ambiguous = r.numbers.length < 2;
+        // Ab 16. August 2026: derselbe Duplikat-Schutz wie im
+        // Hauptdurchlauf (siehe ausfuehrlicher Kommentar bei
+        // clusterWordsIntoRows) -- gilt hier zusaetzlich zur bereits
+        // bestehenden Mehrdeutigkeits-Pruefung oben.
+        const duplicateDetection = !ambiguous && r.numbers[0].val === r.numbers[1].val;
         return {
           yCenter: r.yCenter,
           quality: ambiguous ? null : r.numbers[0].val,
           qualityConfidence: ambiguous ? null : r.numbers[0].confidence,
-          menge: ambiguous ? null : menge,
-          mengeConfidence: ambiguous ? null : r.numbers[1].confidence
+          menge: (ambiguous || duplicateDetection) ? null : menge,
+          mengeConfidence: (ambiguous || duplicateDetection) ? null : r.numbers[1].confidence
         };
       }));
     }
@@ -15256,8 +15261,24 @@ function clusterWordsIntoRows(words){
     // Menge: erste Ziffernfolge nach der Qualität, von cSCU auf SCU umgerechnet
     const yieldRaw = numbers.length>=2 ? numbers[1].value : null;
     const yieldConfidence = numbers.length>=2 ? numbers[1].confidence : null;
-    const menge = yieldRaw!=null ? Math.round((yieldRaw/100)*100)/100 : null;
-    return { yCenter: row.yCenter, yMin: row.yMin, yMax: row.yMax, material, materialRaw, quality, qualityConfidence, menge, mengeConfidence: yieldConfidence };
+    // Ab 16. August 2026: Schutz gegen Duplikat-Erkennung derselben
+    // Ziffernfolge. Bei einer Nutzermeldung entsprach die erkannte Menge
+    // exakt der Qualitaet geteilt durch 100 (z.B. Qualitaet 853, Menge
+    // faelschlich 8,53 statt der tatsaechlichen 0,04) -- Tesseract hatte
+    // dieselbe visuelle Ziffernregion "853" offenbar zweimal als
+    // ueberlappenden Worttreffer gemeldet, wodurch sie sowohl als
+    // Qualitaet (korrekt) als auch als vermeintliche zweite Ziffernfolge
+    // fuer die Menge (falsch) in die Auswertung einfloss. Eine derart
+    // exakte Uebereinstimmung zwischen den rohen Ziffernfolgen fuer
+    // Qualitaet und Menge waere ein extremer Zufall, wenn es sich
+    // tatsaechlich um zwei unabhaengig erkannte Werte handelte -- deutlich
+    // wahrscheinlicher ist eine fehlerhafte Doppel-Erkennung derselben
+    // Region. Der Menge-Wert dieses einzelnen Durchlaufs wird in diesem
+    // Fall verworfen, statt eine mit hoher Wahrscheinlichkeit falsche
+    // Lesung in die Abstimmung einfliessen zu lassen.
+    const isDuplicateDetection = yieldRaw != null && quality != null && yieldRaw === quality;
+    const menge = (yieldRaw!=null && !isDuplicateDetection) ? Math.round((yieldRaw/100)*100)/100 : null;
+    return { yCenter: row.yCenter, yMin: row.yMin, yMax: row.yMax, material, materialRaw, quality, qualityConfidence, menge, mengeConfidence: isDuplicateDetection ? null : yieldConfidence };
   });
 }
 
