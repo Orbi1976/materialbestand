@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.089 -->
+<!-- Version: 0.090 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -725,6 +725,10 @@ button{
 }
 .btn-primary:hover{filter:brightness(1.15);}
 .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink-soft);}
+/* Markiert den Verschieben-Umschalter (OCR-Zoom) als aktiv gedrueckt --
+   deutlich sichtbarer Zustandswechsel zwischen Zeichnen- und
+   Verschieben-Modus. Siehe Nutzerwunsch vom 16. August 2026. */
+.btn-active{background:var(--cyan)!important;color:#001018!important;border-color:var(--cyan)!important;}
 .btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);}
 .btn-icon{background:transparent;border:none;cursor:pointer;padding:4px 6px;color:var(--ink-soft);font-size:14px;}
 .btn-icon:hover{color:var(--cyan);}
@@ -1599,6 +1603,12 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         </div>
       </details>
 
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <button type="button" class="btn-ghost" id="ocrZoomOut" title="Verkleinern" data-i18n-title="tooltip_ocr_verkleinern" style="padding:4px 12px;">−</button>
+        <span id="ocrZoomLabel" style="font-family:'Share Tech Mono', monospace;font-size:12px;min-width:48px;text-align:center;color:var(--ink-soft);">100%</span>
+        <button type="button" class="btn-ghost" id="ocrZoomIn" title="Vergrößern" data-i18n-title="tooltip_ocr_vergroessern" style="padding:4px 12px;">+</button>
+        <button type="button" class="btn-ghost" id="ocrPanToggle" style="display:none;padding:4px 12px;font-size:12px;" data-i18n="ocr_pan_mode">✋ Verschieben</button>
+      </div>
       <div id="ocrImageWrap" style="position:relative;max-width:100%;max-height:50vh;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);touch-action:none;display:flex;align-items:center;justify-content:center;background:#000;">
         <img id="ocrPreviewImg" style="max-width:100%;max-height:50vh;display:block;user-select:none;-webkit-user-select:none;">
         <div id="ocrSelectionBox" style="position:absolute;border:2px solid var(--cyan);background:rgba(0,216,255,0.15);display:none;pointer-events:none;"></div>
@@ -3465,6 +3475,9 @@ const I18N = {
   "ocr_title": "Per Foto erfassen",
   "ocr_open_btn": "Per Foto erfassen",
   "ocr_hint": "Lade ein Foto oder einen Screenshot der Materialtabelle hoch (z. B. Raffinerie-Ergebnis). Möglichst gerade von vorne fotografieren, Spiegelungen vermeiden.",
+  "tooltip_ocr_verkleinern": "Verkleinern",
+  "tooltip_ocr_vergroessern": "Vergrößern",
+  "ocr_pan_mode": "✋ Verschieben",
   "ocr_example_toggle": "Beispiel: So sollte die Markierung aussehen",
   "ocr_example_caption_good": "✓ Eng um die Datenzeilen — Kopfzeile und Ränder bleiben außen vor",
   "ocr_example_hint": "Je enger die Markierung um Materialname, Qualität und Menge gezogen wird — ohne Kopfzeile, Rahmen oder andere Bildschirmbereiche —, desto zuverlässiger die Erkennung.",
@@ -4164,6 +4177,9 @@ const I18N = {
   "ocr_title": "Capture from photo",
   "ocr_open_btn": "Capture from photo",
   "ocr_hint": "Upload a photo or screenshot of the material table (e.g. refinery result). Photograph as straight-on as possible and avoid reflections.",
+  "tooltip_ocr_verkleinern": "Zoom out",
+  "tooltip_ocr_vergroessern": "Zoom in",
+  "ocr_pan_mode": "✋ Pan",
   "ocr_example_toggle": "Example: what a good selection looks like",
   "ocr_example_caption_good": "✓ Tight around the data rows — header and borders stay outside",
   "ocr_example_hint": "The tighter the selection is drawn around material name, quality and quantity — without header, borders or other screen areas — the more reliable the recognition.",
@@ -4863,6 +4879,9 @@ const I18N = {
   "ocr_title": "Saisie par photo",
   "ocr_open_btn": "Saisie par photo",
   "ocr_hint": "Téléversez une photo ou une capture d'écran du tableau de matériaux (p. ex. résultat de raffinerie). Photographiez si possible bien droit et évitez les reflets.",
+  "tooltip_ocr_verkleinern": "Réduire",
+  "tooltip_ocr_vergroessern": "Agrandir",
+  "ocr_pan_mode": "✋ Déplacer",
   "ocr_example_toggle": "Exemple : à quoi devrait ressembler la sélection",
   "ocr_example_caption_good": "✓ Serré autour des lignes de données — en-tête et bords restent en dehors",
   "ocr_example_hint": "Plus la sélection est resserrée autour du nom du matériau, de la qualité et de la quantité — sans en-tête, bordures ni autres zones de l'écran —, plus la reconnaissance est fiable.",
@@ -14640,6 +14659,78 @@ document.getElementById('ocrScPathCode').addEventListener('click', async ()=>{
 });
 
 let ocrCurrentObjectUrl = null;
+
+// Einfache Vergroesserung der Auswahl-Vorschau (ab 16. August 2026) --
+// nutzt bewusst eine CSS-transform:scale() auf dem Bild-Element selbst,
+// KEINE Skalierung der zugrundeliegenden Bilddaten. Die bestehende
+// Auswahl-Logik (siehe setupOcrSelection() weiter unten) ermittelt bei
+// jedem Ziehen ueber getBoundingClientRect() die tatsaechlich sichtbare
+// Groesse des Bildes -- das beruecksichtigt CSS-Transformationen
+// automatisch korrekt, wodurch die Koordinatenberechnung fuer die
+// Auswahlbox OHNE jede Aenderung auch bei aktivem Zoom weiterhin exakt
+// stimmt. Vier feste Stufen statt einer stufenlosen Eingabe, bewusst
+// "einfach" gehalten wie vom Nutzer gewuenscht.
+const OCR_ZOOM_LEVELS = [1, 1.5, 2, 3];
+let ocrZoomLevel = 1;
+let ocrPanMode = false;
+
+function applyOcrZoom(){
+  const img = document.getElementById('ocrPreviewImg');
+  const wrap = document.getElementById('ocrImageWrap');
+  img.style.transform = ocrZoomLevel > 1 ? `scale(${ocrZoomLevel})` : '';
+  img.style.transformOrigin = 'top left';
+  document.getElementById('ocrZoomLabel').textContent = Math.round(ocrZoomLevel*100)+'%';
+  // Nur bei aktivem Zoom ueberhaupt scrollbar -- bei 100% bliebe
+  // "auto" ohnehin folgenlos, "hidden" vermeidet aber unnoetig
+  // sichtbare Scrollleisten-Artefakte in manchen Browsern.
+  wrap.style.overflow = ocrZoomLevel > 1 ? 'auto' : 'hidden';
+  document.getElementById('ocrPanToggle').style.display = ocrZoomLevel > 1 ? '' : 'none';
+  document.getElementById('ocrZoomOut').disabled = ocrZoomLevel === OCR_ZOOM_LEVELS[0];
+  document.getElementById('ocrZoomIn').disabled = ocrZoomLevel === OCR_ZOOM_LEVELS[OCR_ZOOM_LEVELS.length-1];
+  // Wird herausgezoomt bis 100%, ergibt ein weiterhin aktiver
+  // Verschieben-Modus keinen Sinn mehr (nichts mehr zu verschieben) --
+  // automatisch zurueck in den Zeichnen-Modus wechseln.
+  if(ocrZoomLevel <= 1 && ocrPanMode){ ocrPanMode = false; updateOcrPanMode(); }
+}
+
+// Wechselt zwischen "Zeichnen" (Standard -- Ziehen zeichnet die
+// Auswahlbox, wie bisher) und "Verschieben" (Ziehen scrollt/verschiebt
+// das vergroesserte Bild im Container). Bewusst als expliziter
+// Umschalter statt gleichzeitiger Gestenerkennung (z.B. Ein-Finger
+// zeichnet, Zwei-Finger verschiebt) -- deutlich einfacher, eindeutig
+// vorhersehbar fuer den Nutzer, und funktioniert identisch auf Maus wie
+// Touch, ohne Geste-gegen-Geste-Konflikte. Siehe Nutzerwunsch vom
+// 16. August 2026.
+function updateOcrPanMode(){
+  const img = document.getElementById('ocrPreviewImg');
+  const wrap = document.getElementById('ocrImageWrap');
+  const btn = document.getElementById('ocrPanToggle');
+  if(ocrPanMode){
+    img.style.touchAction = 'pan-x pan-y pinch-zoom';
+    img.style.cursor = 'grab';
+    wrap.style.cursor = 'grab';
+    btn.classList.add('btn-active');
+  } else {
+    img.style.touchAction = 'none';
+    img.style.cursor = '';
+    wrap.style.cursor = 'crosshair';
+    btn.classList.remove('btn-active');
+  }
+}
+
+document.getElementById('ocrZoomIn').addEventListener('click', ()=>{
+  const idx = OCR_ZOOM_LEVELS.indexOf(ocrZoomLevel);
+  if(idx < OCR_ZOOM_LEVELS.length-1){ ocrZoomLevel = OCR_ZOOM_LEVELS[idx+1]; applyOcrZoom(); }
+});
+document.getElementById('ocrZoomOut').addEventListener('click', ()=>{
+  const idx = OCR_ZOOM_LEVELS.indexOf(ocrZoomLevel);
+  if(idx > 0){ ocrZoomLevel = OCR_ZOOM_LEVELS[idx-1]; applyOcrZoom(); }
+});
+document.getElementById('ocrPanToggle').addEventListener('click', ()=>{
+  ocrPanMode = !ocrPanMode;
+  updateOcrPanMode();
+});
+
 function handleOcrFileSelected(file){
   if(!file) return;
 
@@ -14654,6 +14745,13 @@ function handleOcrFileSelected(file){
     ocrImageNaturalSize = { w: img.naturalWidth, h: img.naturalHeight };
     document.getElementById('ocrStep1').style.display = 'none';
     document.getElementById('ocrStep2').style.display = '';
+    // Zoom/Verschieben-Zustand fuer jedes neu ausgewaehlte Bild
+    // zuruecksetzen -- ein bei einem vorherigen Bild aktiver Zoom soll
+    // nicht faelschlich fuer ein neues Bild uebernommen werden.
+    ocrZoomLevel = 1;
+    ocrPanMode = false;
+    applyOcrZoom();
+    updateOcrPanMode();
     setupOcrSelection();
   };
   img.src = ocrCurrentObjectUrl;
@@ -14693,6 +14791,13 @@ function setupOcrSelection(){
   }
 
   img.onpointerdown = (e)=>{
+    // Im Verschieben-Modus (siehe updateOcrPanMode()) soll ein Ziehen
+    // das vergroesserte Bild im Container scrollen, nicht die
+    // Auswahlbox aufziehen -- der Browser uebernimmt das Scrollen dann
+    // selbst (touchAction wurde in updateOcrPanMode() entsprechend
+    // freigegeben), diese Funktion greift in diesem Modus bewusst gar
+    // nicht erst ein.
+    if(ocrPanMode) return;
     e.preventDefault();
     // Position von Bild und Container ändert sich während einer einzelnen
     // Ziehgeste nicht — einmalig zu Beginn berechnen und für die Dauer der
@@ -14738,15 +14843,16 @@ function setupOcrSelection(){
   };
 }
 
-// Zuschnitt in ein Graustufen-Canvas zeichnen, dabei DIREKT vom
-// Original-Zuschnitt auf die Zielgröße skalieren (targetDim = längste
-// Seite in Pixeln) und mit gegebenem Schwellenwert binarisieren.
-// Wichtig: Es wird bewusst NICHT erst verkleinert und danach wieder
-// vergrößert (das hätte feine Bilddetails unwiederbringlich zerstört) —
-// stattdessen skaliert ein einziger drawImage()-Aufruf direkt vom
-// Original auf die Zielgröße, egal ob diese kleiner oder größer als der
-// Zuschnitt ist.
-function preprocessCrop(cropCanvas, targetDim, threshold){
+// Skalierung, Weichzeichnung, Graustufen-Umwandlung UND (ab 16. August
+// 2026) Kontrast-Normalisierung EINMALIG fuer den gesamten Zuschnitt --
+// vorher wurde das bei JEDEM der sieben Schwellenwerte erneut
+// durchgefuehrt (siehe applyOcrThreshold() weiter unten), obwohl das
+// Ergebnis bis zur eigentlichen Schwellenwert-Anwendung fuer alle
+// sieben identisch war. Wichtig: Es wird bewusst NICHT erst verkleinert
+// und danach wieder vergroessert (das haette feine Bilddetails
+// unwiederbringlich zerstoert) -- stattdessen skaliert ein einziger
+// drawImage()-Aufruf direkt vom Original auf die Zielgroesse.
+function prepareOcrGrayscale(cropCanvas, targetDim){
   const w = cropCanvas.width, h = cropCanvas.height;
   const longest = Math.max(w, h) || 1;
   const scale = targetDim / longest;
@@ -14766,10 +14872,61 @@ function preprocessCrop(cropCanvas, targetDim, threshold){
   ctx.filter = 'none';
   const imgData = ctx.getImageData(0, 0, out.width, out.height);
   const d = imgData.data;
-  for(let i=0;i<d.length;i+=4){
-    const gray = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
-    const val = gray > threshold ? 0 : 255;
+
+  // Erster Durchlauf: Graustufen berechnen UND die tatsaechlich
+  // vorkommende Helligkeitsspanne (min/max) ermitteln.
+  let min = 255, max = 0;
+  const gray = new Uint8ClampedArray(d.length/4);
+  for(let i=0, j=0; i<d.length; i+=4, j++){
+    const g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+    gray[j] = g;
+    if(g < min) min = g;
+    if(g > max) max = g;
+  }
+
+  // Kontrast-Streckung: dehnt die tatsaechlich vorkommende
+  // Helligkeitsspanne auf den vollen 0-255-Bereich, BEVOR die
+  // Schwellenwert-Vergleiche stattfinden. Ein zu dunkles oder
+  // ueberstrahltes Foto (z.B. durch Bildschirm-Reflexionen beim
+  // Abfotografieren, oder ein Screenshot mit ungewoehnlicher Spiel-
+  // interner Beleuchtung) landet dadurch erst in einem Wertebereich,
+  // in dem die sieben festen Schwellenwerte (90-210) ueberhaupt
+  // sinnvoll greifen koennen -- ohne diese Streckung koennten ALLE
+  // sieben Schwellenwerte bei einem stark unter- oder ueberbelichteten
+  // Bild gleichermassen danebenliegen, da sie durchgehend auf derselben
+  // (falschen) Seite der tatsaechlichen Helligkeitsspanne landen
+  // wuerden. Nur angewendet, wenn tatsaechlich eine nennenswert
+  // eingeschraenkte Spanne vorliegt (< 200 von moeglichen 255) -- bei
+  // einem bereits gut ausgeleuchteten Bild bleibt das Ergebnis dadurch
+  // praktisch unveraendert, keine unnoetige Verzerrung eines ohnehin
+  // schon guten Ausgangsbildes. Siehe Nutzerwunsch vom 16. August 2026.
+  const range = max - min;
+  if(range > 0 && range < 200){
+    const factor = 255 / range;
+    for(let j=0;j<gray.length;j++){
+      gray[j] = Math.max(0, Math.min(255, (gray[j]-min) * factor));
+    }
+  }
+
+  return { width: out.width, height: out.height, gray };
+}
+
+// Wendet EINEN Schwellenwert auf ein bereits vorbereitetes (skaliertes,
+// weichgezeichnetes, kontrast-normalisiertes) Graustufen-Ergebnis an --
+// bewusst getrennt von prepareOcrGrayscale(), damit diese aufwendigere
+// Vorbereitung nicht bei jedem der sieben Schwellenwerte erneut
+// durchgefuehrt werden muss (siehe dortiger Kommentar).
+function applyOcrThreshold(prepared, threshold){
+  const out = document.createElement('canvas');
+  out.width = prepared.width;
+  out.height = prepared.height;
+  const ctx = out.getContext('2d');
+  const imgData = ctx.createImageData(prepared.width, prepared.height);
+  const d = imgData.data;
+  for(let j=0, i=0; j<prepared.gray.length; j++, i+=4){
+    const val = prepared.gray[j] > threshold ? 0 : 255;
     d[i]=d[i+1]=d[i+2]=val;
+    d[i+3]=255;
   }
   ctx.putImageData(imgData, 0, 0);
   return out;
@@ -14787,7 +14944,7 @@ function preprocessCrop(cropCanvas, targetDim, threshold){
 // horizontal auf den rechten Tabellenbereich zugeschnitten, keine
 // erneute Skalierung noetig) und denselben Worker -- lediglich mit
 // zeitweise geaenderter Zeichen-Whitelist.
-async function runDigitFocusedPass(cropCanvas, targetDim, thresholds, worker, statusEl, offset){
+async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offset){
   // xStartFrac: Start der Zahlen-Spalten als Anteil der Breite der
   // Nutzer-Auswahl. 0.58 entspricht dem in echten Screenshots
   // gemessenen Beginn der Qualitaets-Spalte (siehe Kalibrierung anhand
@@ -14799,7 +14956,7 @@ async function runDigitFocusedPass(cropCanvas, targetDim, thresholds, worker, st
   try{
     for(let i=0;i<thresholds.length;i++){
       if(statusEl) statusEl.textContent = `${t('ocr_running_digits')} (${i+1}/${thresholds.length})`;
-      const processed = preprocessCrop(cropCanvas, targetDim, thresholds[i]);
+      const processed = applyOcrThreshold(prepared, thresholds[i]);
       const sliceX = Math.round(processed.width * xStartFrac);
       const sliceW = processed.width - sliceX;
       if(sliceW <= 0) continue;
@@ -14865,6 +15022,15 @@ async function runOcrEnsemble(cropCanvas, statusEl){
   const targetDim = 2200;
   const perThresholdRows = [];
 
+  // Ab 16. August 2026: die aufwendigere Vorbereitung (Skalierung,
+  // Weichzeichnung, Graustufen, Kontrast-Normalisierung) laeuft jetzt
+  // EINMALIG fuer den gesamten Zuschnitt, statt bei jedem der sieben
+  // Schwellenwerte erneut -- siehe ausfuehrlicher Kommentar bei
+  // prepareOcrGrayscale(). Wird sowohl vom Hauptdurchlauf unten als
+  // auch von runDigitFocusedPass() (derselbe Zuschnitt) gemeinsam
+  // genutzt.
+  const prepared = prepareOcrGrayscale(cropCanvas, targetDim);
+
   // Einen einzigen Worker für alle fünf Durchläufe wiederverwenden statt
   // pro Durchlauf einen neuen zu erzeugen — das Sprachmodell muss dadurch
   // nur einmal geladen werden statt fünfmal, was besonders auf
@@ -14874,7 +15040,7 @@ async function runOcrEnsemble(cropCanvas, statusEl){
   try{
     for(let i=0;i<thresholds.length;i++){
       statusEl.textContent = `${t('ocr_running')} (${i+1}/${thresholds.length})`;
-      const processed = preprocessCrop(cropCanvas, targetDim, thresholds[i]);
+      const processed = applyOcrThreshold(prepared, thresholds[i]);
       const result = await worker.recognize(processed);
       const words = (result.data.words || []).filter(w=>w.text && w.text.trim());
       perThresholdRows.push(clusterWordsIntoRows(words));
@@ -14882,7 +15048,7 @@ async function runOcrEnsemble(cropCanvas, statusEl){
     // Zusaetzlicher, auf Ziffern beschraenkter Durchlauf fuer Qualitaet
     // und Menge -- siehe runDigitFocusedPass(). Nutzt denselben Worker
     // weiter (kein erneutes Laden des Sprachmodells noetig).
-    digitFocusedRows = await runDigitFocusedPass(cropCanvas, targetDim, thresholds, worker, statusEl);
+    digitFocusedRows = await runDigitFocusedPass(prepared, thresholds, worker, statusEl);
   } finally {
     await worker.terminate();
   }
