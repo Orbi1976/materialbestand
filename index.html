@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.094 -->
+<!-- Version: 0.095 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -14960,6 +14960,48 @@ async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offse
   return perThresholdRows;
 }
 
+// Ab 16. August 2026: erkennt Zeilen, die aus versehentlich mit-
+// erfasstem Kopfzeilentext ("MATERIALS YIELDED (CSCU)", "QUALITY",
+// "YIELD" bzw. deren deutsche Entsprechungen) entstanden sind, statt
+// aus einer echten Materialzeile. Trat bei realen Testbildern in JEDEM
+// der sechs Testbilder mindestens einmal auf -- meist dann, wenn die
+// Nutzer-Markierung die Kopfzeile der Tabelle mit einschliesst und ein
+// Schwellenwert-Durchlauf Bruchstuecke davon als eigene "Zeile"
+// zusammenclustert. Der bereits bestehende Filter (siehe Aufrufstelle
+// weiter unten) faengt nur Zeilen mit KOMPLETT fehlenden Werten ab --
+// greift aber nicht, wenn eine solche Kopfzeilen-Zeile zufaellig
+// trotzdem Qualitaets-/Mengen-Ziffern in der Naehe hat und dadurch wie
+// eine vollstaendige, aber inhaltlich unsinnige Zeile aussieht.
+// Verwendet zwei sich ergaenzende Signale, kalibriert anhand realer
+// Testbilder:
+// 1. Mindestens zwei der erkannten "Woerter" aehneln (Levenshtein-
+//    basiert, tolerant gegenueber OCR-Verstuemmelungen) bekannten
+//    Tabellen-Kopfzeilen-Begriffen -- ein einzelner Zufallstreffer soll
+//    aber keine echte, kurze Materialzeile faelschlich ausschliessen.
+// 2. Ergaenzend: bereits EIN solcher Treffer (oder ein sehr kurzer,
+//    kaum auswertbarer Materialtext) gilt zusammen mit einer
+//    unplausibel niedrigen Qualitaet (<100 -- reale Qualitaetswerte
+//    lagen in allen bisherigen Testbildern durchgehend zwischen
+//    500-999) ebenfalls als hinreichendes Indiz fuer eine Stoerzeile.
+const OCR_HEADER_KEYWORDS = ['materials','material','yielded','yield','quality','cscu','gewonnene','materialien','qualitat','ertrag'];
+function countHeaderKeywordMatches(materialRaw){
+  if(!materialRaw) return 0;
+  const words = materialRaw.toLowerCase().split(/\s+/).map(w=>w.replace(/[^a-z]/g,'')).filter(w=>w.length>=3);
+  let count = 0;
+  words.forEach(w=>{
+    if(OCR_HEADER_KEYWORDS.some(hk=>textSimilarity(w,hk) >= 0.7)) count++;
+  });
+  return count;
+}
+function isSpuriousRow(materialRaw, quality){
+  const matches = countHeaderKeywordMatches(materialRaw);
+  if(matches >= 2) return true;
+  const suspiciouslyLowQuality = quality != null && quality < 100;
+  const cleanedLen = materialRaw ? materialRaw.replace(/[^a-zA-Z]/g,'').length : 0;
+  if(suspiciouslyLowQuality && (matches >= 1 || cleanedLen < 3)) return true;
+  return false;
+}
+
 // Mehrere Schwellenwerte durchlaufen, je Zeile den häufigsten Wert je
 // Feld übernehmen (Mehrheitsentscheid) — fängt Erkennungsschwankungen
 // durch unterschiedliche Belichtung/Kontrast deutlich besser ab als ein
@@ -15091,7 +15133,13 @@ async function runOcrEnsemble(cropCanvas, statusEl){
   });
 
   const scale = targetDim / (Math.max(cropCanvas.width, cropCanvas.height) || 1);
-  return { rows: finalRows.filter(r=> r.material && r.quality!=null && r.menge!=null), scale };
+  return {
+    rows: finalRows.filter(r=>
+      r.material && r.quality!=null && r.menge!=null &&
+      !isSpuriousRow(r.materialRaw, r.quality)
+    ),
+    scale
+  };
 }
 
 function mostCommon(arr){
