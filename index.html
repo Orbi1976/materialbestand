@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.086 -->
+<!-- Version: 0.088 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1528,6 +1528,19 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 </div>
 
+<div id="templatePropagateModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:247;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:26px 28px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 0 40px var(--cyan-glow);">
+    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 14px;">🔄 <span data-i18n="modal_vorlage_uebernehmen_titel">Änderungen in bestehende Projekte übernehmen?</span></h3>
+    <p id="templatePropagateSummary" style="font-size:13px;line-height:1.5;color:var(--ink);margin:0 0 12px;"></p>
+    <div id="templatePropagateDiffList" style="font-size:12.5px;line-height:1.7;color:var(--ink-soft);margin-bottom:14px;max-height:200px;overflow-y:auto;"></div>
+    <div class="user-note" style="margin-bottom:16px;" data-i18n="hint_vorlage_uebernehmen">Bereits abgeschlossene Projekte sind davon nie betroffen. Private Projekte anderer Mitglieder werden nicht verändert.</div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-ghost" id="btnTemplatePropagateSkip" data-i18n="btn_nur_vorlage">Nur Vorlage speichern</button>
+      <button class="btn-primary" id="btnTemplatePropagateApply" data-i18n="btn_uebernehmen">Übernehmen</button>
+    </div>
+  </div>
+</div>
+
 <div id="undoToast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:50;background:#0D141C;border:1px solid var(--panel-border);border-radius:var(--radius);padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,0.5);align-items:center;gap:14px;font-family:'Rajdhani', sans-serif;font-size:14px;color:var(--ink);">
   <span id="undoToastText">Eintrag gelöscht.</span>
   <button class="btn-primary" id="btnUndoToast" style="padding:6px 14px;font-size:11px;">Rückgängig</button>
@@ -1892,6 +1905,12 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="user-note" data-i18n="hint_org_no_delete">Organisationen können umbenannt, aber aus Sicherheitsgründen nicht gelöscht werden.</div>
   </div>
 
+  <div class="panel" id="templateManagePanel" style="display:none;">
+    <h2 data-i18n="panel_vorlagen_verwalten">Projekt-Vorlagen verwalten</h2>
+    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
+    <div id="tplManagePanelList"></div>
+  </div>
+
   <div class="panel" id="templateImportPanel" style="display:none;">
     <h2 data-i18n="panel_rezepte_import">Projekt-Vorlagen importieren</h2>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rezepte_import">Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Format pro Zeile: Kategorie;Name;Material1,Material2,Material3 — optional lässt sich je Material eine vorgeschlagene Menge anhängen, z. B. "Material:15". Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
@@ -1926,6 +1945,12 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button type="button" class="btn-ghost" id="btnDownloadScmdbScript" data-i18n="btn_scmdb_skript_herunterladen">⇩ Scraping-Skript herunterladen</button>
     </div>
     <div class="user-note" style="font-size:11px;" data-i18n="hint_scmdb_script_requirements">Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.</div>
+  </div>
+
+  <div class="panel" id="templateManagePanelWikeloWrap" style="display:none;">
+    <h2 data-i18n="panel_wikelo_verwalten">Wikelo-Handelsangebote verwalten</h2>
+    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
+    <div id="tplManagePanelListWikelo"></div>
   </div>
 
   <div class="panel" id="wikeloImportPanel" style="display:none;">
@@ -3217,6 +3242,15 @@ const I18N = {
   "btn_material_hinzufuegen": "Material hinzufügen",
   "val_kategorie_name_required": "Bitte Kategorie und Name angeben.",
   "val_mindestens_ein_material": "Bitte mindestens ein Material angeben.",
+  "panel_vorlagen_verwalten": "Projekt-Vorlagen verwalten",
+  "hint_vorlagen_verwalten_panel": "Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.",
+  "empty_vorlagen_title": "Noch keine Projekt-Vorlagen vorhanden",
+  "hint_doppelklick_bearbeiten": "Doppelklick zum Bearbeiten",
+  "modal_vorlage_uebernehmen_titel": "Änderungen in bestehende Projekte übernehmen?",
+  "hint_vorlage_uebernehmen": "Bereits abgeschlossene Projekte sind davon nie betroffen. Private Projekte anderer Mitglieder werden nicht verändert.",
+  "text_vorlage_uebernehmen_summary": "Die Vorlage „{name}“ wird von {shared} geteilten und {private} privaten (eigenen) Projekten verwendet. Folgende Änderungen können übernommen werden:",
+  "btn_nur_vorlage": "Nur Vorlage speichern",
+  "btn_uebernehmen": "Übernehmen",
   "panel_rezepte_import": "Projekt-Vorlagen importieren",
   "hint_rezepte_import": "Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Zwei Formate werden automatisch erkannt: entweder das einfache Format Kategorie;Name;Material1,Material2,Material3 (jedes Material darf optional eine vorgeschlagene Menge tragen, z. B. \"Material:15\", sowie zusätzlich eine Mindestqualität, z. B. \"Material:15:800\"), oder der rohe, unveränderte Export der scmdb.net-Tabelle (Farbvarianten werden dabei automatisch zu einer Basis-Vorlage zusammengefasst). Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
   "btn_rezepte_importieren": "Importieren",
@@ -3239,6 +3273,7 @@ const I18N = {
   "btn_datei_auswaehlen": "Datei auswählen …",
   "msg_file_loaded": "Datei „{name}“ geladen — bitte prüfen und auf „Importieren“ klicken.",
   "val_file_read_error": "Datei konnte nicht gelesen werden.",
+  "panel_wikelo_verwalten": "Wikelo-Handelsangebote verwalten",
   "panel_wikelo_import": "Wikelo-Handelsangebote importieren",
   "panel_lagerort_import": "Lagerorte importieren",
   "hint_lagerort_import": "Fügt neue Lagerorte zur bestehenden Liste hinzu — anders als bei Rezepten/Wikelo wird die bestehende Liste dabei NICHT ersetzt, sondern nur ergänzt (bereits vorhandene System+Code-Kombinationen werden übersprungen, nicht überschrieben). Format pro Zeile: System;Code;Name — Zeilen, die mit # beginnen, werden als Kommentar ignoriert. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
@@ -3904,6 +3939,15 @@ const I18N = {
   "btn_material_hinzufuegen": "Add material",
   "val_kategorie_name_required": "Please enter a category and name.",
   "val_mindestens_ein_material": "Please enter at least one material.",
+  "panel_vorlagen_verwalten": "Manage project templates",
+  "hint_vorlagen_verwalten_panel": "Complete, category-grouped overview of all project templates — for browsing, not just searching. Double-click a template to edit it. If materials are added, removed, or changed in quantity, you'll then be offered to apply the same change to existing projects created from this template — including automatic updates to their progress display.",
+  "empty_vorlagen_title": "No project templates yet",
+  "hint_doppelklick_bearbeiten": "Double-click to edit",
+  "modal_vorlage_uebernehmen_titel": "Apply changes to existing projects?",
+  "hint_vorlage_uebernehmen": "Already completed projects are never affected. Other members' private projects are not changed.",
+  "text_vorlage_uebernehmen_summary": "The template \"{name}\" is used by {shared} shared and {private} private (your own) projects. The following changes can be applied:",
+  "btn_nur_vorlage": "Save template only",
+  "btn_uebernehmen": "Apply",
   "panel_rezepte_import": "Import project templates",
   "hint_rezepte_import": "Adds a list of ready-made project templates that become searchable when creating a project (shared or private). Two formats are detected automatically: either the simple format Category;Name;Material1,Material2,Material3 (each material may optionally carry a suggested quantity, e.g. \"Material:15\", plus an optional minimum quality, e.g. \"Material:15:800\"), or the raw, unmodified export of the scmdb.net table (colour variants are automatically merged into a single base template). A new import replaces the entire existing list. Applies across all organizations (pure game data, not organization-specific).",
   "btn_rezepte_importieren": "Import",
@@ -3926,6 +3970,7 @@ const I18N = {
   "btn_datei_auswaehlen": "Select file …",
   "msg_file_loaded": "File “{name}” loaded — please review and click “Import”.",
   "val_file_read_error": "Could not read the file.",
+  "panel_wikelo_verwalten": "Manage Wikelo trades",
   "panel_wikelo_import": "Import Wikelo trades",
   "panel_lagerort_import": "Import locations",
   "hint_lagerort_import": "Adds new locations to the existing list — unlike recipes/Wikelo, the existing list is NOT replaced, only extended (existing system+code combinations are skipped, not overwritten). Format per line: System;Code;Name — lines starting with # are treated as comments and ignored. Applies across all organizations (pure game data, not organization-specific).",
@@ -4591,6 +4636,15 @@ const I18N = {
   "btn_material_hinzufuegen": "Ajouter un matériau",
   "val_kategorie_name_required": "Veuillez indiquer une catégorie et un nom.",
   "val_mindestens_ein_material": "Veuillez indiquer au moins un matériau.",
+  "panel_vorlagen_verwalten": "Gérer les modèles de projet",
+  "hint_vorlagen_verwalten_panel": "Vue d'ensemble complète, regroupée par catégorie, de tous les modèles de projet — pour parcourir, pas seulement pour rechercher. Un double-clic sur un modèle l'ouvre pour modification. Si des matériaux sont ajoutés, supprimés ou modifiés en quantité, il sera ensuite proposé d'appliquer le même changement aux projets existants créés à partir de ce modèle — y compris la mise à jour automatique de leur barre de progression.",
+  "empty_vorlagen_title": "Aucun modèle de projet pour l'instant",
+  "hint_doppelklick_bearbeiten": "Double-cliquer pour modifier",
+  "modal_vorlage_uebernehmen_titel": "Appliquer les changements aux projets existants ?",
+  "hint_vorlage_uebernehmen": "Les projets déjà terminés ne sont jamais concernés. Les projets privés d'autres membres ne sont pas modifiés.",
+  "text_vorlage_uebernehmen_summary": "Le modèle « {name} » est utilisé par {shared} projets partagés et {private} projets privés (les vôtres). Les changements suivants peuvent être appliqués :",
+  "btn_nur_vorlage": "Enregistrer uniquement le modèle",
+  "btn_uebernehmen": "Appliquer",
   "panel_rezepte_import": "Importer des modèles de projet",
   "hint_rezepte_import": "Ajoute une liste de modèles de projet prêts à l'emploi, consultables lors de la création d'un projet (partagé ou privé). Deux formats sont détectés automatiquement : soit le format simple Catégorie;Nom;Matériau1,Matériau2,Matériau3 (chaque matériau peut porter une quantité suggérée facultative, ex. « Matériau:15 », ainsi qu'une qualité minimale facultative, ex. « Matériau:15:800 »), soit l'export brut et non modifié de la table scmdb.net (les variantes de couleur sont automatiquement fusionnées en un seul modèle de base). Une nouvelle importation remplace la liste existante. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
   "btn_rezepte_importieren": "Importer",
@@ -4613,6 +4667,7 @@ const I18N = {
   "btn_datei_auswaehlen": "Sélectionner un fichier …",
   "msg_file_loaded": "Fichier « {name} » chargé — veuillez vérifier puis cliquer sur « Importer ».",
   "val_file_read_error": "Impossible de lire le fichier.",
+  "panel_wikelo_verwalten": "Gérer les échanges Wikelo",
   "panel_wikelo_import": "Importer les échanges Wikelo",
   "panel_lagerort_import": "Importer des lieux",
   "hint_lagerort_import": "Ajoute de nouveaux lieux à la liste existante — contrairement aux recettes/Wikelo, la liste existante n'est PAS remplacée, seulement complétée (les combinaisons système+code déjà existantes sont ignorées, pas écrasées). Format par ligne : Système;Code;Nom — les lignes commençant par # sont traitées comme des commentaires et ignorées. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
@@ -5685,8 +5740,11 @@ async function saveUserEdit(idx){
     document.getElementById('logPanel').style.display = isAdminOrAbove ? '' : 'none';
     document.getElementById('orgManagementPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('orgResetPanel').style.display = newRole==='owner' ? '' : 'none';
+    document.getElementById('templateManagePanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('templateImportPanel').style.display = newRole==='owner' ? '' : 'none';
+    if(newRole==='owner'){ renderTemplateManagePanel('rezepte'); renderTemplateManagePanel('wikelo'); }
     document.getElementById('scmdbImportPanel').style.display = newRole==='owner' ? '' : 'none';
+    document.getElementById('templateManagePanelWikeloWrap').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('wikeloImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('locationImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('orgSwitcherWrap').style.display = newRole==='owner' ? '' : 'none';
@@ -7527,8 +7585,11 @@ function completeLogin(user){
   document.getElementById('tabBtn-verwaltung').style.display = isAdminOrAbove ? '' : 'none';
   document.getElementById('orgManagementPanel').style.display = user.role==='owner' ? '' : 'none';
   renderOrgResetSection();
+  document.getElementById('templateManagePanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('templateImportPanel').style.display = user.role==='owner' ? '' : 'none';
+  if(user.role==='owner'){ renderTemplateManagePanel('rezepte'); renderTemplateManagePanel('wikelo'); }
   document.getElementById('scmdbImportPanel').style.display = user.role==='owner' ? '' : 'none';
+  document.getElementById('templateManagePanelWikeloWrap').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('wikeloImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('locationImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('orgSwitcherWrap').style.display = user.role==='owner' ? '' : 'none';
@@ -10421,6 +10482,8 @@ function addEditProjectResourceRow(idPrefix, container){
 // nutzbar können sie aber von allen beim Anlegen eines geteilten ODER
 // privaten Projekts werden, über die durchsuchbare Vorlagen-Auswahl.
 // ============================================================
+function templateUid(){ return 't' + Date.now() + Math.random().toString(36).slice(2,7); }
+
 const PROJECT_TEMPLATES_KEY = 'project-templates';
 let projectTemplates = [];
 let projectTemplatesImportedAt = null;
@@ -10458,6 +10521,18 @@ async function loadProjectTemplates(){
       projectTemplatesImportedAt = parsed.importedAt || null;
       projectTemplatesVersionLabel = parsed.versionLabel || null;
     }
+    // Ab 16. August 2026: Vorlagen brauchen eine STABILE, von Name/
+    // Kategorie unabhaengige ID, um Projekte zuverlaessig mit ihrer
+    // Ursprungs-Vorlage verknuepfen zu koennen (siehe templateId auf
+    // Projekten) -- Name und Kategorie koennen sich durch Bearbeitung
+    // aendern, ein reiner Index waere bei Sortierung/Filterung ebenfalls
+    // nicht stabil. Bestehende, aeltere Vorlagen ohne id bekommen hier
+    // einmalig eine zugewiesen und werden direkt zurueckgespeichert.
+    let neededIdMigration = false;
+    projectTemplates.forEach(tpl=>{
+      if(!tpl.id){ tpl.id = templateUid(); neededIdMigration = true; }
+    });
+    if(neededIdMigration) await saveProjectTemplates();
   }catch(e){
     projectTemplates = [];
     projectTemplatesImportedAt = null;
@@ -10531,18 +10606,80 @@ const TEMPLATE_KIND_CONFIG = {
     setArray: (arr) => { projectTemplates = arr; },
     save: saveProjectTemplates,
     listId: 'tpl-rezepte-list',
-    searchId: 'tpl-rezepte-search'
+    searchId: 'tpl-rezepte-search',
+    panelListId: 'tplManagePanelList'
   },
   wikelo: {
     getArray: () => wikeloTemplates,
     setArray: (arr) => { wikeloTemplates = arr; },
     save: saveWikeloTemplates,
     listId: 'tpl-wikelo-list',
-    searchId: 'tpl-wikelo-search'
+    searchId: 'tpl-wikelo-search',
+    panelListId: 'tplManagePanelListWikelo'
   }
 };
 
 let templateEditState = { kind: null, index: null }; // index: null = Neuanlage, sonst Position im Array
+
+// Vollstaendige, nach Kategorie gruppierte Uebersicht aller Projekt-
+// Vorlagen (im Unterschied zur bereits bestehenden, rein such-
+// basierten Liste weiter oben) -- zum Durchstoebern statt zwingend
+// erst tippen zu muessen. Aus Performance-Gruenden (potenziell 800+
+// Vorlagen nach einem scmdb-Import) werden die einzelnen Vorlagen einer
+// Kategorie NICHT sofort mitgerendert, sondern erst beim tatsaechlichen
+// Aufklappen der jeweiligen Kategorie (siehe toggle-Ereignis weiter
+// unten) -- haelt das anfaengliche DOM klein, auch bei sehr vielen
+// Vorlagen. Ein Doppelklick auf eine Vorlagen-Zeile oeffnet sie zum
+// Bearbeiten (wiederverwendet den bereits bestehenden Bearbeiten-Modal-
+// Mechanismus samt der daran anschliessenden Uebernahme-Abfrage fuer
+// bestehende Projekte). Siehe Nutzerwunsch vom 16. August 2026.
+function renderTemplateManagePanel(kind){
+  const cfg = TEMPLATE_KIND_CONFIG[kind];
+  const container = document.getElementById(cfg.panelListId);
+  if(!container) return;
+  const array = cfg.getArray();
+
+  if(array.length === 0){
+    container.innerHTML = `<div class="empty"><div class="big">${t('empty_vorlagen_title')}</div></div>`;
+    return;
+  }
+
+  const byCategory = {};
+  array.forEach((tpl, idx)=>{
+    (byCategory[tpl.category] = byCategory[tpl.category] || []).push(idx);
+  });
+  const categories = Object.keys(byCategory).sort();
+
+  container.innerHTML = categories.map(cat=>`
+    <details class="tpl-manage-category" data-category="${escapeHtml(cat)}" style="margin-bottom:6px;border:1px solid var(--panel-border);border-radius:var(--radius);overflow:hidden;">
+      <summary style="cursor:pointer;padding:9px 12px;font-family:'Rajdhani', sans-serif;font-weight:600;font-size:13.5px;background:rgba(0,216,255,0.04);">${escapeHtml(cat)} <span style="color:var(--ink-soft);font-weight:400;">(${byCategory[cat].length})</span></summary>
+      <div class="tpl-manage-category-body" style="padding:6px 10px;"></div>
+    </details>`).join('');
+
+  container.querySelectorAll('.tpl-manage-category').forEach(details=>{
+    let loaded = false;
+    details.addEventListener('toggle', ()=>{
+      if(!details.open || loaded) return;
+      loaded = true;
+      const cat = details.dataset.category;
+      const body = details.querySelector('.tpl-manage-category-body');
+      body.innerHTML = byCategory[cat].map(idx=>{
+        const tpl = array[idx];
+        return `<div class="user-row tpl-manage-row" data-idx="${idx}" style="cursor:pointer;" title="${t('hint_doppelklick_bearbeiten')}">
+          <div class="user-info">
+            <span>${escapeHtml(tpl.name)}</span>
+            <span style="color:var(--ink-soft);font-size:11px;">${tpl.materials.length} ${t('label_materialien_kurz')}</span>
+          </div>
+        </div>`;
+      }).join('');
+      body.querySelectorAll('.tpl-manage-row').forEach(row=>{
+        row.addEventListener('dblclick', ()=>{
+          openTemplateEditModal(kind, parseInt(row.dataset.idx));
+        });
+      });
+    });
+  });
+}
 
 function renderTemplateManageList(kind){
   const cfg = TEMPLATE_KIND_CONFIG[kind];
@@ -10692,7 +10829,12 @@ async function saveTemplateEdit(){
   }
 
   const array = cfg.getArray();
-  const newTpl = { category, name, materials };
+  // Ab 16. August 2026: die ID einer bestehenden Vorlage bleibt beim
+  // Bearbeiten zwingend erhalten (sonst wuerde die Verknuepfung zu
+  // bereits daraus angelegten Projekten abreissen) -- bei einer neuen
+  // Vorlage wird eine frische ID vergeben.
+  const oldTpl = index != null ? array[index] : null;
+  const newTpl = { id: oldTpl ? oldTpl.id : templateUid(), category, name, materials };
   if(index == null){
     array.push(newTpl);
   } else {
@@ -10707,6 +10849,19 @@ async function saveTemplateEdit(){
     closeTemplateEditModal();
     renderTemplateManageList(kind);
     if(kind==='rezepte') renderTemplateCount(); else renderWikeloCount();
+    renderTemplateManagePanel(kind);
+    // Nur beim BEARBEITEN einer bestehenden Vorlage (nicht bei
+    // Neuanlage) sinnvoll -- prueft, ob sich die Materialliste
+    // tatsaechlich veraendert hat und ob bereits Projekte auf diese
+    // Vorlage verweisen, denen die Aenderung angeboten werden kann. Gilt
+    // seit 16. August 2026 (spaeterer Zusatz desselben Tages) fuer BEIDE
+    // Vorlagenarten -- Rezepte und Wikelo-Handelsangebote teilen exakt
+    // dieselbe Datenstruktur, ein Projekt speichert bei Anlage ueber
+    // eine Vorlage deren id unabhaengig davon, aus welcher der beiden
+    // Listen sie stammt.
+    if(oldTpl){
+      await offerTemplatePropagation(oldTpl, newTpl);
+    }
   } else {
     setStatusMsg(statusEl, t('msg_save_failed'), true);
   }
@@ -10715,6 +10870,116 @@ async function saveTemplateEdit(){
 document.getElementById('btnAddTemplateEditMaterial').addEventListener('click', ()=>{ addTemplateEditMaterialRow(null); });
 document.getElementById('btnTemplateEditCancel').addEventListener('click', closeTemplateEditModal);
 document.getElementById('btnTemplateEditSave').addEventListener('click', saveTemplateEdit);
+
+// Vergleicht die Materialliste einer Vorlage vor und nach dem
+// Bearbeiten -- liefert, welche Materialien neu hinzugekommen, welche
+// entfernt worden und welche unveraendert geblieben, aber in Menge
+// und/oder Mindestqualitaet geaendert worden sind. Nutzt den
+// Materialnamen als Vergleichsschluessel (Materialien werden innerhalb
+// einer Vorlage nicht umbenannt, nur hinzugefuegt/entfernt/angepasst).
+function diffTemplateMaterials(oldMats, newMats){
+  const oldByName = new Map(oldMats.map(m=>[m.name, m]));
+  const newByName = new Map(newMats.map(m=>[m.name, m]));
+  const added = [...newByName.values()].filter(m=>!oldByName.has(m.name));
+  const removed = [...oldByName.values()].filter(m=>!newByName.has(m.name));
+  const changed = [...newByName.values()]
+    .filter(m=>{
+      const old = oldByName.get(m.name);
+      return old && (old.menge !== m.menge || old.mindestqualitaet !== m.mindestqualitaet);
+    })
+    .map(m=>({ name:m.name, oldMenge:oldByName.get(m.name).menge, newMenge:m.menge, oldQual:oldByName.get(m.name).mindestqualitaet, newQual:m.mindestqualitaet }));
+  return { added, removed, changed, hasChanges: added.length>0 || removed.length>0 || changed.length>0 };
+}
+
+// Wendet einen zuvor berechneten Diff auf die Ressourcen-Liste EINES
+// Projekts an -- entfernte Materialien werden aus den Projekt-
+// Ressourcen gestrichen, geaenderte Materialien uebernehmen Menge und
+// Mindestqualitaet der Vorlage, neu hinzugekommene Materialien werden
+// mit dem in der Vorlage vorgeschlagenen Wert ergaenzt (nur, falls das
+// Projekt dieses Material nicht bereits -- unabhaengig von der Vorlage
+// -- ohnehin schon fuehrt). Aendert das Projekt-Objekt direkt (in
+// place), ruft selbst weder speichern noch neu rendern auf -- das
+// obliegt der aufrufenden Stelle, da meist mehrere Projekte in einem
+// Rutsch behandelt werden.
+function applyTemplateDiffToProject(project, diff){
+  project.resources = project.resources.filter(r => !diff.removed.some(rm=>rm.name===r.material));
+  diff.changed.forEach(c=>{
+    const res = project.resources.find(r=>r.material===c.name);
+    if(res){ res.menge = c.newMenge; res.mindestqualitaet = c.newQual; }
+  });
+  diff.added.forEach(a=>{
+    if(!project.resources.some(r=>r.material===a.name)){
+      project.resources.push({ material: a.name, menge: a.menge, mindestqualitaet: a.mindestqualitaet });
+    }
+  });
+}
+
+let pendingTemplatePropagation = null;
+
+// Wird nach dem Speichern einer BEARBEITETEN (nicht neu angelegten)
+// Vorlage aufgerufen. Ermittelt, ob sich die Materialliste ueberhaupt
+// veraendert hat und ob bereits Projekte existieren, die ueber ihre
+// templateId auf diese Vorlage verweisen -- bei geteilten Projekten nur
+// innerhalb der aktuell aktiven Organisation (kein Zugriff auf andere
+// Organisationen aus diesem Kontext heraus), bei privaten Projekten
+// bewusst nur die EIGENEN (nicht die anderer Mitglieder, selbst nicht
+// fuer die Rolle owner -- private Daten anderer Personen unangetastet
+// zu lassen hat Vorrang). Abgeschlossene Projekte sind grundsaetzlich
+// ausgenommen, da an ihnen nichts mehr aktiv gearbeitet wird. Zeigt bei
+// tatsaechlich betroffenen Projekten das Bestaetigungs-Modal, sonst
+// passiert stillschweigend nichts weiter. Siehe Nutzerwunsch vom
+// 16. August 2026.
+async function offerTemplatePropagation(oldTpl, newTpl){
+  const diff = diffTemplateMaterials(oldTpl.materials.map(normalizeTemplateMaterial), newTpl.materials);
+  if(!diff.hasChanges) return;
+
+  const affectedShared = projects.filter(p=>p.templateId===oldTpl.id && p.status!=='completed');
+  const affectedPrivate = privateProjects.filter(p=>p.templateId===oldTpl.id && p.owner===currentUser.username && p.status!=='completed');
+  if(affectedShared.length===0 && affectedPrivate.length===0) return;
+
+  pendingTemplatePropagation = { diff, affectedShared, affectedPrivate, templateName: newTpl.name };
+
+  document.getElementById('templatePropagateSummary').textContent =
+    t('text_vorlage_uebernehmen_summary')
+      .replace('{name}', newTpl.name)
+      .replace('{shared}', affectedShared.length)
+      .replace('{private}', affectedPrivate.length);
+
+  let diffHtml = '';
+  diff.added.forEach(a=>diffHtml += `<div>+ ${escapeHtml(a.name)}${a.menge!=null ? ' ('+a.menge+')' : ''}</div>`);
+  diff.removed.forEach(r=>diffHtml += `<div style="color:#FF3B5C;">− ${escapeHtml(r.name)}</div>`);
+  diff.changed.forEach(c=>diffHtml += `<div>↺ ${escapeHtml(c.name)}: ${c.oldMenge ?? '–'} → ${c.newMenge ?? '–'}</div>`);
+  document.getElementById('templatePropagateDiffList').innerHTML = diffHtml;
+
+  document.getElementById('templatePropagateModal').style.display = 'flex';
+}
+
+function closeTemplatePropagateModal(){
+  document.getElementById('templatePropagateModal').style.display = 'none';
+  pendingTemplatePropagation = null;
+}
+
+document.getElementById('btnTemplatePropagateSkip').addEventListener('click', closeTemplatePropagateModal);
+document.getElementById('btnTemplatePropagateApply').addEventListener('click', async ()=>{
+  if(!pendingTemplatePropagation) return;
+  const { diff, affectedShared, affectedPrivate, templateName } = pendingTemplatePropagation;
+
+  affectedShared.forEach(p=>applyTemplateDiffToProject(p, diff));
+  affectedPrivate.forEach(p=>applyTemplateDiffToProject(p, diff));
+
+  if(affectedShared.length>0) await saveProjects();
+  if(affectedPrivate.length>0) await savePrivateProjects();
+  await logAction('Vorlagen-Änderung in Projekte übernommen',
+    `${templateName}: ${affectedShared.length} geteilte, ${affectedPrivate.length} private Projekte aktualisiert`);
+
+  closeTemplatePropagateModal();
+  renderProjects();
+  renderPrivateProjects();
+  updateProjectAvailability();
+  updatePrivateProjectAvailability();
+  scheduleRenderDashboard();
+});
+
 document.getElementById('tpl-rezepte-btnNew').addEventListener('click', ()=>{ openTemplateEditModal('rezepte', null); });
 document.getElementById('tpl-wikelo-btnNew').addEventListener('click', ()=>{ openTemplateEditModal('wikelo', null); });
 document.getElementById('tpl-rezepte-search').addEventListener('input', ()=>{ renderTemplateManageList('rezepte'); });
@@ -11129,6 +11394,14 @@ async function loadWikeloTemplates(){
       wikeloTemplatesImportedAt = parsed.importedAt || null;
       wikeloTemplatesVersionLabel = parsed.versionLabel || null;
     }
+    // Siehe ausfuehrlicher Kommentar bei loadProjectTemplates() weiter
+    // oben -- dieselbe Migration auf stabile IDs, jetzt auch fuer
+    // Wikelo-Vorlagen. Siehe Nutzerwunsch vom 16. August 2026.
+    let neededWikeloIdMigration = false;
+    wikeloTemplates.forEach(tpl=>{
+      if(!tpl.id){ tpl.id = templateUid(); neededWikeloIdMigration = true; }
+    });
+    if(neededWikeloIdMigration) await saveWikeloTemplates();
   }catch(e){
     wikeloTemplates = [];
     wikeloTemplatesImportedAt = null;
@@ -11725,9 +11998,20 @@ function findLastUsedQuantities(isPrivate, templateName){
   return quantities;
 }
 
+// Merkt sich (getrennt nach geteiltem/privatem Kontext), welche Vorlage
+// zuletzt fuer das jeweils offene Anlage-Formular gewaehlt wurde --
+// wird bei tatsaechlicher Projekt-Anlage als templateId uebernommen und
+// danach sofort wieder zurueckgesetzt (siehe btnAddProject/
+// btnAddPrivProject), damit ein manuell (ohne Vorlage) angelegtes
+// Folgeprojekt nicht faelschlich mit der vorherigen Vorlage verknuepft
+// bleibt.
+let pendingProjTemplateId = null;
+let pendingPrivProjTemplateId = null;
+
 async function applyProjectTemplate(isPrivate, tpl){
   const prefix = isPrivate ? 'priv-' : '';
   document.getElementById(prefix+'proj-ziel').value = tpl.name;
+  if(isPrivate) pendingPrivProjTemplateId = tpl.id || null; else pendingProjTemplateId = tpl.id || null;
 
   const materials = tpl.materials.map(normalizeTemplateMaterial);
   await ensureMaterialsExist(materials.map(m=>m.name), tpl.category);
@@ -11873,8 +12157,16 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
     // effectiveResourceMenge()). Aeltere Projekte ohne dieses
     // Kennzeichen behalten bewusst ihre bisherige Bedeutung
     // (Menge = bereits die Gesamtmenge).
-    perUnit: true
+    perUnit: true,
+    // Ab 16. August 2026: merkt sich, aus welcher Vorlage (falls
+    // ueberhaupt eine gewaehlt wurde) dieses Projekt entstanden ist --
+    // Grundlage dafuer, spaetere Aenderungen an der Vorlage optional in
+    // dieses Projekt zu uebernehmen (siehe offerTemplatePropagation()).
+    // Bleibt undefined, wenn das Projekt manuell ohne Vorlage angelegt
+    // wurde.
+    templateId: pendingProjTemplateId
   });
+  pendingProjTemplateId = null;
 
   setStatusMsg(statusEl, t('msg_saving'), false);
   await saveProjects();
@@ -12490,8 +12782,10 @@ document.getElementById('btnAddPrivProject').addEventListener('click', async ()=
     owner: currentUser.username,
     notiz: document.getElementById('priv-proj-notiz').value.trim(),
     // Siehe Kommentar bei der geteilten Projekt-Anlage weiter oben.
-    perUnit: true
+    perUnit: true,
+    templateId: pendingPrivProjTemplateId
   });
+  pendingPrivProjTemplateId = null;
 
   setStatusMsg(statusEl, t('msg_saving'), false);
   await savePrivateProjects();
