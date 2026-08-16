@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.095 -->
+<!-- Version: 0.096 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -14942,12 +14942,29 @@ async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offse
         // Menge 37 statt 0.37 SCU uebernommen).
         const rawMenge = r.numbers[1]!=null ? r.numbers[1].val : null;
         const menge = rawMenge!=null ? Math.round((rawMenge/100)*100)/100 : null;
+        // Ab 16. August 2026: Wird in dieser Zeile innerhalb des
+        // zugeschnittenen Bereichs NUR EINE Ziffernfolge gefunden (statt
+        // der erwarteten zwei -- Qualitaet UND Menge), ist NICHT sicher
+        // zuordenbar, ob es sich dabei um die Qualitaet oder die Menge
+        // handelt. Bislang wurde die einzelne gefundene Zahl blind als
+        // "numbers[0]" behandelt und damit automatisch der Qualitaet
+        // zugeschlagen -- das fuehrte bei einem realen Testbild
+        // nachweislich dazu, dass die Menge (z.B. 91) faelschlich als
+        // Qualitaet in die Abstimmung einfloss, und zwar konsistent
+        // genug ueber mehrere Schwellenwerte hinweg, um die tatsaechlich
+        // korrekten Qualitaets-Lesungen aus dem Hauptdurchlauf zu
+        // ueberstimmen (Ursache: der xStartFrac-Zuschnitt schnitt bei
+        // diesem Bild die Qualitaets-Spalte fuer eine einzelne Zeile
+        // versehentlich weg). Eine unsichere Zuordnung traegt jetzt gar
+        // nicht mehr zur Abstimmung bei, statt sie mit einer moeglicherweise
+        // falschen, aber selbstbewusst wirkenden Lesung zu verfaelschen.
+        const ambiguous = r.numbers.length < 2;
         return {
           yCenter: r.yCenter,
-          quality: r.numbers[0]!=null?r.numbers[0].val:null,
-          qualityConfidence: r.numbers[0]!=null?r.numbers[0].confidence:null,
-          menge,
-          mengeConfidence: r.numbers[1]!=null?r.numbers[1].confidence:null
+          quality: ambiguous ? null : r.numbers[0].val,
+          qualityConfidence: ambiguous ? null : r.numbers[0].confidence,
+          menge: ambiguous ? null : menge,
+          mengeConfidence: ambiguous ? null : r.numbers[1].confidence
         };
       }));
     }
