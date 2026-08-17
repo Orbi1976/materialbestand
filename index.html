@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.099 -->
+<!-- Version: 0.100 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -347,6 +347,15 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
   padding:10px 12px;
   white-space:normal;
 }
+/* Greift seit der DOM-Loslösung (siehe showHoverTooltipFor() in JS,
+   16. August 2026) im Normalfall NICHT mehr, da das Tooltip waehrend
+   der Anzeige kein Kind-Element von .stock-hover-wrap mehr ist, dieser
+   CSS-Selektor also nicht mehr zutrifft -- die Sichtbarkeit wird
+   stattdessen direkt per JS (display:block/none) gesteuert. Bewusst
+   trotzdem als Basis-CSS stehen gelassen: dient als sinnvoller
+   Rueckfall-Zustand (display:none), solange das Fenster noch an seiner
+   urspruenglichen Stelle im DOM haengt (z.B. unmittelbar nach dem
+   Rendern, bevor ueberhaupt gehovert wurde). */
 .stock-hover-wrap:hover .stock-hover-tooltip{ display:block; }
 /* Wird per JS (siehe positionStockHoverTooltip) ergaenzt, wenn fuer das
    Fenster nach UNTEN nicht genug Platz im sichtbaren Bereich ist -- der
@@ -14276,73 +14285,136 @@ document.addEventListener('change', (e)=>{
 // Rueckwaerts-Suche: Klick-Icons in den Zusammenfassungen (Material &
 // Sammelobjekte) auf-/zuklappen, sowie Klick auf einen Projektnamen
 // innerhalb der aufgeklappten Aufschluesselung zum Projekte-Tab springen.
-// Dynamische Positionierung fuer alle Hover-Info-Fenster (Bestand-
-// Aufschluesselungen, Bedarf-Deckung, Verkaufspreise usw.): Standard-
-// maessig oeffnen sie nach UNTEN (siehe .stock-hover-tooltip).
 //
-// KORREKTUR vom 16. August 2026 (Nutzermeldung, Projekte-Tab: Info-Fenster
-// beim Hover ueber ein benoetigtes Material wurde nicht vollstaendig
-// angezeigt): Die urspruengliche Logik pruefte AUSSCHLIESSLICH, ob nach
-// UNTEN genug Platz vorhanden ist -- reichte er nicht, wurde BLIND nach
-// OBEN umgeklappt, ohne zu pruefen, ob DORT ueberhaupt mehr Platz ist.
-// Bei einer Tabellenzeile in der Bildschirmmitte mit einem hohen
-// Info-Fenster (z.B. viele Beitragende zu einem Material) konnte das
-// Fenster dadurch in BEIDE Richtungen ueber den sichtbaren Bereich
-// hinausragen.
+// KORREKTUR vom 16. August 2026, zweite Runde desselben Tages
+// (Nutzermeldung samt Screenshot: Im Projekte-Tab war das Info-Fenster
+// trotz der ersten Korrektur -- siehe Kommentar-Historie unten -- immer
+// noch nicht vollstaendig sichtbar, obwohl der Inhalt selbst nur zwei
+// kurze Zeilen umfasste): Der tatsaechliche Grund lag tiefer als
+// zunaechst angenommen -- ein bereits bestehender, bewusster Kompromiss
+// (siehe Kommentar bei ".panel > div:has(> table)" weiter oben):
+// Container, die eine breite Tabelle enthalten, bekommen automatisch
+// horizontales Scrollen, damit sie nicht ueber die abgeschraegten
+// Panel-Kanten hinausragen -- das erzwingt CSS-seitig aber zugleich
+// eine vertikale Begrenzung fuer ALLES innerhalb dieses Containers,
+// inklusive absolut positionierter Elemente wie diesem Hover-Fenster.
+// Das Fenster wurde dadurch vom TABELLEN-CONTAINER abgeschnitten, nicht
+// vom Bildschirmrand -- die vorherige Korrektur (Platz in beide
+// Richtungen vergleichen) rechnete aber ausschliesslich gegen den
+// Bildschirmrand, nicht gegen diese engere, containerspezifische
+// Begrenzung.
 //
-// Bewusst NICHT durch automatisches Scrollen der Seite geloest: Bewegt
-// sich die Seite unter dem unbewegten Mauszeiger, kann dieser dadurch
-// ploetzlich ueber einem anderen Element landen -- der Hover-Zustand
-// (und damit das gerade erst sichtbar gemachte Fenster) wuerde in genau
-// dem Moment wieder enden, in dem er sichtbar bleiben soll.
+// Geloest durch vollstaendiges Loslösen aus dem DOM-Baum: Beim Anzeigen
+// wird das Fenster direkt an <body> gehaengt (position:fixed, Koordinaten
+// per JS berechnet) -- dadurch entkommt es JEDER Ueberlappungs-Begrenzung
+// eines Vorfahren-Containers, unabhaengig davon, wo im DOM-Baum der
+// ausloesende Bereich eigentlich liegt. Auf Nutzervorschlag bewusst so
+// positioniert, dass das Fenster den ausloesenden Bereich selbst NIEMALS
+// ueberdeckt (weiterhin oberhalb/unterhalb mit Abstand, je nachdem wo
+// mehr Platz ist) -- der Mauszeiger kann dadurch im Normalfall
+// durchgehend ueber dem ausloesenden Element bleiben, ohne je auf das
+// (jetzt vom urspruenglichen Ort losgeloeste) Fenster wandern zu muessen.
+// Bewegt sich der Mauszeiger trotzdem gezielt IN das Fenster hinein (z.B.
+// um darin zu scrollen oder einen anklickbaren Projektnamen zu
+// erreichen -- kommt bei manchen dieser Fenster vor), bleibt es
+// weiterhin sichtbar; es verschwindet erst, wenn der Mauszeiger WEDER
+// ueber dem Ausloeser NOCH ueber dem Fenster selbst steht. Nach dem
+// Ausblenden wird das Fenster an seinen urspruenglichen Platz im DOM
+// zurueckgefuehrt, damit die zugrundeliegende Struktur unveraendert
+// bleibt und ein spaeteres erneutes Anzeigen wieder sauber greift.
 //
-// Stattdessen: Der tatsaechlich verfuegbare Platz wird jetzt in BEIDE
-// Richtungen gemessen, das Fenster oeffnet dort, wo mehr Platz ist.
-// Reicht selbst die guenstigere Richtung nicht fuer den kompletten
-// Inhalt, wird das Fenster selbst begrenzt und intern scrollbar
-// (Mausrad direkt darueber) -- der Mauszeiger bleibt dabei durchgehend
-// ueber dem ausloesenden Element, der Hover-Zustand bleibt stabil.
-// Per 'mouseover' (bubbelt, im Gegensatz zu 'mouseenter') global
-// abgefangen, damit kuenftig hinzugefuegte Hover-Fenster automatisch
-// mit abgedeckt sind, ohne an jeder einzelnen Stelle im Code einen
-// eigenen Listener ergaenzen zu muessen. requestAnimationFrame sorgt
-// dafuer, dass zuerst die per CSS :hover ausgeloeste Sichtbarkeit
-// tatsaechlich greift, bevor die tatsaechliche Fenstergroesse gemessen
-// wird -- geschieht innerhalb desselben Bildaufbaus, dadurch fuer das
-// Auge kein wahrnehmbarer Sprung. Siehe Nutzerwunsch vom 12. bzw.
-// 16. August 2026.
-document.addEventListener('mouseover', (e)=>{
-  const wrap = e.target.closest('.stock-hover-wrap');
-  if(!wrap) return;
+// Weiterhin per 'mouseover'/'mouseout' (bubbeln, im Gegensatz zu
+// 'mouseenter'/'mouseleave') global abgefangen, damit kuenftig
+// hinzugefuegte Hover-Fenster automatisch mit abgedeckt sind, ohne an
+// jeder einzelnen Stelle im Code einen eigenen Listener ergaenzen zu
+// muessen.
+let activeHoverTooltip = null; // { tooltip, wrap, originalParent, originalNextSibling }
+
+function hideActiveHoverTooltip(){
+  if(!activeHoverTooltip) return;
+  const { tooltip, originalParent, originalNextSibling } = activeHoverTooltip;
+  tooltip.removeAttribute('style');
+  tooltip.classList.remove('flip-above');
+  if(originalNextSibling && originalNextSibling.parentNode === originalParent){
+    originalParent.insertBefore(tooltip, originalNextSibling);
+  } else {
+    originalParent.appendChild(tooltip);
+  }
+  activeHoverTooltip = null;
+}
+
+function showHoverTooltipFor(wrap){
   const tooltip = wrap.querySelector('.stock-hover-tooltip');
   if(!tooltip) return;
+  if(activeHoverTooltip && activeHoverTooltip.tooltip === tooltip) return; // bereits aktiv
+  hideActiveHoverTooltip(); // falls noch ein anderes Fenster offen war
+
+  const originalParent = tooltip.parentNode;
+  const originalNextSibling = tooltip.nextSibling;
+  document.body.appendChild(tooltip);
+  activeHoverTooltip = { tooltip, wrap, originalParent, originalNextSibling };
+
+  // requestAnimationFrame sorgt dafuer, dass das Fenster erst sichtbar
+  // gemessen wird, NACHDEM es tatsaechlich im DOM (an body) haengt und
+  // display:block gesetzt ist -- geschieht innerhalb desselben
+  // Bildaufbaus, dadurch fuer das Auge kein wahrnehmbarer Sprung.
   requestAnimationFrame(()=>{
+    if(!activeHoverTooltip || activeHoverTooltip.tooltip !== tooltip) return; // zwischenzeitlich schon wieder geschlossen
+    tooltip.style.position = 'fixed';
+    tooltip.style.display = 'block';
+    tooltip.style.zIndex = '300';
+    tooltip.style.maxHeight = '';
+    tooltip.style.overflowY = '';
+
     const wrapRect = wrap.getBoundingClientRect();
+    const tooltipHeight = tooltip.offsetHeight;
     const spaceBelow = window.innerHeight - wrapRect.bottom - 8;
     const spaceAbove = wrapRect.top - 8;
-    const tooltipHeight = tooltip.offsetHeight;
     const fitsBelow = tooltipHeight <= spaceBelow;
-    // Nur nach oben umklappen, wenn es unten NICHT passt UND oben
-    // tatsaechlich mehr Platz zur Verfuegung steht als unten -- sonst
-    // bliebe die urspruengliche, blinde "immer nach oben"-Annahme
-    // bestehen, die genau zum gemeldeten Problem gefuehrt hat.
     const flipAbove = !fitsBelow && spaceAbove > spaceBelow;
     tooltip.classList.toggle('flip-above', flipAbove);
 
     const available = (flipAbove ? spaceAbove : spaceBelow) - 4;
-    // Passt der Inhalt selbst in die guenstigere Richtung nicht
-    // hinein, wird das Fenster auf den verfuegbaren Platz begrenzt und
-    // intern scrollbar gemacht -- eine Mindesthoehe (80px) verhindert,
-    // dass es bei extrem wenig Platz auf einen praktisch unbrauchbaren
-    // Streifen zusammenschrumpft.
+    // Dank vollstaendiger Loslösung reicht der verfuegbare Platz jetzt
+    // praktisch immer aus -- die Begrenzung bleibt trotzdem als
+    // Sicherheitsnetz fuer sehr grosse Inhalte oder sehr kleine
+    // Bildschirme bestehen. Mindesthoehe (80px) verhindert ein
+    // Zusammenschrumpfen auf einen praktisch unbrauchbaren Streifen.
     if(tooltipHeight > available && available > 80){
       tooltip.style.maxHeight = available + 'px';
       tooltip.style.overflowY = 'auto';
-    } else {
-      tooltip.style.maxHeight = '';
-      tooltip.style.overflowY = '';
     }
+
+    tooltip.style.top = flipAbove ? '' : (wrapRect.bottom + 8) + 'px';
+    tooltip.style.bottom = flipAbove ? (window.innerHeight - wrapRect.top + 8) + 'px' : '';
+
+    // Waechst weiterhin von rechts nach links (bislang per CSS right:0
+    // relativ zum Wrap) -- jetzt ueber die rechte Kante des AUSLOESENDEN
+    // Elements berechnet, da position:fixed keinen Bezug mehr zum Wrap
+    // hat. Nicht ueber den linken Bildschirmrand hinausragen.
+    let left = wrapRect.right - tooltip.offsetWidth;
+    if(left < 8) left = 8;
+    tooltip.style.left = left + 'px';
+    tooltip.style.right = '';
   });
+}
+
+document.addEventListener('mouseover', (e)=>{
+  const wrap = e.target.closest('.stock-hover-wrap');
+  if(wrap) showHoverTooltipFor(wrap);
+});
+
+document.addEventListener('mouseout', (e)=>{
+  if(!activeHoverTooltip) return;
+  const { wrap, tooltip } = activeHoverTooltip;
+  const leavingWrap = wrap.contains(e.target);
+  const leavingTooltip = tooltip.contains(e.target) || e.target === tooltip;
+  if(!leavingWrap && !leavingTooltip) return; // betrifft weder Ausloeser noch Fenster
+  const related = e.relatedTarget;
+  // Sichtbar lassen, wenn der Mauszeiger direkt in den jeweils ANDEREN
+  // der beiden Bereiche wandert (Ausloeser <-> Fenster).
+  if(related && (wrap.contains(related) || tooltip.contains(related) || related === tooltip)) return;
+  hideActiveHoverTooltip();
 });
 
 document.addEventListener('click', (e)=>{
