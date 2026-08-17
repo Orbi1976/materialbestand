@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.097 -->
+<!-- Version: 0.098 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1733,6 +1733,31 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="orgBrandingStatus"></div>
   </div>
 
+  <div class="panel" id="orgInfoPanel" style="display:none;">
+    <h2 data-i18n="panel_org_info">Organisations-Information</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_org_info">Optionaler Hinweistext, der allen Mitgliedern dieser Organisation ganz oben im Dashboard angezeigt wird — z. B. aktuelle Ankündigungen oder Regeln. Leer lassen bzw. über "Nachricht entfernen" löschen, um nichts anzuzeigen.</span></div>
+    <div class="field">
+      <label for="orgInfoTitleInput" data-i18n="label_org_info_titel">Titel</label>
+      <input type="text" id="orgInfoTitleInput" placeholder="z. B. Willkommen im Team!" maxlength="80">
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label data-i18n="label_org_info_inhalt">Inhalt</label>
+      <div style="display:flex;gap:6px;margin:6px 0;flex-wrap:wrap;">
+        <button type="button" class="btn-ghost" id="orgInfoBtnBold" title="Fett" data-i18n-title="tooltip_fett" style="padding:5px 12px;font-weight:700;">F</button>
+        <button type="button" class="btn-ghost" id="orgInfoBtnItalic" title="Kursiv" data-i18n-title="tooltip_kursiv" style="padding:5px 12px;font-style:italic;">K</button>
+        <button type="button" class="btn-ghost" id="orgInfoBtnUL" title="Aufzählung" data-i18n-title="tooltip_liste_ul" style="padding:5px 12px;">☰ <span data-i18n="btn_liste">Liste</span></button>
+        <button type="button" class="btn-ghost" id="orgInfoBtnOL" title="Nummerierte Liste" data-i18n-title="tooltip_liste_ol" style="padding:5px 12px;">① <span data-i18n="btn_liste_nummeriert">Nummeriert</span></button>
+        <button type="button" class="btn-ghost" id="orgInfoBtnLink" title="Link einfügen" data-i18n-title="tooltip_link" style="padding:5px 12px;">🔗 <span data-i18n="btn_link">Link</span></button>
+      </div>
+      <div id="orgInfoBodyInput" contenteditable="true" style="min-height:120px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);font-family:'Rajdhani', sans-serif;font-size:14px;line-height:1.5;"></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn-primary" id="btnSaveOrgInfo" data-i18n="btn_save">Speichern</button>
+      <button class="btn-ghost danger" id="btnClearOrgInfo" data-i18n="btn_org_info_entfernen">Nachricht entfernen</button>
+    </div>
+    <div class="status-msg" id="orgInfoStatus"></div>
+  </div>
+
   <div class="panel" id="defaultPasswordPanel" style="display:none;">
     <h2 data-i18n="panel_default_password">Standard-Passwort für Erst-Login</h2>
     <div class="user-note" data-i18n="hint_default_password_setting">Gilt für alle Benutzer dieser Organisation, die noch kein eigenes Passwort gesetzt haben — wird beim allerersten Login zwingend durch ein persönliches Passwort ersetzt. Eine Änderung hier betrifft nur zukünftige Erst-Logins, nicht bereits individuell gesetzte Passwörter.</div>
@@ -2093,10 +2118,16 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="uebersicht">
+  <div class="panel" id="orgInfoDisplayPanel" style="display:none;">
+    <h2 id="orgInfoDisplayTitle" style="margin:0;"></h2>
+    <div id="orgInfoDisplayBody" style="margin-top:10px;line-height:1.6;"></div>
+  </div>
+
   <div class="panel">
     <h2 data-i18n="panel_uebersicht">Übersicht</h2>
     <div id="criticalNeedsBanner" style="display:none;margin-bottom:14px;padding:12px 16px;background:rgba(255,59,92,0.08);border:1px solid var(--low);border-radius:var(--radius);"></div>
     <div id="dashboardStats" class="dashboard-grid"></div>
+    <div class="user-note" style="margin-top:14px;" data-i18n="hint_shortcuts">Tastenkürzel: 1–6 wechseln zwischen den Tabs, / springt in die Suche (auf Bestand/Privat Bestände) — nicht aktiv, während in einem Feld getippt wird.</div>
   </div>
 
   <div class="panel" id="projectReminderPanel" style="display:none;">
@@ -2115,31 +2146,6 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </select>
     </div>
     <div id="contributorLeaderboard"></div>
-  </div>
-
-  <div class="panel">
-    <h2 data-i18n="panel_rollen">Rollen im Überblick</h2>
-    <div class="user-list">
-      <div class="user-row">
-        <div class="user-info">
-          <span class="role-tag admin" data-i18n="role_admin">Administrator</span>
-          <span style="color:var(--ink-soft);font-size:12.5px;" data-i18n="role_admin_desc">Volle Rechte inkl. Benutzer-, Material-/Lagerort-Verwaltung, Änderungsprotokoll und Projekte anlegen</span>
-        </div>
-      </div>
-      <div class="user-row">
-        <div class="user-info">
-          <span class="role-tag" data-i18n="role_editor">Bearbeitungsrechte</span>
-          <span style="color:var(--ink-soft);font-size:12.5px;" data-i18n="role_editor_desc">Kann Bestand, Bedarfe und Sammelobjekte anlegen, bearbeiten und löschen</span>
-        </div>
-      </div>
-      <div class="user-row">
-        <div class="user-info">
-          <span class="role-tag" data-i18n="role_viewer">Leserechte</span>
-          <span style="color:var(--ink-soft);font-size:12.5px;" data-i18n="role_viewer_desc">Kann alles einsehen, aber nichts an gemeinsamen Daten ändern — der eigene Privatbestand bleibt davon unberührt</span>
-        </div>
-      </div>
-    </div>
-    <div class="user-note" style="margin-top:14px;" data-i18n="hint_shortcuts">Tastenkürzel: 1–6 wechseln zwischen den Tabs, / springt in die Suche (auf Bestand/Privat Bestände) — nicht aktiv, während in einem Feld getippt wird.</div>
   </div>
 
   <div class="panel" id="dashboardHistoryPanel" style="display:none;">
@@ -2914,13 +2920,6 @@ const I18N = {
   "btn_add": "Eintragen",
   "btn_export_csv": "Als CSV exportieren",
   "panel_uebersicht": "Übersicht",
-  "panel_rollen": "Rollen im Überblick",
-  "role_admin": "Administrator",
-  "role_editor": "Bearbeitungsrechte",
-  "role_viewer": "Leserechte",
-  "role_admin_desc": "Volle Rechte inkl. Benutzer-, Material-/Lagerort-Verwaltung, Änderungsprotokoll und Projekte anlegen",
-  "role_editor_desc": "Kann Bestand, Bedarfe und Sammelobjekte anlegen, bearbeiten und löschen",
-  "role_viewer_desc": "Kann alles einsehen, aber nichts an gemeinsamen Daten ändern — der eigene Privatbestand bleibt davon unberührt",
   "hint_shortcuts": "Tastenkürzel: 1–6 wechseln zwischen den Tabs, / springt in die Suche (auf Bestand/Privat Bestände) — nicht aktiv, während in einem Feld getippt wird.",
   "panel_bestandsentwicklung": "Bestandsentwicklung",
   "hint_bestandsentwicklung": "Anzahl aktiver Bestandseinträge über die Zeit, abgeleitet aus dem Änderungsprotokoll. Nur für Administratoren sichtbar.",
@@ -3356,6 +3355,22 @@ const I18N = {
   "label_default_password": "Standard-Passwort",
   "val_default_password_required": "Bitte ein Standard-Passwort angeben.",
   "msg_default_password_saved": "Standard-Passwort gespeichert.",
+  "panel_org_info": "Organisations-Information",
+  "hint_org_info": "Optionaler Hinweistext, der allen Mitgliedern dieser Organisation ganz oben im Dashboard angezeigt wird — z. B. aktuelle Ankündigungen oder Regeln. Leer lassen bzw. über \"Nachricht entfernen\" löschen, um nichts anzuzeigen.",
+  "label_org_info_titel": "Titel",
+  "label_org_info_inhalt": "Inhalt",
+  "tooltip_fett": "Fett",
+  "tooltip_kursiv": "Kursiv",
+  "tooltip_liste_ul": "Aufzählung",
+  "tooltip_liste_ol": "Nummerierte Liste",
+  "tooltip_link": "Link einfügen",
+  "btn_liste": "Liste",
+  "btn_liste_nummeriert": "Nummeriert",
+  "btn_link": "Link",
+  "btn_org_info_entfernen": "Nachricht entfernen",
+  "msg_org_info_saved": "Organisations-Information gespeichert.",
+  "msg_org_info_removed": "Organisations-Information entfernt.",
+  "prompt_link_url": "Ziel-URL des Links (mit http:// oder https://):",
   "panel_org_branding": "Organisation anpassen",
   "label_org_motto": "Motto / Untertitel (optional)",
   "label_org_accent": "Akzentfarbe",
@@ -3613,13 +3628,6 @@ const I18N = {
   "btn_add": "Add",
   "btn_export_csv": "Export as CSV",
   "panel_uebersicht": "Overview",
-  "panel_rollen": "Roles at a glance",
-  "role_admin": "Administrator",
-  "role_editor": "Edit rights",
-  "role_viewer": "Read-only",
-  "role_admin_desc": "Full rights incl. user, material/location management, change log and creating projects",
-  "role_editor_desc": "Can create, edit and delete inventory, needs and collectibles",
-  "role_viewer_desc": "Can view everything but cannot change shared data — your own private stock is unaffected",
   "hint_shortcuts": "Keyboard shortcuts: 1–6 switch tabs, / jumps to search (on Inventory/Private Stock) — inactive while typing in a field.",
   "panel_bestandsentwicklung": "Inventory over time",
   "hint_bestandsentwicklung": "Number of active inventory entries over time, derived from the change log. Visible to administrators only.",
@@ -4055,6 +4063,22 @@ const I18N = {
   "label_default_password": "Default password",
   "val_default_password_required": "Please enter a default password.",
   "msg_default_password_saved": "Default password saved.",
+  "panel_org_info": "Organization info",
+  "hint_org_info": "Optional message shown to all members of this organization at the very top of the dashboard — e.g. current announcements or rules. Leave empty or use \"Remove message\" to show nothing.",
+  "label_org_info_titel": "Title",
+  "label_org_info_inhalt": "Content",
+  "tooltip_fett": "Bold",
+  "tooltip_kursiv": "Italic",
+  "tooltip_liste_ul": "Bulleted list",
+  "tooltip_liste_ol": "Numbered list",
+  "tooltip_link": "Insert link",
+  "btn_liste": "List",
+  "btn_liste_nummeriert": "Numbered",
+  "btn_link": "Link",
+  "btn_org_info_entfernen": "Remove message",
+  "msg_org_info_saved": "Organization info saved.",
+  "msg_org_info_removed": "Organization info removed.",
+  "prompt_link_url": "Link target URL (with http:// or https://):",
   "panel_org_branding": "Customize organization",
   "label_org_motto": "Motto / subtitle (optional)",
   "label_org_accent": "Accent color",
@@ -4312,13 +4336,6 @@ const I18N = {
   "btn_add": "Ajouter",
   "btn_export_csv": "Exporter en CSV",
   "panel_uebersicht": "Aperçu",
-  "panel_rollen": "Rôles en un coup d'œil",
-  "role_admin": "Administrateur",
-  "role_editor": "Droits de modification",
-  "role_viewer": "Lecture seule",
-  "role_admin_desc": "Droits complets incl. gestion des utilisateurs, matériaux/emplacements, journal des modifications et création de projets",
-  "role_editor_desc": "Peut créer, modifier et supprimer le stock, les besoins et les objets de collection",
-  "role_viewer_desc": "Peut tout consulter mais ne peut pas modifier les données partagées — votre stock privé n'est pas concerné",
   "hint_shortcuts": "Raccourcis clavier : 1–6 changent d'onglet, / accède à la recherche (Stock/Stocks privés) — inactif pendant la saisie dans un champ.",
   "panel_bestandsentwicklung": "Évolution du stock",
   "hint_bestandsentwicklung": "Nombre d'entrées de stock actives dans le temps, dérivé du journal des modifications. Visible uniquement par les administrateurs.",
@@ -4754,6 +4771,22 @@ const I18N = {
   "label_default_password": "Mot de passe par défaut",
   "val_default_password_required": "Veuillez indiquer un mot de passe par défaut.",
   "msg_default_password_saved": "Mot de passe par défaut enregistré.",
+  "panel_org_info": "Information de l'organisation",
+  "hint_org_info": "Message optionnel affiché à tous les membres de cette organisation tout en haut du tableau de bord — p. ex. annonces ou règles actuelles. Laissez vide ou utilisez « Supprimer le message » pour ne rien afficher.",
+  "label_org_info_titel": "Titre",
+  "label_org_info_inhalt": "Contenu",
+  "tooltip_fett": "Gras",
+  "tooltip_kursiv": "Italique",
+  "tooltip_liste_ul": "Liste à puces",
+  "tooltip_liste_ol": "Liste numérotée",
+  "tooltip_link": "Insérer un lien",
+  "btn_liste": "Liste",
+  "btn_liste_nummeriert": "Numérotée",
+  "btn_link": "Lien",
+  "btn_org_info_entfernen": "Supprimer le message",
+  "msg_org_info_saved": "Information de l'organisation enregistrée.",
+  "msg_org_info_removed": "Information de l'organisation supprimée.",
+  "prompt_link_url": "URL cible du lien (avec http:// ou https://) :",
   "panel_org_branding": "Personnaliser l'organisation",
   "label_org_motto": "Devise / sous-titre (facultatif)",
   "label_org_accent": "Couleur d'accent",
@@ -6632,6 +6665,130 @@ async function saveOrgBranding(){
 }
 document.getElementById('btnSaveOrgBranding').addEventListener('click', saveOrgBranding);
 
+// Ab 16. August 2026: optionaler Hinweistext, den ein Organisations-
+// Administrator festlegen kann und der daraufhin ALLEN Mitgliedern der
+// Organisation ganz oben im Dashboard angezeigt wird (z.B. aktuelle
+// Ankuendigungen). Wird wie das bereits bestehende Organisation-
+// Branding direkt als Eigenschaft am Organisations-Objekt gespeichert
+// (org.infoTitle / org.infoBody), nicht als eigener Storage-Key --
+// folgt damit demselben, bereits etablierten Muster. Siehe
+// Nutzerwunsch vom 16. August 2026.
+
+// Saeubert vom contenteditable-Editor erzeugtes HTML vor dem
+// Speichern/Anzeigen -- die Organisations-Information wird an ALLE
+// Mitglieder angezeigt (nicht nur an die bearbeitende Person), daher
+// auch bei einem grundsaetzlich vertrauenswuerdigen Personenkreis
+// (Organisations-Administratoren) eine Absicherung gegen unbeabsichtigt
+// eingefuegten gefaehrlichen Inhalt (z.B. per Copy&Paste aus einer
+// fremden Quelle). Erlaubt nur eine kleine, feste Liste harmloser
+// Formatierungs-Elemente ("rudimentaere Textbearbeitung", wie
+// gewuenscht) -- entfernt alles andere, behaelt dabei aber den reinen
+// Textinhalt statt ganze Abschnitte zu verschlucken. Bei Links werden
+// alle Attribute ausser einem echten http(s)-href entfernt (kein
+// javascript:-Pseudo-Protokoll o.ae. moeglich).
+const ORG_INFO_ALLOWED_TAGS = new Set(['B','STRONG','I','EM','U','UL','OL','LI','BR','P','DIV','SPAN','A']);
+function sanitizeOrgInfoHtml(html){
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  function clean(node){
+    [...node.childNodes].forEach(child=>{
+      if(child.nodeType === Node.TEXT_NODE) return;
+      if(child.nodeType !== Node.ELEMENT_NODE){ child.remove(); return; }
+      if(!ORG_INFO_ALLOWED_TAGS.has(child.tagName)){
+        node.replaceChild(document.createTextNode(child.textContent), child);
+        return;
+      }
+      [...child.attributes].forEach(attr=>{
+        if(child.tagName==='A' && attr.name==='href' && /^https?:\/\//i.test(attr.value)) return;
+        child.removeAttribute(attr.name);
+      });
+      if(child.tagName==='A'){ child.setAttribute('target','_blank'); child.setAttribute('rel','noopener noreferrer'); }
+      clean(child);
+    });
+  }
+  clean(container);
+  return container.innerHTML;
+}
+
+// Fuellt den Bearbeiten-Bereich mit dem aktuell gespeicherten Stand --
+// aufgerufen beim Wechsel in die Verwaltung bzw. nach Organisations-Wechsel.
+function loadOrgInfoEditor(){
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  const titleInput = document.getElementById('orgInfoTitleInput');
+  const bodyInput = document.getElementById('orgInfoBodyInput');
+  if(!org || !titleInput || !bodyInput) return;
+  titleInput.value = org.infoTitle || '';
+  bodyInput.innerHTML = org.infoBody || '';
+}
+
+// Zeigt die Organisations-Information (falls vorhanden) an oberster
+// Stelle im Dashboard an -- fuer ALLE Rollen, nicht nur Administratoren.
+// Bleibt unsichtbar, solange weder Titel noch Inhalt gesetzt sind (die
+// Funktion ist fuer den Organisations-Administrator bewusst optional).
+function renderOrgInfoDisplay(){
+  const panel = document.getElementById('orgInfoDisplayPanel');
+  if(!panel) return;
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  const hasContent = org && (
+    (org.infoTitle && org.infoTitle.trim()) ||
+    (org.infoBody && org.infoBody.replace(/<[^>]*>/g,'').trim())
+  );
+  if(!hasContent){ panel.style.display = 'none'; return; }
+  document.getElementById('orgInfoDisplayTitle').textContent = org.infoTitle || '';
+  document.getElementById('orgInfoDisplayBody').innerHTML = org.infoBody || '';
+  panel.style.display = '';
+}
+
+async function saveOrgInfo(){
+  const statusEl = document.getElementById('orgInfoStatus');
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  if(!org){ setStatusMsg(statusEl, t('msg_save_failed'), true); return; }
+  org.infoTitle = document.getElementById('orgInfoTitleInput').value.trim();
+  org.infoBody = sanitizeOrgInfoHtml(document.getElementById('orgInfoBodyInput').innerHTML);
+  setStatusMsg(statusEl, t('msg_saving'), false);
+  const ok = await saveOrganizations();
+  if(ok) await logAction('Organisations-Information geändert', org.infoTitle || org.name);
+  renderOrgInfoDisplay();
+  setStatusMsg(statusEl, ok ? t('msg_org_info_saved') : t('msg_save_failed'), !ok);
+  setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+}
+document.getElementById('btnSaveOrgInfo').addEventListener('click', saveOrgInfo);
+
+document.getElementById('btnClearOrgInfo').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('orgInfoStatus');
+  const org = ORGANIZATIONS.find(o=>o.id===currentOrgId);
+  if(!org) return;
+  delete org.infoTitle;
+  delete org.infoBody;
+  document.getElementById('orgInfoTitleInput').value = '';
+  document.getElementById('orgInfoBodyInput').innerHTML = '';
+  setStatusMsg(statusEl, t('msg_saving'), false);
+  const ok = await saveOrganizations();
+  if(ok) await logAction('Organisations-Information entfernt', org.name);
+  renderOrgInfoDisplay();
+  setStatusMsg(statusEl, ok ? t('msg_org_info_removed') : t('msg_save_failed'), !ok);
+  setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+});
+
+// Schlichte Werkzeugleiste ueber das seit langem browser-uebergreifend
+// unterstuetzte document.execCommand() -- fuer die hier gewuenschte
+// "rudimentaere" Textbearbeitung (Fett/Kursiv/Listen/Link) ausreichend,
+// ohne den Aufwand einer vollwertigen Editor-Bibliothek.
+function execOrgInfoCommand(cmd, value){
+  document.getElementById('orgInfoBodyInput').focus();
+  document.execCommand(cmd, false, value);
+}
+document.getElementById('orgInfoBtnBold').addEventListener('click', ()=>execOrgInfoCommand('bold'));
+document.getElementById('orgInfoBtnItalic').addEventListener('click', ()=>execOrgInfoCommand('italic'));
+document.getElementById('orgInfoBtnUL').addEventListener('click', ()=>execOrgInfoCommand('insertUnorderedList'));
+document.getElementById('orgInfoBtnOL').addEventListener('click', ()=>execOrgInfoCommand('insertOrderedList'));
+document.getElementById('orgInfoBtnLink').addEventListener('click', ()=>{
+  const url = prompt(t('prompt_link_url'));
+  if(!url) return;
+  execOrgInfoCommand('createLink', url);
+});
+
+
 document.getElementById('btnSaveDefaultPassword').addEventListener('click', async ()=>{
   const statusEl = document.getElementById('defaultPasswordStatus');
   const input = document.getElementById('defaultPasswordInput');
@@ -7572,6 +7729,9 @@ function completeLogin(user){
   document.getElementById('badgeRole').className = 'role ' + (isAdminOrAbove ? 'admin' : '');
   document.getElementById('adminPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   document.getElementById('orgBrandingPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+  document.getElementById('orgInfoPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+  if(isOrgAdminOrAbove) loadOrgInfoEditor();
+  renderOrgInfoDisplay();
   document.getElementById('orgExportPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   // Die Wiederherstellung (im Unterschied zum reinen Export) ist deutlich
   // risikoreicher -- ersetzt bestehende Daten vollstaendig und
@@ -7668,6 +7828,8 @@ async function switchOrganization(newOrgId){
   collectiblesCatalogLoaded = false;
   applyOrgBranding();
   renderOrgBrandingForm();
+  if(roleAtLeast(currentUser.role, 'org_admin')) loadOrgInfoEditor();
+  renderOrgInfoDisplay();
   renderExportReminder();
   renderExportOrgSelect();
   renderOrgResetSection();
