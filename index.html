@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.098 -->
+<!-- Version: 0.099 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2630,10 +2630,12 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="projectBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
       <button class="btn-icon danger" id="btnBulkDeleteProjects" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
     </div>
-    <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;margin-top:14px;font-size:13px;color:var(--ink-soft);">
-      <input type="checkbox" id="showCompletedProjects">
-      <span data-i18n="label_abgeschlossene_anzeigen">Abgeschlossene Projekte anzeigen</span>
-    </label>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;cursor:pointer;font-size:13px;color:var(--ink-soft);max-width:100%;">
+        <input type="checkbox" id="showCompletedProjects" style="flex-shrink:0;">
+        <span data-i18n="label_abgeschlossene_anzeigen">Abgeschlossene Projekte anzeigen</span>
+      </label>
+    </div>
     <div id="projectTableContainer" style="margin-top:14px;"></div>
   </div>
   </div>
@@ -14276,20 +14278,39 @@ document.addEventListener('change', (e)=>{
 // innerhalb der aufgeklappten Aufschluesselung zum Projekte-Tab springen.
 // Dynamische Positionierung fuer alle Hover-Info-Fenster (Bestand-
 // Aufschluesselungen, Bedarf-Deckung, Verkaufspreise usw.): Standard-
-// maessig oeffnen sie nach UNTEN (siehe .stock-hover-tooltip). Bei
-// Tabellenzeilen, die bereits weiter unten auf der Seite stehen, reichte
-// der verbleibende Platz nach unten oft nicht aus -- der obere Teil des
-// Fensters war zwar sichtbar, der untere ragte ueber den Browser-
-// Viewport hinaus, was ein zusaetzliches Herunterscrollen der ganzen
-// Seite noetig machte, nur um das komplette Fenster zu sehen. Per
-// 'mouseover' (bubbelt, im Gegensatz zu 'mouseenter') global abgefangen,
-// damit kuenftig hinzugefuegte Hover-Fenster automatisch mit abgedeckt
-// sind, ohne an jeder einzelnen Stelle im Code einen eigenen Listener
-// ergaenzen zu muessen. requestAnimationFrame sorgt dafuer, dass zuerst
-// die per CSS :hover ausgeloeste Sichtbarkeit tatsaechlich greift, bevor
-// die tatsaechliche Fenstergroesse gemessen wird -- geschieht innerhalb
-// desselben Bildaufbaus, dadurch fuer das Auge kein wahrnehmbarer Sprung.
-// Siehe Nutzerwunsch vom 12. August 2026.
+// maessig oeffnen sie nach UNTEN (siehe .stock-hover-tooltip).
+//
+// KORREKTUR vom 16. August 2026 (Nutzermeldung, Projekte-Tab: Info-Fenster
+// beim Hover ueber ein benoetigtes Material wurde nicht vollstaendig
+// angezeigt): Die urspruengliche Logik pruefte AUSSCHLIESSLICH, ob nach
+// UNTEN genug Platz vorhanden ist -- reichte er nicht, wurde BLIND nach
+// OBEN umgeklappt, ohne zu pruefen, ob DORT ueberhaupt mehr Platz ist.
+// Bei einer Tabellenzeile in der Bildschirmmitte mit einem hohen
+// Info-Fenster (z.B. viele Beitragende zu einem Material) konnte das
+// Fenster dadurch in BEIDE Richtungen ueber den sichtbaren Bereich
+// hinausragen.
+//
+// Bewusst NICHT durch automatisches Scrollen der Seite geloest: Bewegt
+// sich die Seite unter dem unbewegten Mauszeiger, kann dieser dadurch
+// ploetzlich ueber einem anderen Element landen -- der Hover-Zustand
+// (und damit das gerade erst sichtbar gemachte Fenster) wuerde in genau
+// dem Moment wieder enden, in dem er sichtbar bleiben soll.
+//
+// Stattdessen: Der tatsaechlich verfuegbare Platz wird jetzt in BEIDE
+// Richtungen gemessen, das Fenster oeffnet dort, wo mehr Platz ist.
+// Reicht selbst die guenstigere Richtung nicht fuer den kompletten
+// Inhalt, wird das Fenster selbst begrenzt und intern scrollbar
+// (Mausrad direkt darueber) -- der Mauszeiger bleibt dabei durchgehend
+// ueber dem ausloesenden Element, der Hover-Zustand bleibt stabil.
+// Per 'mouseover' (bubbelt, im Gegensatz zu 'mouseenter') global
+// abgefangen, damit kuenftig hinzugefuegte Hover-Fenster automatisch
+// mit abgedeckt sind, ohne an jeder einzelnen Stelle im Code einen
+// eigenen Listener ergaenzen zu muessen. requestAnimationFrame sorgt
+// dafuer, dass zuerst die per CSS :hover ausgeloeste Sichtbarkeit
+// tatsaechlich greift, bevor die tatsaechliche Fenstergroesse gemessen
+// wird -- geschieht innerhalb desselben Bildaufbaus, dadurch fuer das
+// Auge kein wahrnehmbarer Sprung. Siehe Nutzerwunsch vom 12. bzw.
+// 16. August 2026.
 document.addEventListener('mouseover', (e)=>{
   const wrap = e.target.closest('.stock-hover-wrap');
   if(!wrap) return;
@@ -14297,9 +14318,30 @@ document.addEventListener('mouseover', (e)=>{
   if(!tooltip) return;
   requestAnimationFrame(()=>{
     const wrapRect = wrap.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - wrapRect.bottom - 8;
+    const spaceAbove = wrapRect.top - 8;
     const tooltipHeight = tooltip.offsetHeight;
-    const fitsBelow = wrapRect.bottom + 8 + tooltipHeight <= window.innerHeight;
-    tooltip.classList.toggle('flip-above', !fitsBelow);
+    const fitsBelow = tooltipHeight <= spaceBelow;
+    // Nur nach oben umklappen, wenn es unten NICHT passt UND oben
+    // tatsaechlich mehr Platz zur Verfuegung steht als unten -- sonst
+    // bliebe die urspruengliche, blinde "immer nach oben"-Annahme
+    // bestehen, die genau zum gemeldeten Problem gefuehrt hat.
+    const flipAbove = !fitsBelow && spaceAbove > spaceBelow;
+    tooltip.classList.toggle('flip-above', flipAbove);
+
+    const available = (flipAbove ? spaceAbove : spaceBelow) - 4;
+    // Passt der Inhalt selbst in die guenstigere Richtung nicht
+    // hinein, wird das Fenster auf den verfuegbaren Platz begrenzt und
+    // intern scrollbar gemacht -- eine Mindesthoehe (80px) verhindert,
+    // dass es bei extrem wenig Platz auf einen praktisch unbrauchbaren
+    // Streifen zusammenschrumpft.
+    if(tooltipHeight > available && available > 80){
+      tooltip.style.maxHeight = available + 'px';
+      tooltip.style.overflowY = 'auto';
+    } else {
+      tooltip.style.maxHeight = '';
+      tooltip.style.overflowY = '';
+    }
   });
 });
 
