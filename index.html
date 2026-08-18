@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.100 -->
+<!-- Version: 0.104 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1626,6 +1626,9 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         </div>
       </div>
       <div class="status-msg" id="ocrStatus"></div>
+      <div id="ocrProgressBarWrap" style="display:none;margin-top:8px;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
+        <div id="ocrProgressBarFill" style="height:100%;width:0%;background:var(--cyan);box-shadow:0 0 8px var(--cyan-glow);transition:width 0.2s ease;"></div>
+      </div>
     </div>
 
     <div id="ocrStep3" style="display:none;">
@@ -2170,49 +2173,8 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="bestand">
-  <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
-      <h2 style="margin:0;" data-i18n="panel_zusammenfassung">Zusammenfassung nach Material</h2>
-      <div id="commodityPriceStatus" style="font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;"></div>
-    </div>
-    <div id="summaryContainer"></div>
-  </div>
 
-  <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-      <h2 style="margin:0;" data-i18n="panel_bestand_table">Bestand</h2>
-      <button class="btn-ghost btn-compact" id="btnExportBestand" data-i18n="btn_export_csv">Als CSV exportieren</button>
-    </div>
-    <div class="filters">
-      <input type="text" id="search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
-      <select id="filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
-      <input type="number" id="filterQualitaet" placeholder="Qualität ≥" step="0.01" style="max-width:140px;" data-i18n-placeholder="placeholder_qualitaet_ge">
-      <button class="btn-ghost btn-compact" id="btnToggleGroupByLocation" data-i18n="btn_group_by_location">Nach Lagerort gruppieren</button>
-      <select id="filterReservierung">
-        <option value="" data-i18n="filter_reservierung_alle">Alle Einträge</option>
-        <option value="frei" data-i18n="filter_reservierung_frei">Nur frei verfügbar</option>
-        <option value="reserviert" data-i18n="filter_reservierung_reserviert">Nur reserviert (Projekte)</option>
-      </select>
-    </div>
-    <div id="bulkActionsBar" style="display:none;margin-bottom:10px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
-      <span id="bulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
-      <button class="btn-icon danger" id="btnBulkDeleteEntries" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
-    </div>
-    <div id="tableContainer"></div>
-  </div>
-
-  <div class="panel">
-    <h2 data-i18n="panel_rueckwaertssuche">Wo wird das gebraucht?</h2>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rueckwaertssuche">Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.</span></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
-      <div class="field" style="flex:1;min-width:220px;margin:0;">
-        <label for="usageSearchInput" data-i18n="label_material_oder_objekt">Material oder Sammelobjekt</label>
-        <input type="text" id="usageSearchInput" list="usageSearchOptions" placeholder="z. B. Titanium" data-i18n-placeholder="placeholder_usage_search" autocomplete="off">
-        <datalist id="usageSearchOptions"></datalist>
-      </div>
-    </div>
-    <div id="usageSearchResult" style="margin-top:14px;"></div>
-  </div>
+  <!-- ===== NEUANLAGE ===== -->
 
   <div class="panel" id="entryFormPanel">
     <h2 data-i18n="panel_neuer_eintrag">Neuer Eintrag</h2>
@@ -2296,6 +2258,54 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div class="status-msg" id="bulkAddStatus"></div>
       </div>
     </div>
+  </div>
+
+  <!-- ===== ÜBERSICHTEN ===== -->
+
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+      <h2 style="margin:0;" data-i18n="panel_zusammenfassung">Zusammenfassung nach Material</h2>
+      <div id="commodityPriceStatus" style="font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;"></div>
+    </div>
+    <div id="summaryContainer"></div>
+  </div>
+
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+      <h2 style="margin:0;" data-i18n="panel_bestand_table">Bestand</h2>
+      <button class="btn-ghost btn-compact" id="btnExportBestand" data-i18n="btn_export_csv">Als CSV exportieren</button>
+    </div>
+    <div class="filters">
+      <input type="text" id="search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
+      <select id="filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
+      <input type="number" id="filterQualitaet" placeholder="Qualität ≥" step="0.01" style="max-width:140px;" data-i18n-placeholder="placeholder_qualitaet_ge">
+      <button class="btn-ghost btn-compact" id="btnToggleGroupByLocation" data-i18n="btn_group_by_location">Nach Lagerort gruppieren</button>
+      <select id="filterReservierung">
+        <option value="" data-i18n="filter_reservierung_alle">Alle Einträge</option>
+        <option value="frei" data-i18n="filter_reservierung_frei">Nur frei verfügbar</option>
+        <option value="reserviert" data-i18n="filter_reservierung_reserviert">Nur reserviert (Projekte)</option>
+      </select>
+    </div>
+    <div id="bulkActionsBar" style="display:none;margin-bottom:10px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="bulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-icon danger" id="btnBulkDeleteEntries" title="Löschen" data-i18n-title="btn_delete" style="margin-left:auto;">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+    </div>
+    <div id="tableContainer"></div>
+  </div>
+
+  <!-- ===== REST ===== -->
+
+  <div class="panel">
+    <h2 data-i18n="panel_rueckwaertssuche">Wo wird das gebraucht?</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rueckwaertssuche">Suche nach einem Material oder Sammelobjekt — auch wenn dafür noch kein Bestandseintrag existiert — und finde alle aktiven Projekte sowie Rezepte/Vorlagen, in denen es benötigt wird.</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="flex:1;min-width:220px;margin:0;">
+        <label for="usageSearchInput" data-i18n="label_material_oder_objekt">Material oder Sammelobjekt</label>
+        <input type="text" id="usageSearchInput" list="usageSearchOptions" placeholder="z. B. Titanium" data-i18n-placeholder="placeholder_usage_search" autocomplete="off">
+        <datalist id="usageSearchOptions"></datalist>
+      </div>
+    </div>
+    <div id="usageSearchResult" style="margin-top:14px;"></div>
   </div>
 
   <div class="panel">
@@ -2403,6 +2413,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <label for="priv-proj-template-search" data-i18n="label_vorlage">Vorlage (optional)</label>
         <input type="text" id="priv-proj-template-search" placeholder="Vorlage suchen (optional) …" data-i18n-placeholder="placeholder_vorlage_suchen" autocomplete="off">
         <div id="priv-proj-template-dropdown" class="template-dropdown"></div>
+        <div style="margin-top:4px;font-size:11.5px;color:var(--ink-soft);" data-i18n="hint_vorlage_projekt_anlegen">Vorlage wählen, um Ziel und benötigte Ressourcen automatisch vorzubefüllen — z. B. "Titan" für eine Titan-Rüstung. Ohne Auswahl einfach frei ausfüllen.</div>
       </div>
       <div class="form-grid" style="grid-template-columns:1.4fr 0.8fr;">
         <div class="field">
@@ -2599,6 +2610,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <label for="proj-template-search" data-i18n="label_vorlage">Vorlage (optional)</label>
         <input type="text" id="proj-template-search" placeholder="Vorlage suchen (optional) …" data-i18n-placeholder="placeholder_vorlage_suchen" autocomplete="off">
         <div id="proj-template-dropdown" class="template-dropdown"></div>
+        <div style="margin-top:4px;font-size:11.5px;color:var(--ink-soft);" data-i18n="hint_vorlage_projekt_anlegen">Vorlage wählen, um Ziel und benötigte Ressourcen automatisch vorzubefüllen — z. B. "Titan" für eine Titan-Rüstung. Ohne Auswahl einfach frei ausfüllen.</div>
       </div>
       <div class="form-grid" style="grid-template-columns:1.4fr 0.8fr 0.8fr;">
         <div class="field">
@@ -2938,6 +2950,7 @@ const I18N = {
   "tile_bestandseintraege": "Bestandseinträge",
   "tile_aktive_projekte": "Aktive Projekte",
   "tile_ungedeckte_bedarfe": "Ungedeckte Bedarfe (hoch/kritisch)",
+  "label_offene_projektbedarfe_summary": "📋 {count} Projekt(e) mit offenen Bedarfen — Details ansehen ↓",
   "label_critical_needs_title": "⚠ Kritischer Bedarf",
   "label_critical_needs_for": "für",
   "tile_sammelobjekte_gesamt": "Sammelobjekte gesamt",
@@ -3059,11 +3072,11 @@ const I18N = {
   "empty_results_title": "Keine Treffer",
   "empty_results_sub": "Andere Suche oder Filter versuchen.",
   "empty_needs_title": "Noch keine Bedarfe hinterlegt",
-  "empty_needs_sub": "Trag oben deinen Bedarf ein.",
+  "empty_needs_sub": "Ein Bedarf ist ein Wunschzettel-Eintrag, unabhängig vom tatsächlichen Bestand — z. B. \"Ich brauche noch 50 SCU Titanium für mein nächstes Schiff\". Trag oben deinen ersten Bedarf ein.",
   "empty_projects_title": "Noch keine Projekte angelegt",
-  "empty_projects_sub": "Trag oben ein Ziel mit den benötigten Ressourcen ein.",
+  "empty_projects_sub": "Trag oben ein Ziel mit den benötigten Ressourcen ein — z. B. \"Titan-Rüstung\" mit den dafür nötigen Materialien. Eine Vorlage (siehe Suchfeld) kann das automatisch vorausfüllen.",
   "empty_collectibles_title": "Noch keine Sammelobjekte erfasst",
-  "empty_collectibles_sub": "Trag oben den ersten Fund ein.",
+  "empty_collectibles_sub": "Sammelobjekte sind besondere Fundstücke wie Artefakte, seltene Waffenteile oder Rüstungsstücke — losgelöst vom gewöhnlichen Materialbestand. Trag oben den ersten Fund ein.",
   "empty_private_collectibles_title": "Noch keine privaten Sammelobjekte erfasst",
   "empty_trash_title": "Papierkorb ist leer",
   "empty_trash_sub": "Gelöschte Einträge der letzten 24 Stunden erscheinen hier.",
@@ -3276,6 +3289,7 @@ const I18N = {
   "val_mindestens_ein_material": "Bitte mindestens ein Material angeben.",
   "panel_vorlagen_verwalten": "Projekt-Vorlagen verwalten",
   "hint_vorlagen_verwalten_panel": "Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.",
+  "empty_vorlagen_sub": "Vorlagen speichern typische Materiallisten für wiederkehrende Bauvorhaben (z. B. eine bestimmte Waffe) und lassen sich beim Anlegen eines Projekts automatisch übernehmen. Über \"Projekt-Vorlagen importieren\" lässt sich eine größere Sammlung auf einmal einspielen, oder über \"+ Neue Vorlage\" einzeln von Hand.",
   "empty_vorlagen_title": "Noch keine Projekt-Vorlagen vorhanden",
   "hint_doppelklick_bearbeiten": "Doppelklick zum Bearbeiten",
   "modal_vorlage_uebernehmen_titel": "Änderungen in bestehende Projekte übernehmen?",
@@ -3293,6 +3307,9 @@ const I18N = {
   "placeholder_vorlage_suchen": "Vorlage suchen (optional) …",
   "empty_template_search": "Keine passende Vorlage gefunden.",
   "msg_template_applied": "Vorlage übernommen — bitte Anzahl und Mengen prüfen.",
+  "hint_vorlage_projekt_anlegen": "Vorlage wählen, um Ziel und benötigte Ressourcen automatisch vorzubefüllen — z. B. \"Titan\" für eine Titan-Rüstung. Ohne Auswahl einfach frei ausfüllen.",
+  "label_aus_vorlage": "Aus Vorlage",
+  "tooltip_aus_vorlage": "Dieses Projekt wurde ursprünglich aus dieser Vorlage angelegt",
   "label_vorlage": "Vorlage (optional)",
   "modal_passwort_aendern": "Passwort ändern",
   "label_neues_passwort": "Neues Passwort",
@@ -3646,6 +3663,7 @@ const I18N = {
   "tile_bestandseintraege": "Inventory entries",
   "tile_aktive_projekte": "Active projects",
   "tile_ungedeckte_bedarfe": "Unmet needs (high/critical)",
+  "label_offene_projektbedarfe_summary": "📋 {count} project(s) with open needs — view details ↓",
   "label_critical_needs_title": "⚠ Critical need",
   "label_critical_needs_for": "for",
   "tile_sammelobjekte_gesamt": "Collectibles total",
@@ -3767,11 +3785,11 @@ const I18N = {
   "empty_results_title": "No results",
   "empty_results_sub": "Try a different search or filter.",
   "empty_needs_title": "No needs recorded yet",
-  "empty_needs_sub": "Add your need above.",
+  "empty_needs_sub": "A need is a wish-list entry, independent of actual stock on hand — e.g. \"I still need 50 SCU of Titanium for my next ship\". Add your first need above.",
   "empty_projects_title": "No projects created yet",
-  "empty_projects_sub": "Add a goal with required resources above.",
+  "empty_projects_sub": "Add a goal with required resources above — e.g. \"Titanium Armor\" with the materials it needs. A template (see the search field) can auto-fill this for you.",
   "empty_collectibles_title": "No collectibles recorded yet",
-  "empty_collectibles_sub": "Add your first find above.",
+  "empty_collectibles_sub": "Collectibles are special finds like artifacts, rare weapon parts, or armor pieces — separate from regular material stock. Add your first find above.",
   "empty_private_collectibles_title": "No private collectibles recorded yet",
   "empty_trash_title": "Recycle bin is empty",
   "empty_trash_sub": "Deleted entries from the last 24 hours appear here.",
@@ -3984,6 +4002,7 @@ const I18N = {
   "val_mindestens_ein_material": "Please enter at least one material.",
   "panel_vorlagen_verwalten": "Manage project templates",
   "hint_vorlagen_verwalten_panel": "Complete, category-grouped overview of all project templates — for browsing, not just searching. Double-click a template to edit it. If materials are added, removed, or changed in quantity, you'll then be offered to apply the same change to existing projects created from this template — including automatic updates to their progress display.",
+  "empty_vorlagen_sub": "Templates store typical material lists for recurring builds (e.g. a specific weapon) and can be applied automatically when creating a project. Use \"Import project templates\" to bring in a larger collection at once, or \"+ New template\" to add one by hand.",
   "empty_vorlagen_title": "No project templates yet",
   "hint_doppelklick_bearbeiten": "Double-click to edit",
   "modal_vorlage_uebernehmen_titel": "Apply changes to existing projects?",
@@ -4001,6 +4020,9 @@ const I18N = {
   "placeholder_vorlage_suchen": "Search template (optional) …",
   "empty_template_search": "No matching template found.",
   "msg_template_applied": "Template applied — please check quantity and amounts.",
+  "hint_vorlage_projekt_anlegen": "Pick a template to auto-fill the target and required resources — e.g. \"Titanium\" for a titanium armor set. Without a selection, just fill in everything manually.",
+  "label_aus_vorlage": "From template",
+  "tooltip_aus_vorlage": "This project was originally created from this template",
   "label_vorlage": "Template (optional)",
   "modal_passwort_aendern": "Change password",
   "label_neues_passwort": "New password",
@@ -4354,6 +4376,7 @@ const I18N = {
   "tile_bestandseintraege": "Entrées de stock",
   "tile_aktive_projekte": "Projets actifs",
   "tile_ungedeckte_bedarfe": "Besoins non couverts (élevé/critique)",
+  "label_offene_projektbedarfe_summary": "📋 {count} projet(s) avec besoins non couverts — voir les détails ↓",
   "label_critical_needs_title": "⚠ Besoin critique",
   "label_critical_needs_for": "pour",
   "tile_sammelobjekte_gesamt": "Total des objets de collection",
@@ -4475,11 +4498,11 @@ const I18N = {
   "empty_results_title": "Aucun résultat",
   "empty_results_sub": "Essayez une autre recherche ou un autre filtre.",
   "empty_needs_title": "Aucun besoin enregistré pour l'instant",
-  "empty_needs_sub": "Ajoutez votre besoin ci-dessus.",
+  "empty_needs_sub": "Un besoin est une entrée de liste de souhaits, indépendante du stock réel (p. ex. \"il me faut encore 50 SCU de Titanium\"). Ajoutez votre premier besoin ci-dessus.",
   "empty_projects_title": "Aucun projet créé pour l'instant",
-  "empty_projects_sub": "Ajoutez un objectif avec les ressources nécessaires ci-dessus.",
+  "empty_projects_sub": "Ajoutez un objectif avec les ressources nécessaires ci-dessus, p. ex. \"Armure en titane\" avec les matériaux requis. Un modèle (voir le champ de recherche) peut le préremplir automatiquement.",
   "empty_collectibles_title": "Aucun objet de collection enregistré pour l'instant",
-  "empty_collectibles_sub": "Ajoutez votre première découverte ci-dessus.",
+  "empty_collectibles_sub": "Les objets de collection sont des trouvailles spéciales comme des artefacts, des pièces d'armes rares ou des éléments d'armure, distincts du stock de matériaux habituel. Ajoutez votre première trouvaille ci-dessus.",
   "empty_private_collectibles_title": "Aucun objet de collection privé enregistré pour l'instant",
   "empty_trash_title": "La corbeille est vide",
   "empty_trash_sub": "Les entrées supprimées au cours des dernières 24 heures apparaissent ici.",
@@ -4692,6 +4715,7 @@ const I18N = {
   "val_mindestens_ein_material": "Veuillez indiquer au moins un matériau.",
   "panel_vorlagen_verwalten": "Gérer les modèles de projet",
   "hint_vorlagen_verwalten_panel": "Vue d'ensemble complète, regroupée par catégorie, de tous les modèles de projet — pour parcourir, pas seulement pour rechercher. Un double-clic sur un modèle l'ouvre pour modification. Si des matériaux sont ajoutés, supprimés ou modifiés en quantité, il sera ensuite proposé d'appliquer le même changement aux projets existants créés à partir de ce modèle — y compris la mise à jour automatique de leur barre de progression.",
+  "empty_vorlagen_sub": "Les modèles enregistrent les listes de matériaux typiques pour des constructions récurrentes (p. ex. une arme donnée) et peuvent être appliqués automatiquement lors de la création d'un projet. Utilisez \"Importer des modèles de projet\" pour en importer plusieurs à la fois, ou \"+ Nouveau modèle\" pour en ajouter un manuellement.",
   "empty_vorlagen_title": "Aucun modèle de projet pour l'instant",
   "hint_doppelklick_bearbeiten": "Double-cliquer pour modifier",
   "modal_vorlage_uebernehmen_titel": "Appliquer les changements aux projets existants ?",
@@ -4709,6 +4733,9 @@ const I18N = {
   "placeholder_vorlage_suchen": "Rechercher un modèle (facultatif) …",
   "empty_template_search": "Aucun modèle correspondant trouvé.",
   "msg_template_applied": "Modèle appliqué — veuillez vérifier la quantité et les montants.",
+  "hint_vorlage_projekt_anlegen": "Choisissez un modèle pour préremplir automatiquement l'objectif et les ressources nécessaires — p. ex. « Titane » pour une armure en titane. Sans sélection, remplissez simplement tout manuellement.",
+  "label_aus_vorlage": "À partir du modèle",
+  "tooltip_aus_vorlage": "Ce projet a été créé à l'origine à partir de ce modèle",
   "label_vorlage": "Modèle (facultatif)",
   "modal_passwort_aendern": "Modifier le mot de passe",
   "label_neues_passwort": "Nouveau mot de passe",
@@ -10683,6 +10710,20 @@ function addEditProjectResourceRow(idPrefix, container){
 // ============================================================
 function templateUid(){ return 't' + Date.now() + Math.random().toString(36).slice(2,7); }
 
+// Sucht anhand einer templateId (siehe Projekt-Objekt) den zugehoerigen
+// Vorlagen-Namen -- unabhaengig davon, ob die Vorlage aus der Rezepte-
+// oder der Wikelo-Liste stammt, da beide dieselbe ID-Vergabe nutzen.
+// Liefert null, wenn keine ID hinterlegt ist oder die urspruengliche
+// Vorlage zwischenzeitlich geloescht wurde -- fuer die rein
+// unauffaellige Anzeige der Projekt-Herkunft (siehe renderProjects()/
+// renderPrivateProjects()) genuegt ein stilles Ausblenden in diesem
+// Fall, keine Fehlermeldung. Siehe Nutzerwunsch vom 16. August 2026.
+function findTemplateNameById(templateId){
+  if(!templateId) return null;
+  const tpl = projectTemplates.find(t=>t.id===templateId) || wikeloTemplates.find(t=>t.id===templateId);
+  return tpl ? tpl.name : null;
+}
+
 const PROJECT_TEMPLATES_KEY = 'project-templates';
 let projectTemplates = [];
 let projectTemplatesImportedAt = null;
@@ -10839,7 +10880,7 @@ function renderTemplateManagePanel(kind){
   const array = cfg.getArray();
 
   if(array.length === 0){
-    container.innerHTML = `<div class="empty"><div class="big">${t('empty_vorlagen_title')}</div></div>`;
+    container.innerHTML = `<div class="empty"><div class="big">${t('empty_vorlagen_title')}</div>${t('empty_vorlagen_sub')}</div>`;
     return;
   }
 
@@ -12544,7 +12585,7 @@ function renderProjects(){
       const showCompleteHint = !isCompleted && overallProgress === 100;
       html += `<tr${isCompleted ? ' style="opacity:0.6;"' : ''}>
         <td>${canManage ? `<input type="checkbox" class="project-select-cb" data-id="${p.id}" ${selectedProjectIds.has(p.id)?'checked':''}>` : ''}</td>
-        <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}${isCompleted ? ` <span class="badge" style="background:rgba(44,255,160,0.15);color:#2CFFA0;border:1px solid #2CFFA0;">✓ ${t('label_abgeschlossen')}</span>` : ''}</td>
+        <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}${isCompleted ? ` <span class="badge" style="background:rgba(44,255,160,0.15);color:#2CFFA0;border:1px solid #2CFFA0;">✓ ${t('label_abgeschlossen')}</span>` : ''}${(()=>{ const tplName = findTemplateNameById(p.templateId); return tplName ? `<div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px;" title="${t('tooltip_aus_vorlage')}">${t('label_aus_vorlage')}: ${escapeHtml(tplName)}</div>` : ''; })()}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
         <td data-label="${t('label_prioritaet')}"><span class="badge ${PRIORITY_CLASS[p.prioritaet||'Mittel']}">${escapeHtml(prioLabel(p.prioritaet||'Mittel'))}</span></td>
         <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}${p.notiz ? `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--panel-border);font-size:12px;color:var(--ink-soft);font-style:italic;">📝 ${escapeHtml(p.notiz)}</div>` : ''}${isCompleted ? `<div style="margin-top:8px;font-size:11px;color:var(--ink-soft);">${t('label_abgeschlossen_am').replace('{datum}', new Date(p.completedAt).toLocaleDateString('de-DE')).replace('{person}', escapeHtml(p.completedBy||'–'))}</div>` : ''}${showCompleteHint ? `<div style="margin-top:8px;padding:6px 10px;background:rgba(44,255,160,0.08);border-left:2px solid #2CFFA0;font-size:12px;">🎉 ${t('hint_ziel_erreicht')} ${canManage ? `<button class="btn-ghost" data-action="complete-project" data-id="${p.id}" style="font-size:10.5px;padding:3px 10px;margin-left:6px;">${t('btn_projekt_abschliessen')}</button>` : ''}</div>` : ''}</td>
@@ -13102,7 +13143,7 @@ function renderPrivateProjects(){
       const showCompleteHint = !isCompleted && overallProgress === 100;
       html += `<tr${isCompleted ? ' style="opacity:0.6;"' : ''}>
         <td><input type="checkbox" class="priv-project-select-cb" data-id="${p.id}" ${selectedPrivProjectIds.has(p.id)?'checked':''}></td>
-        <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}${isCompleted ? ` <span class="badge" style="background:rgba(44,255,160,0.15);color:#2CFFA0;border:1px solid #2CFFA0;">✓ ${t('label_abgeschlossen')}</span>` : ''}</td>
+        <td data-label="${t('col_ziel')}">${escapeHtml(p.ziel)}${isCompleted ? ` <span class="badge" style="background:rgba(44,255,160,0.15);color:#2CFFA0;border:1px solid #2CFFA0;">✓ ${t('label_abgeschlossen')}</span>` : ''}${(()=>{ const tplName = findTemplateNameById(p.templateId); return tplName ? `<div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px;" title="${t('tooltip_aus_vorlage')}">${t('label_aus_vorlage')}: ${escapeHtml(tplName)}</div>` : ''; })()}</td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${p.anzahl}</td>
         <td data-label="${t('col_ressourcen') /* Wiederverwendung des vorhandenen Schluessels */}" >${resourceList}${p.notiz ? `<div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--panel-border);font-size:12px;color:var(--ink-soft);font-style:italic;">📝 ${escapeHtml(p.notiz)}</div>` : ''}${isCompleted ? `<div style="margin-top:8px;font-size:11px;color:var(--ink-soft);">${t('label_abgeschlossen_am').replace('{datum}', new Date(p.completedAt).toLocaleDateString('de-DE')).replace('{person}', escapeHtml(p.completedBy||'–'))}</div>` : ''}${showCompleteHint ? `<div style="margin-top:8px;padding:6px 10px;background:rgba(44,255,160,0.08);border-left:2px solid #2CFFA0;font-size:12px;">🎉 ${t('hint_ziel_erreicht')} <button class="btn-ghost" data-action="complete-priv-project" data-id="${p.id}" style="font-size:10.5px;padding:3px 10px;margin-left:6px;">${t('btn_projekt_abschliessen')}</button></div>` : ''}</td>
         <td class="actions-cell">
@@ -13979,6 +14020,26 @@ async function renderDashboard(){
     }
   }
 
+  // Ab 16. August 2026: Projekt-Bedarfe werden jetzt VORAB berechnet
+  // (statt erst weiter unten beim Detail-Panel), damit die zusammen-
+  // fassende Warnleiste direkt darauf zugreifen kann, ohne dieselbe
+  // Berechnung doppelt durchzufuehren.
+  const projectsWithGaps = projects.map(p=>{
+    const resources = p.resources.map(normalizeResource).filter(r=>r.material && r.menge!=null && r.menge>0);
+    const gaps = resources.map(r=>{
+      const effMenge = effectiveResourceMenge(p, r);
+      const avail = stockAmount(r.material, p.ziel);
+      const fehlend = Math.round((effMenge - avail) * 100) / 100;
+      return { material: r.material, fehlend, menge: effMenge, avail };
+    }).filter(g=>g.fehlend > 0);
+    return { ziel: p.ziel, anzahl: p.anzahl, prioritaet: p.prioritaet||'Mittel', gaps };
+  }).filter(p=>p.gaps.length > 0)
+    .sort((a,b)=> PRIORITY_ORDER[a.prioritaet] - PRIORITY_ORDER[b.prioritaet]);
+
+  // Fuer die Dashboard-Kachel "Ungedeckte Bedarfe" -- unveraendert
+  // gegenueber dem vorherigen Stand, lediglich an dieser Stelle beim
+  // Umbau der Warnleiste (siehe unten) kurzzeitig versehentlich verloren
+  // gegangen und hier wiederhergestellt.
   const kritischeBedarfe = needs.filter(n=>{
     const avail = getNeedAvailableStock(n);
     const covered = avail >= n.menge;
@@ -13992,12 +14053,38 @@ async function renderDashboard(){
     const avail = getNeedAvailableStock(n);
     return avail < n.menge && n.prioritaet==='Kritisch';
   });
+  // Ab 16. August 2026 (Nutzerwunsch: verstreute "braucht Aufmerksamkeit"-
+  // Hinweise buendeln): Die Warnleiste zeigte bislang AUSSCHLIESSLICH
+  // kritische Bedarfe -- eine Organisation ohne einen einzigen kritischen
+  // Bedarf, aber mit mehreren Projekten mit offenen (nicht-kritischen)
+  // Materialluecken, sah beim ersten Blick nach oben dadurch "sauber"
+  // aus, obwohl weiter unten noch ein ganzes Panel mit offenen Bedarfen
+  // wartete. Die Leiste fasst jetzt beides an EINER Stelle zusammen --
+  // kritische Bedarfe weiterhin mit vollem Materialname (dringlichster
+  // Fall), zusaetzlich eine kompakte, anklickbare Zeile mit der Anzahl
+  // an Projekten mit offenen Bedarfen (unabhaengig von deren Prioritaet),
+  // die direkt zum bereits bestehenden Detail-Panel weiter unten
+  // herunterscrollt. Ersetzt NICHT das Detail-Panel selbst (das bleibt
+  // fuer die vollstaendige, materialgenaue Aufschluesselung bestehen),
+  // ergaenzt nur die fehlende "auf einen Blick"-Uebersicht ganz oben.
   const criticalBanner = document.getElementById('criticalNeedsBanner');
   if(criticalBanner){
+    const parts = [];
     if(nurKritisch.length > 0){
       const items = nurKritisch.map(n=>`<strong>${escapeHtml(n.material)}</strong> ${t('label_critical_needs_for')} ${escapeHtml(n.user)}`).join(' · ');
-      criticalBanner.innerHTML = `<div style="font-family:'Orbitron', sans-serif;font-size:12px;letter-spacing:1px;color:var(--low);margin-bottom:4px;">${t('label_critical_needs_title')}</div><div style="font-family:'Share Tech Mono', monospace;font-size:12.5px;color:var(--ink);">${items}</div>`;
+      parts.push(`<div style="font-family:'Orbitron', sans-serif;font-size:12px;letter-spacing:1px;color:var(--low);margin-bottom:4px;">${t('label_critical_needs_title')}</div><div style="font-family:'Share Tech Mono', monospace;font-size:12.5px;color:var(--ink);">${items}</div>`);
+    }
+    if(projectsWithGaps.length > 0){
+      parts.push(`<div style="${nurKritisch.length>0 ? 'margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,59,92,0.2);' : ''}font-family:'Share Tech Mono', monospace;font-size:12.5px;color:var(--ink-soft);cursor:pointer;" data-goto-reminder="1">${t('label_offene_projektbedarfe_summary').replace('{count}', projectsWithGaps.length)}</div>`);
+    }
+    if(parts.length > 0){
+      criticalBanner.innerHTML = parts.join('');
       criticalBanner.style.display = '';
+      const gotoEl = criticalBanner.querySelector('[data-goto-reminder]');
+      if(gotoEl) gotoEl.addEventListener('click', ()=>{
+        const target = document.getElementById('projectReminderPanel');
+        if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+      });
     } else {
       criticalBanner.style.display = 'none';
     }
@@ -14007,21 +14094,11 @@ async function renderDashboard(){
 
   // Erinnerungs-Panel: alle aktiven Projekte, die noch mindestens ein
   // nicht vollständig gedecktes Material haben — mit exakter Fehlmenge.
+  // projectsWithGaps wurde bereits weiter oben berechnet (siehe dortiger
+  // Kommentar), hier nur noch das Rendern selbst.
   const reminderPanel = document.getElementById('projectReminderPanel');
   const reminderContainer = document.getElementById('projectReminderContainer');
   if(reminderPanel && reminderContainer){
-    const projectsWithGaps = projects.map(p=>{
-      const resources = p.resources.map(normalizeResource).filter(r=>r.material && r.menge!=null && r.menge>0);
-      const gaps = resources.map(r=>{
-        const effMenge = effectiveResourceMenge(p, r);
-        const avail = stockAmount(r.material, p.ziel);
-        const fehlend = Math.round((effMenge - avail) * 100) / 100;
-        return { material: r.material, fehlend, menge: effMenge, avail };
-      }).filter(g=>g.fehlend > 0);
-      return { ziel: p.ziel, anzahl: p.anzahl, prioritaet: p.prioritaet||'Mittel', gaps };
-    }).filter(p=>p.gaps.length > 0)
-      .sort((a,b)=> PRIORITY_ORDER[a.prioritaet] - PRIORITY_ORDER[b.prioritaet]);
-
     if(projectsWithGaps.length > 0){
       reminderPanel.style.display = '';
       reminderContainer.innerHTML = projectsWithGaps.map(p=>`
@@ -14400,11 +14477,19 @@ function showHoverTooltipFor(wrap){
 }
 
 document.addEventListener('mouseover', (e)=>{
+  // Auf Mobilgeraeten uebernimmt der separate Klick-Handler weiter unten
+  // das Anzeigen/Ausblenden -- manche mobile Browser loesen bei einem
+  // Antippen zusaetzlich ein simuliertes mouseover-Ereignis aus, das
+  // sonst mit der dortigen Umschalt-Logik in Konflikt geraten und das
+  // Fenster kurz aufblitzen und sofort wieder verschwinden lassen
+  // koennte.
+  if(document.body.classList.contains('device-mobile')) return;
   const wrap = e.target.closest('.stock-hover-wrap');
   if(wrap) showHoverTooltipFor(wrap);
 });
 
 document.addEventListener('mouseout', (e)=>{
+  if(document.body.classList.contains('device-mobile')) return; // siehe Kommentar bei mouseover oben
   if(!activeHoverTooltip) return;
   const { wrap, tooltip } = activeHoverTooltip;
   const leavingWrap = wrap.contains(e.target);
@@ -14415,6 +14500,38 @@ document.addEventListener('mouseout', (e)=>{
   // der beiden Bereiche wandert (Ausloeser <-> Fenster).
   if(related && (wrap.contains(related) || tooltip.contains(related) || related === tooltip)) return;
   hideActiveHoverTooltip();
+});
+
+// Ab 16. August 2026: Tippen-basiertes Anzeigen/Ausblenden der Hover-
+// Infofenster auf Touch-Geraeten (Mobilgeraete) -- Touch-Bildschirme
+// kennen kein "Hover" im eigentlichen Sinne, ein Antippen loest je nach
+// Geraet/Browser uneinheitliches Verhalten aus (teils ein simuliertes
+// mouseover, teils nicht). Bewusst nur bei bereits erkanntem
+// Mobilgeraet aktiv (per body.device-mobile-Klasse, siehe weiter oben
+// bei der Geraete-/Browser-Erkennung) -- laesst das bestehende Maus-
+// Hover-Verhalten auf Desktop-Geraeten dadurch vollstaendig unberuehrt.
+// Erneutes Antippen DESSELBEN Ausloesers schliesst das Fenster wieder
+// (Umschalt-Verhalten); Antippen eines ANDEREN Ausloesers wechselt
+// direkt dorthin (uebernimmt showHoverTooltipFor() ohnehin automatisch,
+// siehe dortige Rueckfuehrungs-Logik); Antippen INNERHALB des bereits
+// geoeffneten Fensters selbst (z.B. ein anklickbarer Projektname) wird
+// bewusst NICHT abgefangen, damit der jeweils zustaendige, an anderer
+// Stelle bereits bestehende Klick-Handler (z.B. fuer den Sprung zu
+// einem Projekt) ungehindert weiter greift; Antippen ausserhalb von
+// Ausloeser UND Fenster schliesst ein noch offenes Fenster.
+document.addEventListener('click', (e)=>{
+  if(!document.body.classList.contains('device-mobile')) return;
+  const wrap = e.target.closest('.stock-hover-wrap');
+  if(wrap){
+    if(activeHoverTooltip && activeHoverTooltip.wrap === wrap){
+      hideActiveHoverTooltip();
+    } else {
+      showHoverTooltipFor(wrap);
+    }
+    return;
+  }
+  if(e.target.closest('.stock-hover-tooltip')) return; // siehe Kommentar oben
+  if(activeHoverTooltip) hideActiveHoverTooltip();
 });
 
 document.addEventListener('click', (e)=>{
@@ -15160,6 +15277,22 @@ function applyOcrThreshold(prepared, threshold){
 // horizontal auf den rechten Tabellenbereich zugeschnitten, keine
 // erneute Skalierung noetig) und denselben Worker -- lediglich mit
 // zeitweise geaenderter Zeichen-Whitelist.
+// Ab 16. August 2026: einfacher, visueller Fortschrittsbalken zusaetzlich
+// zum bereits bestehenden Text-Status ("Erkennung läuft… (3/8)") -- macht
+// die Wartezeit ueber die insgesamt bis zu 15-16 Durchlaeufe (Haupt- plus
+// ziffernfokussierter Durchlauf, je bis zu acht Schwellenwerte) etwas
+// greifbarer. `total` deckt beide Phasen gemeinsam ab, `current` zaehlt
+// durchgehend ueber beide Phasen hinweg weiter (siehe Verwendung des
+// zuvor ungenutzten offset-Parameters bei runDigitFocusedPass()).
+function updateOcrProgressBar(current, total){
+  const wrap = document.getElementById('ocrProgressBarWrap');
+  const fill = document.getElementById('ocrProgressBarFill');
+  if(!wrap || !fill) return;
+  if(total <= 0){ wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  fill.style.width = Math.min(100, Math.round((current/total)*100)) + '%';
+}
+
 async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offset){
   // xStartFrac: Start der Zahlen-Spalten als Anteil der Breite der
   // Nutzer-Auswahl. 0.58 entspricht dem in echten Screenshots
@@ -15179,6 +15312,11 @@ async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offse
   try{
     for(let i=0;i<thresholds.length;i++){
       if(statusEl) statusEl.textContent = `${t('ocr_running_digits')} (${i+1}/${thresholds.length})`;
+      // offset: Anzahl der bereits im Hauptdurchlauf abgeschlossenen
+      // Schritte -- laesst den Fortschrittsbalken durchgehend ueber
+      // beide Phasen hinweg weiterzaehlen, statt bei Beginn dieser
+      // zweiten Phase optisch auf 0% zurueckzuspringen.
+      updateOcrProgressBar(offset + i + 1, offset + thresholds.length);
       const processed = applyOcrThreshold(prepared, thresholds[i]);
       const sliceX = Math.round(processed.width * xStartFrac);
       const sliceW = processed.width - sliceX;
@@ -15356,6 +15494,7 @@ async function runOcrEnsemble(cropCanvas, statusEl){
   try{
     for(let i=0;i<thresholds.length;i++){
       statusEl.textContent = `${t('ocr_running')} (${i+1}/${thresholds.length})`;
+      updateOcrProgressBar(i + 1, thresholds.length * 2);
       const processed = applyOcrThreshold(prepared, thresholds[i]);
       const result = await worker.recognize(processed);
       const words = (result.data.words || []).filter(w=>w.text && w.text.trim());
@@ -15363,10 +15502,14 @@ async function runOcrEnsemble(cropCanvas, statusEl){
     }
     // Zusaetzlicher, auf Ziffern beschraenkter Durchlauf fuer Qualitaet
     // und Menge -- siehe runDigitFocusedPass(). Nutzt denselben Worker
-    // weiter (kein erneutes Laden des Sprachmodells noetig).
-    digitFocusedRows = await runDigitFocusedPass(prepared, thresholds, worker, statusEl);
+    // weiter (kein erneutes Laden des Sprachmodells noetig). Der
+    // Fortschrittsbalken zaehlt ueber beide Phasen hinweg durch, daher
+    // hier die Anzahl der bereits abgeschlossenen Hauptdurchlauf-Schritte
+    // als offset uebergeben.
+    digitFocusedRows = await runDigitFocusedPass(prepared, thresholds, worker, statusEl, thresholds.length);
   } finally {
     await worker.terminate();
+    updateOcrProgressBar(0, 0); // ausblenden, unabhaengig vom Ergebnis
   }
 
   // Zeilen anhand der Y-Position über alle Durchläufe hinweg zusammenführen
