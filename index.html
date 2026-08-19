@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.104 -->
+<!-- Version: 0.107 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1647,6 +1647,21 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 </div>
 
+<div id="stockOverviewModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:90;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;padding:20px;">
+  <div class="ocr-modal-content" style="max-width:820px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 style="margin:0;" id="stockOverviewTitle">Gesamtbestand</h2>
+      <button class="btn-icon" id="btnCloseStockOverview" title="Schließen">✕</button>
+    </div>
+    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_gesamtbestand">Zeigt den gesamten frei verfügbaren Bestand (Materialien und Sammelobjekte gemeinsam) — bereits einem Projekt zugeordnete Mengen sind hier bewusst nicht enthalten.</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+      <input type="text" id="stockOverviewSearch" placeholder="Suche nach Name …" data-i18n-placeholder="placeholder_gesamtbestand_suche" style="flex:1;min-width:200px;">
+      <span style="font-size:11px;color:var(--ink-soft);white-space:nowrap;"><span id="stockOverviewCount">0</span> <span data-i18n="label_eintraege">Einträge</span></span>
+    </div>
+    <div id="stockOverviewTableContainer"></div>
+  </div>
+</div>
+
 <div class="wrap" id="appWrap" style="display:none;">
   <header>
     <div class="header-title-row">
@@ -2273,7 +2288,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
       <h2 style="margin:0;" data-i18n="panel_bestand_table">Bestand</h2>
-      <button class="btn-ghost btn-compact" id="btnExportBestand" data-i18n="btn_export_csv">Als CSV exportieren</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-ghost btn-compact" id="btnOpenStockOverview" data-i18n="btn_gesamtbestand">Gesamtbestand anzeigen</button>
+        <button class="btn-ghost btn-compact" id="btnExportBestand" data-i18n="btn_export_csv">Als CSV exportieren</button>
+      </div>
     </div>
     <div class="filters">
       <input type="text" id="search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
@@ -2497,7 +2515,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="panel">
-    <h2 data-i18n="panel_privatbestand">Privatbestand</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+      <h2 style="margin:0;" data-i18n="panel_privatbestand">Privatbestand</h2>
+      <button class="btn-ghost btn-compact" id="btnOpenStockOverviewPrivat" data-i18n="btn_gesamtbestand">Gesamtbestand anzeigen</button>
+    </div>
     <div class="filters">
       <input type="text" id="priv-search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
       <select id="priv-filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
@@ -2965,6 +2986,16 @@ const I18N = {
   "label_projektziel": "Projektziel",
   "panel_zusammenfassung": "Zusammenfassung nach Material",
   "panel_zusammenfassung_privat": "Zusammenfassung nach Material (Privat)",
+  "btn_gesamtbestand": "Gesamtbestand anzeigen",
+  "title_gesamtbestand": "Gesamtbestand",
+  "title_gesamtbestand_privat": "Gesamtbestand (Privat)",
+  "hint_gesamtbestand": "Zeigt den gesamten frei verfügbaren Bestand (Materialien und Sammelobjekte gemeinsam) — bereits einem Projekt zugeordnete Mengen sind hier bewusst nicht enthalten.",
+  "placeholder_gesamtbestand_suche": "Suche nach Name …",
+  "label_eintraege": "Einträge",
+  "col_typ": "Typ",
+  "label_material_typ": "Material",
+  "label_sammelobjekt_typ": "Sammelobjekt",
+  "empty_stock_overview_title": "Kein freier Bestand vorhanden",
   "panel_bestand_table": "Bestand",
   "panel_papierkorb": "Papierkorb",
   "hint_papierkorb": "Gelöschte Bestandseinträge der letzten 24 Stunden können hier wiederhergestellt werden.",
@@ -3093,6 +3124,9 @@ const I18N = {
   "label_benoetigt": "benötigt",
   "label_vorhanden": "vorhanden",
   "label_ort_qualitaet_menge": "Ort · Qualität · Menge",
+  "label_pruefen_vor_zuweisung": "Vor Zuweisung prüfen",
+  "tooltip_flagged_for_review": "Dieser Eintrag wurde zuvor von einem Projekt gelöst — vor einer erneuten Zuweisung prüfen, ob er noch verwendbar ist (z. B. bei Verlust).",
+  "tooltip_zuordnung_loesen": "Zuordnung zu diesem Projekt lösen — Material bleibt erhalten, wandert in den freien Bestand zurück",
   "label_beitraege_aufschluesselung": "Wer hat beigetragen",
   "label_konkurrierende_bedarfe": "Konkurrierende Bedarfe (dasselbe Material)",
   "label_konkurriert_mit": "konkurriert mit {count} weiterem Bedarf/Bedarfen",
@@ -3678,6 +3712,16 @@ const I18N = {
   "label_projektziel": "Project goal",
   "panel_zusammenfassung": "Summary by material",
   "panel_zusammenfassung_privat": "Summary by material (Private)",
+  "btn_gesamtbestand": "View total stock",
+  "title_gesamtbestand": "Total stock",
+  "title_gesamtbestand_privat": "Total stock (private)",
+  "hint_gesamtbestand": "Shows all freely available stock (materials and collectibles combined) — quantities already assigned to a project are intentionally not included here.",
+  "placeholder_gesamtbestand_suche": "Search by name …",
+  "label_eintraege": "entries",
+  "col_typ": "Type",
+  "label_material_typ": "Material",
+  "label_sammelobjekt_typ": "Collectible",
+  "empty_stock_overview_title": "No free stock available",
   "panel_bestand_table": "Inventory",
   "panel_papierkorb": "Recycle bin",
   "hint_papierkorb": "Deleted inventory entries from the last 24 hours can be restored here.",
@@ -3806,6 +3850,9 @@ const I18N = {
   "label_benoetigt": "needed",
   "label_vorhanden": "available",
   "label_ort_qualitaet_menge": "Location · Quality · Quantity",
+  "label_pruefen_vor_zuweisung": "Check before assigning",
+  "tooltip_flagged_for_review": "This entry was previously unlinked from a project — check whether it is still usable before assigning it again (e.g. in case of loss).",
+  "tooltip_zuordnung_loesen": "Unlink from this project — material stays intact, returns to the free stock pool",
   "label_beitraege_aufschluesselung": "Who contributed",
   "label_konkurrierende_bedarfe": "Competing needs (same material)",
   "label_konkurriert_mit": "competes with {count} other need(s)",
@@ -4391,6 +4438,16 @@ const I18N = {
   "label_projektziel": "Objectif du projet",
   "panel_zusammenfassung": "Résumé par matériau",
   "panel_zusammenfassung_privat": "Résumé par matériau (Privé)",
+  "btn_gesamtbestand": "Voir le stock total",
+  "title_gesamtbestand": "Stock total",
+  "title_gesamtbestand_privat": "Stock total (privé)",
+  "hint_gesamtbestand": "Affiche tout le stock librement disponible (matériaux et objets de collection combinés) — les quantités déjà attribuées à un projet ne sont volontairement pas incluses ici.",
+  "placeholder_gesamtbestand_suche": "Rechercher par nom …",
+  "label_eintraege": "entrées",
+  "col_typ": "Type",
+  "label_material_typ": "Matériau",
+  "label_sammelobjekt_typ": "Objet de collection",
+  "empty_stock_overview_title": "Aucun stock libre disponible",
   "panel_bestand_table": "Stock",
   "panel_papierkorb": "Corbeille",
   "hint_papierkorb": "Les entrées de stock supprimées au cours des dernières 24 heures peuvent être restaurées ici.",
@@ -4519,6 +4576,9 @@ const I18N = {
   "label_benoetigt": "nécessaire",
   "label_vorhanden": "disponible",
   "label_ort_qualitaet_menge": "Emplacement · Qualité · Quantité",
+  "label_pruefen_vor_zuweisung": "À vérifier avant attribution",
+  "tooltip_flagged_for_review": "Cette entrée a été détachée d'un projet — vérifiez si elle est encore utilisable avant de la réattribuer (p. ex. en cas de perte).",
+  "tooltip_zuordnung_loesen": "Détacher de ce projet — le matériau reste intact, retourne au stock libre",
   "label_beitraege_aufschluesselung": "Qui a contribué",
   "label_konkurrierende_bedarfe": "Besoins concurrents (même matériau)",
   "label_konkurriert_mit": "entre en concurrence avec {count} autre(s) besoin(s)",
@@ -8643,7 +8703,7 @@ function renderCollectibles(){
       html += `<tr>
         <td>${canManage ? `<input type="checkbox" class="collectible-select-cb" data-id="${c.id}" ${selectedCollectibleIds.has(c.id)?'checked':''}>` : ''}</td>
         <td data-label="${t('col_kategorie')}">${escapeHtml(c.kategorie)}</td>
-        <td data-label="${t('col_objekt')}">${escapeHtml(c.objekt)}</td>
+        <td data-label="${t('col_objekt')}">${escapeHtml(c.objekt)}${c.flaggedForReview ? ` <span class="badge" style="background:rgba(255,166,48,0.15);color:var(--accent);border:1px solid var(--accent);font-size:10px;cursor:help;" title="${t('tooltip_flagged_for_review')}">⚠ ${t('label_pruefen_vor_zuweisung')}</span>` : ''}</td>
         <td data-label="${t('col_qualitaet_stufe2')}">${c.tier ? escapeHtml(c.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td data-label="${t('col_lagerort')}"><span style="display:inline-flex;align-items:center;">${c.standort ? locationDot(c.standort)+escapeHtml(c.standort) : '<span style="color:var(--ink-soft);">—</span>'}</span></td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${c.anzahl}</td>
@@ -8736,6 +8796,12 @@ function renderCollectibles(){
             projekt: projektAssign.ziel,
             projektTyp: projektAssign.typ
           };
+          // Ab 16. August 2026: siehe ausfuehrlicher Kommentar bei der
+          // analogen Stelle fuer reguläre Bestandseinträge weiter unten
+          // im Code -- entfernt eine zuvor gesetzte "vor Neuzuweisung
+          // pruefen"-Markierung, sobald das Sammelobjekt tatsaechlich
+          // einem (neuen) Projekt zugewiesen wird.
+          if(projektAssign.ziel && projektAssign.ziel !== oldProjekt) delete collectibles[idx].flaggedForReview;
           let logDetail = `${collectibles[idx].objekt}${collectibles[idx].tier ? ' ('+collectibles[idx].tier+')' : ''} — ${collectibles[idx].anzahl}x (${collectibles[idx].besitzer||'–'})`;
           // Ueberschuss (falls "Menge kappen" gewaehlt wurde) als
           // zweiter, NICHT dem Projekt zugeordneter Eintrag -- bleibt
@@ -9974,22 +10040,30 @@ function shortLocLabel(fullLabel){
 function buildStockBreakdownHTML(material, projekt){
   const fromEntries = entries
     .filter(e=>e.material===material && (e.projekt||'')===projekt)
-    .map(e=>({ person: e.person, lagerort: e.lagerort, menge: e.menge, einheit: e.einheit }));
+    .map(e=>({ id: e.id, kind: 'entry', person: e.person, lagerort: e.lagerort, menge: e.menge, einheit: e.einheit }));
   const fromCollectibles = collectibles
     .filter(c=>c.objekt===material && (c.projekt||'')===projekt)
-    .map(c=>({ person: c.besitzer, lagerort: c.standort||'–', menge: c.anzahl, einheit: 'Stück' }));
+    .map(c=>({ id: c.id, kind: 'collectible', person: c.besitzer, lagerort: c.standort||'–', menge: c.anzahl, einheit: 'Stück' }));
   const matching = [...fromEntries, ...fromCollectibles];
   let body;
   if(matching.length === 0){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
     const sorted = [...matching].sort((a,b)=> (a.person||'').localeCompare(b.person||'') || (a.lagerort||'').localeCompare(b.lagerort||''));
-    body = `<table><thead><tr><th style="width:34%;">Owner</th><th style="width:44%;">Loc</th><th style="width:22%;">${t('label_menge')}</th></tr></thead><tbody>`;
+    // Ab 16. August 2026: eigene Spalte mit einem kleinen Button je
+    // Zeile, um die Projekt-Zuordnung dieses EINEN Eintrags wieder zu
+    // loesen (z.B. bei Verlust) -- nur sichtbar, wenn tatsaechlich ein
+    // Projekt-Kontext vorliegt (siehe Aufruf-Parameter "projekt"), da
+    // diese Funktion auch OHNE Projekt-Bezug fuer die reine
+    // Bestands-Aufschluesselung verwendet werden koennte.
+    const showUnlink = !!projekt;
+    body = `<table><thead><tr><th style="width:${showUnlink?'30%':'34%'};">Owner</th><th style="width:${showUnlink?'38%':'44%'};">Loc</th><th style="width:${showUnlink?'18%':'22%'};">${t('label_menge')}</th>${showUnlink?`<th style="width:14%;"></th>`:''}</tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person||'–')}</span></td>
         <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(shortLocLabel(e.lagerort))}</span></td>
         <td class="qty-cell">${Math.round(e.menge*100)/100} ${e.einheit}</td>
+        ${showUnlink ? `<td><button type="button" class="btn-icon danger" data-action="unlink-from-project" data-unlink-id="${escapeHtml(e.id)}" data-unlink-kind="${e.kind}" title="${t('tooltip_zuordnung_loesen')}" style="padding:2px 6px;font-size:12px;">✕</button></td>` : ''}
       </tr>`;
     });
     body += `</tbody></table>`;
@@ -10419,6 +10493,133 @@ function effectiveResourceMenge(project, resource){
 // vs. "Ueberschuss" gilt, ist bei mehreren Beitraegen zwangslaeufig
 // eine Konvention, keine objektiv einzig richtige Zuordnung. Siehe
 // Nutzerwunsch vom 15. August 2026.
+// Ab 16. August 2026: loest die Projekt-Zuordnung EINES einzelnen,
+// konkreten Bestandseintrags oder Sammelobjekts (per ID ausgewaehlt) --
+// unabhaengig von der bereits bestehenden, auf UEBERSCHUSS-Mengen
+// ausgelegten releaseProjectSurplus() weiter unten. Deckt den Fall ab,
+// dass ein bereits einem Projekt zugeordnetes Material aus einem
+// anderen Grund (Verlust, Fehlzuordnung o.ae.) nicht mehr fuer das
+// Projekt zur Verfuegung steht -- ueber den entsprechenden Button im
+// Hover-Infofenster ("Wer hat beigetragen") erreichbar. Die komplette
+// Menge/Anzahl dieses EINEN Eintrags wandert dabei unveraendert
+// (Besitzer, Lagerort, Qualitaet bleiben erhalten) zurueck in den
+// freien Pool -- loescht NICHT den Eintrag selbst. Fuer den selteneren
+// Fall eines tatsaechlichen, vollstaendigen Verlusts bleibt das
+// Loeschen ueber die normale Bestandstabelle der richtige Weg. Siehe
+// Nutzerwunsch vom 16. August 2026.
+async function unlinkEntryFromProject(id, kind){
+  const list = kind==='collectible' ? collectibles : entries;
+  const item = list.find(e=>e.id===id);
+  if(!item) return false;
+  item.projekt = '';
+  // Ab 16. August 2026 (Nutzerwunsch, direkt im Anschluss an die
+  // Einfuehrung dieses Buttons): markiert den Eintrag als "ungeklaert
+  // geloest" -- im Unterschied zu einer regulaeren Ueberschuss-
+  // Freigabe (siehe releaseProjectSurplus()) deutet das Loesen UEBER
+  // DIESEN Button typischerweise auf einen Grund hin, der VOR einer
+  // erneuten Zuweisung zu einem (ggf. anderen) Projekt beachtet werden
+  // sollte (z.B. Verlust, Beschaedigung o.ae.) -- der genaue Grund wird
+  // bewusst nicht erfasst, nur die Tatsache selbst. Wird automatisch
+  // wieder entfernt, sobald der Eintrag tatsaechlich einem neuen
+  // Projekt zugewiesen wird (siehe dortige Stelle) -- die Markierung
+  // hat dann ihren Zweck erfuellt.
+  item.flaggedForReview = true;
+  await (kind==='collectible' ? saveCollectibles() : save());
+  return true;
+}
+
+// ============================================================
+// Gesamtbestand-Übersicht (Overlay mit Suche & Sortierung)
+// ============================================================
+// Ab 16. August 2026: schneller, gebündelter Überblick über den
+// gesamten FREI VERFÜGBAREN Bestand -- Materialien UND Sammelobjekte
+// GEMEINSAM in einer Tabelle (auf Nutzerwunsch bewusst gemischt statt
+// getrennt), je Name zu einer Summe zusammengefasst. Bewusst nur frei
+// verfügbarer (nicht bereits einem Projekt zugeordneter) Bestand --
+// unterscheidet sich damit von der bereits bestehenden "Zusammenfassung
+// nach Material" (zeigt AUCH zugeordneten Bestand, beschränkt sich aber
+// auf Materialien, keine Sammelobjekte). Über einen Button sowohl im
+// geteilten Bestand-Tab als auch im privaten Bereich erreichbar, per
+// isPrivate-Parameter unterschieden. Siehe Nutzerwunsch vom 16. August
+// 2026.
+function buildFreeStockOverview(isPrivate){
+  const entryList = isPrivate ? privateEntries : entries;
+  const collList = isPrivate ? privateCollectibles : collectibles;
+  const map = new Map(); // Schluessel: "typ::name" -> {name, type, menge, einheit}
+  entryList.filter(e=>!e.projekt).forEach(e=>{
+    const key = 'material::' + e.material;
+    const existing = map.get(key);
+    if(existing) existing.menge = Math.round((existing.menge + e.menge)*1000)/1000;
+    else map.set(key, { name: e.material, type: 'material', menge: e.menge, einheit: e.einheit });
+  });
+  collList.filter(c=>!c.projekt).forEach(c=>{
+    const key = 'collectible::' + c.objekt;
+    const existing = map.get(key);
+    if(existing) existing.menge = Math.round((existing.menge + c.anzahl)*1000)/1000;
+    else map.set(key, { name: c.objekt, type: 'collectible', menge: c.anzahl, einheit: 'Stück' });
+  });
+  return [...map.values()];
+}
+
+let stockOverviewSortKey = 'name';
+let stockOverviewSortDir = 1;
+let stockOverviewIsPrivate = false;
+
+function openStockOverviewModal(isPrivate){
+  stockOverviewIsPrivate = isPrivate;
+  stockOverviewSortKey = 'name';
+  stockOverviewSortDir = 1;
+  document.getElementById('stockOverviewSearch').value = '';
+  document.getElementById('stockOverviewTitle').textContent = isPrivate ? t('title_gesamtbestand_privat') : t('title_gesamtbestand');
+  document.getElementById('stockOverviewModal').style.display = 'flex';
+  renderStockOverview();
+}
+
+function renderStockOverview(){
+  const searchInput = document.getElementById('stockOverviewSearch');
+  const term = (searchInput.value||'').trim().toLowerCase();
+  let list = buildFreeStockOverview(stockOverviewIsPrivate);
+  if(term) list = list.filter(item=>item.name.toLowerCase().includes(term));
+  list.sort((a,b)=>{
+    let va = a[stockOverviewSortKey], vb = b[stockOverviewSortKey];
+    if(typeof va === 'string'){ va = va.toLowerCase(); vb = vb.toLowerCase(); }
+    if(va < vb) return -1*stockOverviewSortDir;
+    if(va > vb) return 1*stockOverviewSortDir;
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+  });
+
+  const container = document.getElementById('stockOverviewTableContainer');
+  document.getElementById('stockOverviewCount').textContent = list.length;
+  if(list.length === 0){
+    container.innerHTML = `<div class="empty"><div class="big">${t('empty_stock_overview_title')}</div></div>`;
+    return;
+  }
+  const cols = [['type', t('col_typ')], ['name', t('col_material')], ['menge', t('label_menge')]];
+  let html = '<table><thead><tr>';
+  cols.forEach(([key,label])=>{
+    const arrow = stockOverviewSortKey===key ? (stockOverviewSortDir===1?' ▲':' ▼') : '';
+    html += `<th data-sort="${key}">${label}${arrow}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+  list.forEach(item=>{
+    const unitLabel = item.type==='collectible' ? t('unit_stueck') : einheitLabel(item.einheit);
+    html += `<tr>
+      <td>${item.type==='collectible' ? t('label_sammelobjekt_typ') : t('label_material_typ')}</td>
+      <td>${escapeHtml(item.name)}</td>
+      <td class="qty-cell">${item.menge} ${escapeHtml(unitLabel)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+  container.querySelectorAll('th[data-sort]').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.sort;
+      if(stockOverviewSortKey === key){ stockOverviewSortDir *= -1; } else { stockOverviewSortKey = key; stockOverviewSortDir = 1; }
+      renderStockOverview();
+    });
+  });
+}
+
 function releaseProjectSurplus(project, typ){
   const isPrivate = typ === 'private';
   const resources = project.resources.map(normalizeResource).filter(r=>r.menge!=null && r.menge>0);
@@ -14406,8 +14607,17 @@ document.addEventListener('change', (e)=>{
 // jeder einzelnen Stelle im Code einen eigenen Listener ergaenzen zu
 // muessen.
 let activeHoverTooltip = null; // { tooltip, wrap, originalParent, originalNextSibling }
+// Ab 16. August 2026 (dritte Korrekturrunde): haelt einen ggf. laufenden
+// verzoegerten Schliess-Timer fest, siehe scheduleHideActiveHoverTooltip()
+// weiter unten fuer den ausfuehrlichen Hintergrund.
+let hoverHideTimer = null;
+
+function cancelScheduledHoverHide(){
+  if(hoverHideTimer){ clearTimeout(hoverHideTimer); hoverHideTimer = null; }
+}
 
 function hideActiveHoverTooltip(){
+  cancelScheduledHoverHide();
   if(!activeHoverTooltip) return;
   const { tooltip, originalParent, originalNextSibling } = activeHoverTooltip;
   tooltip.removeAttribute('style');
@@ -14420,9 +14630,46 @@ function hideActiveHoverTooltip(){
   activeHoverTooltip = null;
 }
 
+// KORREKTUR vom 16. August 2026 (dritte Runde, Nutzermeldung: Fenster
+// schliesst weiterhin sofort beim Verlassen des Ausloesers, obwohl ein
+// Wechsel INS Fenster hinein eigentlich vorgesehen war): Das Fenster
+// wird beim Anzeigen absichtlich mit einem kleinen Abstand (8px) zum
+// Ausloeser positioniert, damit es diesen nicht selbst verdeckt (siehe
+// Kommentar weiter oben). Genau dieser Zwischenraum wurde dabei zum
+// eigentlichen Problem: Bewegt sich die Maus vom Ausloeser Richtung
+// Fenster, ueberquert sie kurzzeitig diesen Zwischenraum -- und landet
+// dabei fuer einen Wimpernschlag ueber einem voellig unbeteiligten
+// Element (z.B. dem Tabellenhintergrund dahinter). Der dadurch
+// ausgeloeste mouseout traf bislang WEDER auf "Ausloeser" NOCH auf
+// "Fenster" als relatedTarget zu, wodurch das Fenster faelschlich
+// sofort geschlossen wurde -- BEVOR die Maus das eigentliche Ziel
+// (das Fenster) ueberhaupt erreichen konnte. Ein klassisches, in
+// nahezu jeder Hover-Tooltip-Implementierung mit sichtbarem Abstand
+// zum Ausloeser auftretendes Problem.
+//
+// Behoben nach dem etablierten Standardmuster: Ein Verlassen von
+// Ausloeser ODER Fenster schliesst nicht mehr sofort, sondern startet
+// lediglich einen kurzen Timer (150ms). Landet die Maus innerhalb
+// dieser Zeitspanne tatsaechlich im Ausloeser oder im Fenster selbst,
+// wird der Timer abgebrochen, das Fenster bleibt sichtbar. Erst wenn
+// die Zeitspanne ungenutzt verstreicht, schliesst das Fenster
+// tatsaechlich. cancelScheduledHoverHide() wird zusaetzlich an jeder
+// Stelle aufgerufen, an der der Anzeige-Zustand sich unmittelbar
+// (synchron) aendert -- verhindert, dass ein bereits laufender,
+// veralteter Timer versehentlich ein zwischenzeitlich neu geoeffnetes,
+// anderes Fenster wieder schliesst.
+function scheduleHideActiveHoverTooltip(){
+  cancelScheduledHoverHide();
+  hoverHideTimer = setTimeout(()=>{
+    hoverHideTimer = null;
+    hideActiveHoverTooltip();
+  }, 150);
+}
+
 function showHoverTooltipFor(wrap){
   const tooltip = wrap.querySelector('.stock-hover-tooltip');
   if(!tooltip) return;
+  cancelScheduledHoverHide();
   if(activeHoverTooltip && activeHoverTooltip.tooltip === tooltip) return; // bereits aktiv
   hideActiveHoverTooltip(); // falls noch ein anderes Fenster offen war
 
@@ -14485,7 +14732,14 @@ document.addEventListener('mouseover', (e)=>{
   // koennte.
   if(document.body.classList.contains('device-mobile')) return;
   const wrap = e.target.closest('.stock-hover-wrap');
-  if(wrap) showHoverTooltipFor(wrap);
+  if(wrap){ showHoverTooltipFor(wrap); return; }
+  // Landet die Maus (z.B. beim Ueberqueren des Zwischenraums) direkt im
+  // bereits offenen Fenster selbst, einen eventuell schon laufenden
+  // verzoegerten Schliess-Timer abbrechen -- siehe ausfuehrlicher
+  // Kommentar bei scheduleHideActiveHoverTooltip().
+  if(activeHoverTooltip && e.target.closest('.stock-hover-tooltip')){
+    cancelScheduledHoverHide();
+  }
 });
 
 document.addEventListener('mouseout', (e)=>{
@@ -14499,7 +14753,10 @@ document.addEventListener('mouseout', (e)=>{
   // Sichtbar lassen, wenn der Mauszeiger direkt in den jeweils ANDEREN
   // der beiden Bereiche wandert (Ausloeser <-> Fenster).
   if(related && (wrap.contains(related) || tooltip.contains(related) || related === tooltip)) return;
-  hideActiveHoverTooltip();
+  // Nicht mehr sofort schliessen, sondern nur noch verzoegert -- siehe
+  // ausfuehrlicher Kommentar bei scheduleHideActiveHoverTooltip() weiter
+  // oben (faengt das Ueberqueren des Zwischenraums zum Fenster ab).
+  scheduleHideActiveHoverTooltip();
 });
 
 // Ab 16. August 2026: Tippen-basiertes Anzeigen/Ausblenden der Hover-
@@ -14558,6 +14815,18 @@ document.addEventListener('click', (e)=>{
   }
   if(e.target.classList.contains('usage-project-name')){
     switchTab(e.target.dataset.privateProject === '1' ? 'privatbestand' : 'projekte');
+    return;
+  }
+  const unlinkBtn = e.target.closest('[data-action="unlink-from-project"]');
+  if(unlinkBtn){
+    unlinkEntryFromProject(unlinkBtn.dataset.unlinkId, unlinkBtn.dataset.unlinkKind).then(ok=>{
+      if(ok){
+        hideActiveHoverTooltip();
+        logAction('Projekt-Zuordnung gelöst', unlinkBtn.dataset.unlinkKind==='collectible' ? 'Sammelobjekt' : 'Material');
+        updateProjectAvailability();
+        renderProjects();
+      }
+    });
   }
 });
 
@@ -15017,6 +15286,16 @@ function closeOcrModal(){
 document.getElementById('btnOpenOcr').addEventListener('click', ()=>openOcrModal('public'));
 document.getElementById('priv-btnOpenOcr').addEventListener('click', ()=>openOcrModal('private'));
 document.getElementById('btnCloseOcr').addEventListener('click', closeOcrModal);
+
+document.getElementById('btnOpenStockOverview').addEventListener('click', ()=>openStockOverviewModal(false));
+document.getElementById('btnOpenStockOverviewPrivat').addEventListener('click', ()=>openStockOverviewModal(true));
+document.getElementById('btnCloseStockOverview').addEventListener('click', ()=>{
+  document.getElementById('stockOverviewModal').style.display = 'none';
+});
+document.getElementById('stockOverviewModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'stockOverviewModal') document.getElementById('stockOverviewModal').style.display = 'none';
+});
+document.getElementById('stockOverviewSearch').addEventListener('input', renderStockOverview);
 document.getElementById('btnPickOcrCamera').addEventListener('click', ()=>{
   document.getElementById('ocrFileInputCamera').click();
 });
@@ -17058,7 +17337,7 @@ function render(){
       const canManage = currentUser.role!=='viewer' && canManageEntry(e);
       html += `<tr>
         ${currentUser.role!=='viewer' ? `<td>${canManage ? `<input type="checkbox" class="entry-select-cb" data-id="${e.id}" ${selectedEntryIds.has(e.id)?'checked':''}>` : ''}</td>` : ''}
-        <td data-label="${t('col_material')}">${escapeHtml(e.material)}</td>
+        <td data-label="${t('col_material')}">${escapeHtml(e.material)}${e.flaggedForReview ? ` <span class="badge" style="background:rgba(255,166,48,0.15);color:var(--accent);border:1px solid var(--accent);font-size:10px;cursor:help;" title="${t('tooltip_flagged_for_review')}">⚠ ${t('label_pruefen_vor_zuweisung')}</span>` : ''}</td>
         <td data-label="${t('label_qualitaet')}"><span class="badge ${badgeClass(e.qualitaet)}">${e.qualitaet}</span></td>
         <td data-label="${t('label_menge')}">
           <div class="qty-cell">${e.menge} ${escapeHtml(einheitLabel(e.einheit))}</div>
@@ -17211,6 +17490,13 @@ function render(){
             menge: newMenge, einheit: newEinheit, lagerort: newLagerort,
             projekt: newProjekt
           };
+          // Ab 16. August 2026: eine zuvor per unlinkEntryFromProject()
+          // gesetzte "vor Neuzuweisung pruefen"-Markierung hat ihren
+          // Zweck erfuellt, sobald der Eintrag TATSAECHLICH einem
+          // (neuen) Projekt zugewiesen wird -- wird an dieser Stelle
+          // automatisch entfernt, statt dauerhaft an einem inzwischen
+          // wieder aktiv genutzten Eintrag haengen zu bleiben.
+          if(newProjekt && newProjekt !== oldProjekt) delete entries[idx].flaggedForReview;
           await logAction('Bestand bearbeitet', `${entries[idx].material}, ${entries[idx].menge} ${entries[idx].einheit} @ ${entries[idx].lagerort}${entries[idx].projekt ? ' [Projekt: '+entries[idx].projekt+']' : ''}`);
         }
         // Ueberschuss aus der Projekt-Restbedarfs-Pruefung (siehe
