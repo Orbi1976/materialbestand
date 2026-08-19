@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.107 -->
+<!-- Version: 0.112 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1656,8 +1656,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_gesamtbestand">Zeigt den gesamten frei verfügbaren Bestand (Materialien und Sammelobjekte gemeinsam) — bereits einem Projekt zugeordnete Mengen sind hier bewusst nicht enthalten.</div>
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
       <input type="text" id="stockOverviewSearch" placeholder="Suche nach Name …" data-i18n-placeholder="placeholder_gesamtbestand_suche" style="flex:1;min-width:200px;">
+      <input type="number" id="stockOverviewMinQual" placeholder="Qualität ≥" step="0.01" style="max-width:120px;" data-i18n-placeholder="placeholder_qualitaet_ge">
       <span style="font-size:11px;color:var(--ink-soft);white-space:nowrap;"><span id="stockOverviewCount">0</span> <span data-i18n="label_eintraege">Einträge</span></span>
     </div>
+    <div class="user-note" id="stockOverviewQualHint" style="display:none;margin:0 0 10px 0;font-size:11px;" data-i18n="hint_gesamtbestand_qualitaet_sammelobjekte">Der Qualitäts-Filter gilt nur für Materialien — Sammelobjekte haben keine vergleichbare Qualitätsangabe und werden von diesem Filter nicht beeinflusst.</div>
     <div id="stockOverviewTableContainer"></div>
   </div>
 </div>
@@ -2140,6 +2142,9 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <h2 data-i18n="panel_protokoll">Änderungsprotokoll</h2>
     <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_changelog_admin_only">Nur für Administratoren sichtbar. Protokolliert wird, wer wann welche Änderung vorgenommen hat.</div>
     <button class="btn-ghost" id="btnToggleLog" data-i18n="btn_show_log">Protokoll anzeigen</button>
+    <div id="logSearchWrap" style="display:none;margin-top:12px;">
+      <input type="text" id="logSearch" placeholder="Suche nach Benutzer, Aktion, Details …" data-i18n-placeholder="placeholder_log_suche">
+    </div>
     <div id="logContainer" style="display:none;margin-top:14px;max-height:420px;overflow-y:auto;"></div>
   </div>
   </div>
@@ -2286,12 +2291,12 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
       <h2 style="margin:0;" data-i18n="panel_bestand_table">Bestand</h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn-ghost btn-compact" id="btnOpenStockOverview" data-i18n="btn_gesamtbestand">Gesamtbestand anzeigen</button>
-        <button class="btn-ghost btn-compact" id="btnExportBestand" data-i18n="btn_export_csv">Als CSV exportieren</button>
-      </div>
+      <button class="btn-ghost btn-compact" id="btnExportBestand" data-i18n="btn_export_csv">Als CSV exportieren</button>
+    </div>
+    <div style="margin:10px 0 16px 0;">
+      <button class="btn-ghost btn-compact" id="btnOpenStockOverview" data-i18n="btn_gesamtbestand">Gesamtbestand anzeigen</button>
     </div>
     <div class="filters">
       <input type="text" id="search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
@@ -2303,6 +2308,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <option value="frei" data-i18n="filter_reservierung_frei">Nur frei verfügbar</option>
         <option value="reserviert" data-i18n="filter_reservierung_reserviert">Nur reserviert (Projekte)</option>
       </select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);white-space:nowrap;cursor:pointer;">
+        <input type="checkbox" id="filterFlagged">
+        <span data-i18n="filter_nur_markierte">⚠ Nur zu prüfende anzeigen</span>
+      </label>
     </div>
     <div id="bulkActionsBar" style="display:none;margin-bottom:10px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
       <span id="bulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
@@ -2328,7 +2337,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
   <div class="panel">
     <h2 data-i18n="panel_papierkorb">Papierkorb</h2>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_papierkorb">Gelöschte Bestandseinträge der letzten 24 Stunden können hier wiederhergestellt werden.</span></div>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_papierkorb">Gelöschte Bestandseinträge, Bedarfe, Projekte und Sammelobjekte der letzten 24 Stunden können hier wiederhergestellt werden.</span></div>
     <button class="btn-ghost" id="btnToggleTrash" data-i18n="btn_show_trash">Papierkorb anzeigen</button>
     <div id="trashContainer" style="display:none;margin-top:14px;"></div>
   </div>
@@ -2575,6 +2584,12 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
   <div class="tab-content" data-tab="bedarfe" style="display:none;">
   <div class="panel">
+    <h2 data-i18n="panel_gesamtbedarf">Gesamtbedarf</h2>
+    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_gesamtbedarf">Fasst den eigenständigen Bedarf unten sowie alle offenen Ressourcen-Lücken geteilter Projekte je Material zu einer Summe zusammen — private Projekte bleiben dabei bewusst außen vor. Beantwortet die Frage "was brauchen wir insgesamt?", z. B. vor einer gemeinsamen Abbau-Session.</div>
+    <div id="consolidatedNeedsContainer"></div>
+  </div>
+
+  <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
       <h2 style="margin:0;" data-i18n="panel_bedarf">Bedarfsprioritäten</h2>
       <button class="btn-ghost btn-compact" id="btnExportNeeds" data-i18n="btn_export_csv">Als CSV exportieren</button>
@@ -2719,6 +2734,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="filters">
       <input type="text" id="coll-search" placeholder="Suche nach Objekt, Kategorie, Lagerort, Besitzer …" data-i18n-placeholder="placeholder_search_collectibles">
       <select id="coll-filterKategorie"><option value="" data-i18n="filter_alle_kategorien">Alle Kategorien</option></select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);white-space:nowrap;cursor:pointer;">
+        <input type="checkbox" id="coll-filterFlagged">
+        <span data-i18n="filter_nur_markierte">⚠ Nur zu prüfende anzeigen</span>
+      </label>
     </div>
     <div id="collectibleBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
       <span id="collectibleBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
@@ -2989,6 +3008,8 @@ const I18N = {
   "btn_gesamtbestand": "Gesamtbestand anzeigen",
   "title_gesamtbestand": "Gesamtbestand",
   "title_gesamtbestand_privat": "Gesamtbestand (Privat)",
+  "tooltip_zur_position_springen": "Zur entsprechenden Position im Bestand springen (z. B. um sie einem Projekt zuzuweisen)",
+  "hint_gesamtbestand_qualitaet_sammelobjekte": "Der Qualitäts-Filter gilt nur für Materialien — Sammelobjekte haben keine vergleichbare Qualitätsangabe und werden von diesem Filter nicht beeinflusst.",
   "hint_gesamtbestand": "Zeigt den gesamten frei verfügbaren Bestand (Materialien und Sammelobjekte gemeinsam) — bereits einem Projekt zugeordnete Mengen sind hier bewusst nicht enthalten.",
   "placeholder_gesamtbestand_suche": "Suche nach Name …",
   "label_eintraege": "Einträge",
@@ -2998,7 +3019,7 @@ const I18N = {
   "empty_stock_overview_title": "Kein freier Bestand vorhanden",
   "panel_bestand_table": "Bestand",
   "panel_papierkorb": "Papierkorb",
-  "hint_papierkorb": "Gelöschte Bestandseinträge der letzten 24 Stunden können hier wiederhergestellt werden.",
+  "hint_papierkorb": "Gelöschte Bestandseinträge, Bedarfe, Projekte und Sammelobjekte der letzten 24 Stunden können hier wiederhergestellt werden.",
   "btn_show_trash": "Papierkorb anzeigen",
   "col_sollbestand": "Sollbestand",
   "col_geschaetzter_wert": "Geschätzter Wert",
@@ -3017,6 +3038,11 @@ const I18N = {
   "placeholder_search_collectibles": "Suche nach Objekt, Kategorie, Lagerort, Besitzer …",
   "filter_alle_kategorien": "Alle Kategorien",
   "placeholder_qualitaet_ge": "Qualität ≥",
+  "panel_gesamtbedarf": "Gesamtbedarf",
+  "hint_gesamtbedarf": "Fasst den eigenständigen Bedarf unten sowie alle offenen Ressourcen-Lücken geteilter Projekte je Material zu einer Summe zusammen — private Projekte bleiben dabei bewusst außen vor. Beantwortet die Frage \"was brauchen wir insgesamt?\", z. B. vor einer gemeinsamen Abbau-Session.",
+  "label_gesamtbedarf": "Gesamtbedarf",
+  "empty_gesamtbedarf_title": "Aktuell kein offener Gesamtbedarf",
+  "empty_gesamtbedarf_sub": "Weder ein eigenständiger Bedarf noch eine offene Projekt-Ressource wartet derzeit auf Deckung.",
   "panel_bedarf": "Bedarfsprioritäten",
   "label_mind_qualitaet": "Mind. Qualität",
   "placeholder_mindestqualitaet": "Mind. Qualität (opt.)",
@@ -3110,7 +3136,14 @@ const I18N = {
   "empty_collectibles_sub": "Sammelobjekte sind besondere Fundstücke wie Artefakte, seltene Waffenteile oder Rüstungsstücke — losgelöst vom gewöhnlichen Materialbestand. Trag oben den ersten Fund ein.",
   "empty_private_collectibles_title": "Noch keine privaten Sammelobjekte erfasst",
   "empty_trash_title": "Papierkorb ist leer",
+  "label_typ_projekt": "Projekt",
+  "label_typ_bedarf": "Bedarf",
+  "label_typ_sammelobjekt": "Sammelobjekt",
+  "label_typ_bestand": "Bestand",
+  "col_beschreibung": "Beschreibung",
   "empty_trash_sub": "Gelöschte Einträge der letzten 24 Stunden erscheinen hier.",
+  "placeholder_log_suche": "Suche nach Benutzer, Aktion, Details …",
+  "empty_log_search_title": "Keine Treffer für diese Suche",
   "empty_log_title": "Noch keine Einträge",
   "empty_log_sub": "Änderungen werden hier protokolliert.",
   "hint_no_email": "Diese Anwendung versendet keine E-Mails. Die hinterlegte E-Mail-Adresse dient hier ausschließlich als zusätzliche Bestätigung deiner Identität — es wird keine Nachricht verschickt. Ist keine E-Mail-Adresse hinterlegt oder wurde keine angegeben, wende dich bitte an einen Administrator.",
@@ -3125,6 +3158,9 @@ const I18N = {
   "label_vorhanden": "vorhanden",
   "label_ort_qualitaet_menge": "Ort · Qualität · Menge",
   "label_pruefen_vor_zuweisung": "Vor Zuweisung prüfen",
+  "filter_nur_markierte": "⚠ Nur zu prüfende anzeigen",
+  "tooltip_geprueft_freigeben": "Geprüft — Markierung entfernen (Eintrag bleibt unverändert im Bestand)",
+  "label_markierte_eintraege_summary": "⚠ {count} Eintrag/Einträge vor Zuweisung zu prüfen",
   "tooltip_flagged_for_review": "Dieser Eintrag wurde zuvor von einem Projekt gelöst — vor einer erneuten Zuweisung prüfen, ob er noch verwendbar ist (z. B. bei Verlust).",
   "tooltip_zuordnung_loesen": "Zuordnung zu diesem Projekt lösen — Material bleibt erhalten, wandert in den freien Bestand zurück",
   "label_beitraege_aufschluesselung": "Wer hat beigetragen",
@@ -3715,6 +3751,8 @@ const I18N = {
   "btn_gesamtbestand": "View total stock",
   "title_gesamtbestand": "Total stock",
   "title_gesamtbestand_privat": "Total stock (private)",
+  "tooltip_zur_position_springen": "Jump to the corresponding position in stock (e.g. to assign it to a project)",
+  "hint_gesamtbestand_qualitaet_sammelobjekte": "The quality filter only applies to materials — collectibles have no comparable quality value and are not affected by this filter.",
   "hint_gesamtbestand": "Shows all freely available stock (materials and collectibles combined) — quantities already assigned to a project are intentionally not included here.",
   "placeholder_gesamtbestand_suche": "Search by name …",
   "label_eintraege": "entries",
@@ -3724,7 +3762,7 @@ const I18N = {
   "empty_stock_overview_title": "No free stock available",
   "panel_bestand_table": "Inventory",
   "panel_papierkorb": "Recycle bin",
-  "hint_papierkorb": "Deleted inventory entries from the last 24 hours can be restored here.",
+  "hint_papierkorb": "Deleted stock entries, needs, projects, and collectibles from the last 24 hours can be restored here.",
   "btn_show_trash": "Show recycle bin",
   "col_sollbestand": "Target stock",
   "col_geschaetzter_wert": "Est. value",
@@ -3743,6 +3781,11 @@ const I18N = {
   "placeholder_search_collectibles": "Search by object, category, location, owner …",
   "filter_alle_kategorien": "All categories",
   "placeholder_qualitaet_ge": "Quality ≥",
+  "panel_gesamtbedarf": "Total need",
+  "hint_gesamtbedarf": "Combines the standalone needs below with all open resource gaps of shared projects, summed per material — private projects are intentionally excluded. Answers the question \"what do we need in total?\", e.g. before a joint mining session.",
+  "label_gesamtbedarf": "Total needed",
+  "empty_gesamtbedarf_title": "No open total need right now",
+  "empty_gesamtbedarf_sub": "Neither a standalone need nor an open project resource is currently waiting to be covered.",
   "panel_bedarf": "Need priorities",
   "label_mind_qualitaet": "Min. quality",
   "placeholder_mindestqualitaet": "Min. quality (opt.)",
@@ -3836,7 +3879,14 @@ const I18N = {
   "empty_collectibles_sub": "Collectibles are special finds like artifacts, rare weapon parts, or armor pieces — separate from regular material stock. Add your first find above.",
   "empty_private_collectibles_title": "No private collectibles recorded yet",
   "empty_trash_title": "Recycle bin is empty",
+  "label_typ_projekt": "Project",
+  "label_typ_bedarf": "Need",
+  "label_typ_sammelobjekt": "Collectible",
+  "label_typ_bestand": "Stock",
+  "col_beschreibung": "Description",
   "empty_trash_sub": "Deleted entries from the last 24 hours appear here.",
+  "placeholder_log_suche": "Search by user, action, details …",
+  "empty_log_search_title": "No matches for this search",
   "empty_log_title": "No entries yet",
   "empty_log_sub": "Changes will be logged here.",
   "hint_no_email": "This application does not send any emails. The registered email address serves only as an additional identity confirmation — no message is sent. If no email address is on file, please contact an administrator.",
@@ -3851,6 +3901,9 @@ const I18N = {
   "label_vorhanden": "available",
   "label_ort_qualitaet_menge": "Location · Quality · Quantity",
   "label_pruefen_vor_zuweisung": "Check before assigning",
+  "filter_nur_markierte": "⚠ Show only flagged items",
+  "tooltip_geprueft_freigeben": "Reviewed — remove flag (entry stays unchanged in stock)",
+  "label_markierte_eintraege_summary": "⚠ {count} entrie(s) to check before assigning",
   "tooltip_flagged_for_review": "This entry was previously unlinked from a project — check whether it is still usable before assigning it again (e.g. in case of loss).",
   "tooltip_zuordnung_loesen": "Unlink from this project — material stays intact, returns to the free stock pool",
   "label_beitraege_aufschluesselung": "Who contributed",
@@ -4441,6 +4494,8 @@ const I18N = {
   "btn_gesamtbestand": "Voir le stock total",
   "title_gesamtbestand": "Stock total",
   "title_gesamtbestand_privat": "Stock total (privé)",
+  "tooltip_zur_position_springen": "Aller à la position correspondante dans le stock (p. ex. pour l'attribuer à un projet)",
+  "hint_gesamtbestand_qualitaet_sammelobjekte": "Le filtre de qualité ne s'applique qu'aux matériaux — les objets de collection n'ont pas de valeur de qualité comparable et ne sont pas affectés par ce filtre.",
   "hint_gesamtbestand": "Affiche tout le stock librement disponible (matériaux et objets de collection combinés) — les quantités déjà attribuées à un projet ne sont volontairement pas incluses ici.",
   "placeholder_gesamtbestand_suche": "Rechercher par nom …",
   "label_eintraege": "entrées",
@@ -4450,7 +4505,7 @@ const I18N = {
   "empty_stock_overview_title": "Aucun stock libre disponible",
   "panel_bestand_table": "Stock",
   "panel_papierkorb": "Corbeille",
-  "hint_papierkorb": "Les entrées de stock supprimées au cours des dernières 24 heures peuvent être restaurées ici.",
+  "hint_papierkorb": "Les entrées de stock, besoins, projets et objets de collection supprimés au cours des dernières 24 heures peuvent être restaurés ici.",
   "btn_show_trash": "Afficher la corbeille",
   "col_sollbestand": "Stock cible",
   "col_geschaetzter_wert": "Valeur estimée",
@@ -4469,6 +4524,11 @@ const I18N = {
   "placeholder_search_collectibles": "Rechercher par objet, catégorie, emplacement, propriétaire…",
   "filter_alle_kategorien": "Toutes les catégories",
   "placeholder_qualitaet_ge": "Qualité ≥",
+  "panel_gesamtbedarf": "Besoin total",
+  "hint_gesamtbedarf": "Combine les besoins autonomes ci-dessous avec tous les manques de ressources ouverts des projets partagés, additionnés par matériau — les projets privés en sont volontairement exclus. Répond à la question « de quoi avons-nous besoin au total ? », p. ex. avant une session de minage commune.",
+  "label_gesamtbedarf": "Besoin total",
+  "empty_gesamtbedarf_title": "Aucun besoin total ouvert actuellement",
+  "empty_gesamtbedarf_sub": "Ni un besoin autonome ni une ressource de projet ouverte n'attend actuellement d'être couvert.",
   "panel_bedarf": "Priorités de besoins",
   "label_mind_qualitaet": "Qualité min.",
   "placeholder_mindestqualitaet": "Qualité min. (opt.)",
@@ -4562,7 +4622,14 @@ const I18N = {
   "empty_collectibles_sub": "Les objets de collection sont des trouvailles spéciales comme des artefacts, des pièces d'armes rares ou des éléments d'armure, distincts du stock de matériaux habituel. Ajoutez votre première trouvaille ci-dessus.",
   "empty_private_collectibles_title": "Aucun objet de collection privé enregistré pour l'instant",
   "empty_trash_title": "La corbeille est vide",
+  "label_typ_projekt": "Projet",
+  "label_typ_bedarf": "Besoin",
+  "label_typ_sammelobjekt": "Objet de collection",
+  "label_typ_bestand": "Stock",
+  "col_beschreibung": "Description",
   "empty_trash_sub": "Les entrées supprimées au cours des dernières 24 heures apparaissent ici.",
+  "placeholder_log_suche": "Rechercher par utilisateur, action, détails …",
+  "empty_log_search_title": "Aucun résultat pour cette recherche",
   "empty_log_title": "Aucune entrée pour l'instant",
   "empty_log_sub": "Les modifications seront consignées ici.",
   "hint_no_email": "Cette application n'envoie aucun e-mail. L'adresse e-mail enregistrée sert uniquement de confirmation d'identité supplémentaire — aucun message n'est envoyé. Si aucune adresse e-mail n'est enregistrée, veuillez contacter un administrateur.",
@@ -4577,6 +4644,9 @@ const I18N = {
   "label_vorhanden": "disponible",
   "label_ort_qualitaet_menge": "Emplacement · Qualité · Quantité",
   "label_pruefen_vor_zuweisung": "À vérifier avant attribution",
+  "filter_nur_markierte": "⚠ Afficher uniquement les éléments signalés",
+  "tooltip_geprueft_freigeben": "Vérifié — supprimer le signalement (l'entrée reste inchangée dans le stock)",
+  "label_markierte_eintraege_summary": "⚠ {count} entrée(s) à vérifier avant attribution",
   "tooltip_flagged_for_review": "Cette entrée a été détachée d'un projet — vérifiez si elle est encore utilisable avant de la réattribuer (p. ex. en cas de perte).",
   "tooltip_zuordnung_loesen": "Détacher de ce projet — le matériau reste intact, retourne au stock libre",
   "label_beitraege_aufschluesselung": "Qui a contribué",
@@ -5525,6 +5595,14 @@ async function logAction(action, details, actorOverride){
     const res = await window.storage.get(orgKey(LOG_KEY), true);
     let log = res && res.value ? JSON.parse(res.value) : [];
     log.push({ ts: new Date().toISOString(), user: actor, action, details: details || '' });
+    // Ab 16. August 2026 (Nutzerwunsch): Eintraege aelter als 100 Tage
+    // werden zusaetzlich zur bereits bestehenden Mengenbegrenzung
+    // (LOG_MAX_ENTRIES) automatisch entfernt -- greift bei jeder neuen
+    // Protokollierung, kein separater Aufraeum-Vorgang noetig. Beide
+    // Begrenzungen wirken unabhaengig voneinander (je nachdem, was im
+    // Einzelfall zuerst greift).
+    const cutoff = Date.now() - (100 * 24 * 60 * 60 * 1000);
+    log = log.filter(entry => new Date(entry.ts).getTime() >= cutoff);
     if(log.length > LOG_MAX_ENTRIES) log = log.slice(log.length - LOG_MAX_ENTRIES);
     await window.storage.set(orgKey(LOG_KEY), JSON.stringify(log), true);
   }catch(e){
@@ -5535,16 +5613,49 @@ async function logAction(action, details, actorOverride){
 let logVisible = false;
 async function toggleLogView(){
   const container = document.getElementById('logContainer');
+  const searchWrap = document.getElementById('logSearchWrap');
   const btn = document.getElementById('btnToggleLog');
   logVisible = !logVisible;
   if(logVisible){
     container.style.display = '';
+    searchWrap.style.display = '';
     btn.textContent = t('btn_hide_log');
     await renderLog();
   } else {
     container.style.display = 'none';
+    searchWrap.style.display = 'none';
     btn.textContent = t('btn_show_log');
   }
+}
+
+// Ab 16. August 2026: haelt das zuletzt geladene Protokoll zwischen, um
+// bei jedem Tastendruck im Suchfeld NICHT erneut aus der Datenbank
+// nachzuladen -- reines Filtern der bereits vorhandenen Liste im
+// Speicher, spuerbar fluessiger bei laengeren Protokollen.
+let cachedLogEntries = null;
+function renderFilteredLog(){
+  const container = document.getElementById('logContainer');
+  if(!cachedLogEntries) return;
+  const term = (document.getElementById('logSearch').value||'').trim().toLowerCase();
+  const filtered = term
+    ? cachedLogEntries.filter(entry=>[entry.user, entry.action, entry.details].join(' ').toLowerCase().includes(term))
+    : cachedLogEntries;
+  if(filtered.length === 0){
+    container.innerHTML = `<div class="empty"><div class="big">${term ? t('empty_log_search_title') : t('empty_log_title')}</div>${term ? '' : t('empty_log_sub')}</div>`;
+    return;
+  }
+  let html = `<table><thead><tr><th>${t('col_zeit')}</th><th>${t('col_benutzer')}</th><th>${t('col_aktion')}</th><th>${t('col_details')}</th></tr></thead><tbody>`;
+  filtered.forEach(entry=>{
+    const timeStr = new Date(entry.ts).toLocaleString('de-DE');
+    html += `<tr>
+      <td data-label="${t('col_zeit')}" class="qty-cell">${escapeHtml(timeStr)}</td>
+      <td data-label="${t('col_benutzer')}"><span style="display:inline-flex;align-items:center;">${userDot(entry.user)}${escapeHtml(entry.user)}</span></td>
+      <td data-label="${t('col_aktion')}">${escapeHtml(entry.action)}</td>
+      <td data-label="${t('col_details')}">${escapeHtml(entry.details||'')}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
 }
 
 async function renderLog(){
@@ -5553,23 +5664,8 @@ async function renderLog(){
   try{
     const res = await window.storage.get(orgKey(LOG_KEY), true);
     const log = res && res.value ? JSON.parse(res.value) : [];
-    if(log.length === 0){
-      container.innerHTML = `<div class="empty"><div class="big">${t('empty_log_title')}</div>${t('empty_log_sub')}</div>`;
-      return;
-    }
-    const sorted = [...log].reverse();
-    let html = `<table><thead><tr><th>${t('col_zeit')}</th><th>${t('col_benutzer')}</th><th>${t('col_aktion')}</th><th>${t('col_details')}</th></tr></thead><tbody>`;
-    sorted.forEach(entry=>{
-      const timeStr = new Date(entry.ts).toLocaleString('de-DE');
-      html += `<tr>
-        <td data-label="${t('col_zeit')}" class="qty-cell">${escapeHtml(timeStr)}</td>
-        <td data-label="${t('col_benutzer')}"><span style="display:inline-flex;align-items:center;">${userDot(entry.user)}${escapeHtml(entry.user)}</span></td>
-        <td data-label="${t('col_aktion')}">${escapeHtml(entry.action)}</td>
-        <td data-label="${t('col_details')}">${escapeHtml(entry.details||'')}</td>
-      </tr>`;
-    });
-    html += '</tbody></table>';
-    container.innerHTML = html;
+    cachedLogEntries = [...log].reverse();
+    renderFilteredLog();
   }catch(e){
     container.innerHTML = `<div class="empty">${t('err_log_failed')}</div>`;
   }
@@ -8268,6 +8364,7 @@ document.getElementById('btnAddUser').addEventListener('click', addUser);
 document.getElementById('btnAddMaterial').addEventListener('click', addMaterial);
 document.getElementById('btnAddLocation').addEventListener('click', addLocation);
 document.getElementById('btnToggleLog').addEventListener('click', toggleLogView);
+document.getElementById('logSearch').addEventListener('input', renderFilteredLog);
 document.getElementById('btnToggleTrash').addEventListener('click', toggleTrashView);
 document.getElementById('btnExportBestand').addEventListener('click', exportBestandCSV);
 document.getElementById('btnExportNeeds').addEventListener('click', exportNeedsCSV);
@@ -8638,10 +8735,12 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
 function getFilteredCollectibles(){
   const q = document.getElementById('coll-search').value.toLowerCase();
   const kategorie = document.getElementById('coll-filterKategorie').value;
+  const nurMarkierte = document.getElementById('coll-filterFlagged').checked;
   return collectibles.filter(c=>{
     const matchesSearch = !q || [c.objekt, c.kategorie, c.standort, c.besitzer].join(' ').toLowerCase().includes(q);
     const matchesKategorie = !kategorie || c.kategorie === kategorie;
-    return matchesSearch && matchesKategorie;
+    const matchesFlagged = !nurMarkierte || !!c.flaggedForReview;
+    return matchesSearch && matchesKategorie && matchesFlagged;
   });
 }
 
@@ -8703,7 +8802,7 @@ function renderCollectibles(){
       html += `<tr>
         <td>${canManage ? `<input type="checkbox" class="collectible-select-cb" data-id="${c.id}" ${selectedCollectibleIds.has(c.id)?'checked':''}>` : ''}</td>
         <td data-label="${t('col_kategorie')}">${escapeHtml(c.kategorie)}</td>
-        <td data-label="${t('col_objekt')}">${escapeHtml(c.objekt)}${c.flaggedForReview ? ` <span class="badge" style="background:rgba(255,166,48,0.15);color:var(--accent);border:1px solid var(--accent);font-size:10px;cursor:help;" title="${t('tooltip_flagged_for_review')}">⚠ ${t('label_pruefen_vor_zuweisung')}</span>` : ''}</td>
+        <td data-label="${t('col_objekt')}">${escapeHtml(c.objekt)}${c.flaggedForReview ? ` <span class="badge" style="background:rgba(255,166,48,0.15);color:var(--accent);border:1px solid var(--accent);font-size:10px;cursor:help;" title="${t('tooltip_flagged_for_review')}">⚠ ${t('label_pruefen_vor_zuweisung')}</span> <button type="button" class="btn-icon" data-action="clear-flag" data-flag-id="${escapeHtml(c.id)}" data-flag-kind="collectible" title="${t('tooltip_geprueft_freigeben')}" style="padding:1px 6px;font-size:11px;">✓</button>` : ''}</td>
         <td data-label="${t('col_qualitaet_stufe2')}">${c.tier ? escapeHtml(c.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td data-label="${t('col_lagerort')}"><span style="display:inline-flex;align-items:center;">${c.standort ? locationDot(c.standort)+escapeHtml(c.standort) : '<span style="color:var(--ink-soft);">—</span>'}</span></td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${c.anzahl}</td>
@@ -8731,7 +8830,10 @@ function renderCollectibles(){
         const c = collectibles.find(co=>co.id === btn.dataset.id);
         collectibles = collectibles.filter(co=>co.id !== btn.dataset.id);
         await saveCollectibles();
-        if(c) await logAction('Sammelobjekt gelöscht', `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''} — ${c.anzahl}x (${c.besitzer||'–'})`);
+        if(c){
+          await moveToTrash(c, 'collectible');
+          await logAction('Sammelobjekt gelöscht', `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''} — ${c.anzahl}x (${c.besitzer||'–'})`);
+        }
         renderCollectibles();
         renderCollectibleSummary();
         scheduleRenderDashboard();
@@ -10528,6 +10630,23 @@ async function unlinkEntryFromProject(id, kind){
   return true;
 }
 
+// Ab 16. August 2026 (Nutzerwunsch): manuelles Entfernen der "Vor
+// Zuweisung prüfen"-Markierung, OHNE dass dafür zwingend eine
+// tatsächliche Neuzuweisung zu einem Projekt stattfinden muss (siehe
+// dazu bereits die automatische Entfernung bei echter Neuzuweisung,
+// weiter unten bei den jeweiligen Bearbeiten-Speicherstellen). Deckt
+// den Fall ab, dass die Prüfung ergibt "ist doch in Ordnung, bleibt
+// erstmal so liegen" -- der Eintrag verbleibt dabei unverändert im
+// freien Bestand, nur die Markierung selbst verschwindet.
+async function clearReviewFlag(id, kind){
+  const list = kind==='collectible' ? collectibles : entries;
+  const item = list.find(e=>e.id===id);
+  if(!item) return false;
+  delete item.flaggedForReview;
+  await (kind==='collectible' ? saveCollectibles() : save());
+  return true;
+}
+
 // ============================================================
 // Gesamtbestand-Übersicht (Overlay mit Suche & Sortierung)
 // ============================================================
@@ -10542,11 +10661,20 @@ async function unlinkEntryFromProject(id, kind){
 // geteilten Bestand-Tab als auch im privaten Bereich erreichbar, per
 // isPrivate-Parameter unterschieden. Siehe Nutzerwunsch vom 16. August
 // 2026.
-function buildFreeStockOverview(isPrivate){
+// Ab 16. August 2026: optionaler minQuality-Parameter -- filtert die
+// zugrunde liegenden Bestandseintraege VOR der Summierung nach
+// Mindest-Qualitaet (z.B. "Copper" UND Qualitaet >= 500 gemeinsam
+// gesucht, analog zur bereits bestehenden UND-Verknuepfung von Suche
+// und Qualitaets-Filter in der regulaeren Bestandstabelle sowie im
+// Privatbestand). Gilt bewusst NUR fuer Materialien -- Sammelobjekte
+// haben keine vergleichbare, numerische Qualitaetsangabe (nur eine
+// text-basierte Qualitaetsstufe) und bleiben von diesem Filter
+// unberuehrt, tauchen bei einer Namens-Suche also weiterhin normal auf.
+function buildFreeStockOverview(isPrivate, minQuality){
   const entryList = isPrivate ? privateEntries : entries;
   const collList = isPrivate ? privateCollectibles : collectibles;
   const map = new Map(); // Schluessel: "typ::name" -> {name, type, menge, einheit}
-  entryList.filter(e=>!e.projekt).forEach(e=>{
+  entryList.filter(e=>!e.projekt && (minQuality==null || e.qualitaet >= minQuality)).forEach(e=>{
     const key = 'material::' + e.material;
     const existing = map.get(key);
     if(existing) existing.menge = Math.round((existing.menge + e.menge)*1000)/1000;
@@ -10565,11 +10693,52 @@ let stockOverviewSortKey = 'name';
 let stockOverviewSortDir = 1;
 let stockOverviewIsPrivate = false;
 
+// Ab 16. August 2026 (Nutzerwunsch, direkter Folgewunsch zur "Und"-
+// Verknuepfung mit Mindest-Qualitaet): springt von einer Zeile im
+// Gesamtbestand-Overlay direkt zur entsprechenden, bereits gefilterten
+// Position in der jeweiligen Bestand- bzw. Sammelobjekte-Tabelle --
+// dort laesst sich die Zuordnung zu einem Projekt (im Sinne von
+// "beanspruchen"/reservieren, ueber die dort bereits bestehende
+// Bearbeiten-Funktion) direkt vornehmen. Da eine Zeile im Overlay eine
+// ZUSAMMENGEFASSTE Summe darstellen kann (mehrere Einzeleintraege
+// desselben Namens), fuehrt der Sprung NICHT zu einem einzelnen,
+// spezifischen Eintrag (waere bei mehreren Treffern ohnehin nicht
+// eindeutig), sondern zur GEFILTERTEN Tabellenansicht mit demselben
+// Namen (und, bei Materialien, derselben Mindest-Qualitaet) -- exakt
+// die Einzeleintraege, aus denen sich die angezeigte Summe
+// zusammensetzt, werden dadurch sichtbar.
+function gotoStockPosition(name, type){
+  const minQualRaw = document.getElementById('stockOverviewMinQual').value;
+  document.getElementById('stockOverviewModal').style.display = 'none';
+  if(type === 'collectible'){
+    if(stockOverviewIsPrivate){
+      switchTab('privatbestand');
+      const search = document.getElementById('priv-coll-search');
+      if(search){ search.value = name; renderPrivateCollectibles(); }
+      document.getElementById('privateCollectibleTableContainer').scrollIntoView({behavior:'smooth', block:'start'});
+    } else {
+      switchTab('sammelobjekte');
+      const search = document.getElementById('coll-search');
+      if(search){ search.value = name; renderCollectibles(); }
+    }
+  } else {
+    switchTab(stockOverviewIsPrivate ? 'privatbestand' : 'bestand');
+    const searchId = stockOverviewIsPrivate ? 'priv-search' : 'search';
+    const qualId = stockOverviewIsPrivate ? 'priv-filterQualitaet' : 'filterQualitaet';
+    const search = document.getElementById(searchId);
+    const qualField = document.getElementById(qualId);
+    if(search) search.value = name;
+    if(qualField) qualField.value = minQualRaw || '';
+    if(stockOverviewIsPrivate) renderPrivate(); else render();
+  }
+}
+
 function openStockOverviewModal(isPrivate){
   stockOverviewIsPrivate = isPrivate;
   stockOverviewSortKey = 'name';
   stockOverviewSortDir = 1;
   document.getElementById('stockOverviewSearch').value = '';
+  document.getElementById('stockOverviewMinQual').value = '';
   document.getElementById('stockOverviewTitle').textContent = isPrivate ? t('title_gesamtbestand_privat') : t('title_gesamtbestand');
   document.getElementById('stockOverviewModal').style.display = 'flex';
   renderStockOverview();
@@ -10578,7 +10747,10 @@ function openStockOverviewModal(isPrivate){
 function renderStockOverview(){
   const searchInput = document.getElementById('stockOverviewSearch');
   const term = (searchInput.value||'').trim().toLowerCase();
-  let list = buildFreeStockOverview(stockOverviewIsPrivate);
+  const minQualRaw = document.getElementById('stockOverviewMinQual').value;
+  const minQual = minQualRaw === '' ? null : parseFloat(minQualRaw);
+  document.getElementById('stockOverviewQualHint').style.display = minQual!=null ? '' : 'none';
+  let list = buildFreeStockOverview(stockOverviewIsPrivate, minQual);
   if(term) list = list.filter(item=>item.name.toLowerCase().includes(term));
   list.sort((a,b)=>{
     let va = a[stockOverviewSortKey], vb = b[stockOverviewSortKey];
@@ -10600,13 +10772,14 @@ function renderStockOverview(){
     const arrow = stockOverviewSortKey===key ? (stockOverviewSortDir===1?' ▲':' ▼') : '';
     html += `<th data-sort="${key}">${label}${arrow}</th>`;
   });
-  html += '</tr></thead><tbody>';
+  html += `<th></th></tr></thead><tbody>`;
   list.forEach(item=>{
     const unitLabel = item.type==='collectible' ? t('unit_stueck') : einheitLabel(item.einheit);
     html += `<tr>
       <td>${item.type==='collectible' ? t('label_sammelobjekt_typ') : t('label_material_typ')}</td>
       <td>${escapeHtml(item.name)}</td>
       <td class="qty-cell">${item.menge} ${escapeHtml(unitLabel)}</td>
+      <td><button type="button" class="btn-icon" data-action="goto-stock-position" data-goto-name="${escapeHtml(item.name)}" data-goto-type="${item.type}" title="${t('tooltip_zur_position_springen')}" style="padding:2px 8px;">→</button></td>
     </tr>`;
   });
   html += '</tbody></table>';
@@ -11525,7 +11698,10 @@ function renderNeedEscalationModal(){
         const n = needs.find(nd=>nd.id === btn.dataset.id);
         needs = needs.filter(nd=>nd.id !== btn.dataset.id);
         await saveNeeds();
-        if(n) await logAction('Bedarf gelöscht', `${n.material}, ${n.menge} ${n.einheit} (${n.user}, aus Erinnerung entfernt)`);
+        if(n){
+          await moveToTrash(n, 'need');
+          await logAction('Bedarf gelöscht', `${n.material}, ${n.menge} ${n.einheit} (${n.user}, aus Erinnerung entfernt)`);
+        }
         renderNeedEscalationModal();
         if(document.getElementById('needTableContainer')) renderNeeds();
       });
@@ -12982,6 +13158,7 @@ function renderProjects(){
         await saveProjects();
         if(p){
           await releaseProjectReferences(p.ziel, 'shared');
+          await moveToTrash(p, 'project');
           await logAction('Projekt gelöscht', `${p.ziel}${refs.total>0 ? ` (Zuordnung bei ${refs.total} Eintrag(en) aufgehoben)` : ''}`);
         }
         renderProjects();
@@ -13655,6 +13832,60 @@ document.getElementById('btnAddNeed').addEventListener('click', async ()=>{
   setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 });
 
+// Ab 16./17. August 2026: buendelt Materialbedarf aus BEIDEN geteilten
+// Quellen (eigenstaendige Bedarfe-Liste UND offene Ressourcen-Luecken
+// geteilter Projekte) zu EINER, nach Material gruppierten Summe --
+// bewusst OHNE private Projekte, die bleiben, wie an anderer Stelle
+// bereits etabliert (siehe Dashboard "Offene Projekt-Bedarfe"),
+// ausschliesslich der jeweiligen Person vorbehalten. Beantwortet die
+// Frage "was brauchen wir INSGESAMT", statt die Information ueber
+// mehrere Projekte und die separate Bedarfe-Liste verstreut
+// vorzuhalten -- gemeinsam mit dem Nutzer als eigenstaendiges, fest
+// sichtbares Panel konzipiert (nicht als Overlay hinter einem Button,
+// da eher fuer den regelmaessigen statt nur gelegentlichen Blick
+// gedacht -- analog zur bereits bestehenden "Zusammenfassung nach
+// Material" im Bestand-Tab).
+function buildConsolidatedNeedsSummary(){
+  const map = new Map(); // Material -> { material, menge, einheit }
+  needs.forEach(n=>{
+    const existing = map.get(n.material);
+    if(existing) existing.menge = Math.round((existing.menge + n.menge)*1000)/1000;
+    else map.set(n.material, { material: n.material, menge: n.menge, einheit: n.einheit || getDefaultEinheitForMaterial(n.material) });
+  });
+  projects.forEach(p=>{
+    const resources = p.resources.map(normalizeResource).filter(r=>r.material && r.menge!=null && r.menge>0);
+    resources.forEach(r=>{
+      const effMenge = effectiveResourceMenge(p, r);
+      const avail = stockAmount(r.material, p.ziel);
+      const fehlend = Math.round((effMenge - avail) * 100) / 100;
+      if(fehlend <= 0) return;
+      const existing = map.get(r.material);
+      if(existing) existing.menge = Math.round((existing.menge + fehlend)*1000)/1000;
+      else map.set(r.material, { material: r.material, menge: fehlend, einheit: getDefaultEinheitForMaterial(r.material) });
+    });
+  });
+  return [...map.values()].sort((a,b)=>a.material.localeCompare(b.material));
+}
+
+function renderConsolidatedNeedsSummary(){
+  const container = document.getElementById('consolidatedNeedsContainer');
+  if(!container) return;
+  const list = buildConsolidatedNeedsSummary();
+  if(list.length === 0){
+    container.innerHTML = `<div class="empty"><div class="big">${t('empty_gesamtbedarf_title')}</div>${t('empty_gesamtbedarf_sub')}</div>`;
+    return;
+  }
+  let html = `<table><thead><tr><th>${t('col_material')}</th><th>${t('label_gesamtbedarf')}</th></tr></thead><tbody>`;
+  list.forEach(item=>{
+    html += `<tr>
+      <td>${escapeHtml(item.material)}</td>
+      <td class="qty-cell">${item.menge} ${escapeHtml(einheitLabel(item.einheit))}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
 function renderNeeds(){
   const container = document.getElementById('needTableContainer');
   if(!currentUser) return;
@@ -13782,7 +14013,10 @@ function renderNeeds(){
         const n = needs.find(nd=>nd.id === btn.dataset.id);
         needs = needs.filter(nd=>nd.id !== btn.dataset.id);
         await saveNeeds();
-        if(n) await logAction('Bedarf gelöscht', `${n.material}, ${n.menge} ${n.einheit} (${n.user})`);
+        if(n){
+          await moveToTrash(n, 'need');
+          await logAction('Bedarf gelöscht', `${n.material}, ${n.menge} ${n.einheit} (${n.user})`);
+        }
         renderNeeds();
       });
     });
@@ -13815,6 +14049,7 @@ function renderNeeds(){
       renderNeeds();
     });
   }
+  renderConsolidatedNeedsSummary();
 }
 
 // Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) fuer die Bedarf-Mehrfach-
@@ -13838,6 +14073,7 @@ btnBulkDeleteNeeds.addEventListener('click', ()=>{
     needs = needs.filter(n=>!(selectedNeedIds.has(n.id) && canManageNeed(n)));
     await saveNeeds();
     for(const n of toDelete){
+      await moveToTrash(n, 'need');
       await logAction('Bedarf gelöscht', `${n.material}, ${n.menge} ${n.einheit} (${n.user}, Sammel-Löschung)`);
     }
     selectedNeedIds.clear();
@@ -13873,6 +14109,7 @@ btnBulkDeleteProjects.addEventListener('click', ()=>{
     for(const p of toDelete){
       const refs = countProjectReferences(p.ziel, 'shared');
       await releaseProjectReferences(p.ziel, 'shared');
+      await moveToTrash(p, 'project');
       await logAction('Projekt gelöscht', `${p.ziel} (Sammel-Löschung)${refs.total>0 ? `, Zuordnung bei ${refs.total} Eintrag(en) aufgehoben` : ''}`);
     }
     selectedProjectIds.clear();
@@ -13899,6 +14136,7 @@ btnBulkDeleteCollectibles.addEventListener('click', ()=>{
     collectibles = collectibles.filter(c=>!selectedCollectibleIds.has(c.id));
     await saveCollectibles();
     for(const c of toDelete){
+      await moveToTrash(c, 'collectible');
       await logAction('Sammelobjekt gelöscht', `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''} — ${c.anzahl}x (${c.besitzer||'–'}, Sammel-Löschung)`);
     }
     selectedCollectibleIds.clear();
@@ -14278,6 +14516,19 @@ async function renderDashboard(){
     if(projectsWithGaps.length > 0){
       parts.push(`<div style="${nurKritisch.length>0 ? 'margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,59,92,0.2);' : ''}font-family:'Share Tech Mono', monospace;font-size:12.5px;color:var(--ink-soft);cursor:pointer;" data-goto-reminder="1">${t('label_offene_projektbedarfe_summary').replace('{count}', projectsWithGaps.length)}</div>`);
     }
+    // Ab 16. August 2026 (Nutzerwunsch, dritte Ergaenzung zur bereits
+    // bestehenden Warnleiste): Anzahl der ueber den "Zuordnung loesen"-
+    // Button markierten Eintraege (siehe unlinkEntryFromProject()) --
+    // Material UND Sammelobjekte gemeinsam gezaehlt. Ein Klick wechselt
+    // in den Bestand-Tab und aktiviert dort direkt den bereits
+    // bestehenden "Nur zu pruefende anzeigen"-Filter, damit die
+    // betroffenen Eintraege sofort sichtbar sind, ohne selbst danach
+    // suchen zu muessen.
+    const flaggedCount = entries.filter(e=>e.flaggedForReview).length + collectibles.filter(c=>c.flaggedForReview).length;
+    if(flaggedCount > 0){
+      const hasEarlierParts = nurKritisch.length > 0 || projectsWithGaps.length > 0;
+      parts.push(`<div style="${hasEarlierParts ? 'margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,59,92,0.2);' : ''}font-family:'Share Tech Mono', monospace;font-size:12.5px;color:var(--ink-soft);cursor:pointer;" data-goto-flagged="1" title="${t('tooltip_flagged_for_review')}">${t('label_markierte_eintraege_summary').replace('{count}', flaggedCount)}</div>`);
+    }
     if(parts.length > 0){
       criticalBanner.innerHTML = parts.join('');
       criticalBanner.style.display = '';
@@ -14285,6 +14536,12 @@ async function renderDashboard(){
       if(gotoEl) gotoEl.addEventListener('click', ()=>{
         const target = document.getElementById('projectReminderPanel');
         if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+      const gotoFlaggedEl = criticalBanner.querySelector('[data-goto-flagged]');
+      if(gotoFlaggedEl) gotoFlaggedEl.addEventListener('click', ()=>{
+        switchTab('bestand');
+        const cb = document.getElementById('filterFlagged');
+        if(cb){ cb.checked = true; render(); }
       });
     } else {
       criticalBanner.style.display = 'none';
@@ -14827,6 +15084,22 @@ document.addEventListener('click', (e)=>{
         renderProjects();
       }
     });
+    return;
+  }
+  const clearFlagBtn = e.target.closest('[data-action="clear-flag"]');
+  if(clearFlagBtn){
+    const kind = clearFlagBtn.dataset.flagKind;
+    clearReviewFlag(clearFlagBtn.dataset.flagId, kind).then(ok=>{
+      if(ok){
+        logAction('Prüf-Markierung entfernt', kind==='collectible' ? 'Sammelobjekt' : 'Material');
+        if(kind==='collectible') renderCollectibles(); else render();
+      }
+    });
+    return;
+  }
+  const gotoBtn = e.target.closest('[data-action="goto-stock-position"]');
+  if(gotoBtn){
+    gotoStockPosition(gotoBtn.dataset.gotoName, gotoBtn.dataset.gotoType);
   }
 });
 
@@ -14938,6 +15211,7 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
 document.getElementById('search').addEventListener('input', debounce(render, 200));
 document.getElementById('coll-search').addEventListener('input', debounce(renderCollectibles, 200));
 document.getElementById('coll-filterKategorie').addEventListener('change', renderCollectibles);
+document.getElementById('coll-filterFlagged').addEventListener('change', renderCollectibles);
 document.getElementById('btnToggleGroupByLocation').addEventListener('click', ()=>{
   groupByLocation = !groupByLocation;
   document.getElementById('btnToggleGroupByLocation').textContent = groupByLocation ? t('btn_ungroup_location') : t('btn_group_by_location');
@@ -15296,6 +15570,7 @@ document.getElementById('stockOverviewModal').addEventListener('click', (e)=>{
   if(e.target.id === 'stockOverviewModal') document.getElementById('stockOverviewModal').style.display = 'none';
 });
 document.getElementById('stockOverviewSearch').addEventListener('input', renderStockOverview);
+document.getElementById('stockOverviewMinQual').addEventListener('input', renderStockOverview);
 document.getElementById('btnPickOcrCamera').addEventListener('click', ()=>{
   document.getElementById('ocrFileInputCamera').click();
 });
@@ -16268,12 +16543,14 @@ document.getElementById('priv-bulkTableBody').addEventListener('input', ()=>{
 document.getElementById('filterLagerort').addEventListener('change', render);
 document.getElementById('filterQualitaet').addEventListener('change', render);
 document.getElementById('filterReservierung').addEventListener('change', render);
+document.getElementById('filterFlagged').addEventListener('change', render);
 
 function getFiltered(){
   const q = document.getElementById('search').value.toLowerCase();
   const loc = document.getElementById('filterLagerort').value;
   const qual = document.getElementById('filterQualitaet').value;
   const reservierung = document.getElementById('filterReservierung').value;
+  const nurMarkierte = document.getElementById('filterFlagged').checked;
   let list = entries.filter(e=>{
     const matchesSearch = !q || [e.material, e.lagerort, e.person].join(' ').toLowerCase().includes(q);
     const matchesLoc = !loc || e.lagerort === loc;
@@ -16281,7 +16558,8 @@ function getFiltered(){
     const matchesReservierung = !reservierung
       || (reservierung === 'frei' && !e.projekt)
       || (reservierung === 'reserviert' && !!e.projekt);
-    return matchesSearch && matchesLoc && matchesQual && matchesReservierung;
+    const matchesFlagged = !nurMarkierte || !!e.flaggedForReview;
+    return matchesSearch && matchesLoc && matchesQual && matchesReservierung && matchesFlagged;
   });
   if(sortKey){
     list.sort((a,b)=>{
@@ -16730,14 +17008,14 @@ function downloadCSV(filename, headers, rows){
 
 function exportBestandCSV(){
   downloadCSV('bestand.csv',
-    [t('col_material'), t('col_qualitaet'), t('col_menge'), t('col_einheit'), t('col_lagerort'), t('col_verantwortlicher'), t('col_projekt')],
-    entries.map(e=>[e.material, e.qualitaet, e.menge, einheitLabel(e.einheit), e.lagerort, e.person, e.projekt||''])
+    [t('col_material'), t('col_qualitaet'), t('col_menge'), t('col_einheit'), t('col_lagerort'), t('col_verantwortlicher'), t('col_projekt'), t('label_pruefen_vor_zuweisung')],
+    entries.map(e=>[e.material, e.qualitaet, e.menge, einheitLabel(e.einheit), e.lagerort, e.person, e.projekt||'', e.flaggedForReview ? t('label_pruefen_vor_zuweisung') : ''])
   );
 }
 function exportCollectiblesCSV(){
   downloadCSV('sammelobjekte.csv',
-    [t('col_kategorie'), t('col_objekt'), t('col_qualitaet_stufe2'), t('col_lagerort'), t('col_anzahl'), t('col_besitzer2')],
-    collectibles.map(c=>[c.kategorie, c.objekt, c.tier||'', c.standort||'', c.anzahl, c.besitzer||''])
+    [t('col_kategorie'), t('col_objekt'), t('col_qualitaet_stufe2'), t('col_lagerort'), t('col_anzahl'), t('col_besitzer2'), t('label_pruefen_vor_zuweisung')],
+    collectibles.map(c=>[c.kategorie, c.objekt, c.tier||'', c.standort||'', c.anzahl, c.besitzer||'', c.flaggedForReview ? t('label_pruefen_vor_zuweisung') : ''])
   );
 }
 function exportProjectsCSV(){
@@ -16942,8 +17220,16 @@ async function saveTrash(){
     return false;
   }
 }
-async function moveToTrash(entry){
-  trash.push({ ...entry, deletedAt: new Date().toISOString(), deletedBy: currentUser ? currentUser.username : 'Unbekannt' });
+// Ab 17. August 2026: der Papierkorb deckte bislang ausschliesslich
+// geloeschte Bestandseintraege ab -- Projekte, Bedarfe und Sammelobjekte
+// waren bei Loeschung unwiderruflich weg. Ueber den optionalen kind-
+// Parameter ('project'/'need'/'collectible', Standard weiterhin 'entry'
+// zur Abwaertskompatibilitaet mit bereits bestehenden, aelteren
+// Papierkorb-Eintraegen ohne dieses Feld) laesst sich derselbe
+// Papierkorb jetzt fuer alle vier Typen gemeinsam nutzen. Siehe
+// Nutzerwunsch vom 17. August 2026.
+async function moveToTrash(entry, kind){
+  trash.push({ ...entry, kind: kind || 'entry', deletedAt: new Date().toISOString(), deletedBy: currentUser ? currentUser.username : 'Unbekannt' });
   await saveTrash();
 }
 function recentTrash(){
@@ -16966,22 +17252,70 @@ async function toggleTrashView(){
   }
 }
 
+// Ab 17. August 2026: unterscheidet beim Wiederherstellen anhand des
+// (ggf. fehlenden -- siehe Kommentar bei moveToTrash) kind-Felds, in
+// welches Array der Eintrag zurueckwandert und welche Speicher-/
+// Protokoll-Funktion dafuer zustaendig ist. Alle Neu-Render-Aufrufe am
+// Ende bleiben bewusst unbedingt (nicht nur fuer den betroffenen Typ) --
+// eine Wiederherstellung kann sich je nach Typ auf mehrere Ansichten
+// gleichzeitig auswirken (z.B. beeinflusst ein wiederhergestellter
+// Bestandseintrag auch die Projekt-Deckung), lieber einmal zu viel neu
+// rendern als eine Stelle zu vergessen.
 async function restoreFromTrash(id){
-  const t = trash.find(tr=>tr.id===id);
-  if(!t) return false;
-  const { deletedAt, deletedBy, ...restored } = t;
-  entries.push(restored);
-  await save();
-  trash = trash.filter(tr=>tr.id!==id);
+  const tr = trash.find(t=>t.id===id);
+  if(!tr) return false;
+  const { deletedAt, deletedBy, kind, ...restored } = tr;
+  const effectiveKind = kind || 'entry';
+  if(effectiveKind === 'project'){
+    projects.push(restored);
+    await saveProjects();
+    await logAction('Projekt aus Papierkorb wiederhergestellt', restored.ziel);
+  } else if(effectiveKind === 'need'){
+    needs.push(restored);
+    await saveNeeds();
+    await logAction('Bedarf aus Papierkorb wiederhergestellt', `${restored.material}, ${restored.menge} ${restored.einheit}`);
+  } else if(effectiveKind === 'collectible'){
+    collectibles.push(restored);
+    await saveCollectibles();
+    await logAction('Sammelobjekt aus Papierkorb wiederhergestellt', `${restored.objekt}${restored.tier ? ' ('+restored.tier+')' : ''} — ${restored.anzahl}x`);
+  } else {
+    entries.push(restored);
+    await save();
+    await logAction('Bestand aus Papierkorb wiederhergestellt', `${restored.material}, ${restored.menge} ${restored.einheit} @ ${restored.lagerort}`);
+  }
+  trash = trash.filter(t=>t.id!==id);
   await saveTrash();
-  await logAction('Bestand aus Papierkorb wiederhergestellt', `${restored.material}, ${restored.menge} ${restored.einheit} @ ${restored.lagerort}`);
   render();
+  renderNeeds();
+  renderCollectibles();
+  renderCollectibleSummary();
   updateProjectAvailability();
   renderProjects();
-  renderNeeds();
   scheduleRenderDashboard();
   renderTrash();
   return true;
+}
+
+// Liefert eine kurze, menschenlesbare Typ-Bezeichnung sowie eine
+// einzeilige Beschreibung fuer einen Papierkorb-Eintrag, je nach Typ
+// (siehe kind-Feld bei moveToTrash). Bewusst als generische
+// "Typ + Beschreibung"-Darstellung statt fester, typspezifischer
+// Tabellenspalten umgesetzt -- die vier Typen haben zu unterschiedliche
+// Felder (Bestand: Material/Menge/Lagerort, Projekt: Ziel/Anzahl,
+// Bedarf: Material/Menge, Sammelobjekt: Objekt/Anzahl), eine gemeinsame
+// Tabelle mit bedingten Spalten waere unnoetig komplex geworden.
+function describeTrashItem(item){
+  const kind = item.kind || 'entry';
+  if(kind === 'project'){
+    return { typeLabel: t('label_typ_projekt'), description: `${item.ziel} (${item.anzahl}x)` };
+  }
+  if(kind === 'need'){
+    return { typeLabel: t('label_typ_bedarf'), description: `${item.material}, ${item.menge} ${einheitLabel(item.einheit)}` };
+  }
+  if(kind === 'collectible'){
+    return { typeLabel: t('label_typ_sammelobjekt'), description: `${item.objekt}${item.tier ? ' ('+item.tier+')' : ''} — ${item.anzahl}x` };
+  }
+  return { typeLabel: t('label_typ_bestand'), description: `${item.material}, ${item.menge} ${einheitLabel(item.einheit)} @ ${item.lagerort}` };
 }
 
 function renderTrash(){
@@ -16995,14 +17329,14 @@ function renderTrash(){
   }
 
   let html = `<table><thead><tr>
-    <th>${t('label_material')}</th><th>${t('label_menge')}</th><th>${t('label_lagerort')}</th><th>${t('col_geloescht_von')}</th><th>${t('col_geloescht_am')}</th><th></th>
+    <th>${t('col_typ')}</th><th>${t('col_beschreibung')}</th><th>${t('col_geloescht_von')}</th><th>${t('col_geloescht_am')}</th><th></th>
   </tr></thead><tbody>`;
   items.forEach(tr=>{
     const timeStr = new Date(tr.deletedAt).toLocaleString('de-DE');
+    const { typeLabel, description } = describeTrashItem(tr);
     html += `<tr>
-      <td data-label="${t('label_material')}">${escapeHtml(tr.material)}</td>
-      <td data-label="${t('label_menge')}" class="qty-cell">${tr.menge} ${escapeHtml(tr.einheit)}</td>
-      <td data-label="${t('label_lagerort')}">${escapeHtml(tr.lagerort)}</td>
+      <td data-label="${t('col_typ')}">${escapeHtml(typeLabel)}</td>
+      <td data-label="${t('col_beschreibung')}">${escapeHtml(description)}</td>
       <td data-label="${t('col_geloescht_von')}">${escapeHtml(tr.deletedBy)}</td>
       <td data-label="${t('col_geloescht_am')}" class="qty-cell">${escapeHtml(timeStr)}</td>
       <td class="actions-cell">
@@ -17337,7 +17671,7 @@ function render(){
       const canManage = currentUser.role!=='viewer' && canManageEntry(e);
       html += `<tr>
         ${currentUser.role!=='viewer' ? `<td>${canManage ? `<input type="checkbox" class="entry-select-cb" data-id="${e.id}" ${selectedEntryIds.has(e.id)?'checked':''}>` : ''}</td>` : ''}
-        <td data-label="${t('col_material')}">${escapeHtml(e.material)}${e.flaggedForReview ? ` <span class="badge" style="background:rgba(255,166,48,0.15);color:var(--accent);border:1px solid var(--accent);font-size:10px;cursor:help;" title="${t('tooltip_flagged_for_review')}">⚠ ${t('label_pruefen_vor_zuweisung')}</span>` : ''}</td>
+        <td data-label="${t('col_material')}">${escapeHtml(e.material)}${e.flaggedForReview ? ` <span class="badge" style="background:rgba(255,166,48,0.15);color:var(--accent);border:1px solid var(--accent);font-size:10px;cursor:help;" title="${t('tooltip_flagged_for_review')}">⚠ ${t('label_pruefen_vor_zuweisung')}</span> <button type="button" class="btn-icon" data-action="clear-flag" data-flag-id="${escapeHtml(e.id)}" data-flag-kind="entry" title="${t('tooltip_geprueft_freigeben')}" style="padding:1px 6px;font-size:11px;">✓</button>` : ''}</td>
         <td data-label="${t('label_qualitaet')}"><span class="badge ${badgeClass(e.qualitaet)}">${e.qualitaet}</span></td>
         <td data-label="${t('label_menge')}">
           <div class="qty-cell">${e.menge} ${escapeHtml(einheitLabel(e.einheit))}</div>
