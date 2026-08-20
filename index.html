@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.112 -->
+<!-- Version: 0.114 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1520,7 +1520,14 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 <div id="templateEditModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:246;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
   <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:26px 28px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 0 40px var(--cyan-glow);">
     <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 18px;" id="templateEditModalTitle">📋 <span data-i18n="modal_neue_vorlage">Neue Vorlage</span></h3>
-    <div class="field">
+    <div class="field" id="templateEditKindField">
+      <label for="templateEditKind" data-i18n="label_vorlagen_art">Art</label>
+      <select id="templateEditKind">
+        <option value="rezepte" data-i18n="option_vorlagen_art_rezept">Rezept</option>
+        <option value="wikelo" data-i18n="option_vorlagen_art_wikelo">Wikelo-Handelsangebot</option>
+      </select>
+    </div>
+    <div class="field" style="margin-top:10px;">
       <label for="templateEditCategory" data-i18n="label_kategorie">Kategorie</label>
       <input type="text" id="templateEditCategory">
     </div>
@@ -1983,16 +1990,6 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="templateCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
     </div>
     <div class="status-msg" id="templateImportStatus"></div>
-
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--panel-border);">
-      <h3 style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px 0;color:var(--steel);" data-i18n="label_vorlagen_verwalten">Einzelne Vorlagen verwalten</h3>
-      <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_vorlagen_verwalten">Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen.</div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
-        <input type="text" id="tpl-rezepte-search" placeholder="Suche nach Name oder Kategorie…" style="flex:1;min-width:200px;">
-        <button type="button" class="btn-primary" id="tpl-rezepte-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
-      </div>
-      <div id="tpl-rezepte-list" style="max-height:320px;overflow-y:auto;"></div>
-    </div>
   </div>
 
   <div class="panel" id="scmdbImportPanel" style="display:none;">
@@ -2025,16 +2022,16 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="wikeloCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
     </div>
     <div class="status-msg" id="wikeloImportStatus"></div>
+  </div>
 
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--panel-border);">
-      <h3 style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px 0;color:var(--steel);" data-i18n="label_vorlagen_verwalten">Einzelne Vorlagen verwalten</h3>
-      <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_vorlagen_verwalten">Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen.</div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
-        <input type="text" id="tpl-wikelo-search" placeholder="Suche nach Name oder Kategorie…" style="flex:1;min-width:200px;">
-        <button type="button" class="btn-primary" id="tpl-wikelo-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
-      </div>
-      <div id="tpl-wikelo-list" style="max-height:320px;overflow-y:auto;"></div>
+  <div class="panel" id="unifiedTemplateManagePanel" style="display:none;">
+    <h2 data-i18n="panel_vorlagen_einzeln_verwalten">Einzelne Vorlagen verwalten</h2>
+    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten">Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen. Durchsucht Rezepte und Wikelo-Handelsangebote gemeinsam.</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+      <input type="text" id="tpl-unified-search" placeholder="Suche nach Name oder Kategorie…" data-i18n-placeholder="placeholder_vorlage_suchen_beide" style="flex:1;min-width:200px;">
+      <button type="button" class="btn-primary" id="tpl-unified-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
     </div>
+    <div id="tpl-unified-list" style="max-height:320px;overflow-y:auto;"></div>
   </div>
 
   <div class="panel" id="locationImportPanel" style="display:none;">
@@ -3342,8 +3339,7 @@ const I18N = {
   "btn_scmdb_quelle_oeffnen": "↗ scmdb.net öffnen (Quelle)",
   "btn_scmdb_skript_herunterladen": "⇩ Scraping-Skript herunterladen",
   "hint_scmdb_script_requirements": "Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.",
-  "label_vorlagen_verwalten": "Einzelne Vorlagen verwalten",
-  "hint_vorlagen_verwalten": "Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen.",
+  "hint_vorlagen_verwalten": "Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen. Durchsucht Rezepte und Wikelo-Handelsangebote gemeinsam.",
   "btn_neue_vorlage": "+ Neue Vorlage",
   "hint_vorlage_suchen": "{count} Vorlagen insgesamt — Suchbegriff eingeben, um eine bestimmte zu finden.",
   "hint_keine_vorlage_gefunden": "Keine Vorlage gefunden.",
@@ -3357,6 +3353,11 @@ const I18N = {
   "btn_material_hinzufuegen": "Material hinzufügen",
   "val_kategorie_name_required": "Bitte Kategorie und Name angeben.",
   "val_mindestens_ein_material": "Bitte mindestens ein Material angeben.",
+  "panel_vorlagen_einzeln_verwalten": "Einzelne Vorlagen verwalten",
+  "label_vorlagen_art": "Art",
+  "option_vorlagen_art_rezept": "Rezept",
+  "option_vorlagen_art_wikelo": "Wikelo-Handelsangebot",
+  "placeholder_vorlage_suchen_beide": "Suche nach Name oder Kategorie (Rezepte + Wikelo)…",
   "panel_vorlagen_verwalten": "Projekt-Vorlagen verwalten",
   "hint_vorlagen_verwalten_panel": "Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.",
   "empty_vorlagen_sub": "Vorlagen speichern typische Materiallisten für wiederkehrende Bauvorhaben (z. B. eine bestimmte Waffe) und lassen sich beim Anlegen eines Projekts automatisch übernehmen. Über \"Projekt-Vorlagen importieren\" lässt sich eine größere Sammlung auf einmal einspielen, oder über \"+ Neue Vorlage\" einzeln von Hand.",
@@ -4085,8 +4086,7 @@ const I18N = {
   "btn_scmdb_quelle_oeffnen": "↗ Open scmdb.net (source)",
   "btn_scmdb_skript_herunterladen": "⇩ Download scraping script",
   "hint_scmdb_script_requirements": "Requirements to run it: Python 3, plus <code>pip install playwright</code> and <code>playwright install chromium</code> (one-time setup). Details are in the comment at the top of the downloaded file.",
-  "label_vorlagen_verwalten": "Manage individual templates",
-  "hint_vorlagen_verwalten": "For smaller changes or single additions — without having to re-import the entire list.",
+  "hint_vorlagen_verwalten": "For smaller changes or single additions — without having to re-import the entire list. Searches recipes and Wikelo trade offers together.",
   "btn_neue_vorlage": "+ New template",
   "hint_vorlage_suchen": "{count} templates in total — enter a search term to find a specific one.",
   "hint_keine_vorlage_gefunden": "No template found.",
@@ -4100,6 +4100,11 @@ const I18N = {
   "btn_material_hinzufuegen": "Add material",
   "val_kategorie_name_required": "Please enter a category and name.",
   "val_mindestens_ein_material": "Please enter at least one material.",
+  "panel_vorlagen_einzeln_verwalten": "Manage individual templates",
+  "label_vorlagen_art": "Type",
+  "option_vorlagen_art_rezept": "Recipe",
+  "option_vorlagen_art_wikelo": "Wikelo trade offer",
+  "placeholder_vorlage_suchen_beide": "Search by name or category (recipes + Wikelo)…",
   "panel_vorlagen_verwalten": "Manage project templates",
   "hint_vorlagen_verwalten_panel": "Complete, category-grouped overview of all project templates — for browsing, not just searching. Double-click a template to edit it. If materials are added, removed, or changed in quantity, you'll then be offered to apply the same change to existing projects created from this template — including automatic updates to their progress display.",
   "empty_vorlagen_sub": "Templates store typical material lists for recurring builds (e.g. a specific weapon) and can be applied automatically when creating a project. Use \"Import project templates\" to bring in a larger collection at once, or \"+ New template\" to add one by hand.",
@@ -4828,8 +4833,7 @@ const I18N = {
   "btn_scmdb_quelle_oeffnen": "↗ Ouvrir scmdb.net (source)",
   "btn_scmdb_skript_herunterladen": "⇩ Télécharger le script de scraping",
   "hint_scmdb_script_requirements": "Prérequis pour l'exécution : Python 3, ainsi que <code>pip install playwright</code> et <code>playwright install chromium</code> (une seule fois). Les détails figurent en commentaire en haut du fichier téléchargé.",
-  "label_vorlagen_verwalten": "Gérer les modèles individuels",
-  "hint_vorlagen_verwalten": "Pour de petites modifications ou des ajouts ponctuels — sans devoir réimporter toute la liste.",
+  "hint_vorlagen_verwalten": "Pour de petites modifications ou des ajouts ponctuels — sans devoir réimporter toute la liste. Recherche dans les recettes et les offres Wikelo simultanément.",
   "btn_neue_vorlage": "+ Nouveau modèle",
   "hint_vorlage_suchen": "{count} modèles au total — saisissez un terme de recherche pour en trouver un précis.",
   "hint_keine_vorlage_gefunden": "Aucun modèle trouvé.",
@@ -4843,6 +4847,11 @@ const I18N = {
   "btn_material_hinzufuegen": "Ajouter un matériau",
   "val_kategorie_name_required": "Veuillez indiquer une catégorie et un nom.",
   "val_mindestens_ein_material": "Veuillez indiquer au moins un matériau.",
+  "panel_vorlagen_einzeln_verwalten": "Gérer les modèles individuels",
+  "label_vorlagen_art": "Type",
+  "option_vorlagen_art_rezept": "Recette",
+  "option_vorlagen_art_wikelo": "Offre commerciale Wikelo",
+  "placeholder_vorlage_suchen_beide": "Rechercher par nom ou catégorie (recettes + Wikelo)…",
   "panel_vorlagen_verwalten": "Gérer les modèles de projet",
   "hint_vorlagen_verwalten_panel": "Vue d'ensemble complète, regroupée par catégorie, de tous les modèles de projet — pour parcourir, pas seulement pour rechercher. Un double-clic sur un modèle l'ouvre pour modification. Si des matériaux sont ajoutés, supprimés ou modifiés en quantité, il sera ensuite proposé d'appliquer le même changement aux projets existants créés à partir de ce modèle — y compris la mise à jour automatique de leur barre de progression.",
   "empty_vorlagen_sub": "Les modèles enregistrent les listes de matériaux typiques pour des constructions récurrentes (p. ex. une arme donnée) et peuvent être appliqués automatiquement lors de la création d'un projet. Utilisez \"Importer des modèles de projet\" pour en importer plusieurs à la fois, ou \"+ Nouveau modèle\" pour en ajouter un manuellement.",
@@ -5398,7 +5407,7 @@ async function ensureCredentialsLoaded(){
 // organizationId (NICHT die aktuell global gesetzte currentOrgId, da
 // dies waehrend des Login-Vorgangs aufgerufen wird, bevor currentOrgId
 // notwendigerweise final gesetzt ist). Setzt currentOrgDefaultPassword
-// als Nebeneffekt, damit getPassword() im Anschluss synchron darauf
+// als Nebeneffekt, damit verifyLoginPassword() im Anschluss darauf
 // zugreifen kann.
 async function loadOrgDefaultPassword(organizationId){
   try{
@@ -5567,8 +5576,76 @@ async function saveSpecificOrgDiscordSettings(organizationId, settings){
   }
 }
 
-function getPassword(username){
-  return credentials[username] || currentOrgDefaultPassword || DEFAULT_PASSWORD;
+// Ab 17. August 2026: Persoenliche Passwoerter (credentials{}) werden
+// nicht mehr im Klartext gespeichert, sondern als gesalzener PBKDF2-Hash
+// -- ueber die im Browser bereits eingebaute Web-Crypto-API, keine
+// externe Bibliothek noetig. 100.000 Iterationen: bewusster Kompromiss
+// zwischen spuerbarer Sicherheit (deutlich ueber unsalzenen/schnellen
+// Hash-Verfahren) und einer im Browser noch akzeptablen Wartezeit beim
+// Login (ca. 0,3-1 Sekunde, je nach Geraet). Das (weiterhin im Klartext
+// gehaltene) Organisations-Standardpasswort fuer die allererste
+// Anmeldung bleibt bewusst unveraendert -- es ist ohnehin nur
+// kurzlebig, muss beim ersten Login zwingend durch ein persoenliches
+// Passwort ersetzt werden, und dem Organisations-Administrator, der es
+// festlegt, ist es per Definition ohnehin bekannt. Siehe Nutzerwunsch
+// vom 17. August 2026.
+const PBKDF2_ITERATIONS = 100000;
+
+function bufferToBase64(buf){
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+function base64ToBuffer(b64){
+  return Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+}
+
+// Erzeugt (bzw. bei uebergebenem saltB64 ueberprueft) einen gesalzenen
+// PBKDF2-Hash eines Passworts. Ohne saltB64 wird ein neues, zufaelliges
+// Salt erzeugt (Neuanlage/Aenderung eines Passworts) -- mit saltB64 wird
+// derselbe Salt wiederverwendet, um beim Login denselben Hash
+// nachzuvollziehen und zu vergleichen.
+async function hashPassword(password, saltB64){
+  const enc = new TextEncoder();
+  const salt = saltB64 ? base64ToBuffer(saltB64) : crypto.getRandomValues(new Uint8Array(16));
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const derivedBits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  return { hash: bufferToBase64(derivedBits), salt: bufferToBase64(salt), iterations: PBKDF2_ITERATIONS };
+}
+
+// Prueft ein eingegebenes Passwort gegen einen gespeicherten Wert.
+// Rueckwaertskompatibel: Ist der gespeicherte Wert noch ein reiner
+// Klartext-String (Stand vor dieser Aenderung), wird direkt verglichen
+// -- die eigentliche Migration auf den gehashten Stand uebernimmt
+// verifyLoginPassword() nach erfolgreicher Pruefung.
+async function verifyPassword(password, stored){
+  if(typeof stored === 'string') return password === stored;
+  if(!stored || typeof stored !== 'object' || !stored.hash || !stored.salt) return false;
+  const { hash } = await hashPassword(password, stored.salt);
+  return hash === stored.hash;
+}
+
+// Ersetzt die bisherige, rein synchrone getPassword()-Vergleichslogik
+// (siehe Kommentar oben) durch eine asynchrone Pruefung samt stiller
+// Migration: War der fuer diesen Benutzernamen gespeicherte Wert noch
+// ein Klartext-String, wird er nach erfolgreicher Pruefung sofort durch
+// den neu berechneten, gehashten Stand ersetzt -- ohne dass die Person
+// selbst etwas davon merkt oder sich das Passwort neu setzen muesste.
+// Faellt bei fehlendem individuellem Passwort weiterhin auf das
+// (Klartext-)Organisations-Standardpasswort zurueck, exakt wie zuvor
+// bei getPassword().
+async function verifyLoginPassword(username, enteredPassword){
+  const stored = credentials[username];
+  if(stored !== undefined){
+    const valid = await verifyPassword(enteredPassword, stored);
+    if(valid && typeof stored === 'string'){
+      credentials[username] = await hashPassword(enteredPassword);
+      await saveCredentials();
+    }
+    return valid;
+  }
+  return enteredPassword === (currentOrgDefaultPassword || DEFAULT_PASSWORD);
 }
 
 async function saveCredentials(){
@@ -5857,7 +5934,7 @@ async function confirmResetPassword(){
   }
 
   await ensureCredentialsLoaded();
-  credentials[user.username] = next;
+  credentials[user.username] = await hashPassword(next);
   setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveCredentials();
   if(!ok){
@@ -5999,6 +6076,8 @@ async function saveUserEdit(idx){
     document.getElementById('scmdbImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('templateManagePanelWikeloWrap').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('wikeloImportPanel').style.display = newRole==='owner' ? '' : 'none';
+    document.getElementById('unifiedTemplateManagePanel').style.display = newRole==='owner' ? '' : 'none';
+    if(newRole==='owner') renderUnifiedTemplateList();
     document.getElementById('locationImportPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('orgSwitcherWrap').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('tabBtn-verwaltung').style.display = isAdminOrAbove ? '' : 'none';
@@ -7622,10 +7701,10 @@ async function doLogin(){
     return;
   }
   // Standard-Passwort DIESER Organisation laden, bevor das eingegebene
-  // Passwort geprueft wird -- getPassword() greift synchron auf das
-  // Ergebnis zu (siehe currentOrgDefaultPassword).
+  // Passwort geprueft wird -- verifyLoginPassword() faellt bei fehlendem
+  // individuellem Passwort darauf zurueck (siehe currentOrgDefaultPassword).
   await loadOrgDefaultPassword(user.organizationId || LEGACY_ORG_ID);
-  if(password !== getPassword(user.username)){
+  if(!(await verifyLoginPassword(user.username, password))){
     setLoginBusy(false);
     document.getElementById('loginError').textContent = t('msg_login_wrong_password');
     return;
@@ -7971,9 +8050,10 @@ function completeLogin(user){
   document.getElementById('scmdbImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('templateManagePanelWikeloWrap').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('wikeloImportPanel').style.display = user.role==='owner' ? '' : 'none';
+  document.getElementById('unifiedTemplateManagePanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('locationImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('orgSwitcherWrap').style.display = user.role==='owner' ? '' : 'none';
-  if(user.role==='owner'){ renderOrgSwitcher(); renderOrgManagementList(); renderTemplateCount(); renderWikeloCount(); updateBackupRestoreButtons(); renderTemplateManageList('rezepte'); renderTemplateManageList('wikelo'); }
+  if(user.role==='owner'){ renderOrgSwitcher(); renderOrgManagementList(); renderTemplateCount(); renderWikeloCount(); updateBackupRestoreButtons(); renderUnifiedTemplateList(); }
   applyOrgBranding();
   if(isOrgAdminOrAbove){ renderOrgBrandingForm(); renderExportReminder(); renderExportOrgSelect(); }
   switchTab('uebersicht');
@@ -8090,7 +8170,7 @@ async function submitForgotPassword(){
     return;
   }
 
-  credentials[user.username] = next;
+  credentials[user.username] = await hashPassword(next);
   const ok = await saveCredentials();
   if(!ok){
     setStatusMsg(statusEl, t('msg_save_failed'), true);
@@ -8130,7 +8210,7 @@ async function submitForcedPassword(){
   }
 
   setForcedPwBusy(true);
-  credentials[currentUser.username] = next;
+  credentials[currentUser.username] = await hashPassword(next);
   const ok = await saveCredentials();
   if(!ok){
     setForcedPwBusy(false);
@@ -8244,7 +8324,7 @@ async function savePassword(){
   const confirmVal = document.getElementById('pw-confirm').value;
   const statusEl = document.getElementById('pwStatus');
 
-  if(current !== getPassword(currentUser.username)){
+  if(!(await verifyLoginPassword(currentUser.username, current))){
     setStatusMsg(statusEl, t('val_current_password_wrong'), true);
     return;
   }
@@ -8257,7 +8337,7 @@ async function savePassword(){
     return;
   }
 
-  credentials[currentUser.username] = next;
+  credentials[currentUser.username] = await hashPassword(next);
   setStatusMsg(statusEl, t('msg_saving'), false);
   const ok = await saveCredentials();
   if(ok) await logAction('Passwort geändert', currentUser.username);
@@ -11219,16 +11299,12 @@ const TEMPLATE_KIND_CONFIG = {
     getArray: () => projectTemplates,
     setArray: (arr) => { projectTemplates = arr; },
     save: saveProjectTemplates,
-    listId: 'tpl-rezepte-list',
-    searchId: 'tpl-rezepte-search',
     panelListId: 'tplManagePanelList'
   },
   wikelo: {
     getArray: () => wikeloTemplates,
     setArray: (arr) => { wikeloTemplates = arr; },
     save: saveWikeloTemplates,
-    listId: 'tpl-wikelo-list',
-    searchId: 'tpl-wikelo-search',
     panelListId: 'tplManagePanelListWikelo'
   }
 };
@@ -11295,42 +11371,56 @@ function renderTemplateManagePanel(kind){
   });
 }
 
-function renderTemplateManageList(kind){
-  const cfg = TEMPLATE_KIND_CONFIG[kind];
-  const container = document.getElementById(cfg.listId);
-  const searchEl = document.getElementById(cfg.searchId);
+
+// Ab 17. August 2026: durchsucht Rezepte UND Wikelo-Handelsangebote
+// GEMEINSAM in einem einzigen Suchfeld -- ersetzt die zuvor getrennten
+// renderTemplateManageList('rezepte')/('wikelo')-Bereiche an zwei
+// verschiedenen Stellen der Seite. Anlass war eine Nutzermeldung: Eine
+// tatsaechlich vorhandene Vorlage ("Golem") wurde bei der Suche im
+// Rezepte-Bereich nicht gefunden, da sie in der WIKELO-Liste gespeichert
+// war -- ohne erkennbaren Hinweis darauf, dass es sich um zwei getrennte
+// Listen mit jeweils eigenem Suchfeld handelt. Jede Ergebniszeile zeigt
+// jetzt zusaetzlich ein kleines Abzeichen, aus welcher der beiden Listen
+// sie stammt, um genau diese Verwechslung kuenftig auszuschliessen.
+// Spart nebenbei spuerbar Bildschirmlaenge, da die Verwaltungsseite
+// durch die vielen, alle gleichzeitig sichtbaren Panels ohnehin schon
+// recht lang gescrollt werden muss. Siehe Nutzerwunsch vom 17. August
+// 2026.
+function renderUnifiedTemplateList(){
+  const container = document.getElementById('tpl-unified-list');
+  const searchEl = document.getElementById('tpl-unified-search');
   if(!container || !searchEl) return;
   const query = searchEl.value.trim().toLowerCase();
-  const array = cfg.getArray();
+  const totalCount = projectTemplates.length + wikeloTemplates.length;
 
-  // Bei leerem Suchfeld bewusst NICHTS rendern (nur einen Hinweis mit
-  // der Gesamtanzahl) -- die Rezepte-Liste kann nach einem scmdb-Import
-  // ueber 1500 Eintraege umfassen, das komplette Rendern waere spuerbar
-  // langsam und in der Praxis auch nicht durchsuchbar/uebersichtlich.
   if(!query){
-    container.innerHTML = `<div class="user-note" style="margin:0;">${t('hint_vorlage_suchen').replace('{count}', array.length)}</div>`;
+    container.innerHTML = `<div class="user-note" style="margin:0;">${t('hint_vorlage_suchen').replace('{count}', totalCount)}</div>`;
     return;
   }
 
   const MAX_RESULTS = 60;
   const matches = [];
-  for(let i=0;i<array.length;i++){
-    const tpl = array[i];
-    if(tpl.name.toLowerCase().includes(query) || tpl.category.toLowerCase().includes(query)){
-      matches.push({ tpl, idx: i });
+  ['rezepte', 'wikelo'].forEach(kind=>{
+    const array = TEMPLATE_KIND_CONFIG[kind].getArray();
+    for(let i=0;i<array.length;i++){
       if(matches.length >= MAX_RESULTS) break;
+      const tpl = array[i];
+      if(tpl.name.toLowerCase().includes(query) || tpl.category.toLowerCase().includes(query)){
+        matches.push({ tpl, idx: i, kind });
+      }
     }
-  }
+  });
+  matches.sort((a,b)=>a.tpl.name.toLowerCase().localeCompare(b.tpl.name.toLowerCase()));
 
   if(matches.length === 0){
     container.innerHTML = `<div class="user-note" style="margin:0;">${t('hint_keine_vorlage_gefunden')}</div>`;
     return;
   }
 
-  let html = matches.map(({tpl, idx})=>`
+  let html = matches.map(({tpl, idx, kind})=>`
     <div class="user-row">
       <div class="user-info">
-        <span>${escapeHtml(tpl.name)}</span>
+        <span>${escapeHtml(tpl.name)} <span class="badge" style="font-size:9.5px;padding:1px 6px;background:${kind==='wikelo'?'rgba(255,166,48,0.15)':'rgba(0,216,255,0.1)'};color:${kind==='wikelo'?'var(--accent)':'var(--cyan)'};border:1px solid ${kind==='wikelo'?'var(--accent)':'var(--cyan)'};">${kind==='wikelo'?t('option_vorlagen_art_wikelo'):t('option_vorlagen_art_rezept')}</span></span>
         <span style="color:var(--ink-soft);font-size:11px;">${escapeHtml(tpl.category)} · ${tpl.materials.length} ${t('label_materialien_kurz')}</span>
       </div>
       <div class="actions-cell">
@@ -11358,7 +11448,7 @@ function renderTemplateManageList(kind){
         arr.splice(idx, 1);
         await cfg2.save();
         await logAction('Vorlage gelöscht', `${removed.category};${removed.name} (${k})`);
-        renderTemplateManageList(k);
+        renderUnifiedTemplateList();
         if(k==='rezepte') renderTemplateCount(); else renderWikeloCount();
       });
     });
@@ -11391,6 +11481,17 @@ function openTemplateEditModal(kind, index){
   document.getElementById('templateEditModalTitle').innerHTML = isNew
     ? `📋 <span>${t('modal_neue_vorlage')}</span>`
     : `✎ <span>${t('modal_vorlage_bearbeiten')}</span>`;
+  // Ab 17. August 2026: die Art (Rezept/Wikelo-Handelsangebot) ist bei
+  // Neuanlage frei waehlbar (bestimmt, in welche der beiden Listen die
+  // neue Vorlage gespeichert wird), beim Bearbeiten einer bestehenden
+  // Vorlage aber gesperrt -- ein "Verschieben" zwischen den Listen
+  // waehrend des Bearbeitens haette zusaetzliche Komplexitaet (Loeschen
+  // aus der einen, Einfuegen in die andere Liste) fuer einen Anwendungs-
+  // fall bedeutet, der nicht angefragt war. Siehe Nutzerwunsch vom
+  // 17. August 2026 (Zusammenlegung der bisher getrennten Such-Bereiche).
+  const kindSelect = document.getElementById('templateEditKind');
+  kindSelect.value = kind;
+  kindSelect.disabled = !isNew;
   document.getElementById('templateEditCategory').value = tpl.category || '';
   document.getElementById('templateEditName').value = tpl.name || '';
   document.getElementById('templateEditStatus').textContent = '';
@@ -11412,7 +11513,13 @@ function closeTemplateEditModal(){
 }
 
 async function saveTemplateEdit(){
-  const { kind, index } = templateEditState;
+  // Ab 17. August 2026: die Art wird jetzt aus dem Dropdown gelesen
+  // (massgeblich bei Neuanlage, da dort frei waehlbar) statt starr aus
+  // dem beim Oeffnen gesetzten Zustand -- bei bereits bestehenden
+  // Vorlagen ist das Dropdown gesperrt, liefert also ohnehin denselben
+  // Wert wie templateEditState.kind.
+  const kind = document.getElementById('templateEditKind').value;
+  const { index } = templateEditState;
   if(!kind) return;
   const cfg = TEMPLATE_KIND_CONFIG[kind];
   const statusEl = document.getElementById('templateEditStatus');
@@ -11461,7 +11568,7 @@ async function saveTemplateEdit(){
   if(ok){
     await logAction(index==null ? 'Vorlage hinzugefügt' : 'Vorlage bearbeitet', `${category};${name} (${kind})`);
     closeTemplateEditModal();
-    renderTemplateManageList(kind);
+    renderUnifiedTemplateList();
     if(kind==='rezepte') renderTemplateCount(); else renderWikeloCount();
     renderTemplateManagePanel(kind);
     // Nur beim BEARBEITEN einer bestehenden Vorlage (nicht bei
@@ -11594,10 +11701,8 @@ document.getElementById('btnTemplatePropagateApply').addEventListener('click', a
   scheduleRenderDashboard();
 });
 
-document.getElementById('tpl-rezepte-btnNew').addEventListener('click', ()=>{ openTemplateEditModal('rezepte', null); });
-document.getElementById('tpl-wikelo-btnNew').addEventListener('click', ()=>{ openTemplateEditModal('wikelo', null); });
-document.getElementById('tpl-rezepte-search').addEventListener('input', ()=>{ renderTemplateManageList('rezepte'); });
-document.getElementById('tpl-wikelo-search').addEventListener('input', ()=>{ renderTemplateManageList('wikelo'); });
+document.getElementById('tpl-unified-btnNew').addEventListener('click', ()=>{ openTemplateEditModal('rezepte', null); });
+document.getElementById('tpl-unified-search').addEventListener('input', renderUnifiedTemplateList);
 
 // Formatiert einen ISO-Zeitstempel als lesbares Datum+Uhrzeit im
 // aktuellen Sprachformat — genutzt fuer die "Zuletzt importiert am"-
@@ -12078,7 +12183,7 @@ document.getElementById('btnRestoreTemplatesBackup').addEventListener('click', (
       await logAction('Projekt-Vorlagen wiederhergestellt', `${projectTemplates.length} Vorlagen (vorherige globale Version)`);
       setStatusMsg(statusEl, t('msg_backup_restored').replace('{count}', projectTemplates.length), false);
       renderTemplateCount();
-      renderTemplateManageList('rezepte');
+      renderUnifiedTemplateList();
     } else {
       setStatusMsg(statusEl, t('msg_backup_restore_failed'), true);
     }
@@ -12095,7 +12200,7 @@ document.getElementById('btnRestoreWikeloBackup').addEventListener('click', ()=>
       await logAction('Wikelo-Handelsangebote wiederhergestellt', `${wikeloTemplates.length} Angebote (vorherige globale Version)`);
       setStatusMsg(statusEl, t('msg_backup_restored').replace('{count}', wikeloTemplates.length), false);
       renderWikeloCount();
-      renderTemplateManageList('wikelo');
+      renderUnifiedTemplateList();
     } else {
       setStatusMsg(statusEl, t('msg_backup_restore_failed'), true);
     }
@@ -12338,7 +12443,7 @@ document.getElementById('btnTemplateImportConfirm').addEventListener('click', as
 
     setStatusMsg(statusEl, t('msg_templates_imported').replace('{count}', parsed.length), false);
     renderTemplateCount();
-    renderTemplateManageList('rezepte');
+    renderUnifiedTemplateList();
     updateBackupRestoreButtons();
     document.getElementById('templateImportText').value = '';
     setTimeout(()=>{ statusEl.textContent=''; }, 4000);
@@ -12354,7 +12459,7 @@ document.getElementById('btnTemplateImportConfirm').addEventListener('click', as
 
     setStatusMsg(statusEl, t('msg_wikelo_imported').replace('{count}', parsed.length), false);
     renderWikeloCount();
-    renderTemplateManageList('wikelo');
+    renderUnifiedTemplateList();
     updateBackupRestoreButtons();
     document.getElementById('wikeloImportText').value = '';
     setTimeout(()=>{ statusEl.textContent=''; }, 4000);
