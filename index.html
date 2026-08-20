@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.114 -->
+<!-- Version: 0.115 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -612,6 +612,35 @@ h1{
   color:var(--cyan);
 }
 .panel h2::before{content:'// '; color:var(--accent);}
+
+/* Ab 17. August 2026: aufklappbare Verwaltungs-Panels (Nutzerwunsch,
+   die Verwaltungsseite staerker verlaengert durch die stetig
+   wachsende Zahl an Panels -- alle gleichzeitig sichtbar, kein
+   Tab-Wechsel dazwischen). Wiederverwendet dasselbe details/summary-
+   Muster, das bereits bei der Vorlagen-Kategorie-Uebersicht bewaehrt
+   ist. Die details.panel-Klasse ersetzt die bisherige einfache
+   .panel-Klasse 1:1 (identisches Aussehen dank derselben CSS-Regeln),
+   ergaenzt lediglich Klickbarkeit und einen Auf-/Zuklapp-Pfeil beim
+   Titel. */
+details.panel > summary{
+  cursor:pointer;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+details.panel > summary::-webkit-details-marker{ display:none; }
+details.panel > summary::marker{ content:''; }
+details.panel > summary h2{ margin:0 0 16px 0; flex:1; }
+details.panel > summary::after{
+  content:'▸';
+  color:var(--ink-soft);
+  font-size:13px;
+  transition:transform 0.15s ease;
+  flex-shrink:0;
+  margin-bottom:16px;
+}
+details.panel[open] > summary::after{ transform:rotate(90deg); }
 
 .form-grid{
   display:grid;
@@ -1710,8 +1739,8 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <button class="tab-btn" id="tabBtn-verwaltung" data-tab="verwaltung" style="display:none;" data-i18n="tab_verwaltung">Verwaltung</button>
   </nav>
 
-  <div class="panel" id="pwPanel" style="display:none;">
-    <h2 data-i18n="panel_change_password">Passwort ändern</h2>
+  <details class="panel admin-collapsible" data-default-open="true" id="pwPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_change_password">Passwort ändern</h2></summary>
     <div class="form-grid" style="grid-template-columns:repeat(3,1fr);">
       <div class="field">
         <label for="pw-current" data-i18n="label_current_password">Aktuelles Passwort</label>
@@ -1731,11 +1760,11 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-ghost" id="btnCancelPw" data-i18n="btn_cancel">Abbrechen</button>
     </div>
     <div class="status-msg" id="pwStatus"></div>
-  </div>
+  </details>
 
   <div class="tab-content" data-tab="verwaltung" style="display:none;">
-  <div class="panel" id="orgBrandingPanel" style="display:none;">
-    <h2 data-i18n="panel_org_branding">Organisation anpassen</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="orgBrandingPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_org_branding">Organisation anpassen</h2></summary>
     <div class="field">
       <label for="orgMottoInput" data-i18n="label_org_motto">Motto / Untertitel (optional)</label>
       <input type="text" id="orgMottoInput" placeholder="z. B. Mining Division" maxlength="60">
@@ -1767,10 +1796,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-primary" id="btnSaveOrgBranding" data-i18n="btn_save">Speichern</button>
     </div>
     <div class="status-msg" id="orgBrandingStatus"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="orgInfoPanel" style="display:none;">
-    <h2 data-i18n="panel_org_info">Organisations-Information</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="orgInfoPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_org_info">Organisations-Information</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_org_info">Optionaler Hinweistext, der allen Mitgliedern dieser Organisation ganz oben im Dashboard angezeigt wird — z. B. aktuelle Ankündigungen oder Regeln. Leer lassen bzw. über "Nachricht entfernen" löschen, um nichts anzuzeigen.</span></div>
     <div class="field">
       <label for="orgInfoTitleInput" data-i18n="label_org_info_titel">Titel</label>
@@ -1792,10 +1821,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-ghost danger" id="btnClearOrgInfo" data-i18n="btn_org_info_entfernen">Nachricht entfernen</button>
     </div>
     <div class="status-msg" id="orgInfoStatus"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="defaultPasswordPanel" style="display:none;">
-    <h2 data-i18n="panel_default_password">Standard-Passwort für Erst-Login</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="defaultPasswordPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_default_password">Standard-Passwort für Erst-Login</h2></summary>
     <div class="user-note" data-i18n="hint_default_password_setting">Gilt für alle Benutzer dieser Organisation, die noch kein eigenes Passwort gesetzt haben — wird beim allerersten Login zwingend durch ein persönliches Passwort ersetzt. Eine Änderung hier betrifft nur zukünftige Erst-Logins, nicht bereits individuell gesetzte Passwörter.</div>
     <div class="field" style="margin-top:12px;">
       <label for="defaultPasswordInput" data-i18n="label_default_password">Standard-Passwort</label>
@@ -1805,10 +1834,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-primary" id="btnSaveDefaultPassword" data-i18n="btn_save">Speichern</button>
     </div>
     <div class="status-msg" id="defaultPasswordStatus"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="discordPanel" style="display:none;">
-    <h2 data-i18n="panel_discord">Discord-Benachrichtigungen</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="discordPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_discord">Discord-Benachrichtigungen</h2></summary>
     <div class="user-note" data-i18n="hint_discord">Sendet bei ausgewählten Ereignissen automatisch eine kurze Nachricht an einen Discord-Kanal eurer Wahl — praktisch als eigener, separat stummschaltbarer Kanal, damit andere Kanäle nicht überflutet werden. Die Webhook-URL wird wie ein Passwort behandelt: Wer sie kennt, kann in diesem Kanal posten.</div>
     <div class="field" style="margin-top:12px;">
       <label for="discordWebhookInput" data-i18n="label_discord_webhook">Discord-Webhook-URL</label>
@@ -1850,10 +1879,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <button class="btn-ghost" id="btnTestDiscord" data-i18n="btn_discord_test">Testnachricht senden</button>
     </div>
     <div class="status-msg" id="discordStatus"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="orgExportPanel" style="display:none;">
-    <h2 data-i18n="panel_org_export">Datensicherung</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="orgExportPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_org_export">Datensicherung</h2></summary>
     <div class="user-note" data-i18n="hint_org_export">Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.</div>
     <div id="exportReminderHint" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(255,166,48,0.08);border:1px solid var(--accent);border-radius:var(--radius);font-family:'Share Tech Mono', monospace;font-size:12px;color:var(--ink);"></div>
     <div id="exportOrgSelectWrap" style="display:none;margin-top:12px;">
@@ -1886,10 +1915,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <button class="btn-ghost" id="btnCancelOrgImport" data-i18n="btn_cancel">Abbrechen</button>
       </div>
     </div>
-  </div>
+  </details>
 
-  <div class="panel" id="orgResetPanel" style="display:none;border:1px solid #FF3B5C;">
-    <h2 style="color:#FF3B5C;">⚠ <span data-i18n="panel_org_reset">Organisations-Inhalte zurücksetzen</span></h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="orgResetPanel" style="display:none;border:1px solid #FF3B5C;">
+    <summary><h2 style="color:#FF3B5C;">⚠ <span data-i18n="panel_org_reset">Organisations-Inhalte zurücksetzen</span></h2></summary>
     <div class="user-note" style="border-left:3px solid #FF3B5C;padding-left:10px;" data-i18n="hint_org_reset">Setzt die gewählte Organisation auf einen leeren Inhaltsstand zurück — für einen Neustart mit denselben Mitgliedern und Einstellungen, aber ohne alte Bestände.</div>
     <div class="field" style="margin-top:14px;max-width:420px;">
       <label for="orgResetSelect" data-i18n="label_org_reset_organisation">Organisation</label>
@@ -1920,10 +1949,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     </div>
     <button class="btn-primary" id="btnOrgReset" style="background:#FF3B5C;margin-top:14px;" disabled data-i18n="btn_org_reset">Inhalte unwiderruflich zurücksetzen</button>
     <div class="status-msg" id="orgResetStatus"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="adminPanel" style="display:none;">
-    <h2 data-i18n="panel_benutzerverwaltung">Benutzerverwaltung</h2>
+  <details class="panel admin-collapsible" data-default-open="true" id="adminPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_benutzerverwaltung">Benutzerverwaltung</h2></summary>
     <div class="form-grid-flex">
       <div class="field">
         <label for="newUserName" data-i18n="label_benutzername">Benutzername</label>
@@ -1948,10 +1977,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="userFormStatus"></div>
     <div class="user-list" id="userListContainer" style="margin-top:12px;"></div>
     <div class="user-note" data-i18n="hint_default_password">Neue Benutzer erhalten automatisch das von der Organisation festgelegte Standard-Passwort (siehe Einstellung weiter unten), das sie nach der Anmeldung durch ein persönliches Passwort ersetzen müssen.</div>
-  </div>
+  </details>
 
-  <div class="panel" id="orgManagementPanel" style="display:none;">
-    <h2 data-i18n="panel_organisationsverwaltung">Organisationen verwalten</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="orgManagementPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_organisationsverwaltung">Organisationen verwalten</h2></summary>
     <div class="form-grid" style="grid-template-columns:2fr auto;">
       <div class="field">
         <label for="newOrgName" data-i18n="label_organisationsname">Name der Organisation</label>
@@ -1968,16 +1997,16 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="orgFormStatus"></div>
     <div class="user-list" id="orgListContainer" style="margin-top:12px;"></div>
     <div class="user-note" data-i18n="hint_org_no_delete">Organisationen können umbenannt, aber aus Sicherheitsgründen nicht gelöscht werden.</div>
-  </div>
+  </details>
 
-  <div class="panel" id="templateManagePanel" style="display:none;">
-    <h2 data-i18n="panel_vorlagen_verwalten">Projekt-Vorlagen verwalten</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="templateManagePanel" style="display:none;">
+    <summary><h2 data-i18n="panel_vorlagen_verwalten">Projekt-Vorlagen verwalten</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
     <div id="tplManagePanelList"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="templateImportPanel" style="display:none;">
-    <h2 data-i18n="panel_rezepte_import">Projekt-Vorlagen importieren</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="templateImportPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_rezepte_import">Projekt-Vorlagen importieren</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rezepte_import">Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Format pro Zeile: Kategorie;Name;Material1,Material2,Material3 — optional lässt sich je Material eine vorgeschlagene Menge anhängen, z. B. "Material:15". Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
     <div style="margin-bottom:10px;">
       <button type="button" class="btn-ghost" id="btnSelectTemplateFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
@@ -1990,26 +2019,26 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="templateCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
     </div>
     <div class="status-msg" id="templateImportStatus"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="scmdbImportPanel" style="display:none;">
-    <h2 data-i18n="panel_scmdb_import">Alternative Quelle: scmdb.net</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="scmdbImportPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_scmdb_import">Alternative Quelle: scmdb.net</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_scmdb_import">Unabhängiges Gegenstück zur obigen Rezepte-Liste — praktisch, um fehlende oder abweichende Rezepte aufzuspüren. Ablauf: Skript herunterladen, lokal ausführen (siehe Kommentar am Dateianfang für Voraussetzungen), die dabei erzeugte Datei hier einfügen oder auswählen. Der Import läuft anschließend über dasselbe Textfeld wie oben — dieser Bereich stellt lediglich Quelle und Skript bequem bereit.</span></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
       <a href="https://scmdb.net/?page=fab" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n="btn_scmdb_quelle_oeffnen">↗ scmdb.net öffnen (Quelle)</a>
       <button type="button" class="btn-ghost" id="btnDownloadScmdbScript" data-i18n="btn_scmdb_skript_herunterladen">⇩ Scraping-Skript herunterladen</button>
     </div>
     <div class="user-note" style="font-size:11px;" data-i18n="hint_scmdb_script_requirements">Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.</div>
-  </div>
+  </details>
 
-  <div class="panel" id="templateManagePanelWikeloWrap" style="display:none;">
-    <h2 data-i18n="panel_wikelo_verwalten">Wikelo-Handelsangebote verwalten</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="templateManagePanelWikeloWrap" style="display:none;">
+    <summary><h2 data-i18n="panel_wikelo_verwalten">Wikelo-Handelsangebote verwalten</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
     <div id="tplManagePanelListWikelo"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="wikeloImportPanel" style="display:none;">
-    <h2 data-i18n="panel_wikelo_import">Wikelo-Handelsangebote importieren</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="wikeloImportPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_wikelo_import">Wikelo-Handelsangebote importieren</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_wikelo_import">Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — optional lässt sich je Gegenstand eine vorgeschlagene Menge anhängen, z. B. "Gegenstand:15". Ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
     <div style="margin-bottom:10px;">
       <button type="button" class="btn-ghost" id="btnSelectWikeloFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
@@ -2022,20 +2051,20 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="wikeloCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
     </div>
     <div class="status-msg" id="wikeloImportStatus"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="unifiedTemplateManagePanel" style="display:none;">
-    <h2 data-i18n="panel_vorlagen_einzeln_verwalten">Einzelne Vorlagen verwalten</h2>
+  <details class="panel admin-collapsible" data-default-open="true" id="unifiedTemplateManagePanel" style="display:none;">
+    <summary><h2 data-i18n="panel_vorlagen_einzeln_verwalten">Einzelne Vorlagen verwalten</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten">Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen. Durchsucht Rezepte und Wikelo-Handelsangebote gemeinsam.</div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
       <input type="text" id="tpl-unified-search" placeholder="Suche nach Name oder Kategorie…" data-i18n-placeholder="placeholder_vorlage_suchen_beide" style="flex:1;min-width:200px;">
       <button type="button" class="btn-primary" id="tpl-unified-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
     </div>
     <div id="tpl-unified-list" style="max-height:320px;overflow-y:auto;"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="locationImportPanel" style="display:none;">
-    <h2 data-i18n="panel_lagerort_import">Lagerorte importieren</h2>
+  <details class="panel admin-collapsible" data-default-open="false" id="locationImportPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_lagerort_import">Lagerorte importieren</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_lagerort_import">Fügt neue Lagerorte zur bestehenden Liste hinzu — anders als bei Rezepten/Wikelo wird die bestehende Liste dabei NICHT ersetzt, sondern nur ergänzt (bereits vorhandene System+Code-Kombinationen werden übersprungen, nicht überschrieben). Format pro Zeile: System;Code;Name — Zeilen, die mit # beginnen, werden als Kommentar ignoriert. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
     <div style="margin-bottom:10px;">
       <button type="button" class="btn-ghost" id="btnSelectLocationFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
@@ -2047,10 +2076,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="locationCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
     </div>
     <div class="status-msg" id="locationImportStatus"></div>
-  </div>
+  </details>
 
-  <div class="panel" id="catalogPanel" style="display:none;">
-    <h2 data-i18n="panel_materialverwaltung">Materialien &amp; Lagerorte verwalten</h2>
+  <details class="panel admin-collapsible" data-default-open="true" id="catalogPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_materialverwaltung">Materialien &amp; Lagerorte verwalten</h2></summary>
 
     <h3 data-i18n="heading_material_hinzufuegen" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px 0;color:var(--steel);">Material hinzufügen</h3>
     <div class="form-grid-flex">
@@ -2133,7 +2162,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     </div>
     <div class="status-msg" id="collCatalogFormStatus"></div>
     <div class="user-list" id="collectibleCatalogListContainer" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
-  </div>
+  </details>
 
   <div class="panel" id="logPanel" style="display:none;">
     <h2 data-i18n="panel_protokoll">Änderungsprotokoll</h2>
@@ -5663,6 +5692,68 @@ ensureCredentialsLoaded();
 // wird erst beim expliziten Aufruf ("Protokoll anzeigen") geladen.
 // ============================================================
 const LOG_KEY = 'activity-log';
+
+// Ab 17. August 2026: individuelle Auf-/Zuklapp-Entscheidungen der
+// aufklappbaren Verwaltungs-Panels (siehe CSS-Kommentar weiter oben) --
+// bewusst GLOBAL (nicht organisationsgebunden) UND je Benutzername
+// gespeichert, da es sich um eine rein persoenliche Bedienvorliebe
+// handelt ("wie ICH mit dem Tool arbeite"), nicht um organisations-
+// spezifische Daten. Siehe Nutzerwunsch vom 17. August 2026.
+const ADMIN_PANEL_STATE_KEY = 'admin-panel-collapse-state';
+let adminPanelState = {}; // { [username]: { [panelId]: true/false } }
+
+async function loadAdminPanelState(){
+  try{
+    const res = await window.storage.get(ADMIN_PANEL_STATE_KEY, true);
+    adminPanelState = res && res.value ? JSON.parse(res.value) : {};
+  }catch(e){
+    adminPanelState = {};
+  }
+}
+
+async function saveAdminPanelState(){
+  try{
+    await window.storage.set(ADMIN_PANEL_STATE_KEY, JSON.stringify(adminPanelState), true);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+// Wendet den Auf-/Zuklapp-Zustand auf alle aufklappbaren Verwaltungs-
+// Panels an: eine zuvor bereits gespeicherte eigene Entscheidung hat
+// Vorrang, ansonsten greift die im HTML hinterlegte, sinnvolle
+// Voreinstellung (data-default-open). Registriert je Panel einen
+// toggle-Listener nur EINMAL (data-listener-attached als Merker),
+// damit bei wiederholtem Aufruf (z.B. nach einem Rollenwechsel oder
+// Organisations-Wechsel) kein doppelter Listener entsteht.
+function applyAdminPanelState(){
+  if(!currentUser) return;
+  const userState = adminPanelState[currentUser.username] || {};
+  document.querySelectorAll('details.admin-collapsible').forEach(details=>{
+    const id = details.id;
+    const saved = userState[id];
+    const defaultOpen = details.dataset.defaultOpen === 'true';
+    const targetOpen = saved != null ? saved : defaultOpen;
+    // Nur tatsaechlich AENDERN, wenn der Zielwert vom aktuellen Zustand
+    // abweicht -- ein unbedingtes Setzen wuerde bei jedem Aufruf (z.B.
+    // nach Rollenwechsel oder Organisations-Wechsel) ein "toggle"-
+    // Ereignis ausloesen, selbst OHNE echte Aenderung, und dadurch
+    // unnoetige Speicher-Aufrufe verursachen -- bei der isolierten
+    // Testung dieser Funktion bemerkt und hier behoben.
+    if(details.open !== targetOpen) details.open = targetOpen;
+    if(!details.dataset.listenerAttached){
+      details.dataset.listenerAttached = '1';
+      details.addEventListener('toggle', async ()=>{
+        if(!currentUser) return;
+        if(!adminPanelState[currentUser.username]) adminPanelState[currentUser.username] = {};
+        adminPanelState[currentUser.username][id] = details.open;
+        await saveAdminPanelState();
+      });
+    }
+  });
+}
+
 const LOG_MAX_ENTRIES = 500;
 
 async function logAction(action, details, actorOverride){
@@ -6079,6 +6170,7 @@ async function saveUserEdit(idx){
     document.getElementById('unifiedTemplateManagePanel').style.display = newRole==='owner' ? '' : 'none';
     if(newRole==='owner') renderUnifiedTemplateList();
     document.getElementById('locationImportPanel').style.display = newRole==='owner' ? '' : 'none';
+    if(isAdminOrAbove) applyAdminPanelState();
     document.getElementById('orgSwitcherWrap').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('tabBtn-verwaltung').style.display = isAdminOrAbove ? '' : 'none';
     if(!isAdminOrAbove && document.getElementById('tabBtn-verwaltung').classList.contains('active')) switchTab('uebersicht');
@@ -7690,7 +7782,7 @@ async function doLogin(){
   // Diese drei Ladevorgänge sind unabhängig voneinander — parallel statt
   // nacheinander ausführen reduziert die Wartezeit spürbar (von "Summe
   // aller drei Anfragen" auf "langsamste der drei").
-  await Promise.all([ensureCredentialsLoaded(), loadUsers(), loadOrganizations()]);
+  await Promise.all([ensureCredentialsLoaded(), loadUsers(), loadOrganizations(), loadAdminPanelState()]);
   await runOrgMigrationIfNeeded();
   const username = document.getElementById('loginUser').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -8052,6 +8144,7 @@ function completeLogin(user){
   document.getElementById('wikeloImportPanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('unifiedTemplateManagePanel').style.display = user.role==='owner' ? '' : 'none';
   document.getElementById('locationImportPanel').style.display = user.role==='owner' ? '' : 'none';
+  if(isOrgAdminOrAbove) applyAdminPanelState();
   document.getElementById('orgSwitcherWrap').style.display = user.role==='owner' ? '' : 'none';
   if(user.role==='owner'){ renderOrgSwitcher(); renderOrgManagementList(); renderTemplateCount(); renderWikeloCount(); updateBackupRestoreButtons(); renderUnifiedTemplateList(); }
   applyOrgBranding();
@@ -8370,7 +8463,7 @@ async function savePassword(){
   if(remembered){
     const user = USERS.find(u=>u.username.toLowerCase()===remembered.username.toLowerCase());
     if(user){
-      await Promise.all([ensureCredentialsLoaded(), loadOrganizations()]);
+      await Promise.all([ensureCredentialsLoaded(), loadOrganizations(), loadAdminPanelState()]);
       await runOrgMigrationIfNeeded();
       currentUser = user;
       currentOrgId = user.organizationId || LEGACY_ORG_ID;
