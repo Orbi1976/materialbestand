@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.115 -->
+<!-- Version: 0.116 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1975,7 +1975,15 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </div>
     </div>
     <div class="status-msg" id="userFormStatus"></div>
-    <div class="user-list" id="userListContainer" style="margin-top:12px;"></div>
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:12px;">
+      <label for="userListSort" style="font-size:12px;color:var(--ink-soft);" data-i18n="label_sortieren_nach">Sortieren nach</label>
+      <select id="userListSort" style="max-width:180px;">
+        <option value="name" data-i18n="option_sort_name">Name</option>
+        <option value="organisation" data-i18n="option_sort_organisation">Organisation</option>
+        <option value="rolle" data-i18n="option_sort_rolle">Rolle</option>
+      </select>
+    </div>
+    <div class="user-list" id="userListContainer" style="margin-top:8px;"></div>
     <div class="user-note" data-i18n="hint_default_password">Neue Benutzer erhalten automatisch das von der Organisation festgelegte Standard-Passwort (siehe Einstellung weiter unten), das sie nach der Anmeldung durch ein persönliches Passwort ersetzen müssen.</div>
   </details>
 
@@ -3119,6 +3127,10 @@ const I18N = {
   "panel_privatbestand": "Privatbestand",
   "hint_privatbestand": "Nur du siehst diese Einträge. Sie werden nicht mit anderen Benutzern geteilt und fließen nur ein, wenn du sie ausdrücklich in den allgemeinen Bestand übernimmst.",
   "hint_privat_sammelobjekte": "Nur du siehst diese Einträge. Sie fließen nur ein, wenn du sie ausdrücklich in die allgemeinen Sammelobjekte übernimmst.",
+  "label_sortieren_nach": "Sortieren nach",
+  "option_sort_name": "Name",
+  "option_sort_organisation": "Organisation",
+  "option_sort_rolle": "Rolle",
   "panel_benutzerverwaltung": "Benutzerverwaltung",
   "panel_materialverwaltung": "Materialien & Lagerorte verwalten",
   "panel_protokoll": "Änderungsprotokoll",
@@ -3866,6 +3878,10 @@ const I18N = {
   "panel_privatbestand": "Private stock",
   "hint_privatbestand": "Only you can see these entries. They are not shared with other users and only flow into the general inventory if you explicitly transfer them.",
   "hint_privat_sammelobjekte": "Only you can see these entries. They only flow in if you explicitly transfer them into the general collectibles.",
+  "label_sortieren_nach": "Sort by",
+  "option_sort_name": "Name",
+  "option_sort_organisation": "Organization",
+  "option_sort_rolle": "Role",
   "panel_benutzerverwaltung": "User management",
   "panel_materialverwaltung": "Manage materials & locations",
   "panel_protokoll": "Change log",
@@ -4613,6 +4629,10 @@ const I18N = {
   "panel_privatbestand": "Stock privé",
   "hint_privatbestand": "Vous seul voyez ces entrées. Elles ne sont pas partagées avec d'autres utilisateurs et n'intègrent le stock général que si vous les transférez explicitement.",
   "hint_privat_sammelobjekte": "Vous seul voyez ces entrées. Elles n'intègrent la collection générale que si vous les transférez explicitement.",
+  "label_sortieren_nach": "Trier par",
+  "option_sort_name": "Nom",
+  "option_sort_organisation": "Organisation",
+  "option_sort_rolle": "Rôle",
   "panel_benutzerverwaltung": "Gestion des utilisateurs",
   "panel_materialverwaltung": "Gérer les matériaux et emplacements",
   "panel_protokoll": "Journal des modifications",
@@ -5881,7 +5901,29 @@ function renderUserList(){
   const isOwner = currentUser.role === 'owner';
   // Ein Organisations-Administrator sieht ausschließlich Benutzer der
   // eigenen Organisation — der Besitzer sieht alle, organisationsübergreifend.
-  const visibleUsers = isOwner ? USERS : USERS.filter(u => u.organizationId === currentUser.organizationId);
+  let visibleUsers = isOwner ? USERS : USERS.filter(u => u.organizationId === currentUser.organizationId);
+
+  // Ab 17. August 2026 (Nutzerwunsch): Sortier-Auswahl fuer die
+  // Benutzerliste -- Name, Organisation oder Rolle. Bei Rolle wird
+  // bewusst nach der bereits bestehenden Rangfolge sortiert (siehe
+  // ROLE_HIERARCHY), nicht alphabetisch, da "admin" vor "editor" vor
+  // "org_admin" alphabetisch keine sinnvolle Reihenfolge waere --
+  // hoehere Rollen erscheinen zuerst. Jeweils mit dem Benutzernamen als
+  // zweitem Sortierkriterium, damit gleichrangige Eintraege (gleiche
+  // Organisation bzw. gleiche Rolle) untereinander weiterhin eine
+  // vorhersehbare, alphabetische Reihenfolge behalten.
+  const sortBy = document.getElementById('userListSort').value;
+  visibleUsers = [...visibleUsers].sort((a,b)=>{
+    if(sortBy === 'organisation'){
+      const orgCompare = getOrgName(a.organizationId).localeCompare(getOrgName(b.organizationId));
+      if(orgCompare !== 0) return orgCompare;
+    } else if(sortBy === 'rolle'){
+      const roleCompare = ROLE_HIERARCHY.indexOf(b.role) - ROLE_HIERARCHY.indexOf(a.role);
+      if(roleCompare !== 0) return roleCompare;
+    }
+    return a.username.toLowerCase().localeCompare(b.username.toLowerCase());
+  });
+
   container.innerHTML = visibleUsers.map((u)=>{
     const idx = USERS.indexOf(u);
     if(editingUserIndex === idx){
@@ -8534,6 +8576,7 @@ document.getElementById('btnChangePw').addEventListener('click', togglePwPanel);
 document.getElementById('btnCancelPw').addEventListener('click', togglePwPanel);
 document.getElementById('btnSavePw').addEventListener('click', savePassword);
 document.getElementById('btnAddUser').addEventListener('click', addUser);
+document.getElementById('userListSort').addEventListener('change', renderUserList);
 document.getElementById('btnAddMaterial').addEventListener('click', addMaterial);
 document.getElementById('btnAddLocation').addEventListener('click', addLocation);
 document.getElementById('btnToggleLog').addEventListener('click', toggleLogView);
