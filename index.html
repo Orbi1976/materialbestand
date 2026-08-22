@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.116 -->
+<!-- Version: 0.118 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -16088,13 +16088,18 @@ function updateOcrProgressBar(current, total){
   fill.style.width = Math.min(100, Math.round((current/total)*100)) + '%';
 }
 
-async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offset){
+async function runDigitFocusedPass(prepared, thresholds, worker, statusEl, offset, dynamicXStartFrac){
   // xStartFrac: Start der Zahlen-Spalten als Anteil der Breite der
-  // Nutzer-Auswahl. 0.58 entspricht dem in echten Screenshots
-  // gemessenen Beginn der Qualitaets-Spalte (siehe Kalibrierung anhand
-  // der drei Testbilder vom 7. August 2026) -- mit Sicherheitsabstand
-  // nach links, damit die Spalte nicht versehentlich abgeschnitten wird.
-  const xStartFrac = 0.56;
+  // Nutzer-Auswahl. Ab 22. August 2026: bevorzugt dynamisch aus den im
+  // Hauptdurchlauf tatsaechlich beobachteten Qualitaets-Positionen
+  // berechnet (siehe runOcrEnsemble) -- der urspruengliche, feste Wert
+  // 0.56 schnitt bei realen Testbildern reproduzierbar die fuehrende
+  // Ziffer der Qualitaet ab (z.B. 514 wurde zu 14, 852 zu 52), da die
+  // tatsaechliche Spaltenposition je nach Bild/Zuschnitt-Seitenverhaeltnis
+  // schwankt. Der feste Wert bleibt als Sicherheitsnetz erhalten, falls im
+  // Hauptdurchlauf aus irgendeinem Grund keine einzige Qualitaets-Position
+  // ermittelt werden konnte.
+  const xStartFrac = dynamicXStartFrac!=null ? dynamicXStartFrac : 0.56;
   // PSM 11 (SPARSE_TEXT, "Finde so viel Text wie moeglich, ohne
   // Reihenfolge/Layout anzunehmen") -- bislang unveraendert Tesseracts
   // Standard-Seitensegmentierung, die einen zusammenhaengenden Textblock
@@ -16301,21 +16306,73 @@ async function runOcrEnsemble(cropCanvas, statusEl){
     // Fortschrittsbalken zaehlt ueber beide Phasen hinweg durch, daher
     // hier die Anzahl der bereits abgeschlossenen Hauptdurchlauf-Schritte
     // als offset uebergeben.
-    digitFocusedRows = await runDigitFocusedPass(prepared, thresholds, worker, statusEl, thresholds.length);
+    // Ab 22. August 2026: dynamischen Zuschnitt-Start fuer den
+    // ziffern-fokussierten Durchlauf aus den im soeben abgeschlossenen
+    // Hauptdurchlauf tatsaechlich beobachteten Qualitaets-Positionen
+    // ableiten (kleinster beobachteter Wert ueber alle Zeilen/Schwellen-
+    // werte hinweg, mit Sicherheitsabstand nach links) -- siehe
+    // ausfuehrlicher Kommentar bei runDigitFocusedPass().
+    let dynamicXStartFrac = null;
+    const observedQualityX0 = [];
+    perThresholdRows.forEach(rows=>rows.forEach(r=>{
+      if(r.quality!=null && r.qualityX0!=null) observedQualityX0.push(r.qualityX0);
+    }));
+    if(observedQualityX0.length > 0){
+      const safetyMarginPx = 40;
+      const minX0 = Math.min(...observedQualityX0);
+      dynamicXStartFrac = Math.max(0, (minX0 - safetyMarginPx) / prepared.width);
+    }
+    digitFocusedRows = await runDigitFocusedPass(prepared, thresholds, worker, statusEl, thresholds.length, dynamicXStartFrac);
   } finally {
     await worker.terminate();
     updateOcrProgressBar(0, 0); // ausblenden, unabhaengig vom Ergebnis
   }
 
-  // Zeilen anhand der Y-Position über alle Durchläufe hinweg zusammenführen
+  // Zeilen anhand der Y-Position über alle Durchläufe hinweg zusammenführen.
+  //
+  // Ab 22. August 2026: grundlegend überarbeitet, nachdem bei isolierter
+  // Testung mit echten Screenshots wiederholt "Phantom-Zeilen" auftraten --
+  // zusätzliche, nicht existierende Zeilen zwischen zwei echten Zeilen, mit
+  // vermischten Qualitäts-/Mengen-Werten aus beiden Nachbarn. Ursache: Die
+  // bisherige Prüfung ("erstes Match gegen einen NIE aktualisierten Anker,
+  // feste 50px-Toleranz") ist reihenfolge-abhängig und ignoriert, dass die
+  // tatsächliche Zeichengröße stark zwischen Bildern schwankt -- bei eng
+  // beieinander liegenden Zeilen mit kleiner Schrift reichte eine einzelne,
+  // durch einen abweichenden Schwellenwert leicht verschobene Lesung, um
+  // fälschlich als eigene, zusätzliche Zeile gewertet zu werden. Jetzt:
+  // alle rohen Zentren sortiert, benachbarte Werte innerhalb einer an die
+  // tatsächliche Zeilenhöhe angepassten Toleranz zusammengefasst (Mittelwert
+  // der Gruppe) -- robust gegenüber der Verarbeitungsreihenfolge der
+  // einzelnen Durchläufe. MEDIAN statt Mittelwert der Zeilenhoehen, da
+  // clusterWordsIntoRows() bei niedrigen Schwellenwerten gelegentlich SELBST
+  // zwei echte Zeilen faelschlich zu einer "Riesenzeile" zusammenfasst --
+  // der Median ist gegenueber solchen einzelnen extremen Ausreissern
+  // deutlich robuster als der Mittelwert.
+  const allRowHeights = [];
+  perThresholdRows.forEach(rows=> rows.forEach(r=> allRowHeights.push(r.yMax - r.yMin)));
+  let medianRowHeight = 60;
+  if(allRowHeights.length){
+    const sortedHeights = [...allRowHeights].sort((a,b)=>a-b);
+    const mid = Math.floor(sortedHeights.length/2);
+    medianRowHeight = sortedHeights.length % 2 !== 0 ? sortedHeights[mid] : (sortedHeights[mid-1]+sortedHeights[mid])/2;
+  }
+  const rowMergeTolerance = Math.max(50, medianRowHeight * 1.2);
+
+  const rawCenters = [];
+  perThresholdRows.forEach(rows=> rows.forEach(r=> rawCenters.push(r.yCenter)));
+  rawCenters.sort((a,b)=>a-b);
+
   const allRowCenters = [];
-  perThresholdRows.forEach(rows=>{
-    rows.forEach(r=>{
-      const existing = allRowCenters.find(y=>Math.abs(y-r.yCenter) < 50);
-      if(!existing) allRowCenters.push(r.yCenter);
-    });
+  let currentGroup = [];
+  rawCenters.forEach(y=>{
+    if(currentGroup.length === 0 || y - currentGroup[currentGroup.length-1] <= rowMergeTolerance){
+      currentGroup.push(y);
+    } else {
+      allRowCenters.push(currentGroup.reduce((a,b)=>a+b,0)/currentGroup.length);
+      currentGroup = [y];
+    }
   });
-  allRowCenters.sort((a,b)=>a-b);
+  if(currentGroup.length) allRowCenters.push(currentGroup.reduce((a,b)=>a+b,0)/currentGroup.length);
 
   const finalRows = allRowCenters.map(yCenter=>{
     const candidates = { material: [], quality: [], menge: [] };
@@ -16330,7 +16387,10 @@ async function runOcrEnsemble(cropCanvas, statusEl){
     let yMinSum = 0, yMaxSum = 0, matchCount = 0;
     let firstMaterialRaw = null;
     perThresholdRows.forEach(rows=>{
-      const match = rows.find(r=>Math.abs(r.yCenter-yCenter) < 50);
+      // Dieselbe, an die Zeilenhoehe angepasste Toleranz wie beim
+      // Zusammenfassen der Zentren oben verwenden (statt der zuvor
+      // fest verdrahteten 50px) -- siehe ausfuehrlicher Kommentar dort.
+      const match = rows.find(r=>Math.abs(r.yCenter-yCenter) < rowMergeTolerance);
       if(match){
         if(match.material) candidates.material.push(match.material);
         if(match.quality!=null){ candidates.quality.push(String(match.quality)); confidences.quality.push(match.qualityConfidence); }
@@ -16346,7 +16406,7 @@ async function runOcrEnsemble(cropCanvas, statusEl){
     // widerspruechlichen Werten sinnvoll in seine Richtung, ohne die
     // bestehende, bewaehrte Mehrheitsentscheid-Logik komplett zu ersetzen.
     digitFocusedRows.forEach(rows=>{
-      const match = rows.find(r=>Math.abs(r.yCenter-yCenter) < 50);
+      const match = rows.find(r=>Math.abs(r.yCenter-yCenter) < rowMergeTolerance);
       if(match){
         if(match.quality!=null){ candidates.quality.push(String(match.quality)); confidences.quality.push(match.qualityConfidence); }
         if(match.menge!=null){ candidates.menge.push(String(match.menge)); confidences.menge.push(match.mengeConfidence); }
@@ -16430,10 +16490,21 @@ function clusterWordsIntoRows(words){
   // festen Pixelwert — robust gegenüber unterschiedlichen Bildgrößen/
   // Skalierungen. In der Praxis liegen Ziffern und Materialname derselben
   // Zeile teils deutlich auseinander (unterschiedliche Baseline), daher
-  // grosszügig bemessen (2.5x mittlere Zeichenhöhe).
+  // grosszügig bemessen.
+  //
+  // Ab 22. August 2026: Faktor von urspruenglich 2.5 auf 1.5 reduziert.
+  // Bei isolierter Testung mit einem realen Screenshot (grosse
+  // Zeichenhoehe bei vergleichsweise engem Zeilenabstand) verschmolz die
+  // 2.5-fache Toleranz zwei tatsaechlich unterschiedliche, benachbarte
+  // Tabellenzeilen faelschlich zu einer einzigen "Riesenzeile" (315px statt
+  // der ueblichen ~60-70px Zeichenhoehe) -- der urspruengliche Zweck
+  // (Materialname und Ziffern derselben Zeile trotz unterschiedlicher
+  // Baseline zusammenhalten) bleibt bei 1.5x weiterhin erfuellt, ohne so
+  // nah an den tatsaechlichen Abstand zwischen zwei echten Zeilen
+  // heranzureichen.
   const heights = sorted.map(w=> w.bbox.y1 - w.bbox.y0).filter(h=>h>0);
   const avgHeight = heights.length ? heights.reduce((a,b)=>a+b,0)/heights.length : 30;
-  const tolerance = Math.max(50, avgHeight * 2.5);
+  const tolerance = Math.max(50, avgHeight * 1.5);
 
   const rows = [];
   sorted.forEach(w=>{
@@ -16459,22 +16530,70 @@ function clusterWordsIntoRows(words){
     // mostCommonWithConfidence() weiter unten, statt jede Lesung
     // unabhaengig von Tesseracts eigener Unsicherheit gleich zu werten.
     const numbers = [];
+    let materialStartX = null;
     row.words.forEach(w=>{
       const txt = w.text.trim().replace(/^[^\wäöüÄÖÜ]+|[^\wäöüÄÖÜ]+$/g,'');
       if(!txt) return;
       if(/^\d+$/.test(txt)){
-        numbers.push({ value: parseInt(txt,10), confidence: w.confidence!=null ? w.confidence : 50 });
+        numbers.push({ value: parseInt(txt,10), confidence: w.confidence!=null ? w.confidence : 50, x0: w.bbox.x0 });
       } else if(/^[a-zA-Zäöü]{2,}$/.test(txt)){
         nameParts.push(txt);
+        if(materialStartX === null) materialStartX = w.bbox.x0;
       }
     });
+    // Ab 22. August 2026: das kleine Material-Icon (Piktogramm) ganz am
+    // linken Zeilenrand -- optisch VOR dem eigentlichen Materialnamen --
+    // wird von Tesseract gelegentlich faelschlich als Text interpretiert
+    // (typischerweise als "4)" oder aehnliche kurze Zeichenfolge, meist
+    // mit auffaellig NIEDRIGERER Konfidenz als die echten Zahlen). Landet
+    // die daraus resultierende Ziffer ("4") als ERSTE erkannte Zahl der
+    // Zeile, wird sie faelschlich als Qualitaet uebernommen statt der
+    // tatsaechlichen, dreistelligen Qualitaetszahl weiter rechts -- bei
+    // isolierter Testung mit echten Screenshots (22. August 2026)
+    // reproduzierbar gefunden. Echte Qualitaets-/Mengenwerte stehen immer
+    // RECHTS vom Materialnamen, nie links davon -- Zahlen, deren
+    // X-Position noch vor dem Beginn des erkannten Materialnamens liegt,
+    // werden deshalb verworfen, bevor sie als Qualitaet/Menge in die
+    // Auswertung einfliessen.
+    const numbersAfterMaterial = materialStartX!=null
+      ? numbers.filter(n=>n.x0 > materialStartX)
+      : numbers;
     const materialRaw = nameParts.join(' ');
     const material = nameParts.length ? fuzzyMatchMaterial(materialRaw) : null;
-    const quality = numbers.length>=1 ? numbers[0].value : null;
-    const qualityConfidence = numbers.length>=1 ? numbers[0].confidence : null;
+    // Ab 22. August 2026: Wird in dieser Zeile NUR EINE Ziffernfolge
+    // gefunden (statt der erwarteten zwei -- Qualitaet UND Menge), ist
+    // nicht sicher zuordenbar, ob es sich dabei um die Qualitaet oder die
+    // Menge handelt, die faelschlich auf Position 1 gerutscht ist, weil
+    // die eigentliche Qualitaetszahl in DIESEM Durchlauf nicht gefunden
+    // wurde. Bei isolierter Testung reproduzierbar gefunden: eine Zeile
+    // mit Qualitaet 855 und Menge 18 wurde bei zwei von acht Durchlaeufen
+    // faelschlich nur mit der Menge (18) gelesen, die dann als "Qualitaet"
+    // in die Abstimmung einfloss -- da diese Fehllesung haeufiger auftrat
+    // als die korrekte, gewann sie die Mehrheitsabstimmung. Reale
+    // Qualitaetswerte liegen erfahrungsgemaess durchgehend zwischen
+    // 500-999 (dieselbe Kalibrierung wie bei isSpuriousRow() weiter
+    // unten) -- liegt die einzige gefundene Zahl klar darunter, handelt
+    // es sich mit hoher Wahrscheinlichkeit tatsaechlich um die Menge und
+    // wird nicht als Qualitaet gewertet, um die Abstimmung nicht mit
+    // einer wahrscheinlich falschen Lesung zu verfaelschen. Dasselbe
+    // Prinzip war bereits im ziffernfokussierten Zusatzdurchlauf
+    // (runDigitFocusedPass(), "ambiguous"-Kennzeichnung) umgesetzt, hier
+    // im Hauptdurchlauf bislang aber noch nicht.
+    const singleAmbiguousNumber = numbersAfterMaterial.length === 1 && numbersAfterMaterial[0].value < 500;
+    const quality = (numbersAfterMaterial.length>=1 && !singleAmbiguousNumber) ? numbersAfterMaterial[0].value : null;
+    const qualityConfidence = (numbersAfterMaterial.length>=1 && !singleAmbiguousNumber) ? numbersAfterMaterial[0].confidence : null;
+    // Ab 22. August 2026: haelt die X-Position der Qualitaets-Ziffernfolge
+    // fest -- Grundlage fuer den dynamisch berechneten Zuschnitt-Start des
+    // ziffern-fokussierten Zusatzdurchlaufs in runOcrEnsemble() (siehe
+    // dortiger Kommentar). Der bisherige, feste Prozentsatz schnitt bei
+    // realen Testbildern reproduzierbar die fuehrende Ziffer der Qualitaet
+    // ab (z.B. 514 wurde zu 14, 852 zu 52), da die tatsaechliche Position
+    // der Qualitaets-Spalte je nach Bild/Zuschnitt-Seitenverhaeltnis
+    // schwankt.
+    const qualityX0 = (numbersAfterMaterial.length>=1 && !singleAmbiguousNumber) ? numbersAfterMaterial[0].x0 : null;
     // Menge: erste Ziffernfolge nach der Qualität, von cSCU auf SCU umgerechnet
-    const yieldRaw = numbers.length>=2 ? numbers[1].value : null;
-    const yieldConfidence = numbers.length>=2 ? numbers[1].confidence : null;
+    const yieldRaw = numbersAfterMaterial.length>=2 ? numbersAfterMaterial[1].value : null;
+    const yieldConfidence = numbersAfterMaterial.length>=2 ? numbersAfterMaterial[1].confidence : null;
     // Ab 16. August 2026: Schutz gegen Duplikat-Erkennung derselben
     // Ziffernfolge. Bei einer Nutzermeldung entsprach die erkannte Menge
     // exakt der Qualitaet geteilt durch 100 (z.B. Qualitaet 853, Menge
@@ -16492,7 +16611,7 @@ function clusterWordsIntoRows(words){
     // Lesung in die Abstimmung einfliessen zu lassen.
     const isDuplicateDetection = yieldRaw != null && quality != null && yieldRaw === quality;
     const menge = (yieldRaw!=null && !isDuplicateDetection) ? Math.round((yieldRaw/100)*100)/100 : null;
-    return { yCenter: row.yCenter, yMin: row.yMin, yMax: row.yMax, material, materialRaw, quality, qualityConfidence, menge, mengeConfidence: isDuplicateDetection ? null : yieldConfidence };
+    return { yCenter: row.yCenter, yMin: row.yMin, yMax: row.yMax, material, materialRaw, quality, qualityConfidence, qualityX0, menge, mengeConfidence: isDuplicateDetection ? null : yieldConfidence };
   });
 }
 
