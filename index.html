@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.118 -->
+<!-- Version: 0.120 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1700,6 +1700,17 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 </div>
 
+<div id="duplicateTemplatesModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:90;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;padding:20px;">
+  <div class="ocr-modal-content" style="max-width:760px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 style="margin:0;" data-i18n="title_duplikate_vorlagen">Mögliche Vorlagen-Duplikate</h2>
+      <button class="btn-icon" id="btnCloseDuplicateTemplates" title="Schließen">✕</button>
+    </div>
+    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_duplikate_vorlagen">Vorlagen mit exakt demselben Namen (unabhängig von Groß-/Kleinschreibung), über Rezepte und Wikelo-Handelsangebote hinweg — jeweils mit Angabe, in welcher Liste und Kategorie sie stehen. Damit lässt sich prüfen, welche behalten und welche entfernt werden sollen.</div>
+    <div id="duplicateTemplatesList" style="max-height:60vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
 <div class="wrap" id="appWrap" style="display:none;">
   <header>
     <div class="header-title-row">
@@ -2067,6 +2078,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
       <input type="text" id="tpl-unified-search" placeholder="Suche nach Name oder Kategorie…" data-i18n-placeholder="placeholder_vorlage_suchen_beide" style="flex:1;min-width:200px;">
       <button type="button" class="btn-primary" id="tpl-unified-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
+      <button type="button" class="btn-ghost" id="btnShowDuplicateTemplates" data-i18n="btn_duplikate_anzeigen">Mögliche Duplikate anzeigen</button>
     </div>
     <div id="tpl-unified-list" style="max-height:320px;overflow-y:auto;"></div>
   </details>
@@ -3381,6 +3393,10 @@ const I18N = {
   "btn_scmdb_skript_herunterladen": "⇩ Scraping-Skript herunterladen",
   "hint_scmdb_script_requirements": "Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.",
   "hint_vorlagen_verwalten": "Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen. Durchsucht Rezepte und Wikelo-Handelsangebote gemeinsam.",
+  "btn_duplikate_anzeigen": "Mögliche Duplikate anzeigen",
+  "title_duplikate_vorlagen": "Mögliche Vorlagen-Duplikate",
+  "hint_duplikate_vorlagen": "Vorlagen mit exakt demselben Namen (unabhängig von Groß-/Kleinschreibung), über Rezepte und Wikelo-Handelsangebote hinweg — jeweils mit Angabe, in welcher Liste und Kategorie sie stehen. Damit lässt sich prüfen, welche behalten und welche entfernt werden sollen.",
+  "empty_keine_duplikate": "Keine möglichen Duplikate gefunden",
   "btn_neue_vorlage": "+ Neue Vorlage",
   "hint_vorlage_suchen": "{count} Vorlagen insgesamt — Suchbegriff eingeben, um eine bestimmte zu finden.",
   "hint_keine_vorlage_gefunden": "Keine Vorlage gefunden.",
@@ -3393,6 +3409,7 @@ const I18N = {
   "label_name": "Name",
   "btn_material_hinzufuegen": "Material hinzufügen",
   "val_kategorie_name_required": "Bitte Kategorie und Name angeben.",
+  "val_vorlage_moeglw_duplikat": "Eine Vorlage mit diesem Namen existiert bereits — zum Speichern trotzdem erneut auf \"Speichern\" klicken.",
   "val_mindestens_ein_material": "Bitte mindestens ein Material angeben.",
   "panel_vorlagen_einzeln_verwalten": "Einzelne Vorlagen verwalten",
   "label_vorlagen_art": "Art",
@@ -4132,6 +4149,10 @@ const I18N = {
   "btn_scmdb_skript_herunterladen": "⇩ Download scraping script",
   "hint_scmdb_script_requirements": "Requirements to run it: Python 3, plus <code>pip install playwright</code> and <code>playwright install chromium</code> (one-time setup). Details are in the comment at the top of the downloaded file.",
   "hint_vorlagen_verwalten": "For smaller changes or single additions — without having to re-import the entire list. Searches recipes and Wikelo trade offers together.",
+  "btn_duplikate_anzeigen": "Show possible duplicates",
+  "title_duplikate_vorlagen": "Possible template duplicates",
+  "hint_duplikate_vorlagen": "Templates with the exact same name (case-insensitive), across recipes and Wikelo trade offers — each shown with the list and category it belongs to. Use this to decide which one to keep and which to remove.",
+  "empty_keine_duplikate": "No possible duplicates found",
   "btn_neue_vorlage": "+ New template",
   "hint_vorlage_suchen": "{count} templates in total — enter a search term to find a specific one.",
   "hint_keine_vorlage_gefunden": "No template found.",
@@ -4144,6 +4165,7 @@ const I18N = {
   "label_name": "Name",
   "btn_material_hinzufuegen": "Add material",
   "val_kategorie_name_required": "Please enter a category and name.",
+  "val_vorlage_moeglw_duplikat": "A template with this name already exists — click \"Save\" again to save anyway.",
   "val_mindestens_ein_material": "Please enter at least one material.",
   "panel_vorlagen_einzeln_verwalten": "Manage individual templates",
   "label_vorlagen_art": "Type",
@@ -4883,6 +4905,10 @@ const I18N = {
   "btn_scmdb_skript_herunterladen": "⇩ Télécharger le script de scraping",
   "hint_scmdb_script_requirements": "Prérequis pour l'exécution : Python 3, ainsi que <code>pip install playwright</code> et <code>playwright install chromium</code> (une seule fois). Les détails figurent en commentaire en haut du fichier téléchargé.",
   "hint_vorlagen_verwalten": "Pour de petites modifications ou des ajouts ponctuels — sans devoir réimporter toute la liste. Recherche dans les recettes et les offres Wikelo simultanément.",
+  "btn_duplikate_anzeigen": "Afficher les doublons possibles",
+  "title_duplikate_vorlagen": "Doublons de modèles possibles",
+  "hint_duplikate_vorlagen": "Modèles portant exactement le même nom (indépendamment de la casse), tous types confondus (recettes et offres commerciales Wikelo) — chacun indiquant la liste et la catégorie auxquelles il appartient. Permet de décider lequel conserver et lequel supprimer.",
+  "empty_keine_duplikate": "Aucun doublon possible trouvé",
   "btn_neue_vorlage": "+ Nouveau modèle",
   "hint_vorlage_suchen": "{count} modèles au total — saisissez un terme de recherche pour en trouver un précis.",
   "hint_keine_vorlage_gefunden": "Aucun modèle trouvé.",
@@ -4895,6 +4921,7 @@ const I18N = {
   "label_name": "Nom",
   "btn_material_hinzufuegen": "Ajouter un matériau",
   "val_kategorie_name_required": "Veuillez indiquer une catégorie et un nom.",
+  "val_vorlage_moeglw_duplikat": "Un modèle portant ce nom existe déjà — cliquez à nouveau sur « Enregistrer » pour enregistrer quand même.",
   "val_mindestens_ein_material": "Veuillez indiquer au moins un matériau.",
   "panel_vorlagen_einzeln_verwalten": "Gérer les modèles individuels",
   "label_vorlagen_art": "Type",
@@ -11446,6 +11473,13 @@ const TEMPLATE_KIND_CONFIG = {
 };
 
 let templateEditState = { kind: null, index: null }; // index: null = Neuanlage, sonst Position im Array
+// Ab 23. August 2026: haelt fest, ob die Duplikat-Warnung beim
+// aktuellen Speicherversuch bereits einmal angezeigt wurde (siehe
+// saveTemplateEdit()) -- wird beim Oeffnen/Schliessen des Bearbeiten-
+// Fensters sowie nach 5 Sekunden automatisch zurueckgesetzt, damit ein
+// zweiter Klick auch wirklich als bewusste Bestaetigung zaehlt, nicht
+// als versehentlicher Doppelklick Minuten spaeter.
+let templateEditDuplicateConfirmed = false;
 
 // Vollstaendige, nach Kategorie gruppierte Uebersicht aller Projekt-
 // Vorlagen (im Unterschied zur bereits bestehenden, rein such-
@@ -11522,6 +11556,100 @@ function renderTemplateManagePanel(kind){
 // durch die vielen, alle gleichzeitig sichtbaren Panels ohnehin schon
 // recht lang gescrollt werden muss. Siehe Nutzerwunsch vom 17. August
 // 2026.
+
+// Ab 23. August 2026 (Nutzerwunsch, direkter Anlass: zwei Personen
+// hatten unabhaengig voneinander dieselben drei Ruestungsteile zu
+// unterschiedlichen Zeitpunkten angelegt): findet alle Vorlagen, deren
+// Name (unabhaengig von Gross-/Kleinschreibung) mehrfach vorkommt --
+// ueber Rezepte UND Wikelo-Handelsangebote hinweg, dieselbe Vergleichs-
+// logik wie bereits bei der Duplikat-Warnung in saveTemplateEdit().
+// Liefert nur tatsaechliche Gruppen (mehr als ein Eintrag je Name),
+// alphabetisch sortiert nach Name.
+function findDuplicateTemplates(){
+  const groups = new Map(); // normalisierter Name -> [{kind, id, tpl}]
+  ['rezepte', 'wikelo'].forEach(kind=>{
+    TEMPLATE_KIND_CONFIG[kind].getArray().forEach(tpl=>{
+      const key = tpl.name.trim().toLowerCase();
+      if(!groups.has(key)) groups.set(key, []);
+      groups.get(key).push({ kind, id: tpl.id, tpl });
+    });
+  });
+  return [...groups.values()]
+    .filter(g=>g.length > 1)
+    .sort((a,b)=>a[0].tpl.name.toLowerCase().localeCompare(b[0].tpl.name.toLowerCase()));
+}
+
+// Loescht EINE bestimmte Vorlage anhand ihrer (stabilen) ID statt eines
+// Array-Index -- wichtig, da sich Indizes durch das Loeschen anderer
+// Eintraege in derselben Liste verschieben koennten, waehrend die ID
+// unveraendert bleibt.
+async function deleteTemplateById(kind, id){
+  const cfg = TEMPLATE_KIND_CONFIG[kind];
+  const array = cfg.getArray();
+  const idx = array.findIndex(t=>t.id===id);
+  if(idx === -1) return false;
+  const removed = array[idx];
+  array.splice(idx, 1);
+  cfg.setArray(array);
+  await cfg.save();
+  await logAction('Vorlage gelöscht', `${removed.category};${removed.name} (${kind}, Duplikat-Bereinigung)`);
+  return true;
+}
+
+function renderDuplicateTemplatesModal(){
+  const container = document.getElementById('duplicateTemplatesList');
+  if(!container) return;
+  const groups = findDuplicateTemplates();
+
+  if(groups.length === 0){
+    container.innerHTML = `<div class="empty"><div class="big">${t('empty_keine_duplikate')}</div></div>`;
+    return;
+  }
+
+  let html = '';
+  groups.forEach(group=>{
+    html += `<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--panel-border);">
+      <div style="font-family:'Rajdhani', sans-serif;font-weight:700;font-size:14px;margin-bottom:8px;color:var(--cyan);">${escapeHtml(group[0].tpl.name)} <span style="color:var(--ink-soft);font-weight:400;font-size:11px;">(${group.length}×)</span></div>`;
+    group.forEach(entry=>{
+      const badgeLabel = entry.kind==='wikelo' ? t('option_vorlagen_art_wikelo') : t('option_vorlagen_art_rezept');
+      html += `<div class="user-row">
+        <div class="user-info">
+          <span class="badge" style="font-size:9.5px;padding:1px 6px;margin-right:6px;background:${entry.kind==='wikelo'?'rgba(255,166,48,0.15)':'rgba(0,216,255,0.1)'};color:${entry.kind==='wikelo'?'var(--accent)':'var(--cyan)'};border:1px solid ${entry.kind==='wikelo'?'var(--accent)':'var(--cyan)'};">${badgeLabel}</span>
+          <span>${escapeHtml(entry.tpl.category)} · ${entry.tpl.materials.length} ${t('label_materialien_kurz')}</span>
+        </div>
+        <div class="actions-cell">
+          <button class="btn-icon" data-action="edit-duplicate" data-kind="${entry.kind}" data-id="${escapeHtml(entry.id)}" title="${t('btn_edit')}">✎</button>
+          <button class="btn-icon danger" data-action="delete-duplicate" data-kind="${entry.kind}" data-id="${escapeHtml(entry.id)}" title="${t('btn_delete')}">🗑</button>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  container.innerHTML = html;
+
+  container.querySelectorAll('[data-action="edit-duplicate"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const array = TEMPLATE_KIND_CONFIG[btn.dataset.kind].getArray();
+      const idx = array.findIndex(t=>t.id===btn.dataset.id);
+      if(idx === -1) return;
+      document.getElementById('duplicateTemplatesModal').style.display = 'none';
+      openTemplateEditModal(btn.dataset.kind, idx);
+    });
+  });
+  container.querySelectorAll('[data-action="delete-duplicate"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      armConfirm(btn, async ()=>{
+        const ok = await deleteTemplateById(btn.dataset.kind, btn.dataset.id);
+        if(ok){
+          renderDuplicateTemplatesModal();
+          renderUnifiedTemplateList();
+          if(btn.dataset.kind==='rezepte') renderTemplateCount(); else renderWikeloCount();
+        }
+      });
+    });
+  });
+}
+
 function renderUnifiedTemplateList(){
   const container = document.getElementById('tpl-unified-list');
   const searchEl = document.getElementById('tpl-unified-search');
@@ -11610,6 +11738,7 @@ function addTemplateEditMaterialRow(prefill){
 
 function openTemplateEditModal(kind, index){
   templateEditState = { kind, index: index!=null ? index : null };
+  templateEditDuplicateConfirmed = false;
   const cfg = TEMPLATE_KIND_CONFIG[kind];
   const isNew = index == null;
   const tpl = isNew ? { category:'', name:'', materials:[] } : cfg.getArray()[index];
@@ -11686,6 +11815,33 @@ async function saveTemplateEdit(){
   }
 
   const array = cfg.getArray();
+
+  // Ab 23. August 2026 (Nutzerwunsch): Bevor eine neue Vorlage
+  // tatsaechlich gespeichert wird, pruefen, ob unter demselben Namen
+  // (unabhaengig von Gross-/Kleinschreibung) bereits eine Vorlage in
+  // dieser Liste existiert -- unabhaengig von der Kategorie, da
+  // dieselbe Vorlage theoretisch versehentlich unter einer leicht
+  // abweichenden Kategorie erneut angelegt werden koennte. Beim
+  // Bearbeiten einer BEREITS bestehenden Vorlage wird deren eigener
+  // Eintrag dabei bewusst ausgenommen (sonst wuerde jede normale
+  // Bearbeitung faelschlich als "Duplikat ihrer selbst" erkannt).
+  // Anlass: zwei Nutzerinnen/Nutzer legten dieselben drei Ruestungs-
+  // teile unabhaengig voneinander zu unterschiedlichen Zeitpunkten an,
+  // ohne dass ein Hinweis erschien -- bei einer bereits ueber 1500
+  // Eintraege umfassenden Liste faellt sowas leicht nicht auf. Nutzt
+  // dasselbe, bereits etablierte Zwei-Klick-Bestaetigungsmuster wie an
+  // anderen Stellen der Anwendung (armConfirm): der erste Klick auf
+  // "Speichern" zeigt bei einem erkannten Duplikat nur eine Warnung,
+  // der zweite Klick innerhalb weniger Sekunden speichert tatsaechlich.
+  const isDuplicateName = array.some((tpl, i) => i !== index && tpl.name.trim().toLowerCase() === name.toLowerCase());
+  if(isDuplicateName && !templateEditDuplicateConfirmed){
+    templateEditDuplicateConfirmed = true;
+    setStatusMsg(statusEl, t('val_vorlage_moeglw_duplikat'), true);
+    setTimeout(()=>{ templateEditDuplicateConfirmed = false; }, 5000);
+    return;
+  }
+  templateEditDuplicateConfirmed = false;
+
   // Ab 16. August 2026: die ID einer bestehenden Vorlage bleibt beim
   // Bearbeiten zwingend erhalten (sonst wuerde die Verknuepfung zu
   // bereits daraus angelegten Projekten abreissen) -- bei einer neuen
@@ -15812,6 +15968,16 @@ document.getElementById('stockOverviewModal').addEventListener('click', (e)=>{
 });
 document.getElementById('stockOverviewSearch').addEventListener('input', renderStockOverview);
 document.getElementById('stockOverviewMinQual').addEventListener('input', renderStockOverview);
+document.getElementById('btnShowDuplicateTemplates').addEventListener('click', ()=>{
+  document.getElementById('duplicateTemplatesModal').style.display = 'flex';
+  renderDuplicateTemplatesModal();
+});
+document.getElementById('btnCloseDuplicateTemplates').addEventListener('click', ()=>{
+  document.getElementById('duplicateTemplatesModal').style.display = 'none';
+});
+document.getElementById('duplicateTemplatesModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'duplicateTemplatesModal') document.getElementById('duplicateTemplatesModal').style.display = 'none';
+});
 document.getElementById('btnPickOcrCamera').addEventListener('click', ()=>{
   document.getElementById('ocrFileInputCamera').click();
 });
