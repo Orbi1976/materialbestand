@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.120 -->
+<!-- Version: 0.124 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1675,9 +1675,11 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       </div>
       <div class="user-note" id="ocrUncertainHint" style="display:none;margin:0 0 12px 0;border-left:3px solid var(--med);padding-left:10px;" data-i18n="ocr_uncertain_hint">⚠ Orange markierte Felder konnten nicht eindeutig erkannt werden — bitte besonders sorgfältig prüfen.</div>
       <div id="ocrPreviewTableWrap" style="max-height:40vh;overflow-y:auto;"></div>
-      <div style="margin-top:14px;display:flex;gap:10px;">
+      <div id="ocrAccumulatedHint" style="display:none;margin-top:10px;font-size:12px;color:var(--ink-soft);"></div>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn-primary" id="btnApplyOcrPreview" data-i18n="ocr_apply_preview">In Massen-Eingabe übernehmen</button>
-        <button class="btn-ghost" id="btnBackToSelection" data-i18n="ocr_back">Zurück</button>
+        <button class="btn-ghost" id="btnBackToSelection" data-i18n="ocr_weiterer_bereich">+ Weiteren Bereich (dieses Bild)</button>
+        <button class="btn-ghost" id="btnOcrAddImage" data-i18n="ocr_weiteres_bild">+ Weiteres Bild hinzufügen</button>
       </div>
     </div>
   </div>
@@ -1935,24 +1937,18 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <label for="orgResetSelect" data-i18n="label_org_reset_organisation">Organisation</label>
       <select id="orgResetSelect"></select>
     </div>
-    <div style="display:flex;gap:24px;margin-top:14px;flex-wrap:wrap;">
-      <div>
-        <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--low);margin-bottom:6px;" data-i18n="label_org_reset_bleibt">Bleibt erhalten</div>
-        <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.7;">
-          <li data-i18n="label_org_reset_bleibt_1">Benutzer &amp; Rollen</li>
-          <li data-i18n="label_org_reset_bleibt_2">Zugangsdaten &amp; Standard-Passwort</li>
-          <li data-i18n="label_org_reset_bleibt_3">Organisations-Individualisierung &amp; Discord-Einstellungen</li>
-        </ul>
-      </div>
-      <div>
-        <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#FF3B5C;margin-bottom:6px;" data-i18n="label_org_reset_geloescht">Wird gelöscht</div>
-        <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.7;">
-          <li data-i18n="label_org_reset_geloescht_1">Geteilter &amp; privater Bestand (aller Mitglieder)</li>
-          <li data-i18n="label_org_reset_geloescht_2">Geteilte &amp; private Sammelobjekte (aller Mitglieder)</li>
-          <li data-i18n="label_org_reset_geloescht_3">Geteilte &amp; private Projekte (aller Mitglieder)</li>
-          <li data-i18n="label_org_reset_geloescht_4">Bedarfe</li>
-        </ul>
-      </div>
+    <div style="margin-top:14px;">
+      <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--low);margin-bottom:6px;" data-i18n="label_org_reset_bleibt">Bleibt erhalten</div>
+      <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.7;">
+        <li data-i18n="label_org_reset_bleibt_1">Benutzer &amp; Rollen</li>
+        <li data-i18n="label_org_reset_bleibt_2">Zugangsdaten &amp; Standard-Passwort</li>
+        <li data-i18n="label_org_reset_bleibt_3">Organisations-Individualisierung &amp; Discord-Einstellungen</li>
+      </ul>
+    </div>
+    <div style="margin-top:16px;">
+      <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#FF3B5C;margin-bottom:6px;" data-i18n="label_org_reset_geloescht">Wird gelöscht (abwählen zum Behalten)</div>
+      <div class="user-note" style="margin:0 0 4px 0;" data-i18n="hint_org_reset_granular">Nur tatsächlich in der gewählten Organisation vorhandene Kategorien werden angezeigt. Standardmäßig ist alles angehakt (= wird bei diesem Reset entfernt) — einzelne Kategorien lassen sich gezielt abwählen, um sie zu behalten.</div>
+      <div id="orgResetGranularOptions"></div>
     </div>
     <div class="field" style="margin-top:16px;max-width:420px;">
       <label for="orgResetConfirmName"><span data-i18n="label_org_reset_bestaetigung">Zur Bestätigung Namen der oben gewählten Organisation eingeben:</span></label>
@@ -2578,6 +2574,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <input type="text" id="priv-search" placeholder="Suche nach Material, Lagerort, Person …" data-i18n-placeholder="placeholder_search">
       <select id="priv-filterLagerort"><option value="" data-i18n="filter_alle_lagerorte">Alle Lagerorte</option></select>
       <input type="number" id="priv-filterQualitaet" placeholder="Qualität ≥" step="0.01" style="max-width:140px;" data-i18n-placeholder="placeholder_qualitaet_ge">
+    </div>
+    <div id="privBestandBulkActionsBar" style="display:none;margin-top:14px;padding:8px 12px;background:rgba(255,59,92,0.06);border:1px solid var(--panel-border);border-radius:var(--radius);align-items:center;gap:12px;">
+      <span id="privBestandBulkActionsCount" style="font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);"></span>
+      <button class="btn-ghost btn-compact" id="btnBulkTransferPrivEntries" style="margin-left:auto;">⇥ <span data-i18n="btn_transfer_selected">Ausgewählte in geteilten Bestand übertragen</span></button>
     </div>
     <div id="privateTableContainer"></div>
   </div>
@@ -3295,12 +3295,13 @@ const I18N = {
   "label_org_reset_bleibt": "Bleibt erhalten",
   "label_org_reset_bleibt_1": "Benutzer & Rollen",
   "label_org_reset_bleibt_2": "Zugangsdaten & Standard-Passwort",
+  "label_kategorie_unbekannt": "Unbekannt / Sonstige",
+  "hint_org_reset_granular": "Nur tatsächlich in der gewählten Organisation vorhandene Kategorien werden angezeigt. Standardmäßig ist alles angehakt (= wird bei diesem Reset entfernt) — einzelne Kategorien lassen sich gezielt abwählen, um sie zu behalten.",
+  "label_org_reset_material_kategorien": "Materialien",
+  "label_org_reset_sammelobjekt_kategorien": "Sammelobjekte",
+  "hint_org_reset_keine_daten": "Diese Organisation enthält aktuell keine Bestände, Bedarfe, Sammelobjekte oder Projekte, die zurückgesetzt werden könnten.",
   "label_org_reset_bleibt_3": "Organisations-Individualisierung & Discord-Einstellungen",
-  "label_org_reset_geloescht": "Wird gelöscht",
-  "label_org_reset_geloescht_1": "Geteilter & privater Bestand (aller Mitglieder)",
-  "label_org_reset_geloescht_2": "Geteilte & private Sammelobjekte (aller Mitglieder)",
-  "label_org_reset_geloescht_3": "Geteilte & private Projekte (aller Mitglieder)",
-  "label_org_reset_geloescht_4": "Bedarfe",
+  "label_org_reset_geloescht": "Wird gelöscht (abwählen zum Behalten)",
   "label_org_reset_bestaetigung": "Zur Bestätigung Namen der oben gewählten Organisation eingeben:",
   "btn_org_reset": "Inhalte unwiderruflich zurücksetzen",
   "label_org_reset_organisation": "Organisation",
@@ -3661,7 +3662,9 @@ const I18N = {
   "ocr_experimental_hint": "Die Texterkennung kann Fehler machen — bitte JEDEN erkannten Wert (Material, Qualität, Menge) vor der Übernahme zwingend mit dem Original-Screenshot abgleichen, auch wenn kein Feld orange markiert ist.",
   "ocr_uncertain_hint": "⚠ Orange markierte Felder konnten nicht eindeutig erkannt werden — bitte besonders sorgfältig prüfen.",
   "ocr_apply_preview": "In Massen-Eingabe übernehmen",
-  "ocr_back": "Zurück",
+  "ocr_weiterer_bereich": "+ Weiteren Bereich (dieses Bild)",
+  "ocr_weiteres_bild": "+ Weiteres Bild hinzufügen",
+  "ocr_accumulated_hint": "Bereits erfasst: {rows} Zeile(n) aus {rounds} Erfassungen — weitere lassen sich unten ergänzen, bevor alles gemeinsam übernommen wird.",
   "ocr_preview_title": "Erkannte Werte prüfen",
   "ocr_col_snippet": "Bildausschnitt",
   "ocr_recognized_as": "Erkannt als",
@@ -3681,6 +3684,7 @@ const I18N = {
   "label_privat": "privat",
   "tooltip_zuordnung_aufheben": "Zuordnung zum Projekt aufheben",
   "tooltip_transfer_entry": "In allgemeinen Bestand übernehmen — erweitert passenden Eintrag oder legt neuen an, wird danach aus dem Privatbestand entfernt",
+  "tooltip_transfer_to_private": "In privaten Bestand des Verantwortlichen verschieben — erweitert passenden Eintrag oder legt neuen an, wird danach aus dem geteilten Bestand entfernt",
   "tooltip_click_again_confirm": "Nochmal klicken zum Bestätigen",
   "tooltip_projekt_loeschen_betroffen": "Achtung: {count} Eintrag/Eintraege (Bestand/Sammelobjekte/Bedarf) sind diesem Projekt zugeordnet — die Zuordnung wird beim Löschen aufgehoben. Nochmal klicken zum Bestätigen.",
   "tooltip_material_loeschen_betroffen": "Achtung: {count} Eintrag/Einträge verwenden dieses Material/diesen Lagerort — diese werden beim Löschen mitgelöscht, nicht nur die Zuordnung aufgehoben. Nochmal klicken zum Bestätigen.",
@@ -3696,6 +3700,7 @@ const I18N = {
   "val_menge_required": "Bitte eine gültige Menge größer 0 angeben.",
   "val_teilmenge_zu_gross": "Die Teilmenge darf die Gesamtmenge nicht übersteigen.",
   "text_partial_transfer": "{material} @ {lagerort} — wie viel davon soll in den geteilten Bestand übertragen werden?",
+  "text_partial_transfer_to_private": "{material} @ {lagerort} — wie viel davon soll in den privaten Bestand verschoben werden?",
   "text_partial_assign": "{material} — wie viel davon soll dem Projekt „{project}“ zugewiesen werden?",
   "btn_confirm": "Bestätigen",
   "tooltip_assign_to_person": "Person zuweisen (Admin)",
@@ -3713,6 +3718,9 @@ const I18N = {
   "msg_undo_success": "Löschen rückgängig gemacht.",
   "msg_stock_extended_private": "Bestehenden öffentlichen Bestand um die Menge erweitert.",
   "msg_transferred_to_general": "In allgemeinen Bestand übernommen.",
+  "msg_transferred_to_private": "In privaten Bestand verschoben.",
+  "btn_transfer_selected": "Ausgewählte in geteilten Bestand übertragen",
+  "msg_bulk_transferred": "{count} Position(en) in den geteilten Bestand übertragen.",
   "msg_transferred_to_general_collectibles": "In öffentliche Sammelobjekte übernommen.",
   "btn_hide_log": "Protokoll ausblenden",
   "msg_added_as_need": "Als Bedarf eingetragen ✓",
@@ -4051,12 +4059,13 @@ const I18N = {
   "label_org_reset_bleibt": "Stays intact",
   "label_org_reset_bleibt_1": "Users & roles",
   "label_org_reset_bleibt_2": "Credentials & default password",
+  "label_kategorie_unbekannt": "Unknown / Other",
+  "hint_org_reset_granular": "Only categories actually present in the selected organization are shown. Everything is checked by default (= will be removed by this reset) — individual categories can be unchecked to keep them.",
+  "label_org_reset_material_kategorien": "Materials",
+  "label_org_reset_sammelobjekt_kategorien": "Collectibles",
+  "hint_org_reset_keine_daten": "This organization currently has no stock, needs, collectibles, or projects that could be reset.",
   "label_org_reset_bleibt_3": "Organization branding & Discord settings",
-  "label_org_reset_geloescht": "Will be deleted",
-  "label_org_reset_geloescht_1": "Shared & private stock (all members)",
-  "label_org_reset_geloescht_2": "Shared & private collectibles (all members)",
-  "label_org_reset_geloescht_3": "Shared & private projects (all members)",
-  "label_org_reset_geloescht_4": "Needs",
+  "label_org_reset_geloescht": "Will be deleted (uncheck to keep)",
   "label_org_reset_bestaetigung": "Type the name of the organization selected above to confirm:",
   "btn_org_reset": "Reset content irreversibly",
   "label_org_reset_organisation": "Organization",
@@ -4417,7 +4426,9 @@ const I18N = {
   "ocr_experimental_hint": "Text recognition can make mistakes — please compare EVERY recognized value (material, quality, quantity) against the original screenshot before applying it, even if no field is highlighted orange.",
   "ocr_uncertain_hint": "⚠ Fields highlighted in orange could not be recognized unambiguously — please review them especially carefully.",
   "ocr_apply_preview": "Apply to bulk entry",
-  "ocr_back": "Back",
+  "ocr_weiterer_bereich": "+ Another area (this image)",
+  "ocr_weiteres_bild": "+ Add another image",
+  "ocr_accumulated_hint": "Captured so far: {rows} row(s) from {rounds} captures — more can be added below before applying everything together.",
   "ocr_preview_title": "Review recognized values",
   "ocr_col_snippet": "Image snippet",
   "ocr_recognized_as": "Recognized as",
@@ -4437,6 +4448,7 @@ const I18N = {
   "label_privat": "private",
   "tooltip_zuordnung_aufheben": "Remove project assignment",
   "tooltip_transfer_entry": "Transfer to general inventory — extends a matching entry or creates a new one, then removed from private stock",
+  "tooltip_transfer_to_private": "Move to the responsible person's private stock — extends a matching entry or creates a new one, then removed from shared stock",
   "tooltip_click_again_confirm": "Click again to confirm",
   "tooltip_projekt_loeschen_betroffen": "Warning: {count} entries (stock/collectibles/needs) are linked to this project — the link will be removed when deleted. Click again to confirm.",
   "tooltip_material_loeschen_betroffen": "Warning: {count} entries use this material/location — they will be deleted entirely, not just unlinked. Click again to confirm.",
@@ -4452,6 +4464,7 @@ const I18N = {
   "val_menge_required": "Please enter a valid amount greater than 0.",
   "val_teilmenge_zu_gross": "The partial amount cannot exceed the full amount.",
   "text_partial_transfer": "{material} @ {lagerort} — how much should be transferred to the shared stock?",
+  "text_partial_transfer_to_private": "{material} @ {lagerort} — how much should be moved to private stock?",
   "text_partial_assign": "{material} — how much should be assigned to project \u201e{project}\u201c?",
   "btn_confirm": "Confirm",
   "tooltip_assign_to_person": "Assign to person (admin)",
@@ -4469,6 +4482,9 @@ const I18N = {
   "msg_undo_success": "Deletion undone.",
   "msg_stock_extended_private": "Existing public stock increased by the amount.",
   "msg_transferred_to_general": "Transferred to general inventory.",
+  "msg_transferred_to_private": "Moved to private stock.",
+  "btn_transfer_selected": "Transfer selected to shared stock",
+  "msg_bulk_transferred": "{count} position(s) transferred to shared stock.",
   "msg_transferred_to_general_collectibles": "Transferred to public collectibles.",
   "btn_hide_log": "Hide log",
   "msg_added_as_need": "Added as need ✓",
@@ -4807,12 +4823,13 @@ const I18N = {
   "label_org_reset_bleibt": "Reste conservé",
   "label_org_reset_bleibt_1": "Utilisateurs et rôles",
   "label_org_reset_bleibt_2": "Identifiants et mot de passe par défaut",
+  "label_kategorie_unbekannt": "Inconnu / Autre",
+  "hint_org_reset_granular": "Seules les catégories réellement présentes dans l'organisation sélectionnée sont affichées. Tout est coché par défaut (= sera supprimé lors de cette réinitialisation) — les catégories individuelles peuvent être décochées pour être conservées.",
+  "label_org_reset_material_kategorien": "Matériaux",
+  "label_org_reset_sammelobjekt_kategorien": "Objets de collection",
+  "hint_org_reset_keine_daten": "Cette organisation ne contient actuellement aucun stock, besoin, objet de collection ou projet pouvant être réinitialisé.",
   "label_org_reset_bleibt_3": "Personnalisation de l'organisation et paramètres Discord",
-  "label_org_reset_geloescht": "Sera supprimé",
-  "label_org_reset_geloescht_1": "Stocks partagés et privés (tous les membres)",
-  "label_org_reset_geloescht_2": "Objets de collection partagés et privés (tous les membres)",
-  "label_org_reset_geloescht_3": "Projets partagés et privés (tous les membres)",
-  "label_org_reset_geloescht_4": "Besoins",
+  "label_org_reset_geloescht": "Sera supprimé (décocher pour conserver)",
   "label_org_reset_bestaetigung": "Saisissez le nom de l'organisation sélectionnée ci-dessus pour confirmer :",
   "btn_org_reset": "Réinitialiser le contenu de façon irréversible",
   "label_org_reset_organisation": "Organisation",
@@ -5173,7 +5190,9 @@ const I18N = {
   "ocr_experimental_hint": "La reconnaissance de texte peut faire des erreurs — veuillez comparer OBLIGATOIREMENT chaque valeur reconnue (matériau, qualité, quantité) avec la capture d'écran d'origine avant de l'appliquer, même si aucun champ n'est surligné en orange.",
   "ocr_uncertain_hint": "⚠ Les champs surlignés en orange n'ont pas pu être reconnus sans ambiguïté — veuillez les vérifier particulièrement attentivement.",
   "ocr_apply_preview": "Appliquer à la saisie groupée",
-  "ocr_back": "Retour",
+  "ocr_weiterer_bereich": "+ Autre zone (cette image)",
+  "ocr_weiteres_bild": "+ Ajouter une autre image",
+  "ocr_accumulated_hint": "Capturé jusqu'à présent : {rows} ligne(s) issues de {rounds} captures — d'autres peuvent être ajoutées ci-dessous avant de tout appliquer ensemble.",
   "ocr_preview_title": "Vérifier les valeurs reconnues",
   "ocr_col_snippet": "Extrait d'image",
   "ocr_recognized_as": "Reconnu comme",
@@ -5193,6 +5212,7 @@ const I18N = {
   "label_privat": "privé",
   "tooltip_zuordnung_aufheben": "Supprimer l'affectation au projet",
   "tooltip_transfer_entry": "Transférer vers le stock général — complète une entrée correspondante ou en crée une nouvelle, puis retire du stock privé",
+  "tooltip_transfer_to_private": "Déplacer vers le stock privé de la personne responsable — complète une entrée correspondante ou en crée une nouvelle, puis retire du stock partagé",
   "tooltip_click_again_confirm": "Cliquer à nouveau pour confirmer",
   "tooltip_projekt_loeschen_betroffen": "Attention : {count} entrée(s) (stock/objets de collection/besoins) sont liées à ce projet — le lien sera supprimé lors de la suppression. Cliquer à nouveau pour confirmer.",
   "tooltip_material_loeschen_betroffen": "Attention : {count} entrée(s) utilisent ce matériau/lieu — elles seront entièrement supprimées, pas seulement déliées. Cliquer à nouveau pour confirmer.",
@@ -5208,6 +5228,7 @@ const I18N = {
   "val_menge_required": "Veuillez indiquer une quantité valide supérieure à 0.",
   "val_teilmenge_zu_gross": "La quantité partielle ne peut pas dépasser la quantité totale.",
   "text_partial_transfer": "{material} @ {lagerort} — quelle quantité transférer vers le stock partagé ?",
+  "text_partial_transfer_to_private": "{material} @ {lagerort} — quelle quantité déplacer vers le stock privé ?",
   "text_partial_assign": "{material} — quelle quantité attribuer au projet « {project} » ?",
   "btn_confirm": "Confirmer",
   "tooltip_assign_to_person": "Attribuer à une personne (admin)",
@@ -5225,6 +5246,9 @@ const I18N = {
   "msg_undo_success": "Suppression annulée.",
   "msg_stock_extended_private": "Le stock public existant a été augmenté de la quantité.",
   "msg_transferred_to_general": "Transféré vers le stock général.",
+  "msg_transferred_to_private": "Déplacé vers le stock privé.",
+  "btn_transfer_selected": "Transférer la sélection vers le stock partagé",
+  "msg_bulk_transferred": "{count} position(s) transférée(s) vers le stock partagé.",
   "msg_transferred_to_general_collectibles": "Transféré vers les objets de collection publics.",
   "btn_hide_log": "Masquer le journal",
   "msg_added_as_need": "Ajouté comme besoin ✓",
@@ -5359,6 +5383,12 @@ let selectedNeedIds = new Set();
 let selectedProjectIds = new Set();
 let selectedCollectibleIds = new Set();
 let selectedPrivCollectibleIds = new Set();
+// Ab 26. August 2026 (Nutzerwunsch): Mehrfachauswahl fuer den privaten
+// Bestand (Materialien) -- analog zur bereits bestehenden Mehrfach-
+// auswahl bei privaten Sammelobjekten/Projekten, dort bislang aber nur
+// fuer Massen-Loeschung genutzt. Hier stattdessen fuer den Massen-
+// Transfer mehrerer Positionen auf einmal in den geteilten Bestand.
+let selectedPrivateEntryIds = new Set();
 let selectedPrivProjectIds = new Set();
 let selectedEntryIds = new Set();
 let sortKey = null;
@@ -6963,6 +6993,117 @@ function renderExportOrgSelect(){
 // weiterhin gueltig bleiben. Ursprünglich (15. August 2026) auf die
 // jeweils aktive Organisation beschraenkt, auf ausdruecklichen
 // Nutzerwunsch noch am selben Tag um eine freie Auswahl erweitert.
+// Ab 26. August 2026 (Nutzerwunsch): haelt die zuletzt geladene
+// Kategorie-Uebersicht der gewaehlten Zielorganisation fest, damit sie
+// nicht bei jeder Checkbox-Interaktion erneut geladen werden muss --
+// wird ungueltig (null), sobald sich die Auswahl aendert oder nach
+// einem tatsaechlich durchgefuehrten Reset.
+let orgResetOverviewCache = null;
+
+// Laedt Bestand/Bedarf/Projekte/Sammelobjekte (geteilt UND privat) der
+// gewaehlten Zielorganisation frisch aus der Datenbank (ueber die
+// bereits bestehende fetchOrgScopedDataFor(), siehe Export-Funktion)
+// und ermittelt, welche Material- bzw. Sammelobjekt-Kategorien darin
+// TATSAECHLICH vorkommen -- nur diese werden anschliessend als
+// Auswahl-Kaestchen angezeigt, keine leeren/irrelevanten Kategorien.
+async function loadOrgResetOverview(targetOrgId){
+  const data = await fetchOrgScopedDataFor(targetOrgId);
+  const materialCatSet = new Set();
+  [...data.entries, ...data.privateEntries, ...data.needs].forEach(e=>{
+    if(e && e.material) materialCatSet.add(getMaterialCategory(e.material));
+  });
+  const collectibleCatSet = new Set();
+  [...data.collectibles, ...data.privateCollectibles].forEach(c=>{
+    if(c && c.objekt) collectibleCatSet.add(getCollectibleCategory(c.objekt));
+  });
+  return {
+    targetOrgId,
+    data,
+    materialCategories: [...materialCatSet].sort((a,b)=>a.localeCompare(b)),
+    collectibleCategories: [...collectibleCatSet].sort((a,b)=>a.localeCompare(b)),
+    hasProjects: data.projects.length > 0,
+    hasPrivateProjects: data.privateProjects.length > 0,
+  };
+}
+
+// Baut die Auswahl-Tabellen fuer den granularen Reset auf: je eine
+// Zeile pro tatsaechlich vorkommender Kategorie, mit einem Kaestchen
+// je betroffenem Bereich (Bestand geteilt/privat, Bedarf, Sammel-
+// objekte geteilt/privat) -- alle standardmaessig angehakt ("behalten"),
+// da ein Reset weiterhin bewusst ein aktiver, expliziter Schritt bleibt
+// (Abwaehlen = wird bei diesem Reset entfernt). Projekte werden NICHT
+// nach Kategorie aufgeschluesselt (ein einzelnes Projekt kann mehrere
+// Material-Kategorien gleichzeitig benoetigen) -- stattdessen je ein
+// einfaches "behalten"-Kaestchen fuer geteilte und private Projekte,
+// nur eingeblendet wenn ueberhaupt welche vorhanden sind.
+function renderOrgResetGranularOptions(overview){
+  const container = document.getElementById('orgResetGranularOptions');
+  if(!container) return;
+
+  if(overview.materialCategories.length === 0 && overview.collectibleCategories.length === 0 && !overview.hasProjects && !overview.hasPrivateProjects){
+    container.innerHTML = `<div class="user-note" style="margin:0;">${t('hint_org_reset_keine_daten')}</div>`;
+    return;
+  }
+
+  let html = '';
+
+  if(overview.materialCategories.length > 0){
+    html += `<div style="margin-top:12px;">
+      <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px;">${t('label_org_reset_material_kategorien')}</div>
+      <table style="width:100%;font-size:12.5px;"><thead><tr>
+        <th style="text-align:left;padding:4px 8px 4px 0;">${t('label_kategorie')}</th>
+        <th style="text-align:center;padding:4px 8px;">${t('panel_bestand_table')}</th>
+        <th style="text-align:center;padding:4px 8px;">${t('panel_privatbestand')}</th>
+        <th style="text-align:center;padding:4px 8px;">${t('panel_bedarf')}</th>
+      </tr></thead><tbody>`;
+    overview.materialCategories.forEach(cat=>{
+      html += `<tr>
+        <td style="padding:4px 8px 4px 0;">${escapeHtml(cat)}</td>
+        <td style="text-align:center;"><input type="checkbox" class="orgreset-keep-mat-shared" data-category="${escapeHtml(cat)}" checked></td>
+        <td style="text-align:center;"><input type="checkbox" class="orgreset-keep-mat-private" data-category="${escapeHtml(cat)}" checked></td>
+        <td style="text-align:center;"><input type="checkbox" class="orgreset-keep-mat-needs" data-category="${escapeHtml(cat)}" checked></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  if(overview.collectibleCategories.length > 0){
+    html += `<div style="margin-top:14px;">
+      <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px;">${t('label_org_reset_sammelobjekt_kategorien')}</div>
+      <table style="width:100%;font-size:12.5px;"><thead><tr>
+        <th style="text-align:left;padding:4px 8px 4px 0;">${t('label_kategorie')}</th>
+        <th style="text-align:center;padding:4px 8px;">${t('panel_sammelobjekte')}</th>
+        <th style="text-align:center;padding:4px 8px;">${t('label_privat')}</th>
+      </tr></thead><tbody>`;
+    overview.collectibleCategories.forEach(cat=>{
+      html += `<tr>
+        <td style="padding:4px 8px 4px 0;">${escapeHtml(cat)}</td>
+        <td style="text-align:center;"><input type="checkbox" class="orgreset-keep-coll-shared" data-category="${escapeHtml(cat)}" checked></td>
+        <td style="text-align:center;"><input type="checkbox" class="orgreset-keep-coll-private" data-category="${escapeHtml(cat)}" checked></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  if(overview.hasProjects || overview.hasPrivateProjects){
+    html += `<div style="margin-top:14px;">
+      <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px;">${t('panel_projekte')}</div>`;
+    if(overview.hasProjects){
+      html += `<label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12.5px;cursor:pointer;">
+        <input type="checkbox" id="orgreset-keep-projects-shared" checked> ${t('panel_projekte')} (${t('panel_bestand_table')})
+      </label>`;
+    }
+    if(overview.hasPrivateProjects){
+      html += `<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;">
+        <input type="checkbox" id="orgreset-keep-projects-private" checked> ${t('label_private_projekte')}
+      </label>`;
+    }
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
 function renderOrgResetSection(){
   const panel = document.getElementById('orgResetPanel');
   const select = document.getElementById('orgResetSelect');
@@ -6976,6 +7117,22 @@ function renderOrgResetSection(){
     `<option value="${escapeHtml(o.id)}" ${o.id===currentOrgId?'selected':''}>${escapeHtml(o.name)}</option>`
   ).join('');
   resetOrgResetConfirmState();
+  loadAndRenderOrgResetOptions(select.value);
+}
+
+// Laedt die Kategorie-Uebersicht der aktuell im Auswahlfeld gewaehlten
+// Zielorganisation und rendert die granularen Auswahl-Kaestchen --
+// waehrenddessen ein kurzer Ladehinweis, da fetchOrgScopedDataFor()
+// mehrere Datenbank-Abfragen parallel ausfuehrt und dies je nach
+// Datenmenge einen Moment dauern kann.
+async function loadAndRenderOrgResetOptions(targetOrgId){
+  const container = document.getElementById('orgResetGranularOptions');
+  if(container) container.innerHTML = `<div class="user-note" style="margin:0;">${t('msg_loading')}</div>`;
+  orgResetOverviewCache = await loadOrgResetOverview(targetOrgId);
+  // Falls der Owner die Auswahl waehrenddessen bereits weitergeklickt
+  // hat, ein inzwischen veraltetes Ladeergebnis nicht mehr anzeigen.
+  const currentSelection = document.getElementById('orgResetSelect').value;
+  if(currentSelection === targetOrgId) renderOrgResetGranularOptions(orgResetOverviewCache);
 }
 
 function resetOrgResetConfirmState(){
@@ -6983,7 +7140,10 @@ function resetOrgResetConfirmState(){
   document.getElementById('btnOrgReset').disabled = true;
 }
 
-document.getElementById('orgResetSelect').addEventListener('change', resetOrgResetConfirmState);
+document.getElementById('orgResetSelect').addEventListener('change', (e)=>{
+  resetOrgResetConfirmState();
+  loadAndRenderOrgResetOptions(e.target.value);
+});
 
 document.getElementById('orgResetConfirmName').addEventListener('input', ()=>{
   const targetOrgId = document.getElementById('orgResetSelect').value;
@@ -7021,22 +7181,67 @@ async function resetOrganizationContentFor(targetOrgId){
 
   setStatusMsg(statusEl, t('msg_saving'), false);
 
-  const empty = JSON.stringify([]);
+  // Falls die Uebersicht aus irgendeinem Grund nicht (mehr) vorliegt
+  // (z.B. Panel wurde nie neu gerendert) oder sich noch auf eine ANDERE
+  // Organisation bezieht, sicherheitshalber frisch nachladen -- der
+  // eigentliche Reset darf keinesfalls mit veralteten oder falsch
+  // zugeordneten Daten arbeiten.
+  if(!orgResetOverviewCache || orgResetOverviewCache.targetOrgId !== targetOrgId){
+    orgResetOverviewCache = await loadOrgResetOverview(targetOrgId);
+  }
+  const data = orgResetOverviewCache.data;
+
+  // Ab 26. August 2026 (Nutzerwunsch): granularer Reset statt
+  // pauschalem Leeren -- je Bereich (Bestand geteilt/privat, Bedarf,
+  // Sammelobjekte geteilt/privat) werden nur die Eintraege entfernt,
+  // deren Material-/Sammelobjekt-Kategorie NICHT angehakt ("behalten")
+  // ist. Projekte werden bewusst nicht nach Kategorie gefiltert (ein
+  // einzelnes Projekt kann mehrere Kategorien gleichzeitig benoetigen),
+  // sondern ueber ein einfaches "behalten"-Kaestchen komplett behalten
+  // oder komplett entfernt.
+  const keepMatShared = new Set([...document.querySelectorAll('.orgreset-keep-mat-shared:checked')].map(cb=>cb.dataset.category));
+  const keepMatPrivate = new Set([...document.querySelectorAll('.orgreset-keep-mat-private:checked')].map(cb=>cb.dataset.category));
+  const keepMatNeeds = new Set([...document.querySelectorAll('.orgreset-keep-mat-needs:checked')].map(cb=>cb.dataset.category));
+  const keepCollShared = new Set([...document.querySelectorAll('.orgreset-keep-coll-shared:checked')].map(cb=>cb.dataset.category));
+  const keepCollPrivate = new Set([...document.querySelectorAll('.orgreset-keep-coll-private:checked')].map(cb=>cb.dataset.category));
+  const projectsCb = document.getElementById('orgreset-keep-projects-shared');
+  const privateProjectsCb = document.getElementById('orgreset-keep-projects-private');
+  const keepProjects = projectsCb ? projectsCb.checked : false;
+  const keepPrivateProjects = privateProjectsCb ? privateProjectsCb.checked : false;
+
+  const newEntries = data.entries.filter(e=>keepMatShared.has(getMaterialCategory(e.material)));
+  const newPrivateEntries = data.privateEntries.filter(e=>keepMatPrivate.has(getMaterialCategory(e.material)));
+  const newNeeds = data.needs.filter(n=>keepMatNeeds.has(getMaterialCategory(n.material)));
+  const newCollectibles = data.collectibles.filter(c=>keepCollShared.has(getCollectibleCategory(c.objekt)));
+  const newPrivateCollectibles = data.privateCollectibles.filter(c=>keepCollPrivate.has(getCollectibleCategory(c.objekt)));
+  const newProjects = keepProjects ? data.projects : [];
+  const newPrivateProjects = keepPrivateProjects ? data.privateProjects : [];
+
   const key = base => `${base}__org_${targetOrgId}`;
   await Promise.all([
-    window.storage.set(key(STORAGE_KEY), empty, true),
-    window.storage.set(key(NEEDS_KEY), empty, true),
-    window.storage.set(key(PROJECTS_KEY), empty, true),
-    window.storage.set(key(COLLECTIBLES_KEY), empty, true),
-    window.storage.set(key(PRIVATE_STORAGE_KEY), empty, true),
-    window.storage.set(key(PRIVATE_COLLECTIBLES_KEY), empty, true),
-    window.storage.set(key(PRIVATE_PROJECTS_KEY), empty, true)
+    window.storage.set(key(STORAGE_KEY), JSON.stringify(newEntries), true),
+    window.storage.set(key(NEEDS_KEY), JSON.stringify(newNeeds), true),
+    window.storage.set(key(PROJECTS_KEY), JSON.stringify(newProjects), true),
+    window.storage.set(key(COLLECTIBLES_KEY), JSON.stringify(newCollectibles), true),
+    window.storage.set(key(PRIVATE_STORAGE_KEY), JSON.stringify(newPrivateEntries), true),
+    window.storage.set(key(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(newPrivateCollectibles), true),
+    window.storage.set(key(PRIVATE_PROJECTS_KEY), JSON.stringify(newPrivateProjects), true)
   ]);
-  await logAction('Organisations-Inhalte zurückgesetzt', `Bestand, Bedarf, Projekte und Sammelobjekte (geteilt und privat, alle Mitglieder) der Organisation „${orgName}“ wurden vollständig geleert. Benutzer und Organisationseinstellungen blieben unverändert.`);
+
+  const removed = {
+    entries: data.entries.length - newEntries.length,
+    privateEntries: data.privateEntries.length - newPrivateEntries.length,
+    needs: data.needs.length - newNeeds.length,
+    collectibles: data.collectibles.length - newCollectibles.length,
+    privateCollectibles: data.privateCollectibles.length - newPrivateCollectibles.length,
+    projects: data.projects.length - newProjects.length,
+    privateProjects: data.privateProjects.length - newPrivateProjects.length,
+  };
+  await logAction('Organisations-Inhalte teilweise zurückgesetzt', `Organisation „${orgName}“ — entfernt: ${removed.entries} Bestandseinträge, ${removed.privateEntries} private Bestandseinträge, ${removed.needs} Bedarfe, ${removed.collectibles} Sammelobjekte, ${removed.privateCollectibles} private Sammelobjekte, ${removed.projects} Projekte, ${removed.privateProjects} private Projekte. Ausgewählte Kategorien blieben erhalten.`);
 
   if(targetOrgId === currentOrgId){
-    entries = []; needs = []; projects = []; collectibles = [];
-    privateEntries = []; privateCollectibles = []; privateProjects = [];
+    entries = newEntries; needs = newNeeds; projects = newProjects; collectibles = newCollectibles;
+    privateEntries = newPrivateEntries; privateCollectibles = newPrivateCollectibles; privateProjects = newPrivateProjects;
     render();
     renderNeeds();
     renderProjects();
@@ -7044,10 +7249,17 @@ async function resetOrganizationContentFor(targetOrgId){
     renderPrivate();
     renderPrivateProjects();
     renderPrivateCollectibles();
+    // Fortschrittsanzeigen der (ggf. behaltenen) Projekte MUESSEN nach
+    // einem granularen Reset neu berechnet werden -- ein Projekt kann
+    // z.B. weiterhin bestehen, waehrend ein Teil seiner benoetigten
+    // Materialien (aus einer nicht behaltenen Kategorie) entfernt
+    // wurde, wodurch sich sein Deckungsgrad tatsaechlich veraendert
+    // hat. Siehe Nutzerwunsch vom 26. August 2026.
     updateProjectAvailability();
     updatePrivateProjectAvailability();
     scheduleRenderDashboard();
   }
+  orgResetOverviewCache = null;
   renderOrgResetSection();
 
   setStatusMsg(statusEl, t('msg_org_reset_done').replace('{org}', orgName), false);
@@ -8717,6 +8929,24 @@ let MATERIALS = [
 // haben KEIN einheit-Feld und bleiben dadurch unveraendert bei Stück.
 // Komplett unbekannte Namen (weder Material noch Sammelobjekt) bekommen
 // ebenfalls Stück, siehe Kommentar-Historie in fruehren Versionen.
+// Ab 26. August 2026 (Nutzerwunsch, granularer Organisations-Reset):
+// liefert die im Katalog hinterlegte Kategorie eines Materials bzw.
+// eines Sammelobjekts anhand des Namens. Kommt der Name in keinem der
+// beiden Kataloge vor (z.B. bereits geloeschtes Katalog-Material, oder
+// ein noch nie katalogisierter Wikelo-/Loot-Gegenstand), wird bewusst
+// eine eigene "Unbekannt"-Kategorie zurueckgegeben statt den Eintrag
+// stillschweigend zu ignorieren -- damit beim granularen Reset AUCH
+// solche Eintraege sichtbar und gezielt (nicht versehentlich)
+// behandelt werden koennen.
+function getMaterialCategory(materialName){
+  const m = MATERIALS.find(x=>x.name.toLowerCase()===(materialName||'').toLowerCase());
+  return m ? m.category : t('label_kategorie_unbekannt');
+}
+function getCollectibleCategory(objektName){
+  const c = COLLECTIBLES.find(x=>x.name.toLowerCase()===(objektName||'').toLowerCase());
+  return c ? c.category : t('label_kategorie_unbekannt');
+}
+
 function getDefaultEinheitForMaterial(materialName){
   const m = MATERIALS.find(x=>x.name===materialName);
   if(m) return m.category==='Ship Mineables' ? 'SCU' : 'Stück';
@@ -14545,6 +14775,17 @@ btnBulkDeleteCollectibles.addEventListener('click', ()=>{
 
 // Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) fuer die private
 // Sammelobjekte-Mehrfachauswahl entsprechend aktualisieren.
+// Ab 26. August 2026: Sammel-Aktionsleiste (Anzahl + Sichtbarkeit) fuer
+// die private Bestand-Mehrfachauswahl (Materialien) -- analog zur
+// bereits bestehenden Funktion fuer private Sammelobjekte direkt unten.
+function updatePrivBestandBulkActionsBar(){
+  const bar = document.getElementById('privBestandBulkActionsBar');
+  if(!bar) return;
+  const count = selectedPrivateEntryIds.size;
+  bar.style.display = count>0 ? 'flex' : 'none';
+  document.getElementById('privBestandBulkActionsCount').textContent = t('label_selected_count').replace('{count}', count);
+}
+
 function updatePrivCollectibleBulkActionsBar(){
   const bar = document.getElementById('privCollectibleBulkActionsBar');
   if(!bar) return;
@@ -14552,6 +14793,32 @@ function updatePrivCollectibleBulkActionsBar(){
   bar.style.display = count>0 ? 'flex' : 'none';
   document.getElementById('privCollectibleBulkActionsCount').textContent = t('label_selected_count').replace('{count}', count);
 }
+
+// Ab 26. August 2026 (Nutzerwunsch): Massen-Transfer mehrerer
+// ausgewaehlter privater Bestandseintraege auf einmal in den geteilten
+// Bestand -- verarbeitet jeden ausgewaehlten Eintrag einzeln ueber die
+// bereits bestehende, isoliert getestete transferPrivateEntry()
+// (jeweils volle Menge, keine Mengenabfrage je Einzelposten -- bei
+// potenziell vielen ausgewaehlten Zeilen waere eine Rueckfrage je
+// Position unpraktikabel), um die eigentliche Transfer-Logik nicht zu
+// duplizieren. Da transferPrivateEntry() nach jedem einzelnen Aufruf
+// bereits selbst rendert und eine eigene Statusmeldung setzt, wird
+// diese am Ende bewusst durch eine zusammenfassende Massen-Meldung
+// ueberschrieben, statt nur die Meldung des zuletzt verarbeiteten
+// Einzelpostens stehen zu lassen.
+const btnBulkTransferPrivEntries = document.getElementById('btnBulkTransferPrivEntries');
+btnBulkTransferPrivEntries.addEventListener('click', ()=>{
+  armConfirm(btnBulkTransferPrivEntries, async ()=>{
+    const ids = [...selectedPrivateEntryIds];
+    const count = ids.length;
+    for(const id of ids){
+      await transferPrivateEntry(id, null);
+    }
+    selectedPrivateEntryIds.clear();
+    renderPrivate();
+    setPrivateStatus(t('msg_bulk_transferred').replace('{count}', count));
+  });
+});
 
 const btnBulkDeletePrivCollectibles = document.getElementById('btnBulkDeletePrivCollectibles');
 btnBulkDeletePrivCollectibles.addEventListener('click', ()=>{
@@ -15937,9 +16204,32 @@ let ocrTargetContext = 'public';
 let ocrSelection = null;
 let ocrImageNaturalSize = {w:0, h:0};
 
+// Ab 26. August 2026 (Nutzerwunsch): sammelt Ergebniszeilen ueber
+// MEHRERE Erkennungsdurchlaeufe hinweg (weiterer Bereich desselben
+// Bildes, oder ein komplett neues Bild), statt sie bei jedem neuen
+// Durchlauf zu ersetzen -- deckt damit zwei Faelle mit vertretbarem
+// Aufwand ab, ohne die eigentliche Erkennungslogik selbst anzufassen:
+// mehrere Auftraege/Tabellen INNERHALB eines Bildes (z.B. zwei
+// nebeneinander liegende Arbeitsauftraege), sowie das Zusammenfuehren
+// mehrerer BILDER in eine gemeinsame Massen-Eingabe. Jede Zeile haelt
+// zusaetzlich ihren eigenen Ursprungs-Zuschnitt (cropCanvas) und
+// Skalierungsfaktor fest, da spaetere Zeilen aus einem ANDEREN Bild
+// oder Bildausschnitt stammen koennen als fruehere -- der kleine
+// Bildausschnitt je Zeile (buildRowSnippet) muss deshalb je Zeile
+// individuell erzeugt werden, nicht mehr aus einem einzigen, geteilten
+// cropCanvas/scale fuer die gesamte Tabelle.
+let ocrAccumulatedRows = [];
+// Zaehlt, wie viele einzelne Erkennungsdurchlaeufe in der aktuellen
+// Sitzung bereits zum Akkumulator beigetragen haben -- Grundlage fuer
+// den Hinweistext in renderOcrPreview() ("X Zeilen aus Y Erfassungen"),
+// nur bei tatsaechlicher Mehrfach-Erfassung eingeblendet.
+let ocrCaptureRoundCount = 0;
+
 function openOcrModal(target){
   ocrTargetContext = target;
   ocrSelection = null;
+  ocrAccumulatedRows = [];
+  ocrCaptureRoundCount = 0;
   document.getElementById('ocrModal').style.display = 'flex';
   document.getElementById('ocrStep1').style.display = '';
   document.getElementById('ocrStep2').style.display = 'none';
@@ -15953,6 +16243,11 @@ function openOcrModal(target){
 function closeOcrModal(){
   document.getElementById('ocrModal').style.display = 'none';
   if(ocrCurrentObjectUrl){ URL.revokeObjectURL(ocrCurrentObjectUrl); ocrCurrentObjectUrl = null; }
+  // Schliessen mitten im Ablauf verwirft bewusst auch bereits
+  // gesammelte, aber noch nicht uebernommene Zeilen -- konsistent mit
+  // dem bisherigen Verhalten, dass ein Abbruch vor der Uebernahme
+  // keine Spuren hinterlaesst.
+  ocrAccumulatedRows = [];
 }
 document.getElementById('btnOpenOcr').addEventListener('click', ()=>openOcrModal('public'));
 document.getElementById('priv-btnOpenOcr').addEventListener('click', ()=>openOcrModal('private'));
@@ -16809,7 +17104,13 @@ document.getElementById('btnRunOcr').addEventListener('click', async ()=>{
       return;
     }
 
-    renderOcrPreview(rows, cropCanvas, scale);
+    // Ab 26. August 2026: neue Zeilen werden dem Akkumulator HINZUGEFUEGT
+    // (nicht ersetzt) -- jede Zeile behaelt dabei ihren eigenen
+    // Ursprungs-Zuschnitt und Skalierungsfaktor fuer den spaeteren
+    // Bildausschnitt, siehe Kommentar bei ocrAccumulatedRows.
+    rows.forEach(r=> ocrAccumulatedRows.push({ ...r, cropCanvas, scale }));
+    ocrCaptureRoundCount++;
+    renderOcrPreview();
     document.getElementById('ocrStep2').style.display = 'none';
     document.getElementById('ocrStep3').style.display = '';
   }catch(err){
@@ -16825,13 +17126,21 @@ document.getElementById('btnRunOcr').addEventListener('click', async ()=>{
 // zu müssen. Zusätzlich zeigt jede Zeile einen kleinen Bildausschnitt aus
 // genau dem Bereich des Originalfotos, aus dem diese Werte stammen —
 // direkter Bezug zwischen Korrekturfeld und Bildquelle.
-function renderOcrPreview(rows, cropCanvas, scale){
+//
+// Ab 26. August 2026: rendert nicht mehr nur EINEN Erkennungsdurchlauf,
+// sondern den gesamten, ggf. ueber mehrere Bildbereiche/Bilder hinweg
+// gesammelten Akkumulator (siehe ocrAccumulatedRows) — jede Zeile
+// nutzt dabei ihren EIGENEN, mitgefuehrten Zuschnitt und Skalierungs-
+// faktor fuer den kleinen Bildausschnitt, da nicht mehr alle Zeilen
+// zwingend aus demselben Zuschnitt/Bild stammen.
+function renderOcrPreview(){
+  const rows = ocrAccumulatedRows;
   const wrap = document.getElementById('ocrPreviewTableWrap');
   let html = `<table><thead><tr>
     <th>${t('ocr_col_snippet')}</th><th>${t('label_material')}</th><th>${t('label_qualitaet')}</th><th>${t('label_menge')} (SCU)</th><th></th>
   </tr></thead><tbody>`;
   rows.forEach((r,i)=>{
-    const snippetSrc = buildRowSnippet(cropCanvas, r.yMin, r.yMax, scale);
+    const snippetSrc = buildRowSnippet(r.cropCanvas, r.yMin, r.yMax, r.scale);
     const materialValue = r.materialConfident ? (r.material||'') : '';
     const materialSelect = buildMaterialSelectHTML(
       'ocr-prev-material-'+i,
@@ -16875,6 +17184,14 @@ function renderOcrPreview(rows, cropCanvas, scale){
 
   const anyUncertain = rows.some(r=> !r.materialConfident || !r.qualityConfident || !r.mengeConfident);
   document.getElementById('ocrUncertainHint').style.display = anyUncertain ? '' : 'none';
+
+  const accHint = document.getElementById('ocrAccumulatedHint');
+  if(ocrCaptureRoundCount > 1){
+    accHint.textContent = t('ocr_accumulated_hint').replace('{rows}', rows.length).replace('{rounds}', ocrCaptureRoundCount);
+    accHint.style.display = '';
+  } else {
+    accHint.style.display = 'none';
+  }
 }
 
 // Kleinen Bildausschnitt (volle Breite, nur der Höhenbereich der Zeile
@@ -16897,6 +17214,26 @@ function buildRowSnippet(cropCanvas, yMin, yMax, scale){
 document.getElementById('btnBackToSelection').addEventListener('click', ()=>{
   document.getElementById('ocrStep3').style.display = 'none';
   document.getElementById('ocrStep2').style.display = '';
+});
+
+// Ab 26. August 2026 (Nutzerwunsch): erlaubt, ein WEITERES, komplett
+// anderes Bild zu laden, ohne die bereits gesammelten Zeilen aus
+// vorherigen Durchlaeufen zu verwerfen (siehe ocrAccumulatedRows) --
+// im Unterschied zu btnBackToSelection oben (selbes Bild, nur ein
+// anderer Ausschnitt) wird hier zurueck zu Schritt 1 (Dateiauswahl)
+// gewechselt. Die Datei-Eingabefelder werden geleert, damit auch die
+// erneute Auswahl DERSELBEN Datei zuverlaessig ein change-Ereignis
+// ausloest; die Zuschnitt-Auswahlbox aus dem vorherigen Bild wird
+// versteckt, da sie sich auf ein inzwischen nicht mehr sichtbares Bild
+// bezieht.
+document.getElementById('btnOcrAddImage').addEventListener('click', ()=>{
+  document.getElementById('ocrStep3').style.display = 'none';
+  document.getElementById('ocrStep1').style.display = '';
+  document.getElementById('ocrFileInputCamera').value = '';
+  document.getElementById('ocrFileInputGallery').value = '';
+  document.getElementById('ocrSelectionBox').style.display = 'none';
+  ocrSelection = null;
+  document.getElementById('ocrStatus').textContent = '';
 });
 
 document.getElementById('btnApplyOcrPreview').addEventListener('click', ()=>{
@@ -18208,7 +18545,8 @@ function render(){
         <td data-label="${t('col_projekt')}">${e.projekt ? `<span class="badge project-reserved" title="${escapeHtml(t('tooltip_reserved_for'))} ${escapeHtml(e.projekt)}">📌 ${escapeHtml(e.projekt)}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit" data-id="${e.id}" title="${t('btn_edit')}">✎</button>
-          <button class="btn-icon danger" data-action="delete" data-id="${e.id}" title="${t('btn_delete')}">🗑</button>` : ''}
+          <button class="btn-icon danger" data-action="delete" data-id="${e.id}" title="${t('btn_delete')}">🗑</button>
+          <button class="btn-icon" data-action="transfer-to-private" data-id="${e.id}" title="${t('tooltip_transfer_to_private')}">⇤</button>` : ''}
           ${roleAtLeast(currentUser.role, 'admin') ? `<button class="btn-icon" data-action="assign-to-person" data-id="${e.id}" title="${t('tooltip_assign_to_person')}">👤➜</button>` : ''}
         </td>
       </tr>`;
@@ -18220,6 +18558,22 @@ function render(){
 
   container.querySelectorAll('[data-action="edit"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingId = btn.dataset.id; render(); });
+  });
+  container.querySelectorAll('[data-action="transfer-to-private"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const e = entries.find(en=>en.id===btn.dataset.id);
+      if(!e) return;
+      // Das Modal selbst dient als Bestaetigungsschritt -- kein
+      // zusaetzliches armConfirm-Doppelklick-Muster noetig, analog zum
+      // bereits bestehenden Transfer in der Gegenrichtung.
+      openPartialAssignModal({
+        title: t('modal_partial_assign_title'),
+        text: t('text_partial_transfer_to_private').replace('{material}', e.material).replace('{lagerort}', e.lagerort),
+        fullAmount: e.menge,
+        einheit: e.einheit,
+        onConfirm: async (amount)=>{ await transferEntryToPrivate(e.id, amount); }
+      });
+    });
   });
   container.querySelectorAll('[data-action="assign-to-person"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -18837,6 +19191,88 @@ async function transferPrivateEntry(id, amount){
   setPrivateStatus(match ? t('msg_stock_extended_private') : t('msg_transferred_to_general'));
 }
 
+// Ab 26. August 2026 (Nutzerwunsch, am selben Tag nach Rueckfrage
+// korrigiert): Umkehrung von transferPrivateEntry() oben -- verschiebt
+// einen geteilten Bestandseintrag (ganz oder teilweise) in den
+// PRIVATEN Bestand. Landet im Privatbestand des im geteilten Eintrag
+// hinterlegten "Verantwortlichen" (owner: e.person) -- NICHT im
+// Privatbestand der Person, die den Transfer tatsaechlich ausloest.
+// Das ist bewusst so, da die Sichtbarkeit des Buttons (canManageEntry,
+// siehe Aufrufstelle) ohnehin bereits Admins/Org-Admins/Owner erlaubt,
+// den Transfer auch fuer FREMDE Eintraege auszuloesen -- in diesem Fall
+// soll das Material folgerichtig im Privatbestand der urspruenglich
+// verantwortlichen Person landen, nicht im Privatbestand der
+// ausfuehrenden Admin-Person. Bei einem Transfer in eigener Sache
+// (Verantwortlicher = ausfuehrende Person) ist owner ohnehin identisch
+// mit currentUser.username, das Verhalten aendert sich in diesem
+// Regelfall also nicht sichtbar. Eine Projekt-Zuordnung des geteilten
+// Eintrags bleibt erhalten (geteilte Projekte sind aus dem privaten
+// Bereich heraus weiterhin gueltig ansprechbar, siehe bereits
+// bestehende Logik bei transferPrivateEntry() in der Gegenrichtung).
+async function transferEntryToPrivate(id, amount){
+  const e = entries.find(pub=>pub.id===id);
+  if(!e) return;
+
+  const fullAmount = e.menge;
+  const transferAmount = (amount!=null && amount>0 && amount<fullAmount) ? amount : fullAmount;
+  const remainderAmount = Math.round((fullAmount - transferAmount) * 1000) / 1000;
+
+  // Passenden bestehenden privaten Eintrag DES VERANTWORTLICHEN suchen
+  // (gleiches Material, gleiche Qualitaet, gleicher Lagerort, gleiche
+  // Einheit, gleiches Projektziel) und dessen Menge erweitern, statt
+  // immer eine neue Zeile anzulegen -- analog zur Gegenrichtung.
+  const match = privateEntries.find(priv =>
+    priv.owner === e.person &&
+    priv.material === e.material &&
+    priv.qualitaet === e.qualitaet &&
+    priv.lagerort === e.lagerort &&
+    priv.einheit === e.einheit &&
+    (priv.projekt||'') === (e.projekt||'')
+  );
+
+  // Ausfuehrende Person weicht vom Verantwortlichen ab (typischerweise
+  // ein Admin/Owner, der stellvertretend fuer jemand anderen taetig
+  // wird) -- im Protokoll zusaetzlich vermerkt, fuer bessere
+  // Nachvollziehbarkeit im Aktivitaetsverlauf.
+  const onBehalfNote = e.person !== currentUser.username ? ` (ausgelöst von ${currentUser.username})` : '';
+
+  let logDetail;
+  if(match){
+    match.menge = Math.round((match.menge + transferAmount) * 100) / 100;
+    logDetail = `${e.material}, +${transferAmount} ${e.einheit} @ ${e.lagerort} (neuer Bestand: ${match.menge} ${e.einheit})${onBehalfNote}`;
+  } else {
+    privateEntries.push({
+      id: privateUid(),
+      material: e.material, qualitaet: e.qualitaet,
+      menge: transferAmount, einheit: e.einheit,
+      lagerort: e.lagerort, person: e.person,
+      projekt: e.projekt||'', projektTyp: e.projekt ? 'shared' : null,
+      owner: e.person
+    });
+    logDetail = `${e.material}, ${transferAmount} ${e.einheit} @ ${e.lagerort} (neuer privater Eintrag)${onBehalfNote}`;
+  }
+  await savePrivateEntries();
+
+  if(remainderAmount > 0){
+    e.menge = remainderAmount;
+    logDetail += ` — Rest ${remainderAmount} ${e.einheit} bleibt geteilt`;
+  } else {
+    entries = entries.filter(pub=>pub.id!==id);
+  }
+  await save();
+
+  await logAction('In Privatbestand verschoben', logDetail);
+
+  render();
+  updateProjectAvailability();
+  renderProjects();
+  renderNeeds();
+  scheduleRenderDashboard();
+  renderPrivate();
+  renderPrivateProjects();
+  setStatus(match ? t('msg_stock_extended_private') : t('msg_transferred_to_private'));
+}
+
 function renderPrivate(){
   if(!currentUser) return;
   updatePrivateFilterOptions();
@@ -18851,10 +19287,12 @@ function renderPrivate(){
 
   if(mine.length === 0){
     container.innerHTML = `<div class="empty"><div class="big">${t('empty_private_bestand_title')}</div>${t('empty_private_bestand_sub')}</div>`;
+    updatePrivBestandBulkActionsBar();
     return;
   }
   if(list.length === 0){
     container.innerHTML = `<div class="empty"><div class="big">${t('empty_results_title')}</div>${t('empty_results_sub')}</div>`;
+    updatePrivBestandBulkActionsBar();
     return;
   }
 
@@ -18865,6 +19303,7 @@ function renderPrivate(){
   ];
 
   let html = '<table><thead><tr>';
+  html += `<th style="width:28px;"><input type="checkbox" id="selectAllPrivEntries"></th>`;
   cols.forEach(([key,label])=>{
     const arrow = privateSortKey===key ? (privateSortDir===1?' ▲':' ▼') : '';
     html += `<th data-sort="${key}">${label}${arrow}</th>`;
@@ -18874,6 +19313,7 @@ function renderPrivate(){
   list.forEach(e=>{
     if(editingPrivateId === e.id){
       html += `<tr>
+        <td></td>
         <td data-label="${t('col_material')}">${buildMaterialSelectHTML('edit-priv-material', e.material, 'edit-input')}</td>
         <td data-label="${t('label_qualitaet')}">
           <input class="edit-input" id="edit-priv-qualitaet" type="number" step="0.01" value="${e.qualitaet}">
@@ -18898,6 +19338,7 @@ function renderPrivate(){
     } else {
       const pct = Math.min(100, Math.round((e.menge/max)*100));
       html += `<tr>
+        <td><input type="checkbox" class="priv-entry-select-cb" data-id="${e.id}" ${selectedPrivateEntryIds.has(e.id)?'checked':''}></td>
         <td data-label="${t('col_material')}">${escapeHtml(e.material)}${e.assignedBy ? ` <span class="badge" style="background:rgba(0,229,255,0.15);color:var(--cyan);border:1px solid var(--cyan);font-size:10px;cursor:help;" title="${escapeHtml(t('tooltip_assigned_by').replace('{person}', e.assignedBy).replace('{date}', new Date(e.assignedAt).toLocaleDateString()))}">🎁 ${t('label_zugewiesen')}</span>` : ''}</td>
         <td data-label="${t('label_qualitaet')}"><span class="badge ${badgeClass(e.qualitaet)}">${e.qualitaet}</span></td>
         <td data-label="${t('label_menge')}">
@@ -18953,6 +19394,27 @@ function renderPrivate(){
       });
     });
   });
+
+  // Ab 26. August 2026: Mehrfachauswahl fuer den Massen-Transfer in den
+  // geteilten Bestand -- Verdrahtung analog zur bereits bestehenden
+  // Mehrfachauswahl bei privaten Sammelobjekten/Projekten.
+  container.querySelectorAll('.priv-entry-select-cb').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) selectedPrivateEntryIds.add(cb.dataset.id);
+      else selectedPrivateEntryIds.delete(cb.dataset.id);
+      updatePrivBestandBulkActionsBar();
+    });
+  });
+  const selectAllPrivEntriesCb = document.getElementById('selectAllPrivEntries');
+  if(selectAllPrivEntriesCb){
+    selectAllPrivEntriesCb.checked = list.length>0 && list.every(e=>selectedPrivateEntryIds.has(e.id));
+    selectAllPrivEntriesCb.addEventListener('change', ()=>{
+      if(selectAllPrivEntriesCb.checked) list.forEach(e=>selectedPrivateEntryIds.add(e.id));
+      else list.forEach(e=>selectedPrivateEntryIds.delete(e.id));
+      renderPrivate();
+    });
+  }
+  updatePrivBestandBulkActionsBar();
   const savePrivBtn = document.getElementById('savePrivateEdit');
   if(savePrivBtn){
     savePrivBtn.addEventListener('click', async ()=>{
