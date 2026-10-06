@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.124 -->
+<!-- Version: 0.126 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -64,6 +64,65 @@ body{
   min-height:calc(var(--vh, 1vh) * 100);
   position:relative;
 }
+
+/* ===== Einheitliches Basis-Styling fuer ALLE Eingabefelder =====
+   Hintergrund (Nutzerhinweis vom 6. Oktober 2026): Die aufgeklappte
+   Material-Liste in der Foto-Erfassung (OCR-Vorschau) war praktisch
+   unlesbar -- hellbeiger Hintergrund mit hellgrauer Schrift. Ursache:
+   Weder <option> noch <optgroup> hatten irgendwo eigene Farben. Der
+   Browser zeichnet die aufgeklappte Liste dann mit dem (halbtransparenten)
+   Hintergrund des <select> auf WEISSEM Grund -- bei den normalen Feldern
+   (dunkles rgba) ergab das ein mittleres Grau, beim orange markierten
+   OCR-Feld (.ocr-uncertain, 10 % Gelb) aber ein helles Beige, auf dem die
+   helle Schrift (--ink) verschwand.
+   Eine Gesamtpruefung aller Eingabefelder ergab ausserdem mehrere Felder
+   ganz ohne Theme-Styling, die im Browser-Standard (weiss/grau, schwarze
+   Schrift) erschienen, u.a. Empfaenger/Menge/Prozent im Teil-Zuweisungs-
+   Dialog, Suche + Mindestqualitaet im Gesamtbestand, Organisations-Auswahl
+   beim Export, Sortierung der Benutzerliste, Zeitraum-Auswahl der
+   Beitragenden, Vorlagen-Suche, Protokoll-Suche sowie diverse per JS
+   erzeugte Zeilenfelder (Projekt-/Vorlagen-Ressourcen).
+   Loesung:
+   1. :where() hat Spezifitaet 0 -- jede bestehende Regel (.field input,
+      .filters select, .edit-input, Inline-Styles ...) gewinnt weiterhin.
+      Diese Basis greift also NUR dort, wo bisher gar nichts definiert war.
+   2. color-scheme:dark sorgt dafuer, dass native Bestandteile (Listen-
+      Popup, Scrollbalken der Liste, Zahlen-Pfeile) dunkel gezeichnet
+      werden.
+   3. <option>/<optgroup> bekommen explizit einen DECKENDEN dunklen
+      Hintergrund -- damit ist die aufgeklappte Liste unabhaengig vom
+      (ggf. eingefaerbten/transparenten) Hintergrund des geschlossenen
+      Feldes immer gleich und lesbar. Kategorie-Ueberschriften (optgroup)
+      in Cyan, wie die Kategorie-Labels im restlichen UI. */
+:where(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):not([type=color]):not([type=button]):not([type=submit]), select, textarea){
+  font-family:'Rajdhani', sans-serif;
+  font-weight:600;
+  font-size:14px;
+  padding:7px 9px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:rgba(0,10,16,0.6);
+  color:var(--ink);
+  box-sizing:border-box;
+}
+:where(input, select, textarea):focus{outline:none;border-color:var(--cyan);}
+:where(input, textarea)::placeholder{color:rgba(110,143,160,0.55);}
+input, select, textarea{color-scheme:dark;}
+input[type=checkbox], input[type=radio]{accent-color:var(--cyan);}
+select option{
+  background-color:#0A1219;
+  color:var(--ink);
+  font-family:'Rajdhani', sans-serif;
+  font-weight:600;
+}
+select optgroup{
+  background-color:#0A1219;
+  color:var(--cyan);
+  font-style:normal;
+  font-weight:700;
+}
+select option:disabled{color:var(--ink-soft);}
+select option:checked{background-color:#0E3A47;color:#FFFFFF;}
 
 #wolfWatermark{
   position:fixed;
@@ -16699,6 +16758,441 @@ function isSpuriousRow(materialRaw, quality){
   return false;
 }
 
+// ===== Zellenweise Ziffernerkennung (ab Version 0.126, 6. Oktober 2026) =====
+// Hintergrund: Bei den Raffinerie-Terminals (insbesondere dem aelteren
+// Levski-Design) sind die Ziffern im Original-Screenshot nur ca. 6 Pixel
+// hoch. Die bisherige Erkennung skaliert den GESAMTEN Tabellenausschnitt
+// stark hoch und laesst Tesseract darin nach Text suchen -- bei so kleinen
+// Ziffern entstehen dabei Klumpen, Tesseract liest Bruchstuecke ("7",
+// "73") oder gar nichts (einzelne "1"). Die Zeilen selbst wurden dagegen
+// in allen Tests zuverlaessig gefunden.
+// Neuer Ansatz, unabhaengig von Tesseract:
+// 1. Zeilen und Zahlengruppen werden direkt ueber das Helligkeitsprofil
+//    des Originalbildes (ohne Skalierung/Weichzeichnung) gefunden: helle
+//    Schrift auf dunklem Grund, Spalten-/Zeilensummen der "Tinte".
+// 2. Die beiden rechten Zahlengruppen einer Zeile sind Qualitaet und Menge.
+// 3. Jede Gruppe wird Ziffer fuer Ziffer gegen Vorlagen des Spiel-Fonts
+//    abgeglichen (normierte Kreuzkorrelation); die Trennstellen zwischen
+//    den Ziffern werden per dynamischer Programmierung optimal gewaehlt,
+//    da sich die Ziffern bei dieser Groesse teils beruehren.
+// 4. Zusaetzlich wird jede Gruppe einzeln (statt im Gesamtbild) mit
+//    Tesseract gelesen -- als zweite, unabhaengige Stimme.
+
+const OCR_CELL_NORM_H = 24;
+const OCR_CELL_SHIFT = 1;
+
+function ocrCellGray(canvas){
+  const w = canvas.width, h = canvas.height;
+  const d = canvas.getContext('2d').getImageData(0, 0, w, h).data;
+  const g = new Uint8ClampedArray(w*h);
+  for(let i=0, j=0; j<g.length; i+=4, j++) g[j] = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+  return { w, h, g };
+}
+
+// Findet Textzeilen (Baender) und darin die Zahlengruppen.
+function ocrCellLayout(G){
+  const { w, h, g } = G;
+  const thr = computeOtsuThreshold(g);
+  const ink = new Uint8Array(w*h);
+  for(let i=0;i<g.length;i++) ink[i] = g[i] > thr ? 1 : 0;
+  // Senkrechte Trennlinien/Rahmen (ueber die volle Hoehe hell) ausblenden.
+  const colMask = new Uint8Array(w);
+  for(let x=0;x<w;x++){
+    let c=0; for(let y=0;y<h;y++) c+=ink[y*w+x];
+    if(c > h*0.45){ colMask[x]=1; if(x>0) colMask[x-1]=1; if(x<w-1) colMask[x+1]=1; }
+  }
+  // Waagerechte Trennlinien (ueber die volle Breite hell) ausblenden.
+  const rowMask = new Uint8Array(h);
+  for(let y=0;y<h;y++){
+    let c=0; for(let x=0;x<w;x++) if(!colMask[x]) c+=ink[y*w+x];
+    if(c > w*0.45) rowMask[y]=1;
+  }
+  const at = (x,y)=> (colMask[x]||rowMask[y]) ? 0 : ink[y*w+x];
+  const rowInk = new Array(h).fill(0);
+  for(let y=0;y<h;y++){ let c=0; for(let x=0;x<w;x++) c+=at(x,y); rowInk[y]=c; }
+  // Baender: zusammenhaengende Zeilen mit Tinte (Luecken von 1 px ueberbrueckt).
+  const bands = [];
+  let y=0;
+  while(y<h){
+    if(rowInk[y] < 2){ y++; continue; }
+    let y0=y, y1=y;
+    while(y1+1<h && (rowInk[y1+1]>=2 || (y1+2<h && rowInk[y1+2]>=2))) y1++;
+    if(y1-y0+1 >= 4) bands.push({ y0, y1 });
+    y = y1+1;
+  }
+  // Zu hohe Baender (zwei Tabellenzeilen ohne erkennbare Luecke, z.B. durch
+  // Icons oder Trennlinien verbunden) an der tintenaermsten Stelle teilen.
+  const splitBands = list=>{
+    const hs = list.map(b=>b.y1-b.y0+1).sort((a,b)=>a-b);
+    const med = hs[Math.floor(hs.length/2)] || 0;
+    const out = [];
+    const split = b=>{
+      const bh = b.y1-b.y0+1;
+      if(med <= 0 || bh <= med*1.6){ out.push(b); return; }
+      const from = b.y0 + Math.round(bh*0.25), to = b.y1 - Math.round(bh*0.25);
+      let cut = from;
+      for(let yy=from; yy<=to; yy++) if(rowInk[yy] < rowInk[cut]) cut = yy;
+      split({ y0:b.y0, y1:cut-1 }); split({ y0:cut+1, y1:b.y1 });
+    };
+    list.forEach(split);
+    return out.filter(b=>b.y1-b.y0+1 >= 4);
+  };
+  const finalBands = splitBands(bands);
+  bands.length = 0; finalBands.forEach(b=>bands.push(b));
+  bands.forEach(b=>{
+    const bh = b.y1-b.y0+1;
+    const colInk = new Array(w).fill(0);
+    for(let x=0;x<w;x++){ let c=0; for(let yy=b.y0;yy<=b.y1;yy++) c+=at(x,yy); colInk[x]=c; }
+    // Spalten-Laeufe zu Gruppen verbinden (Ziffernabstand klein, Spaltenabstand gross).
+    const mergeGap = Math.max(2, Math.round(bh*0.45));
+    const groups = [];
+    let cur = null, gap = 0;
+    for(let x=0;x<w;x++){
+      if(colInk[x]>0){
+        if(cur && gap<=mergeGap){ cur.x1 = x; }
+        else { cur = { x0:x, x1:x }; groups.push(cur); }
+        gap = 0;
+      } else gap++;
+    }
+    groups.forEach(gr=>{
+      let gy0=Infinity, gy1=-1, cnt=0;
+      for(let yy=b.y0;yy<=b.y1;yy++) for(let x=gr.x0;x<=gr.x1;x++) if(at(x,yy)){ cnt++; if(yy<gy0) gy0=yy; if(yy>gy1) gy1=yy; }
+      gr.y0=gy0; gr.y1=gy1; gr.ink=cnt;
+    });
+    // Gruppen am aeussersten Bildrand sind meist angeschnittene Rahmen/Artefakte.
+    b.groups = groups.filter(gr=> gr.ink>=4 && (gr.y1-gr.y0+1) >= Math.max(3, bh*0.4) && gr.x0 > 0 && gr.x1 < w-1);
+    b.yCenter = (b.y0+b.y1)/2;
+  });
+  return { thr, bands: bands.filter(b=>b.groups.length>0) };
+}
+
+// Gruppe auf feste Hoehe normieren: Werte 0..1 (0 = Hintergrund, 1 = Schrift).
+// digitH: einheitliche Ziffernhoehe der ganzen Tabelle (Median), damit alle
+// Gruppen exakt gleich skaliert und vertikal gleich ausgerichtet werden --
+// bei ca. 6 px hohen Ziffern macht ein einzelnes Pixel Unterschied in der
+// Begrenzung sonst ca. 15 % Groessenabweichung aus.
+function ocrCellNormalize(G, gr, thr, digitH){
+  const H = OCR_CELL_NORM_H;
+  const dh = digitH || (gr.y1-gr.y0+1);
+  const yc = (gr.y0+gr.y1)/2;
+  const top = yc - dh/2, srcH = dh;          // Quellbereich in Pixeln (Gleitkomma)
+  const x0 = Math.max(0, gr.x0-1), x1 = Math.min(G.w-1, gr.x1+1);
+  const srcW = x1-x0+1;
+  const vals = [];
+  for(let y=Math.max(0,Math.floor(top)); y<=Math.min(G.h-1,Math.ceil(top+srcH)); y++) for(let x=x0;x<=x1;x++) vals.push(G.g[y*G.w+x]);
+  vals.sort((a,b)=>a-b);
+  const bg = vals[Math.floor(vals.length*0.25)];
+  const fg = Math.max(bg+20, vals[Math.floor(vals.length*0.97)]);
+  const scale = H / srcH;
+  const W = Math.max(1, Math.round(srcW*scale));
+  const sample = (fy, fx)=>{
+    fy = Math.max(0, Math.min(G.h-1, fy)); fx = Math.max(0, Math.min(G.w-1, fx));
+    const iy = Math.floor(fy), ix = Math.floor(fx), ty = fy-iy, tx = fx-ix;
+    const iy2 = Math.min(G.h-1, iy+1), ix2 = Math.min(G.w-1, ix+1);
+    const p = (a,b)=>G.g[a*G.w+b];
+    return p(iy,ix)*(1-tx)*(1-ty) + p(iy,ix2)*tx*(1-ty) + p(iy2,ix)*(1-tx)*ty + p(iy2,ix2)*tx*ty;
+  };
+  const out = new Float32Array(W*H);
+  for(let yy=0;yy<H;yy++){
+    const sy = top + (yy+0.5)/scale - 0.5;
+    for(let xx=0;xx<W;xx++){
+      const sx = x0 + (xx+0.5)/scale - 0.5;
+      out[yy*W+xx] = Math.max(0, Math.min(1, (sample(sy,sx)-bg)/(fg-bg)));
+    }
+  }
+  return { W, H, data: out };
+}
+
+// Einheitliche Ziffernhoehe einer Tabelle: Median der Hoehen aller
+// Qualitaets-/Mengengruppen (die beiden rechten Gruppen je Zeile).
+function ocrCellDigitHeight(layout){
+  const hs = [];
+  layout.bands.forEach(b=>{ if(b.groups.length>=2) b.groups.slice(-2).forEach(g=>hs.push(g.y1-g.y0+1)); });
+  if(!hs.length) return null;
+  hs.sort((a,b)=>a-b);
+  return hs[Math.floor(hs.length/2)];
+}
+
+// Teilausschnitt [c0,c1) einer normierten Gruppe, an leeren Raendern beschnitten.
+function ocrCellSlice(N, c0, c1){
+  const colSum = c=>{ let s=0; for(let y=0;y<N.H;y++) s+=N.data[y*N.W+c]; return s; };
+  while(c0<c1 && colSum(c0) < 0.6) c0++;
+  while(c1>c0 && colSum(c1-1) < 0.6) c1--;
+  if(c1-c0 < 1) return null;
+  const W = c1-c0, out = new Float32Array(W*N.H);
+  for(let y=0;y<N.H;y++) for(let x=0;x<W;x++) out[y*W+x] = N.data[y*N.W + c0 + x];
+  return { W, H:N.H, data: out };
+}
+
+function ocrCellResizeW(S, W){
+  if(S.W === W) return S.data;
+  const out = new Float32Array(W*S.H);
+  for(let y=0;y<S.H;y++) for(let x=0;x<W;x++){
+    const sx = Math.min(S.W-1, Math.max(0, (x+0.5)*S.W/W - 0.5));
+    const ix = Math.floor(sx), fx = sx-ix, ix2 = Math.min(S.W-1, ix+1);
+    out[y*W+x] = S.data[y*S.W+ix]*(1-fx) + S.data[y*S.W+ix2]*fx;
+  }
+  return out;
+}
+
+function ocrCellNcc(a, b){
+  const n = a.length; let ma=0, mb=0;
+  for(let i=0;i<n;i++){ ma+=a[i]; mb+=b[i]; }
+  ma/=n; mb/=n;
+  let num=0, da=0, db=0;
+  for(let i=0;i<n;i++){ const x=a[i]-ma, y=b[i]-mb; num+=x*y; da+=x*x; db+=y*y; }
+  return (da<=0||db<=0) ? 0 : num/Math.sqrt(da*db);
+}
+
+function ocrCellNccShift(a, b, W, H, dy){
+  if(dy===0) return ocrCellNcc(a, b);
+  const n = W*(H-Math.abs(dy));
+  const A = new Float32Array(n), B = new Float32Array(n);
+  let k=0;
+  for(let y=Math.max(0,dy); y<Math.min(H,H+dy); y++) for(let x=0;x<W;x++){ A[k]=a[y*W+x]; B[k]=b[(y-dy)*W+x]; k++; }
+  return ocrCellNcc(A, B);
+}
+
+// Bewertet einen Ausschnitt gegen alle Vorlagen: bester Treffer je Ziffer.
+function ocrCellScoreSlice(S, templates){
+  const best = new Array(10).fill(-1);
+  templates.forEach(t=>{
+    const ratio = S.W / t.W;
+    if(ratio < 0.55 || ratio > 1.8) return;
+    const r = ocrCellResizeW(S, t.W);
+    // kleine vertikale Verschiebung zulassen (+-1 normierte Zeile)
+    let s = -1;
+    for(let dy=-OCR_CELL_SHIFT; dy<=OCR_CELL_SHIFT; dy++) s = Math.max(s, ocrCellNccShift(r, t.data, t.W, t.H, dy));
+    s -= 0.35*Math.abs(Math.log(ratio));
+    if(s > best[t.d]) best[t.d] = s;
+  });
+  return best;
+}
+
+// Optimale Zerlegung einer Gruppe in n Ziffern (dynamische Programmierung).
+// forced: optional vorgegebene Ziffernfolge (zum Erzeugen der Vorlagen).
+function ocrCellDecode(N, templates, n, forced, sharedCache){
+  const H = N.H, W = N.W;
+  const minW = Math.max(2, Math.round(H*0.18)), maxW = Math.round(H*0.95);
+  // Zwischenspeicher wird zwischen den Aufrufen fuer 1-4 Ziffern geteilt
+  // (dieselben Teilausschnitte werden sonst mehrfach verglichen).
+  const cache = sharedCache || new Map();
+  const segScore = (a,b)=>{
+    const key = a*1000+b;
+    if(cache.has(key)) return cache.get(key);
+    const S = ocrCellSlice(N, a, b);
+    let r = null;
+    if(S && S.W >= minW-1 && S.W <= maxW) r = { S, scores: ocrCellScoreSlice(S, templates) };
+    cache.set(key, r);
+    return r;
+  };
+  // dp[k][j]: beste Summe fuer k Ziffern, die bis Spalte j reichen
+  const NEG = -1e9;
+  const dp = [], bp = [];
+  for(let k=0;k<=n;k++){ dp.push(new Array(W+1).fill(NEG)); bp.push(new Array(W+1).fill(null)); }
+  dp[0][0] = 0;
+  for(let k=1;k<=n;k++){
+    for(let j=1;j<=W;j++){
+      for(let i=Math.max(0, j-maxW-3); i<=j-minW+1 && i<j; i++){
+        if(dp[k-1][i] <= NEG/2) continue;
+        const seg = segScore(i, j);
+        if(!seg) continue;
+        let d, s;
+        if(forced){ d = forced[k-1]; s = seg.scores[d]; if(s < -0.5) s = -0.5 + 0*s; }
+        else { d = 0; s = seg.scores[0]; for(let q=1;q<10;q++) if(seg.scores[q] > s){ s = seg.scores[q]; d = q; } }
+        if(s <= -0.99 && !forced) continue;
+        const v = dp[k-1][i] + s;
+        if(v > dp[k][j]){ dp[k][j] = v; bp[k][j] = { i, d, s, S: seg.S, scores: seg.scores }; }
+      }
+    }
+  }
+  if(dp[n][W] <= NEG/2) return null;
+  const digits = []; let j = W;
+  for(let k=n;k>=1;k--){ const b = bp[k][j]; digits.unshift(b); j = b.i; }
+  // Sicherheitsabstand je Ziffer: bester gegen zweitbesten Kandidaten
+  const margins = digits.map(dg=>{ const sorted=[...dg.scores].sort((a,b)=>b-a); return sorted[0]-sorted[1]; });
+  return {
+    value: digits.map(dg=>dg.d).join(''),
+    mean: dp[n][W]/n,
+    minScore: Math.min(...digits.map(dg=>dg.s)),
+    minMargin: Math.min(...margins),
+    digits
+  };
+}
+
+// Liest eine Zahlengruppe ueber die Vorlagen: probiert 1-4 Ziffern.
+function ocrCellReadTemplates(N, templates){
+  if(!templates || !templates.length) return null;
+  let best = null;
+  const cache = new Map();
+  for(let n=1;n<=4;n++){
+    const r = ocrCellDecode(N, templates, n, null, cache);
+    if(!r) continue;
+    // leichte Strafe fuer mehr Ziffern, damit eine Ziffer nicht kuenstlich
+    // in zwei zerlegt wird, wenn beide Varianten aehnlich gut passen
+    const score = r.mean - 0.02*n;
+    if(!best || score > best.score) best = { ...r, score, n };
+  }
+  return best;
+}
+
+// Baut aus einer Zahlengruppe ein fuer Tesseract geeignetes Einzelbild:
+// Originalpixel, auf ca. 40 px Ziffernhoehe vergroessert (ohne Weich-
+// zeichnung), invertiert (dunkle Schrift auf hellem Grund), mit Rand.
+function ocrCellTesseractCanvas(G, gr, digitH, variant){
+  const dh = digitH || (gr.y1-gr.y0+1);
+  const targetH = variant==='small' ? 28 : 40;
+  const scale = targetH / dh;
+  const padX = Math.ceil(dh*0.6), padY = Math.ceil(dh*0.5);
+  const x0 = Math.max(0, gr.x0-padX), x1 = Math.min(G.w-1, gr.x1+padX);
+  const yc = (gr.y0+gr.y1)/2;
+  const y0 = Math.max(0, Math.floor(yc-dh/2-padY)), y1 = Math.min(G.h-1, Math.ceil(yc+dh/2+padY));
+  const src = document.createElement('canvas');
+  src.width = x1-x0+1; src.height = y1-y0+1;
+  const sctx = src.getContext('2d');
+  const img = sctx.createImageData(src.width, src.height);
+  // lokaler Kontrast: Hintergrund -> weiss, Schrift -> schwarz
+  const vals=[]; for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) vals.push(G.g[y*G.w+x]);
+  vals.sort((a,b)=>a-b);
+  const bg = vals[Math.floor(vals.length*0.5)], fg = Math.max(bg+20, vals[Math.floor(vals.length*0.98)]);
+  for(let y=y0,k=0;y<=y1;y++) for(let x=x0;x<=x1;x++,k+=4){
+    let v = (G.g[y*G.w+x]-bg)/(fg-bg); v = Math.max(0, Math.min(1, v));
+    if(variant==='bin') v = v > 0.45 ? 1 : 0;
+    const o = Math.round(255*(1-v));
+    img.data[k]=img.data[k+1]=img.data[k+2]=o; img.data[k+3]=255;
+  }
+  sctx.putImageData(img, 0, 0);
+  const out = document.createElement('canvas');
+  const border = 12;
+  out.width = Math.round(src.width*scale) + 2*border; out.height = Math.round(src.height*scale) + 2*border;
+  const octx = out.getContext('2d');
+  octx.fillStyle = '#fff'; octx.fillRect(0,0,out.width,out.height);
+  octx.imageSmoothingEnabled = true; octx.imageSmoothingQuality = 'high';
+  octx.drawImage(src, border, border, out.width-2*border, out.height-2*border);
+  return out;
+}
+
+// ---- Ziffernvorlagen ----
+// Erzeugt aus beschrifteten Testbildern (Spiel-Screenshots mit vom Nutzer
+// bestaetigten Werten), siehe Changelog vom 6. Oktober 2026. Format je
+// Vorlage: "Ziffer,Stil,Breite,Hoehe,Base64(Graustufen 0-255)", getrennt
+// durch ";". Stil A = aelteres Terminal-Design (z.B. Levski, sehr kleine
+// fette Ziffern, Null mit Schraegstrich), Stil B = neueres Design (z.B.
+// Nyx/ARC-L1, groessere schlanke Ziffern).
+const OCR_DIGIT_TEMPLATES_DATA = '0,A,18,24,AQEFCxEXGRoaFxIOCQUCAQIEBQkSHyw1OTo6NjApIRkRCwkLEhkqP1RiZ2pqZV1VSDopGhMTJC9IZYGTmp2emZCFc1xCKx8ePkxnhqK0u7/BvbasmHxaPS0oW2mEorzM0tfa2dXOupt1Uj00dYKbtMnV2t7i5OXj07aOaE9BiZaswNDZ3eHm6/Dz58yjfF5MmKW4x9LX29/l7fX68tmyi2pVn6y9ytLW2d7l7PT58dq2kXBZpLLCzdTX2t7l7PL279m5lXRcqLbG0trd3+Po7fHz69e5l3VcqLjJ1uDk5efq7fDx6dW4lnRZprjM2ubq6+zs7e7v6NS3lHBUpbjN3erv7uzp6evt59S2k21Po7nP4O7y8Orl5Ofr59S2kWpLo7nQ4/L18Ofg3+Pp5tOyjGRGn7bO4vP38Obd3eHn48+thl9Clq3H3vD28ejg3+Lm38imf1o/h5250ujx7+rj4uLi2L6adFM7coekwtzq6+rm5OHczbCLZ0k0WWuIp8LT19jX087GtJZyUTcpP09qiKS2vcDAvLWrl3pZOyYdKDRKY3uLkpaXk4uAb1g+JhcT;1,A,14,24,AQMHDBESEhEOCwcFAwEDCRMdJysrKiUdEwsGAgoYKj1OVlhVTT4sGQ0FFSlEYHmGiYZ7ZEgtGAsfOVp9na+zsaSHYz8kEyRBZo6yyNDQw6F3TS0ZIj1ii7HM2N3TsINVMx0eN1qBqMbZ5N66jFs3IBgtTHKYutLk48GRXzojDyA6W3+jwtzgwJJgOyIIEydEZoyx0ty/kmE7IgMIFzBQeaPJ2L2SYTshAQQOJENtmsTWvZJiOyAAAQofPWiXw9a9kmI7IQEBCR47ZpbC1r6TYzwhAgEJHDpllcLWvpRkPCECAQkcOmaVwta+lGQ8IQIBCRw5ZZXD17+UZDwhAQEIGzlllcLXv5VkPCIBAAgaN2GQvdK7kmI7IgEBCBo1XYm0ybOMXzohAQEIGTFUfKO2on9VMx4BAggXK0lsjp+NbUgrGAEBBhEgOFNufG1TNBwO;2,A,20,24,AQEBAgUJDhEUFhcWFBIOCgYEAgEFBAcPGSUwOT9DREI+Ny4jGA8LCAgHDh0vQ1Zlb3Z3dGxhUkEuHxQRDgsWLUVifJGgqaumm4x4X0YxIh4UDx88WXiUqbnDxsS7rZh9YEczKxkTJkRjgpuuvMXLzMi+rZN2W0M2HRYrS2uInau3vsbLzMm9p4puUkEgFypIZoCSnKWstr/Izci1mX1fSx8UJD5Yb3+JkpmmssHMzLyhhWZRGxAcMUdcbXqFj56tv8vLup+EZlIYDRUnOk1gb32LnK2+ysm3nIFkURcMFCQ3TGJ2iZurucXLxbGUeF1NFw4YKj9XcIidrrrBxcS4oYRpUUYZFCI5Um6LpbnGysa/tKKJbFNBPBwaL01sjKe7yMzGuquZg2pRPDEzHiE9Yoiqws7TzL2ok3tiSjUlICoiJ0h0nsHS1dHCrpZ/Z086KRwbKicrT36szdnXzryokXxnUj8uIyIuKi9ThLPT3trSwrCcjHpnVEI1MDYvM1eHttbh39jMva6ilIJtWUg9PTAzV4az1ODh3tfNw7qunYZuWEZAKSxMd6DAztHRzcfAua6dhm1VQTgiJEBmjKq5vb+/vLiyqJiCaE86MBocM1R2kZ+kp6emo56Wh3JbRDEm;3,A,19,24,AAABAwcJDA8QERAODAoHBAIAAAEDCA8WHSQnKispJiEdFg8HAgEHCxUiMkFMUlZXVE1FOywcEAcEDhcmPFRreoKHiIR8cF9HLxsOCB0qPlt5lKWtsrKuppqFZkcuHBMsPFR1lbHByczMycS6pYRhQy0fOUxmhqS9ytDR0tLSzr6gfVxBLj1QaoiitsLHyczQ1tjPtZRwUTo6SmF7kqKssre/ydPb2MKlgF1CLTdKYHWFkp2ptsPR2tjEqYVhRiAlMkZZa3uMnrDB0NrZxquIZUkXFx8wRVtxiaC2yNbf28eriGVLEg4TIjhRbYqlvdDd5N/Jq4dkSxALDhsyTm+QrsfZ5evjy6uFYkkSDg8aMExsjqzE1+Xq5MuqhGFJFhESHTBKaYmmvtHg5+PKqYNhSh0bHyo7UGeAl6y/0t7eyauFZE0mKDA8TF1tfo+gs8jX2ceshmVOLjZEVGRzfYeRn7HE1NbGrIZkTDZDVmt9jZacoau5yNTUwaWAX0g9TmaAl6m0uLzBydLWz7eZdldCN0tlgp2zwMbLzs/QzL2igmFGNC9EYH+bs8PL0NHOyLyoimlMNCUgNU9rhJqpsre4s6qch21QNiEV;4,A,19,24,AAAAAAAAAAEDBwoODwsHBQIBAAAAAAAAAQMFChAWHB0WEAkFAwEBAAAAAQQJERwnMj09MCMVDQcDAAAAAAQMFyc4SltqaFQ+JxkPBQEAAAIKFypDWnGHmZR4XDwnGAkEAAIGECI+X3+ZscS8mndQNCEOBwMHDRkxVXyhus7d0ayHXD4pEwkIDxoqRmyUuc3d59mzjGFDLRgNDRkpP1yDqs7d6O/et5BkRjEcERIjPVp5m7za5e7y4LmRZkcyHBYaMlN1k6/K4enw8t+5kmdJMx0gJ0Rni6a90eDn6+3cuJNqSzUeKjZWfKC4ydXf4+jq3LqYcVE4IDdHaZC0ydTZ3ODl6d2/oHxZPSBJXX+myNrg4eDj5+zixquKZUUmXnWYvNro6+nl6e3x58+2mXJQLnCJqsrj7/Hw7vH09u3VvqN+XTt+mLjU5/Lz8/T3+frx28SsiGhIepKxy93o6u3w9Pn7893Hr4xsTGyAmrHBy8/T2eLr8+zWv6WDZEZcbIGToKmus7rJ2ObiyrGVdVk+SFRkcXqBhouTp7zPzradgGNLMzQ8Rk9UWl9lbX+Xra6XgGVNOSYgJCwyNjo+Q0xbb4KDcV9KNygZ;5,A,17,24,BAYKDQ4ODg4PDw8NCAQBAAANFR0kJicnJiUmJB4VDAUBAB8tPEdMTk9OTEpGOysaDQQANEphc3l7fXx5dm5eRy4aCwJOa4mfpaiqqaSflH5gQicUB2eJq8PIysnHwbqtk3FOMRsLfKDD2tzZ1M/IvrCVc08yHQ6JrdHm4dfLwbitn4ZnRywaDpG01+nezLepnZGDb1Q5IhQLkrTX6d3Ks6KUiHllTDIdEAeRs9Xn3cu1o5SIeWNKMB0QBoyu0OXj18i7rqSUe15AKRcKg6XH3uDb0srDu66VdlY6Iw92l7jQ1tXS0dDPx7GTc1AxFWWBnbK5urm/x8/QwaiMZD8cVGmAkZeYmqa4ytXOuaJ3TSRHWGh2enyAkKfB09HAq4FVKkFPXWlsbnOEnrvR08Sxh1ouRldndXh6fYuivdHSw7CGWS5NY3iKjpCTnrDG1dK/qH9ULFZyjqWsrrG4xNPb0bibc0woTm6Np7K5vsPK0dHAooJfPiFDZISgsLrCxcfHwKqKaEkvGDFOaoOUoKmrqaWbhGdKMh8P;6,A,19,24,AAIDBwoMDg8PDg0MCwgGBAMDAwcLERkgJy0xMjIwLScfFg4IBwcRFyEsOENNU1ZWVE5FOCkcEQwLHCQxP09fbHR4eXdvYlE8KhsTEDA5SFhqeYWNkZKQiXxpUTonGhRGUWN3iJagp6usqqOXhGpPNiUcW2l+laazvMLExcS9sp+CY0UwJGp6kqu8ydLX2NjX0MWylHNROCpxg524ydbd4N/d29TJtph3VToqdIikwNDb4eHd2NTNwq+Tc1E2JXeMqsfW4eTh29TPyL2rkHFQNCF2jq7M3OXn49zVz8m/r5Z3VTgjdY6wz9/o6eXe19LNxrmhg2BAKHSOsNHg6evm4NrX1dLIs5ZxTjJ0jrHR3+bl4NnU09XX0sCkflk6c4+x0N3i3tfQy8zS2trMsotkQnOPsdDZ29PKwbzBy9jd07uUbEhxja/O1tTKv7Wxt8PT29K8lm5KbYmsytTUy8C3srjE0tjOt5JrSGmGqMfS1MzBuLS6xNHVyrOOaEdhfqHBz9XSysPAxcvU08Srh2JDUWyMq73JzcrFw8THyMOxl3VUOUJZdpSqu8XHxcPDwLyxnYNjRjAyRmB9l629xMbEwbqvoIluUTgm;7,A,18,24,BAYICw4QEhISEhEQEA4LBwQCDhUdJSsvMzQ1NTQzMS0mHhYQGyg3RU5VW11eXl1bV1FGOCwiKjxRZXN8hIiKiomHgXdoVUQ3NUtkfIuWn6Woq6yrp52Kc11OPldzjZ+rtbzCx8rLycCrkHZjRl98may5xMzU2+Hl5N7Iqox3RFlyjJ6rtsLO2+Xs7ejSs5R+OkdYa3qGkqO3y9vl6eTNro96Ki84RE9aZ3+buM7c4NvCoYNvHBodIis2RGKEqMTT19C2k3ZkFRAPEh0rPl+EqsTPzcGlg2hWEgoHChcpQGOKsMjMwrCTc1pKEAkGCBgvS3CXu87Kt56AYUs+EAkHDCA+XoOmxNDDqYprUD82EQsJEixPdJe1y9C7mnVXPzQvEg0NGThhiqrCz8uviGBDMSsqFBEUI0ZynLjJzsKgdk0yJSMmFhYeMVaBqb/IxLOOZDwkHB0kGBwpQGaPtsbGuqJ8UiwXExkjGSI0T3WdwcnBrZBoQR0MCxQhFSA0TnKVtLepkXRSMRUIBxAbER0xS2uKo6GQdVg7Ig0EBQsVDBgqQl94jIZyVz0mFAcCAgYM;8,A,19,24,AQEBAgQGCAkJCQgIBgQDAgEAAQUGBwkOExkdHyAfHBcRDAcEAwIKCw8UHik1PkNEQz41Kh4VDggFEBIZIzNEV2Vtbm1nWkk4KBwTDBwjMUNZboOTnZ6dl4l2YUs3JRkqNkpjfparusPEw72xnohuUjgnOUlkgqK6y9ba2tnUy72qkGxKNENWdZe3zNjc3dvZ19LLvqh/WD1HXoCkwtLY1dHNy8vNz8u4jmNESWKGqsbR0szHwsHDytLRwJNnRUhkiq/I0c/Hwby7v8rV18WXaEVCYIiwy9XVz8vGxcjR2djElGVCPFuFr8za3drW0tHT2dzYwZJjPzVVga7N3+fn5ODe3uDg17+PYT4yVICszN7m5uPf3t/i4di/j2A8MlN/qsrb4uHe29rd4OHZwJBfOTJUgKvI1tnV0c7O0tnd2sORXzYzVoGsyNLSy8bDw8jR2dnEkV81NFaCrcjS0MjCvr3By9XWw5JgODNVgKvG0M/JxMC+wsrT0r6OXjgxUXymwMzPzcvIxsjO0cu0hlk2J0NqkKu7xMnMy8rJycO2m3FJKhw0VniTprbByMnIxr6xnX9aNx0QJEBddoueq7O0tK+jkXtgQSUS;9,A,19,24,AAAABAsUHCInKiklIRsUDAYCAQABBxMkNUNNV1xbVlBHOSoaDwgBBxMmPlZreYaOjYd/c15HLx4SBA4fOFh2kaO0vr21q52CZUQtHgkZME1vkKq2wcbEwLqwmH5eRzUQJkFihqnAxMbFxMXFwK2WeWFOFzJTd57B1dLLxMTJ0NHBrpN7Zh06XYSrzd3SxLe3w8/XzLyji3QgPWGIr8/byrWkprbI1c7Cq5N7IT5iia/O18Gok5WovtDNxbCYgCE+YomuzdS8oIqNorrPzsi1nYUfOl2EqsvVxK+fo7XJ2dTLt56GHDVWfKTG1s3Bt7vK2eTcz7ifhhgwT3SbwNXW1NLX4evw49K5noQTKERnjrHJztHS2OLr7+PSuJ6EDR84WX6hucHHy9Lc5uvh0bidhAgXLk1xkqqzu8HJ1N/m3c+2nIQFEylJbI2lr7e9xc/b4tjJsJiBBxYuTnOWr7rEytDX3+HSwKWNeAgZMlR7n7rG0Nfb3+PhzbaZgm8KGzVYgKbD0Nzj5ebl3sWqi3VkBhQqSGyOqbfEyszLyL+njHBcTgIMHTdWdI2bqK+wramfh21TQjcBBhElP1pxf42UlJCKfmdONykh;0,B,19,24,AAEDEiAwPktLSUc9MiYWBAAAAAAEDyhCW2+BgoGAcmFONBcDAAACDClQeY+bpKamp6CWi2Q5DgQCDR1GeKu5uri6vL3AwcGSXCUSBRoxZJvQ0L6trbG0xNDdtHo9JA0nSHmlzLqUc21xdZGx1LiRZUEZM1uIqMCfaz83OT1ijb2zoIZXIj5skaKqfUQUDBAUN2mgp6egaCc/cJOcm2s1CQIFCS9hmKGjnmkoPnKSlpFiLgcCAwcwYpmhpJ9sKz1zkZKJXCsGAgQKM2SZoaSfbi9CeZeWjFspBQABBTBknKOmoW8wR36dm5BcJwUAAQQuZZ+kpZ5tL0yDo6GVXSUFAAEELGWipaOZai5OhKSglF4mBAABBSxinaGgl2csT4OinpFdKQQAAQctYJmfn5dmKlCAnpuOXisEAAMJLl+Wn6KcaChOgJ6bj14qBAACCTFlnqOil2UnTX+dnJJhLQYBBAw4baemno9fJUt+nJ+ZaTIMBgwVQ3iwp5iBViJGdZmor4hXLCs1QWiTwauNaUQbPWWPrMWrh2RlbXeUs9Swg1IxEjBQfafPw6uTlZqgssTSqHI5HwobMFWBrbGro6WlpqeoqX9QIQ4E;1,B,16,24,CxMiMT9ESkxALhkLBAAAABciOVBlb3l+bFIyGQgAAAEkMlJykKCutp57TykOAAACJTJVeZqwx9S7lGAyEgAAAhsiQ2SCocLYwptlNBMAAAIPESdAV32oyrybZjUVAQEEBwgUJjhik7+2mWU1FQECBgMDChYlUIS2sZdjNRUBAgkDAgYOGUZ+s7CYYzUUAAIIAwIECRNAerOxmWQ0EwABBgIDAwcQPnmzsptlNBIAAAQBAQIGED97trObZTQRAAAFAAABBhFAfbe0mmU0EQAABwEAAggSQH63s5pmNhMBAAkCAgQJET99trKZZjYUAQIKAgIFChNAfrWxl2U2FAIDCgIABQwWRH+0r5ZjNhQCAwkBAAUOGkeBtK+WYzYVAgIIAwIMGSlVi7u3oG5BHwkFCQoQHy9DbJ7Ix7OEVzQcFBIUHzNIYIaz0dfHnXFMMSMcHy9GXniZv9fe0a2EYEMxJSk+V3GLpsTU29K0kG9ROy41T2yIpLjK09jVvZ5/YUc1;2,B,18,24,AAACCRIcIygrKyojFgoEAQAAAAEIGjFKV19jY15QPCgWCQEAAQkYOFx8i5SXlo5/alE0FwIACBg0YYuqtLa1squkloFaLQsDESlQgaOzrKKbmZmjrKqARBgKGDxsmaqggmdaXGmNtNCqXSYSGj9sjY95VjksMURyq96+ay0VFDJPXFI9JxcRGCpTkdS+ay4WDB0tLyMUCQMCCyJOjdK9ai0WAgYLDAoHBgQGEjFnoti7ZSkWAQAAAAQKExwmN1eGstOvWyEUAgABAggRJUBac42ovcWZSxYOAgEGESI3UGyGmqivrJ5zNg0LAgUQLVN6k6GprKmagF88GwcLBhEoU4GqvLyyoY91UisUCAQODyhRhKrCwbKVcFQ9JAwCAQMRG0J2pbq4pIdlQCcYCwIAAAESJ1yVuLOVa0guHRAIAwEAAAATMGymvah7SygUDggEAwMBAAARNXOqtphqQicXExAODQoFAAEPOXu0vqN8XEc6NzU1MisdCwQMO4LB1823opWLiYaFfW9PJQsKN3q52eDaz8fCwL67sZ5yNw8KLmWcwtXY1NHQz87Jv65+PhAI;3,B,18,24,AwYKGCo4QUZJSUlFPCweEgkBBxEhPFdsd3x+fX13a1Y/JRUFDB89YYKao6WmpaShm4drQiELFC5Vfp2wsq2qqKqvs6uPYDMSGzppkaiuo5SKh46ftb+sfUcgFjRhgImDcV5RUF15oL64kFcpEStPYVxNOysiJTVYi7m+n2QwCh02PTEgEw4KDyFFfrbCqmw0Bg8bHhgPCAcHDyZSh7jApmkzBAYLDAoJDBIZJUBrm7+/nWAtAgMDBQgOHzE/TmiRuM6/kFEjBAMCAwsaN1Vsfpa30ti+hEUaBwUDBA8lSm6MobfQ4dy7ej0VCQcFBxMsUXaVrMHT49y5djsWCggFBQ0eOVFmeI6qydW/hkoeCQYEAwgRIS04RlyArMvDllonBQMCAgUJDQ8RGjBWjL3EpWkwCQ0SEQ0LCQYFDCNLg7fDqGovESM2NyoeFAwEDSROhbjBp2ctGzpaYlRDMiUaHjVekLy/oGEpJUx3ioZ5Z1dKTF1/pLyyjFIiKlOBnKSfj392doSarrOccT8aKk94ma+yqp+cnKStr598UCkQGzZVdY2XlpCQj5KUjnZUMBYI;4,B,18,24,AQEBAQEBAgQHChgmMiocDAMAAAABAQEBAwkUIz5WaVg9HgwDAAAAAAACAw8lQWuOp49lNRkIAAAAAAEDBxw9ZZW7zbeCRCIMAwAAAAEHEDBejLXV5seNSSUOBgAAAAMOH0h9rcrg78yQSSUPBgECAgcbN2KTusjW5MaMSCUPBAEDBBIwVXubr7O/0r2JSCUOBAEECCBIdZGXmJinw7eISSYOBAILGTllkp+QgYKXurOHSSUOBQgZM1uDpqODaG+NtrKFRSINBxEqTnydtZ9xS1mCs6+CQSAMDB9BbJmts5FeOE5+s7CDRCIOFDJdiaywpHtQMk+EubaLTikRIUt7o7iul21MOFuQxMCXWzIVLWGVucSylnNfVnel086nbkIeN2+iwse3oYqBgZu+4tu3g1MoPXOgvb+1p56dorbR7ebElGAvNWCEnaCak5KVnrPO6uK/jlwtIDtTZWhmZGZpdJG22s+ocEUgCxcjLC8uLjE3RGqZx7yOTysSBAUICw0NDQ8VJE6Bs6h5OBoHBAQEBAQEBAcOG0BumpBnLRMEBAQCAQABAQQJFTNXenBOIAwC;5,B,18,24,AQALGSYsLi8uLi0rKCQaCwQCAwUgPldfYF5dXl1bV046HAcDBxI+bJGXko2JiYiFgHJVKwwEDiFblb6/sqSdmpiVj39fMQ4EFi1wsNbNsJeJg399eGpQKQoCGzJ7vNrBkWtWTEdGRD0tFQMAHzaBwNezdkctIh0dHBkRBgEAIDeCvtGnZTIZDwwMCwgEAQAAIDeBvdKpazsgFxMPCgYCAQAAHzZ/u9Wzf1Y/ODQuIxcLBQICHTV6tdW+mHpqZ2VgVUUuFwkFGS9upsrDrpyUlZiYk4NiORgKFidaiauwqaGdoamzubCOWy4TFR0/X3qDg4GCiJOpwMevfEghFhMiMT9GSEhKUV9/qcjAlF0sFwkNERUWFhUWGypSjr/Go2szGgUICQsHAwEBBBI+gbrIqXI2GwYMFBUMBAEAAw88gLnHqXQ4HBMoOj0pFQgEBxZEicDJpnA2IihQcXtePiYfHy9cnc3OoGUxJTVql66Ze2RaW2iKuNTEjlMoIDVpm7++s6Wdnqe4ycqrcjwbFSpXgai6v7u2trq/uqmEUCQNCBMxT3CLm6CfoJ+ZjHVULQ8D;6,B,19,24,AAEFCxQfLj1GSUxKPjIfDwQAAAAADSM8T2N3g4OEg3dqTzASBAEAAhU7ZYGUqK+vrq+ooYNWKQ4EBgQfUoejrLS1srCztLaebTwYDBIML2iit6qek4+LkZ2poHZLIxcfGkR9tr6fgGtkXGR4jJFyVC4gKSdTisC7kGRLQjpAV214YkwtIDAxXo6/sH5MMSokKTpNVUQzHhYxN2aUw655RCwnIiQvOjoqGgsMLzpsnMy7jF1JRkRFRkg+KhUICSs6cafZ17eWiomJiYB3YUMlEgwoOXOu4/LdycDCxMK2qpBmPBsUKTh1tOr459DFxMTGwr+tglctIiw4drbu7tGslpGLlKW2t5Z0SDQwOXm26uSxe1pOQlF3nLCdimNGMjl4sOHSlFYwIhclVYWmnZVzUTQ5dKXSu3s8GA0GE0BzmZeVeFY0N26axalqKgwGAQw3aZKTlHlXNDhulr6gYiULBgIPO2yTkZBzVDM8cpe9n2UrEw8KG0p6nZOIZ0wxO22Xwat0PCEgHzNika6ZhV1FKTBejby1iV1FRUVWfaO2l3hMOBodRHmvvKWMe3p6g5qwtItiNSUJDC5hlbGwsKmmoqKmq59xQx4Q;7,B,19,24,FSMzO0JESEtNUFJUUk5GOScUCB8zSlpqc3h9f4KEhYF8cl9EJBMpQWB6lKOorK+ytLezsaSIYTUhLEVoh6a2ur3Ax87Y2NfKp3hCKio+YIGhrrCxs8LT6Ozn2rqGSzAdLEJZb3h6en6WstPe4tGteEEnERsoNkNJTE1Vcpa+zNG/lmQzGwYPFBgdIicsN1d/qre4oHdJIA0DBgkMDxIZHzBVgamrn35ZNBUGAQMEBAYIEhw0W4iqoophQCIMAgAAAQIDBRMjRGqUrJp4SywTBgEBAQIDBAgeOGCCpbKWazoeDAMBAwIDBAYNLE59mbOxjVwsFAYCAAQEBAYJFDplmq+9qn9LHwwDAAAFBQUICxtLga69t5VrPBgJAwEABAQFCxMpXZa8v6p+VS0RBgQDAAMDBBEfP2+lxraWZD8fDAQEBAECAwQZMFqDrsCke0gqFQkEAwMBAwUJJ0d2lra2kmMzGgwGAwIBAAQJEzhgkqm8qoBOJREHAgEAAAAFDR9LeaqytJRrPx4NBAEAAAACBhEqWo26tql+VzAXCQIAAAAABgkUMmWbwLKaaEMhEAUBAAAAAQoNGDdml7SggU0uFQoDAAAAAAIN;8,B,18,24,AAEDCxoqNDtBQT87MCMWCwQBAQYPJEFcaXN6eXVwZFM5IQ8FAxEmSm6NmZ+joqCelodqQx4KCCRFbpOvsa2qqquvsayUZzYUFDtmjau7qpeKi5GesL6zh1EiIE9/nq6ujGxWVl1zmbzDnmcxKVyOpKibbkctLDRNgLPHqnU8LWOVopuEVCwVExkya6fErXtBLmWYo5mATCMODBQvaKTCq3k/LGSYqKKNWjIaGiRAdq3FqnQ6KF2SrbWsgVxFRlFplsDMp2syIVOHs8zTtZaAgoyhv9TQoF4oHEyBttrr1LikpbDD2OHRm1YiGkuAuN7w2b6qrLjL3eXPmVUjH1CGtNDavJ6KjJeuyt7RnVwnJlqPsL25k3FbXmqFrc/PomQrLWSYqqmYa0UuMT1ajb3KpWoxM2ygp5p/TiYNER4+d7DGpm0zNm+kp5V3RBsFBhQ1cKzEpWwzNW6jqZt/TigWFiJBebHFo2gxMWaZq6udc042OkllkrrCnGEtKFaGo7K1mHxma3iMp7y1ilIlHEFqjqq7rJmLkJmlrq+cbz0XDSlIbIujo5+anJ+hm410TCQK;9,B,19,24,AAADDR4uNDg3Nzc4NC0fEAUBAgMFDSRCW2Rra2xubGNUPiUPBgUGESZIa4iSm5qdoJ6Vg2ZAHQwJECRIbpGmqqyprLCysKeJXDAUEBw4aI2qrqKVjZCVn6u0onVGIhknSoSitKGBZVhaYXSTs7KJWS0dMFeVrbWRZkEwMTdRfa25lGUzHjRflq6sgFIpHBcZNGiht5dqNR02YpitpXZHHg8ICSVem7aZbjYbNWKWrqV3SiERDA8qZqO9nXE3Gy9ckrGugVgzIx4jQX22yqRzOBsoUI+zv512UkVDS2yhzdWqdDodIkOAqsaylHlvb3eVwN/arHQ5HCA2Z5i+wbSooaKnvdjq26xxNhoaJUZ1oLK3u7i3tsHX6tqnbDQYFhQkTXiToausqKSrw9rRoWo0GxMIDydJYm95fHh1fp6/wptqOCEXCQcVJDI3PDw9QlR+qbeWaTglGxIXIScqJiIgIitCcqGykGQzJiEjOUtRSjosKisySHmns4lZKyIiLFBvgXpkUkhKUWaNr65/TiQgHyxUfJyfj4B4eX6No6+fbj8cHhclSnKXqaekn6Gkqq6lh1cvExwNFS9RdpGgq6usrKqhiGM5GwwW';
+let ocrDigitTemplatesCache = null;
+function ocrCellTemplates(){
+  if(typeof window!=='undefined' && window.__OCR_TEMPLATES_OVERRIDE) return window.__OCR_TEMPLATES_OVERRIDE;
+  if(ocrDigitTemplatesCache) return ocrDigitTemplatesCache;
+  const list = [];
+  OCR_DIGIT_TEMPLATES_DATA.split(';').forEach(part=>{
+    const [d, style, W, H, b64] = part.split(',');
+    if(!b64) return;
+    const bin = atob(b64);
+    const data = new Float32Array(bin.length);
+    for(let i=0;i<bin.length;i++) data[i] = bin.charCodeAt(i)/255;
+    if(+H !== OCR_CELL_NORM_H || data.length !== (+W)*(+H)) return;
+    list.push({ d:+d, style, W:+W, H:+H, data });
+  });
+  ocrDigitTemplatesCache = list;
+  return list;
+}
+
+// Liest alle Zeilen einer Tabelle zellenweise. worker: bereits geladener
+// Tesseract-Worker (wird nur kurzzeitig auf Ziffern umgestellt).
+async function ocrCellReadTable(cropCanvas, worker){
+  const G = ocrCellGray(cropCanvas);
+  const L = ocrCellLayout(G);
+  const digitH = ocrCellDigitHeight(L);
+  const T = ocrCellTemplates();
+  const rows = [];
+  const bands = L.bands.filter(b=>b.groups.length>=2);
+  if(!bands.length) return { rows, digitH };
+  await worker.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '7' });
+  try{
+    for(const b of bands){
+      const gs = b.groups.slice(-2);
+      const cells = [];
+      for(const gr of gs){
+        const N = ocrCellNormalize(G, gr, L.thr, digitH);
+        const tmpl = ocrCellReadTemplates(N, T);
+        const tess = [];
+        for(const variant of ['gray','bin','small']){
+          try{
+            const r = await worker.recognize(ocrCellTesseractCanvas(G, gr, digitH, variant));
+            const txt = (r.data.text||'').replace(/\D/g,'');
+            if(txt) tess.push(txt);
+          }catch(e){}
+        }
+        cells.push({ tmpl: tmpl ? { value: tmpl.value, mean: tmpl.mean, minMargin: tmpl.minMargin, digitScores: tmpl.digits.map(dg=>Array.from(dg.scores)) } : null, tess });
+      }
+      rows.push({ yCenter: b.yCenter, y0: b.y0, y1: b.y1, quality: cells[0], menge: cells[1] });
+    }
+  } finally {
+    await worker.setParameters({ tessedit_char_whitelist: '', tessedit_pageseg_mode: '11' });
+  }
+  return { rows, digitH };
+}
+
+
+// Gewichtungsregel -- ZIFFER FUER ZIFFER statt ganzer Zahlen: Die
+// Vorlagen liegen beim aelteren Terminal-Design meist nur um eine einzelne
+// Ziffer daneben (z.B. 705 statt 785), und genau an dieser Stelle haben
+// Tesseract oder die bisherigen Durchlaeufe oft die richtige Ziffer. Daher:
+// 1. Stellenzahl per Abstimmung (Vorlagen, Tesseract-Einzelzelle,
+//    bisherige Durchlaeufe).
+// 2. Je Stelle: weiche Wahrscheinlichkeiten aus den Vorlagen-Vergleichs-
+//    werten plus Stimmen aller gleich langen Lesungen.
+// 3. Sicher (nicht orange) nur, wenn JEDE Stelle einen deutlichen
+//    Vorsprung hat.
+// Parameter per Rastersuche an 58 realen Zellen mit bekannten Werten
+// kalibriert (6. Oktober 2026), Zielvorgabe: keine falsche Zahl ohne
+// orange Markierung. Bei kleiner Schrift (ca. 6 px, aelteres Terminal)
+// zaehlen die Vorlagen deutlich mehr als Tesseract, bei groesserer
+// Schrift umgekehrt.
+const OCR_FUSE = { lenTmpl: 1, wTmplSmall: 2, wTmplLarge: 0.5, tau: 0.1, wTessSmall: 0.4, wTessLarge: 0.7, wEns: 0.5, minMargin: 0.4 };
+function ocrCellFuseRule(cell, ensembleCandidates, digitH, kind){
+  const P = OCR_FUSE;
+  const small = !digitH || digitH < 9;
+  cell = cell || {};
+  const tm = (cell.tmpl && cell.tmpl.mean >= 0.5) ? cell.tmpl : null;
+  const tess = (cell.tess||[]).filter(v=>v.length<=4);
+  const ens = (ensembleCandidates||[])
+    .map(v=> kind==='menge' ? String(Math.round(parseFloat(v)*100)) : String(parseInt(v,10)))
+    .filter(v=> v!=='NaN' && v.length<=4);
+  const wT = small ? P.wTmplSmall : P.wTmplLarge;
+  const wS = small ? P.wTessSmall : P.wTessLarge;
+  const wE = P.wEns / Math.max(1, ens.length);
+  const lenVotes = {};
+  const addLen = (L, w)=>{ lenVotes[L] = (lenVotes[L]||0) + w; };
+  if(tm) addLen(tm.value.length, P.lenTmpl);
+  tess.forEach(v=>addLen(v.length, wS));
+  ens.forEach(v=>addLen(v.length, wE));
+  let L = null, bestL = -1;
+  Object.keys(lenVotes).forEach(k=>{ if(lenVotes[k] > bestL){ bestL = lenVotes[k]; L = +k; } });
+  if(L===null) return { value: null, confident: false };
+  const digits = [];
+  let minMargin = Infinity;
+  for(let i=0;i<L;i++){
+    const sc = new Array(10).fill(0);
+    if(tm && tm.value.length===L && tm.digitScores && tm.digitScores[i]){
+      const s = tm.digitScores[i], mx = Math.max(...s);
+      const ex = s.map(x=>Math.exp((x-mx)/P.tau));
+      const z = ex.reduce((a,b)=>a+b,0) || 1;
+      ex.forEach((x,d)=>{ sc[d] += wT*x/z; });
+    }
+    tess.forEach(v=>{ if(v.length===L) sc[+v[i]] += wS; });
+    ens.forEach(v=>{ if(v.length===L) sc[+v[i]] += wE; });
+    const order = [...sc.keys()].sort((a,b)=>sc[b]-sc[a]);
+    const tot = sc.reduce((a,b)=>a+b,0) || 1;
+    digits.push(order[0]);
+    minMargin = Math.min(minMargin, (sc[order[0]]-sc[order[1]])/tot);
+  }
+  const value = parseInt(digits.join(''), 10);
+  if(kind==='quality' && (value < 1 || value > 1000)) return { value: null, confident: false };
+  return { value, confident: minMargin >= P.minMargin };
+}
+
 // Mehrere Schwellenwerte durchlaufen, je Zeile den häufigsten Wert je
 // Feld übernehmen (Mehrheitsentscheid) — fängt Erkennungsschwankungen
 // durch unterschiedliche Belichtung/Kontrast deutlich besser ab als ein
@@ -16752,6 +17246,7 @@ async function runOcrEnsemble(cropCanvas, statusEl){
   // Tabellenausschnitt erkennen muss.
   await worker.setParameters({ tessedit_pageseg_mode: '11' });
   let digitFocusedRows = [];
+  let cellTable = null;
   try{
     for(let i=0;i<thresholds.length;i++){
       statusEl.textContent = `${t('ocr_running')} (${i+1}/${thresholds.length})`;
@@ -16784,6 +17279,11 @@ async function runOcrEnsemble(cropCanvas, statusEl){
       dynamicXStartFrac = Math.max(0, (minX0 - safetyMarginPx) / prepared.width);
     }
     digitFocusedRows = await runDigitFocusedPass(prepared, thresholds, worker, statusEl, thresholds.length, dynamicXStartFrac);
+    // Ab 6. Oktober 2026: zusaetzliche zellenweise Erkennung (siehe
+    // ocrCellReadTable). Fehler hier duerfen die bisherige Erkennung nicht
+    // verhindern -- dann wird ohne diese Zusatzinformation weitergearbeitet.
+    statusEl.textContent = t('ocr_running_digits');
+    try{ cellTable = await ocrCellReadTable(cropCanvas, worker); }catch(e){ cellTable = null; }
   } finally {
     await worker.terminate();
     updateOcrProgressBar(0, 0); // ausblenden, unabhaengig vom Ergebnis
@@ -16885,19 +17385,99 @@ async function runOcrEnsemble(cropCanvas, statusEl){
       menge: men.value!=null ? parseFloat(men.value) : null,
       mengeConfident: men.confident,
       yMin: matchCount ? yMinSum/matchCount : yCenter-30,
-      yMax: matchCount ? yMaxSum/matchCount : yCenter+30
+      yMax: matchCount ? yMaxSum/matchCount : yCenter+30,
+      yCenter,
+      // Ab 6. Oktober 2026: rohe Abstimmungs-Kandidaten fuer die
+      // Zusammenfuehrung mit der zellenweisen Erkennung (ocrCellFuse)
+      qualityCandidates: candidates.quality,
+      mengeCandidates: candidates.menge
     };
   });
 
   const scale = targetDim / (Math.max(cropCanvas.width, cropCanvas.height) || 1);
-  return {
-    rows: finalRows.filter(r=>
-      r.material && r.quality!=null && r.menge!=null &&
-      !isSpuriousRow(r.materialRaw, r.quality)
-    ),
-    scale
-  };
+  return { rows: ocrMergeRows(finalRows, cellTable, scale), scale };
 }
+
+// Ab 6. Oktober 2026: fuehrt die bisherige Erkennung (Materialnamen,
+// Zeilenlage, Stimmen fuer Qualitaet/Menge) mit der zellenweisen
+// Erkennung zusammen.
+// Zeilenerhalt (Nutzerwunsch vom 6. Oktober 2026): Bislang wurden Zeilen,
+// bei denen Material, Qualitaet ODER Menge fehlte, kommentarlos verworfen
+// -- bei einem realen Screenshot verschwand dadurch z.B. eine komplette
+// Zeile, weil die einzelne, nur 2 px breite Ziffer "1" der Menge nie
+// gelesen wurde. Jetzt bleibt jede Zeile erhalten, in der ein
+// Materialname ODER eine Zahl erkannt wurde; fehlende Werte bleiben leer
+// und werden orange markiert. Mitgelesene Kopfzeilen werden weiterhin
+// ueber isSpuriousRow() ausgefiltert.
+function ocrMergeRows(finalRows, cellTable, scale){
+  const ens = finalRows.map(r=>({ r, yNative: r.yCenter/scale, used: false }));
+  const merged = [];
+  const cellRows = cellTable && cellTable.rows ? cellTable.rows : [];
+  const digitH = cellTable ? cellTable.digitH : null;
+  // Toleranz fuer die Zuordnung: halber typischer Zeilenabstand
+  const centers = cellRows.map(c=>c.yCenter).sort((a,b)=>a-b);
+  const gaps = []; for(let i=1;i<centers.length;i++) gaps.push(centers[i]-centers[i-1]);
+  gaps.sort((a,b)=>a-b);
+  const pitch = gaps.length ? gaps[Math.floor(gaps.length/2)] : (digitH ? digitH*4 : 30);
+  const tol = Math.max(4, pitch*0.5);
+  cellRows.forEach(cr=>{
+    let best = null, bestD = Infinity;
+    ens.forEach(e=>{ if(e.used) return; const d = Math.abs(e.yNative-cr.yCenter); if(d < bestD){ bestD = d; best = e; } });
+    const match = (best && bestD <= tol) ? best : null;
+    if(match) match.used = true;
+    const er = match ? match.r : null;
+    if(er && countHeaderKeywordMatches(er.materialRaw) >= 1 && !er.material) return;
+    if(er && isSpuriousRow(er.materialRaw, null)) return;
+    const q = ocrCellFuse(cr.quality, er ? er.qualityCandidates : [], digitH, 'quality');
+    const m = ocrCellFuse(cr.menge, er ? er.mengeCandidates : [], digitH, 'menge');
+    const known = er && er.material && MATERIALS.some(x=>x.name===er.material);
+    // Ohne erkannten Materialnamen nur behalten, wenn die Zellen
+    // tatsaechlich wie Ziffern aussehen (verhindert Phantomzeilen aus
+    // Kopfzeilen-Woertern wie "QUALITY"/"YIELD" oder Bildrauschen).
+    const looksNumeric = c=> c && ((c.tmpl && c.tmpl.mean >= 0.6) || (c.tess && c.tess.length >= 2));
+    if(!known && q.value==null && m.value==null) return;
+    if(!known && !(looksNumeric(cr.quality) || looksNumeric(cr.menge))) return;
+    merged.push({
+      material: er ? er.material : null,
+      materialConfident: er ? er.materialConfident : false,
+      materialRaw: er ? er.materialRaw : null,
+      quality: q.value,
+      qualityConfident: q.confident,
+      menge: m.value!=null ? Math.round(m.value)/100 : null,
+      mengeConfident: m.confident,
+      yMin: Math.min(cr.y0, cr.yCenter-6)*scale,
+      yMax: Math.max(cr.y1, cr.yCenter+6)*scale,
+      ySort: cr.yCenter
+    });
+  });
+  // Zeilen der bisherigen Erkennung ohne Gegenstueck in der zellenweisen
+  // Erkennung (z.B. wenn dort ein Band nicht gefunden wurde) bleiben
+  // ebenfalls erhalten -- mit ihren bisherigen Werten.
+  ens.forEach(e=>{
+    if(e.used) return;
+    const r = e.r;
+    if(isSpuriousRow(r.materialRaw, r.quality)) return;
+    const known = r.material && MATERIALS.some(x=>x.name===r.material);
+    if(!known && r.quality==null && r.menge==null) return;
+    if(!known && !r.material) return;
+    merged.push({ ...r, ySort: e.yNative });
+  });
+  merged.sort((a,b)=>a.ySort-b.ySort);
+  return merged;
+}
+
+// Fuehrt fuer EIN Feld (Qualitaet oder Menge, Menge hier noch in cSCU)
+// alle Stimmen zusammen:
+//  - Vorlagen-Abgleich (Ziffern des Spiel-Fonts),
+//  - Tesseract je Einzelzelle (3 Bildvarianten),
+//  - bisherige Gesamtbild-Durchlaeufe (Mehrheitsentscheid-Topf).
+// Liefert { value, confident, solid }. "confident" = keine orange
+// Markierung; "solid" = mindestens zwei unabhaengige Quellen einig.
+function ocrCellFuse(cell, ensembleCandidates, digitH, kind){
+  if(typeof window!=='undefined' && window.__ocrEvidence) window.__ocrEvidence.push({ kind, cell, ens: ensembleCandidates, digitH });
+  return ocrCellFuseRule(cell, ensembleCandidates, digitH, kind);
+}
+
 
 function mostCommon(arr){
   return mostCommonWithConfidence(arr).value;
@@ -17141,7 +17721,10 @@ function renderOcrPreview(){
   </tr></thead><tbody>`;
   rows.forEach((r,i)=>{
     const snippetSrc = buildRowSnippet(r.cropCanvas, r.yMin, r.yMax, r.scale);
-    const materialValue = r.materialConfident ? (r.material||'') : '';
+    // Ab 6. Oktober 2026: auch ein UNSICHER erkanntes Material wird als
+    // bester Treffer vorausgewaehlt (weiterhin orange markiert), statt das
+    // Feld leer zu lassen -- sofern es ein bekanntes Material ist.
+    const materialValue = (r.material && MATERIALS.some(m=>m.name===r.material)) ? r.material : '';
     const materialSelect = buildMaterialSelectHTML(
       'ocr-prev-material-'+i,
       materialValue,
