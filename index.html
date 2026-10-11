@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.126 -->
+<!-- Version: 0.127 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -122,6 +122,7 @@ select optgroup{
   font-weight:700;
 }
 select option:disabled{color:var(--ink-soft);}
+#btnPrivReset:disabled{opacity:0.4;cursor:not-allowed;}
 select option:checked{background-color:#0E3A47;color:#FFFFFF;}
 
 #wolfWatermark{
@@ -2685,6 +2686,19 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div id="privUsageSearchResult" style="margin-top:14px;"></div>
   </div>
 
+  <!-- ===== PRIVATE DATEN ZURUECKSETZEN (ab 11. Oktober 2026) ===== -->
+  <details class="panel admin-collapsible" data-default-open="false" id="privResetPanel">
+    <summary><h2 data-i18n="panel_priv_reset">Private Daten zurücksetzen</h2></summary>
+    <div class="user-note" style="margin:0 0 6px 0;border-left:3px solid #FF3B5C;padding-left:10px;" data-i18n="hint_priv_reset">Für einen Neuanfang, z. B. nach einem Wipe im Spiel: Entfernt die ausgewählten eigenen Einträge in einem Schritt. Projektfortschritte und Zusagen werden automatisch neu berechnet, Zuordnungen zu entfernten Projekten sauber gelöst. Jeder Reset lässt sich 7 Tage lang wiederherstellen.</div>
+    <div id="privResetOptions"></div>
+    <div id="privResetPreview" style="margin-top:16px;padding:10px 12px;border:1px solid var(--panel-border);border-radius:var(--radius);font-size:12.5px;"></div>
+    <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <button class="btn-ghost danger" id="btnPrivReset" disabled data-i18n="btn_priv_reset">Ausgewählte Daten zurücksetzen</button>
+      <div class="status-msg" id="privResetStatus" style="margin:0;"></div>
+    </div>
+    <div id="privResetBackups"></div>
+  </details>
+
   </div>
 
   <div class="tab-content" data-tab="bedarfe" style="display:none;">
@@ -3368,6 +3382,38 @@ const I18N = {
   "label_import_bestaetigung": "Zur Bestätigung Namen der aktuell aktiven Organisation eingeben:",
   "tooltip_org_import_bestaetigen": "Wirklich unwiderruflich wiederherstellen (bestehende Daten werden ersetzt)? Erneut klicken zum Bestätigen.",
   "tooltip_org_reset_bestaetigen": "Wirklich unwiderruflich zurücksetzen? Erneut klicken zum Bestätigen.",
+  "panel_priv_reset": "Private Daten zurücksetzen",
+  "hint_priv_reset": "Für einen Neuanfang, z. B. nach einem Wipe im Spiel: Entfernt die ausgewählten eigenen Einträge in einem Schritt. Projektfortschritte und Zusagen werden automatisch neu berechnet, Zuordnungen zu entfernten Projekten sauber gelöst. Jeder Reset lässt sich 7 Tage lang wiederherstellen.",
+  "label_priv_reset_materialien": "Materialien",
+  "label_priv_reset_sammelobjekte": "Sammelobjekte",
+  "label_priv_reset_kategorien_hint": "Kategorien — abgewählte Kategorien bleiben erhalten",
+  "label_priv_reset_keine_daten": "Keine eigenen Einträge vorhanden.",
+  "label_priv_reset_count": "{n} privat",
+  "label_priv_reset_count_both": "{priv} privat · {shared} geteilt",
+  "label_priv_reset_shared": "Auch meine Einträge im geteilten Bestand entfernen (Materialien, bei denen ich als Verantwortliche/r eingetragen bin, und Sammelobjekte, bei denen ich als Besitzer/in eingetragen bin)",
+  "label_priv_reset_projects": "Auch meine privaten Projekte entfernen ({n})",
+  "btn_priv_reset": "Ausgewählte Daten zurücksetzen",
+  "tooltip_priv_reset_confirm": "Wirklich zurücksetzen? Erneut klicken zum Bestätigen (7 Tage wiederherstellbar).",
+  "priv_reset_preview_none": "Nichts ausgewählt — bitte oben Datentyp und Kategorien wählen.",
+  "priv_reset_preview_head": "Beim Zurücksetzen werden entfernt:",
+  "priv_reset_item_priv_entries": "{n} private Materialeinträge",
+  "priv_reset_item_priv_colls": "{n} private Sammelobjekte",
+  "priv_reset_item_shared_entries": "{n} eigene Materialeinträge im geteilten Bestand",
+  "priv_reset_item_shared_colls": "{n} eigene Sammelobjekte im geteilten Bestand",
+  "priv_reset_item_projects": "{n} private Projekte",
+  "priv_reset_rel_private_proj": "{n} der privaten Einträge sind privaten Projekten zugeordnet — deren Fortschritt sinkt entsprechend.",
+  "priv_reset_rel_shared_commit": "{n} der privaten Einträge sind geteilten Projekten zugesagt — diese Zusagen entfallen.",
+  "priv_reset_rel_shared_assigned": "{n} der geteilten Einträge sind geteilten Projekten zugeordnet — deren Fortschritt sinkt entsprechend.",
+  "priv_reset_rel_released": "Bei {n} verbleibenden eigenen Einträgen/Bedarfen wird die Zuordnung zu einem entfernten privaten Projekt gelöst.",
+  "msg_priv_reset_done": "Zurückgesetzt: {n} Einträge entfernt. Wiederherstellbar bis {datum}.",
+  "msg_priv_reset_backup_failed": "Die Sicherung konnte nicht gespeichert werden — es wurde nichts gelöscht.",
+  "label_priv_reset_backups": "Wiederherstellbare Resets",
+  "label_priv_reset_backup_row": "Reset vom {datum}: {n} Einträge — wiederherstellbar bis {bis}",
+  "btn_priv_reset_restore": "Wiederherstellen",
+  "tooltip_priv_reset_restore_confirm": "Wirklich wiederherstellen? Erneut klicken zum Bestätigen.",
+  "msg_priv_reset_restored": "Wiederhergestellt: {n} Einträge.",
+  "msg_priv_reset_restored_skipped": "{n} Projekt(e) übersprungen, da bereits ein gleichnamiges eigenes Projekt existiert.",
+  "msg_priv_reset_restore_failed": "Wiederherstellung fehlgeschlagen.",
   "panel_org_export": "Datensicherung",
   "hint_org_export": "Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.",
   "btn_export_org_data": "Alles exportieren (JSON)",
@@ -4132,6 +4178,38 @@ const I18N = {
   "label_import_bestaetigung": "Type the name of the currently active organization to confirm:",
   "tooltip_org_import_bestaetigen": "Really restore irreversibly (existing data will be replaced)? Click again to confirm.",
   "tooltip_org_reset_bestaetigen": "Really reset irreversibly? Click again to confirm.",
+  "panel_priv_reset": "Reset private data",
+  "hint_priv_reset": "For a fresh start, e.g. after an in-game wipe: removes the selected entries of your own in one step. Project progress and commitments are recalculated automatically, assignments to removed projects are cleanly released. Every reset can be restored for 7 days.",
+  "label_priv_reset_materialien": "Materials",
+  "label_priv_reset_sammelobjekte": "Collectibles",
+  "label_priv_reset_kategorien_hint": "Categories — deselected categories are kept",
+  "label_priv_reset_keine_daten": "No entries of your own.",
+  "label_priv_reset_count": "{n} private",
+  "label_priv_reset_count_both": "{priv} private · {shared} shared",
+  "label_priv_reset_shared": "Also remove my entries in the shared stock (materials where I am the person responsible, collectibles where I am the owner)",
+  "label_priv_reset_projects": "Also remove my private projects ({n})",
+  "btn_priv_reset": "Reset selected data",
+  "tooltip_priv_reset_confirm": "Really reset? Click again to confirm (restorable for 7 days).",
+  "priv_reset_preview_none": "Nothing selected — please choose data types and categories above.",
+  "priv_reset_preview_head": "The reset will remove:",
+  "priv_reset_item_priv_entries": "{n} private material entries",
+  "priv_reset_item_priv_colls": "{n} private collectibles",
+  "priv_reset_item_shared_entries": "{n} own material entries in the shared stock",
+  "priv_reset_item_shared_colls": "{n} own collectibles in the shared stock",
+  "priv_reset_item_projects": "{n} private projects",
+  "priv_reset_rel_private_proj": "{n} of the private entries are assigned to private projects — their progress drops accordingly.",
+  "priv_reset_rel_shared_commit": "{n} of the private entries are committed to shared projects — these commitments are dropped.",
+  "priv_reset_rel_shared_assigned": "{n} of the shared entries are assigned to shared projects — their progress drops accordingly.",
+  "priv_reset_rel_released": "For {n} of your remaining entries/needs the assignment to a removed private project is released.",
+  "msg_priv_reset_done": "Reset done: {n} entries removed. Restorable until {datum}.",
+  "msg_priv_reset_backup_failed": "The backup could not be saved — nothing was deleted.",
+  "label_priv_reset_backups": "Restorable resets",
+  "label_priv_reset_backup_row": "Reset of {datum}: {n} entries — restorable until {bis}",
+  "btn_priv_reset_restore": "Restore",
+  "tooltip_priv_reset_restore_confirm": "Really restore? Click again to confirm.",
+  "msg_priv_reset_restored": "Restored: {n} entries.",
+  "msg_priv_reset_restored_skipped": "{n} project(s) skipped because a project of yours with the same name already exists.",
+  "msg_priv_reset_restore_failed": "Restore failed.",
   "panel_org_export": "Data backup",
   "hint_org_export": "Downloads a single file with all shared data of the current organization (inventory, needs, projects, collectibles, catalogs) — independent of Supabase, e.g. for your own backup.",
   "btn_export_org_data": "Export everything (JSON)",
@@ -4896,6 +4974,38 @@ const I18N = {
   "label_import_bestaetigung": "Saisissez le nom de l'organisation actuellement active pour confirmer :",
   "tooltip_org_import_bestaetigen": "Vraiment restaurer de façon irréversible (les données existantes seront remplacées) ? Cliquez à nouveau pour confirmer.",
   "tooltip_org_reset_bestaetigen": "Vraiment réinitialiser de façon irréversible ? Cliquez à nouveau pour confirmer.",
+  "panel_priv_reset": "Réinitialiser les données privées",
+  "hint_priv_reset": "Pour repartir de zéro, p. ex. après un wipe du jeu : supprime en une seule étape les entrées personnelles sélectionnées. La progression des projets et les engagements sont recalculés automatiquement, les affectations à des projets supprimés sont proprement levées. Chaque réinitialisation peut être restaurée pendant 7 jours.",
+  "label_priv_reset_materialien": "Matériaux",
+  "label_priv_reset_sammelobjekte": "Objets de collection",
+  "label_priv_reset_kategorien_hint": "Catégories — les catégories désélectionnées sont conservées",
+  "label_priv_reset_keine_daten": "Aucune entrée personnelle.",
+  "label_priv_reset_count": "{n} privé(s)",
+  "label_priv_reset_count_both": "{priv} privé(s) · {shared} partagé(s)",
+  "label_priv_reset_shared": "Supprimer aussi mes entrées du stock partagé (matériaux dont je suis responsable, objets de collection dont je suis propriétaire)",
+  "label_priv_reset_projects": "Supprimer aussi mes projets privés ({n})",
+  "btn_priv_reset": "Réinitialiser les données sélectionnées",
+  "tooltip_priv_reset_confirm": "Vraiment réinitialiser ? Cliquez à nouveau pour confirmer (restaurable pendant 7 jours).",
+  "priv_reset_preview_none": "Rien de sélectionné — choisissez ci-dessus les types de données et catégories.",
+  "priv_reset_preview_head": "La réinitialisation supprimera :",
+  "priv_reset_item_priv_entries": "{n} entrées de matériaux privées",
+  "priv_reset_item_priv_colls": "{n} objets de collection privés",
+  "priv_reset_item_shared_entries": "{n} entrées de matériaux personnelles dans le stock partagé",
+  "priv_reset_item_shared_colls": "{n} objets de collection personnels dans le stock partagé",
+  "priv_reset_item_projects": "{n} projets privés",
+  "priv_reset_rel_private_proj": "{n} des entrées privées sont affectées à des projets privés — leur progression baisse en conséquence.",
+  "priv_reset_rel_shared_commit": "{n} des entrées privées sont promises à des projets partagés — ces engagements disparaissent.",
+  "priv_reset_rel_shared_assigned": "{n} des entrées partagées sont affectées à des projets partagés — leur progression baisse en conséquence.",
+  "priv_reset_rel_released": "Pour {n} de vos entrées/besoins restants, l'affectation à un projet privé supprimé est levée.",
+  "msg_priv_reset_done": "Réinitialisé : {n} entrées supprimées. Restaurable jusqu'au {datum}.",
+  "msg_priv_reset_backup_failed": "La sauvegarde n'a pas pu être enregistrée — rien n'a été supprimé.",
+  "label_priv_reset_backups": "Réinitialisations restaurables",
+  "label_priv_reset_backup_row": "Réinitialisation du {datum} : {n} entrées — restaurable jusqu'au {bis}",
+  "btn_priv_reset_restore": "Restaurer",
+  "tooltip_priv_reset_restore_confirm": "Vraiment restaurer ? Cliquez à nouveau pour confirmer.",
+  "msg_priv_reset_restored": "Restauré : {n} entrées.",
+  "msg_priv_reset_restored_skipped": "{n} projet(s) ignoré(s) car un de vos projets porte déjà le même nom.",
+  "msg_priv_reset_restore_failed": "Échec de la restauration.",
   "panel_org_export": "Sauvegarde des données",
   "hint_org_export": "Télécharge un seul fichier contenant toutes les données partagées de l'organisation actuelle (stock, besoins, projets, objets de collection, catalogues) — indépendamment de Supabase, par exemple pour votre propre sauvegarde.",
   "btn_export_org_data": "Tout exporter (JSON)",
@@ -9730,6 +9840,7 @@ function renderPrivateCollectibles(){
   const container = document.getElementById('privateCollectibleTableContainer');
   if(!currentUser) return;
   updateTabBadges();
+  renderPrivResetSection();
   const mine = myPrivateCollectibles();
 
   updatePrivateCollectibleFilterOptions();
@@ -9816,6 +9927,8 @@ function renderPrivateCollectibles(){
         renderPrivateCollectibles();
         updatePrivateProjectAvailability();
         renderPrivateProjects();
+        updateProjectAvailability();
+        renderProjects();
       });
     });
   });
@@ -11039,10 +11152,26 @@ function normalizeResource(r){
 // Auswirkungen zu informieren (siehe Nutzerwunsch vom 6. August 2026:
 // automatisches Bereinigen verwaister Projekt-Verknuepfungen, aber mit
 // vorherigem Hinweis).
+// Ab 11. Oktober 2026: PRIVATE Projekte gehoeren immer genau einer Person
+// -- Projektnamen sind aber nur je Person eindeutig, nicht organisations-
+// weit. Bislang wurden bei typ 'private' die Zuordnungen ALLER Mitglieder
+// mit einem gleichnamigen privaten Projekt mitgezaehlt/-geloest/-umbenannt
+// (z.B. loeste das Loeschen des eigenen privaten Projekts "Ace Helmet"
+// auch die Zuordnungen eines anderen Mitglieds mit einem eigenen,
+// gleichnamigen privaten Projekt). Jetzt strikt auf die eigenen Eintraege
+// (bzw. eigenen Bedarfe) beschraenkt -- private Projekte kann ohnehin nur
+// ihre Besitzerin/ihr Besitzer selbst bearbeiten oder loeschen.
+function ownsPrivateRef(item){
+  return !!currentUser && item.owner === currentUser.username;
+}
+function ownsPrivateNeedRef(n){
+  return !!currentUser && n.user === currentUser.username;
+}
+
 function countProjectReferences(ziel, typ){
   const matchesEntry = e => e.projekt === ziel; // geteilter Bestand kennt nur geteilte Projekte
-  const matchesPrivate = e => e.projekt === ziel && (e.projektTyp || 'shared') === typ;
-  const matchesNeed = n => n.sourceProjekt === ziel && (n.sourceProjektTyp || 'shared') === typ;
+  const matchesPrivate = e => e.projekt === ziel && (e.projektTyp || 'shared') === typ && (typ !== 'private' || ownsPrivateRef(e));
+  const matchesNeed = n => n.sourceProjekt === ziel && (n.sourceProjektTyp || 'shared') === typ && (typ !== 'private' || ownsPrivateNeedRef(n));
 
   const entriesCount = typ === 'shared' ? entries.filter(matchesEntry).length : 0;
   const collectiblesCount = typ === 'shared' ? collectibles.filter(matchesEntry).length : 0;
@@ -11069,9 +11198,11 @@ async function releaseProjectReferences(ziel, typ){
     entries.forEach(e=>{ if(e.projekt === ziel){ e.projekt = ''; changed = true; } });
     collectibles.forEach(e=>{ if(e.projekt === ziel){ e.projekt = ''; e.projektTyp = null; changed = true; } });
   }
-  privateEntries.forEach(e=>{ if(e.projekt === ziel && (e.projektTyp||'shared') === typ){ e.projekt = ''; e.projektTyp = null; changed = true; } });
-  privateCollectibles.forEach(e=>{ if(e.projekt === ziel && (e.projektTyp||'shared') === typ){ e.projekt = ''; e.projektTyp = null; changed = true; } });
-  needs.forEach(n=>{ if(n.sourceProjekt === ziel && (n.sourceProjektTyp||'shared') === typ){ n.sourceProjekt = null; n.sourceProjektTyp = null; changed = true; } });
+  const own = e => typ !== 'private' || ownsPrivateRef(e);
+  const ownNeed = n => typ !== 'private' || ownsPrivateNeedRef(n);
+  privateEntries.forEach(e=>{ if(e.projekt === ziel && (e.projektTyp||'shared') === typ && own(e)){ e.projekt = ''; e.projektTyp = null; changed = true; } });
+  privateCollectibles.forEach(e=>{ if(e.projekt === ziel && (e.projektTyp||'shared') === typ && own(e)){ e.projekt = ''; e.projektTyp = null; changed = true; } });
+  needs.forEach(n=>{ if(n.sourceProjekt === ziel && (n.sourceProjektTyp||'shared') === typ && ownNeed(n)){ n.sourceProjekt = null; n.sourceProjektTyp = null; changed = true; } });
 
   if(changed){
     await Promise.all([save(), saveCollectibles(), savePrivateEntries(), savePrivateCollectibles(), saveNeeds()]);
@@ -11093,9 +11224,11 @@ async function renameProjectReferences(oldZiel, newZiel, typ){
     entries.forEach(e=>{ if(e.projekt === oldZiel){ e.projekt = newZiel; count++; } });
     collectibles.forEach(e=>{ if(e.projekt === oldZiel){ e.projekt = newZiel; count++; } });
   }
-  privateEntries.forEach(e=>{ if(e.projekt === oldZiel && (e.projektTyp||'shared') === typ){ e.projekt = newZiel; count++; } });
-  privateCollectibles.forEach(e=>{ if(e.projekt === oldZiel && (e.projektTyp||'shared') === typ){ e.projekt = newZiel; count++; } });
-  needs.forEach(n=>{ if(n.sourceProjekt === oldZiel && (n.sourceProjektTyp||'shared') === typ){ n.sourceProjekt = newZiel; count++; } });
+  const own = e => typ !== 'private' || ownsPrivateRef(e);
+  const ownNeed = n => typ !== 'private' || ownsPrivateNeedRef(n);
+  privateEntries.forEach(e=>{ if(e.projekt === oldZiel && (e.projektTyp||'shared') === typ && own(e)){ e.projekt = newZiel; count++; } });
+  privateCollectibles.forEach(e=>{ if(e.projekt === oldZiel && (e.projektTyp||'shared') === typ && own(e)){ e.projekt = newZiel; count++; } });
+  needs.forEach(n=>{ if(n.sourceProjekt === oldZiel && (n.sourceProjektTyp||'shared') === typ && ownNeed(n)){ n.sourceProjekt = newZiel; count++; } });
 
   if(count > 0){
     await Promise.all([save(), saveCollectibles(), savePrivateEntries(), savePrivateCollectibles(), saveNeeds()]);
@@ -14890,6 +15023,12 @@ btnBulkDeletePrivCollectibles.addEventListener('click', ()=>{
     }
     selectedPrivCollectibleIds.clear();
     renderPrivateCollectibles();
+    // Ab 11. Oktober 2026: Projektfortschritte und Zusagen neu berechnen
+    // (wie bereits bei der Einzel-Loeschung).
+    updatePrivateProjectAvailability();
+    renderPrivateProjects();
+    updateProjectAvailability();
+    renderProjects();
   });
 });
 
@@ -19856,12 +19995,440 @@ async function transferEntryToPrivate(id, amount){
   setStatus(match ? t('msg_stock_extended_private') : t('msg_transferred_to_private'));
 }
 
+// ============================================================
+// Private Daten zuruecksetzen (ab 11. Oktober 2026, Nutzerwunsch)
+// ------------------------------------------------------------
+// Hintergrund: Star Citizen ist im Alpha-Status, regelmaessige Wipes
+// machen Bestaende im Spiel ungueltig. Jede Person kann ihre EIGENEN
+// Daten in einem Schritt zuruecksetzen:
+//  - Datentypen: Materialien und/oder Sammelobjekte, jeweils mit
+//    Kategorie-Auswahl (abgewaehlte Kategorien bleiben erhalten),
+//  - optional zusaetzlich die eigenen Eintraege im GETEILTEN Bestand
+//    (Material: als Verantwortliche/r eingetragen, Sammelobjekt: als
+//    Besitzer/in eingetragen) -- standardmaessig AUS,
+//  - optional zusaetzlich die eigenen privaten Projekte.
+// Verknuepfungen: Projektfortschritte und "privat zugesagt" werden nicht
+// gespeichert, sondern live berechnet -- sie passen sich automatisch an.
+// Werden private Projekte mitentfernt, werden Zuordnungen VERBLEIBENDER
+// eigener Eintraege/Bedarfe zu diesen Projekten sauber geloest (sonst
+// "Geister-Zuordnung" auf ein nicht mehr existierendes Projekt).
+// Sicherheitsnetz: VOR dem Loeschen wird alles Entfernte (inkl. der
+// geloesten Zuordnungen) gesichert; schlaegt die Sicherung fehl, wird
+// NICHTS geloescht. Jeder Reset ist 7 Tage lang wiederherstellbar.
+// Alle Mitglieder teilen sich dieselben Speicherbloecke (privat nach
+// owner markiert) -- daher wird vor Reset und Wiederherstellung immer
+// der aktuelle Stand frisch geladen, damit gleichzeitige Aenderungen
+// anderer Mitglieder nicht ueberschrieben werden, und es werden
+// ausschliesslich eigene Eintraege entfernt.
+// ============================================================
+const PRIV_RESET_BACKUP_KEY = 'private-reset-backups';
+const PRIV_RESET_KEEP_DAYS = 7;
+let privResetBackups = null;          // null = noch nicht geladen
+let privResetBackupsLoadedFor = null; // Speicherschluessel des geladenen Stands
+let privResetBusy = false;
+let privResetBackupsLoadingFor = null;
+// Auswahl bleibt bei Neuaufbau der Ansicht erhalten. Kategorien werden als
+// "ausgeschlossen" gemerkt, damit neu hinzukommende Kategorien automatisch
+// mit ausgewaehlt sind.
+const privResetSel = { materials: false, collectibles: false, shared: false, projects: false, matExcluded: new Set(), collExcluded: new Set() };
+
+function privResetBackupKey(){
+  return orgKey(`${PRIV_RESET_BACKUP_KEY}__${currentUser ? currentUser.username : ''}`);
+}
+function privResetPrune(list){
+  const cutoff = Date.now() - PRIV_RESET_KEEP_DAYS*24*60*60*1000;
+  return (list||[]).filter(b=> new Date(b.createdAt).getTime() >= cutoff);
+}
+async function loadPrivResetBackups(){
+  const key = privResetBackupKey();
+  try{
+    const res = await window.storage.get(key, true);
+    const raw = res && res.value ? JSON.parse(res.value) : [];
+    privResetBackups = privResetPrune(raw);
+    // Abgelaufene Sicherungen tatsaechlich aus dem Speicher entfernen
+    if(privResetBackups.length !== raw.length) await window.storage.set(key, JSON.stringify(privResetBackups), true);
+  }catch(e){
+    privResetBackups = [];
+  }
+  privResetBackupsLoadedFor = key;
+}
+async function savePrivResetBackups(){
+  await window.storage.set(privResetBackupKey(), JSON.stringify(privResetPrune(privResetBackups)), true);
+}
+
+// Frisches Laden aller betroffenen Datenbestaende (siehe Kopfkommentar).
+async function privResetReloadAll(){
+  const reloadShared = async (k, setter)=>{
+    const res = await window.storage.get(orgKey(k), true);
+    setter(res && res.value ? JSON.parse(res.value) : []);
+  };
+  await Promise.all([
+    loadPrivateEntries(), loadPrivateCollectibles(), loadPrivateProjects(),
+    loadCollectibles(), loadProjects(),
+    reloadShared(STORAGE_KEY, v=>{ entries = v; }),
+    reloadShared(NEEDS_KEY, v=>{ needs = v; })
+  ]);
+}
+
+function privResetCanUseShared(){
+  return !!currentUser && currentUser.role !== 'viewer';
+}
+
+// Kategorien der eigenen Daten (fuer die Auswahl), inkl. Anzahl je Bereich.
+function privResetCategoryOverview(){
+  const me = currentUser.username;
+  const mat = {}, coll = {};
+  const bump = (map, cat, k)=>{ map[cat] = map[cat] || { priv: 0, shared: 0 }; map[cat][k]++; };
+  privateEntries.filter(e=>e.owner===me).forEach(e=>bump(mat, getMaterialCategory(e.material), 'priv'));
+  privateCollectibles.filter(c=>c.owner===me).forEach(c=>bump(coll, getCollectibleCategory(c.objekt), 'priv'));
+  if(privResetCanUseShared()){
+    entries.filter(e=>e.person===me && canManageEntry(e)).forEach(e=>bump(mat, getMaterialCategory(e.material), 'shared'));
+    collectibles.filter(c=>c.besitzer===me).forEach(c=>bump(coll, getCollectibleCategory(c.objekt), 'shared'));
+  }
+  const sortCats = map=>Object.keys(map).sort((a,b)=>a.localeCompare(b));
+  return { mat, coll, matCats: sortCats(mat), collCats: sortCats(coll), projectCount: privateProjects.filter(p=>p.owner===me).length };
+}
+
+// Berechnet, was ein Reset mit der gegebenen Auswahl bewirken wuerde --
+// genutzt fuer die Vorschau UND die tatsaechliche Ausfuehrung (dieselbe
+// Logik, damit Vorschau und Ergebnis garantiert uebereinstimmen).
+function computePrivateResetPlan(sel){
+  const me = currentUser.username;
+  const matOk = e=> sel.materials && !sel.matExcluded.has(getMaterialCategory(e.material));
+  const collOk = c=> sel.collectibles && !sel.collExcluded.has(getCollectibleCategory(c.objekt));
+  const plan = {
+    privateEntries: privateEntries.filter(e=>e.owner===me && matOk(e)),
+    privateCollectibles: privateCollectibles.filter(c=>c.owner===me && collOk(c)),
+    entries: (sel.shared && privResetCanUseShared()) ? entries.filter(e=>e.person===me && canManageEntry(e) && matOk(e)) : [],
+    collectibles: (sel.shared && privResetCanUseShared()) ? collectibles.filter(c=>c.besitzer===me && collOk(c)) : [],
+    privateProjects: sel.projects ? privateProjects.filter(p=>p.owner===me) : [],
+    released: []
+  };
+  // Zuordnungen VERBLEIBENDER eigener Eintraege/Bedarfe zu mitentfernten
+  // privaten Projekten -- werden geloest und fuer die Wiederherstellung
+  // gemerkt.
+  const goneZiele = new Set(plan.privateProjects.map(p=>p.ziel));
+  if(goneZiele.size){
+    const removedPE = new Set(plan.privateEntries.map(e=>e.id));
+    const removedPC = new Set(plan.privateCollectibles.map(c=>c.id));
+    privateEntries.forEach(e=>{ if(e.owner===me && !removedPE.has(e.id) && e.projektTyp==='private' && goneZiele.has(e.projekt)) plan.released.push({ list: 'privateEntries', id: e.id, projekt: e.projekt, projektTyp: 'private' }); });
+    privateCollectibles.forEach(c=>{ if(c.owner===me && !removedPC.has(c.id) && c.projektTyp==='private' && goneZiele.has(c.projekt)) plan.released.push({ list: 'privateCollectibles', id: c.id, projekt: c.projekt, projektTyp: 'private' }); });
+    needs.forEach(n=>{ if(n.user===me && n.sourceProjektTyp==='private' && goneZiele.has(n.sourceProjekt)) plan.released.push({ list: 'needs', id: n.id, projekt: n.sourceProjekt, projektTyp: 'private' }); });
+  }
+  const assignedPrivate = [...plan.privateEntries, ...plan.privateCollectibles];
+  plan.stats = {
+    removedTotal: plan.privateEntries.length + plan.privateCollectibles.length + plan.entries.length + plan.collectibles.length + plan.privateProjects.length,
+    inPrivateProjects: assignedPrivate.filter(x=>x.projekt && x.projektTyp==='private').length,
+    sharedCommitments: assignedPrivate.filter(x=>x.projekt && (x.projektTyp||'shared')==='shared').length,
+    sharedAssigned: [...plan.entries, ...plan.collectibles].filter(x=>x.projekt).length,
+    released: plan.released.length
+  };
+  return plan;
+}
+
+async function executePrivateReset(){
+  if(privResetBusy || !currentUser) return;
+  privResetBusy = true;
+  const statusEl = document.getElementById('privResetStatus');
+  setStatusMsg(statusEl, t('msg_saving'), false);
+  try{
+    await privResetReloadAll();
+    await loadPrivResetBackups();
+    const plan = computePrivateResetPlan(privResetSel);
+    if(plan.stats.removedTotal === 0 && plan.released.length === 0){
+      setStatusMsg(statusEl, t('priv_reset_preview_none'), true);
+      return;
+    }
+    // 1. Sicherung ZUERST -- ohne erfolgreiche Sicherung wird nichts geloescht.
+    const backup = {
+      id: 'rb' + Date.now() + Math.random().toString(36).slice(2,7),
+      createdAt: new Date().toISOString(),
+      user: currentUser.username,
+      privateEntries: plan.privateEntries, privateCollectibles: plan.privateCollectibles,
+      entries: plan.entries, collectibles: plan.collectibles,
+      privateProjects: plan.privateProjects, released: plan.released,
+      count: plan.stats.removedTotal
+    };
+    privResetBackups.unshift(backup);
+    try{
+      await savePrivResetBackups();
+    }catch(e){
+      privResetBackups.shift();
+      setStatusMsg(statusEl, t('msg_priv_reset_backup_failed'), true);
+      return;
+    }
+    // 2. Entfernen (nur die im Plan enthaltenen, also ausschliesslich eigene)
+    const ids = list=> new Set(list.map(x=>x.id));
+    const rmPE = ids(plan.privateEntries), rmPC = ids(plan.privateCollectibles), rmE = ids(plan.entries), rmC = ids(plan.collectibles), rmPP = ids(plan.privateProjects);
+    privateEntries = privateEntries.filter(e=>!rmPE.has(e.id));
+    privateCollectibles = privateCollectibles.filter(c=>!rmPC.has(c.id));
+    entries = entries.filter(e=>!rmE.has(e.id));
+    collectibles = collectibles.filter(c=>!rmC.has(c.id));
+    privateProjects = privateProjects.filter(p=>!rmPP.has(p.id));
+    // 3. Zuordnungen zu entfernten privaten Projekten loesen
+    plan.released.forEach(r=>{
+      if(r.list==='needs'){ const n = needs.find(x=>x.id===r.id); if(n){ n.sourceProjekt = null; n.sourceProjektTyp = null; } }
+      else { const arr = r.list==='privateEntries' ? privateEntries : privateCollectibles; const x = arr.find(y=>y.id===r.id); if(x){ x.projekt = ''; x.projektTyp = null; } }
+    });
+    // 4. Speichern (nur tatsaechlich betroffene Bloecke)
+    const writes = [];
+    if(rmPE.size || plan.released.some(r=>r.list==='privateEntries')) writes.push(window.storage.set(orgKey(PRIVATE_STORAGE_KEY), JSON.stringify(privateEntries), true));
+    if(rmPC.size || plan.released.some(r=>r.list==='privateCollectibles')) writes.push(window.storage.set(orgKey(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(privateCollectibles), true));
+    if(rmE.size) writes.push(window.storage.set(orgKey(STORAGE_KEY), JSON.stringify(entries), true));
+    if(rmC.size) writes.push(window.storage.set(orgKey(COLLECTIBLES_KEY), JSON.stringify(collectibles), true));
+    if(rmPP.size) writes.push(window.storage.set(orgKey(PRIVATE_PROJECTS_KEY), JSON.stringify(privateProjects), true));
+    if(plan.released.some(r=>r.list==='needs')) writes.push(window.storage.set(orgKey(NEEDS_KEY), JSON.stringify(needs), true));
+    await Promise.all(writes);
+
+    await logAction('Private Daten zurückgesetzt',
+      `${plan.privateEntries.length} private Materialeinträge, ${plan.privateCollectibles.length} private Sammelobjekte` +
+      (plan.entries.length || plan.collectibles.length ? `, ${plan.entries.length} eigene Einträge und ${plan.collectibles.length} eigene Sammelobjekte im geteilten Bestand` : '') +
+      (plan.privateProjects.length ? `, ${plan.privateProjects.length} private Projekte` : '') +
+      (plan.released.length ? ` — ${plan.released.length} Zuordnung(en) zu entfernten Projekten gelöst` : '') +
+      ` (${PRIV_RESET_KEEP_DAYS} Tage wiederherstellbar)`);
+
+    privResetSel.materials = false; privResetSel.collectibles = false; privResetSel.shared = false; privResetSel.projects = false;
+    // Daten sind ab hier gespeichert -- ein Fehler beim Neuaufbau einer
+    // Ansicht darf keine (falsche) Fehlermeldung zum Speichern ausloesen.
+    try{ privResetAfterChange(); }catch(e){ console.error(e); }
+    const until = new Date(new Date(backup.createdAt).getTime() + PRIV_RESET_KEEP_DAYS*24*60*60*1000);
+    setStatusMsg(statusEl, t('msg_priv_reset_done').replace('{n}', plan.stats.removedTotal).replace('{datum}', privResetFormatDate(until)), false);
+  }catch(e){
+    setStatusMsg(statusEl, t('msg_save_failed'), true);
+  }finally{
+    privResetBusy = false;
+  }
+}
+
+// Stellt einen gesicherten Reset wieder her. Eintraege, die inzwischen
+// wieder existieren (gleiche ID), werden nicht doppelt angelegt. Projekte
+// werden uebersprungen, wenn bereits ein gleichnamiges eigenes Projekt
+// existiert (Zuordnungen laufen ueber den Projektnamen). Projekt-
+// Zuordnungen wiederhergestellter Eintraege bleiben nur erhalten, wenn
+// das Zielprojekt existiert -- sonst wuerden "Geister-Zuordnungen"
+// entstehen.
+async function restorePrivateReset(backupId){
+  if(privResetBusy || !currentUser) return;
+  privResetBusy = true;
+  const statusEl = document.getElementById('privResetStatus');
+  setStatusMsg(statusEl, t('msg_saving'), false);
+  try{
+    await privResetReloadAll();
+    await loadPrivResetBackups();
+    const b = privResetBackups.find(x=>x.id===backupId);
+    if(!b){ setStatusMsg(statusEl, t('msg_priv_reset_restore_failed'), true); return; }
+    const me = currentUser.username;
+    let restored = 0, skippedProjects = 0;
+
+    // Projekte zuerst (Zuordnungen beziehen sich auf sie)
+    (b.privateProjects||[]).forEach(p=>{
+      if(privateProjects.some(x=>x.id===p.id)) return;
+      if(privateProjects.some(x=>x.owner===me && x.ziel===p.ziel)){ skippedProjects++; return; }
+      privateProjects.push(p); restored++;
+    });
+    const myPrivZiele = new Set(privateProjects.filter(p=>p.owner===me).map(p=>p.ziel));
+    const sharedZiele = new Set(projects.map(p=>p.ziel));
+    const fixPrivAssign = x=>{
+      if(!x.projekt) return x;
+      const typ = x.projektTyp || 'shared';
+      const ok = typ==='private' ? myPrivZiele.has(x.projekt) : sharedZiele.has(x.projekt);
+      if(!ok){ x.projekt = ''; x.projektTyp = null; }
+      return x;
+    };
+    const fixSharedAssign = x=>{ if(x.projekt && !sharedZiele.has(x.projekt)){ x.projekt = ''; if('projektTyp' in x) x.projektTyp = null; } return x; };
+    const addMissing = (arr, items, fix)=>{ (items||[]).forEach(it=>{ if(arr.some(x=>x.id===it.id)) return; arr.push(fix({ ...it })); restored++; }); };
+    addMissing(privateEntries, b.privateEntries, fixPrivAssign);
+    addMissing(privateCollectibles, b.privateCollectibles, fixPrivAssign);
+    addMissing(entries, b.entries, fixSharedAssign);
+    addMissing(collectibles, b.collectibles, fixSharedAssign);
+    // Geloeste Zuordnungen wiederherstellen -- nur, wenn der Eintrag noch
+    // existiert, inzwischen nicht anderweitig zugeordnet wurde und das
+    // Projekt (wieder) existiert.
+    (b.released||[]).forEach(r=>{
+      if(!myPrivZiele.has(r.projekt)) return;
+      if(r.list==='needs'){ const n = needs.find(x=>x.id===r.id); if(n && !n.sourceProjekt){ n.sourceProjekt = r.projekt; n.sourceProjektTyp = r.projektTyp; } return; }
+      const arr = r.list==='privateEntries' ? privateEntries : privateCollectibles;
+      const x = arr.find(y=>y.id===r.id);
+      if(x && !x.projekt){ x.projekt = r.projekt; x.projektTyp = r.projektTyp; }
+    });
+
+    await Promise.all([
+      window.storage.set(orgKey(PRIVATE_STORAGE_KEY), JSON.stringify(privateEntries), true),
+      window.storage.set(orgKey(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(privateCollectibles), true),
+      window.storage.set(orgKey(PRIVATE_PROJECTS_KEY), JSON.stringify(privateProjects), true),
+      window.storage.set(orgKey(STORAGE_KEY), JSON.stringify(entries), true),
+      window.storage.set(orgKey(COLLECTIBLES_KEY), JSON.stringify(collectibles), true),
+      window.storage.set(orgKey(NEEDS_KEY), JSON.stringify(needs), true)
+    ]);
+    privResetBackups = privResetBackups.filter(x=>x.id!==backupId);
+    await savePrivResetBackups();
+    await logAction('Zurückgesetzte private Daten wiederhergestellt', `${restored} Eintrag/Einträge (Reset vom ${privResetFormatDate(new Date(b.createdAt))})${skippedProjects ? ` — ${skippedProjects} Projekt(e) übersprungen (gleichnamiges Projekt vorhanden)` : ''}`);
+    try{ privResetAfterChange(); }catch(e){ console.error(e); }
+    let msg = t('msg_priv_reset_restored').replace('{n}', restored);
+    if(skippedProjects) msg += ' ' + t('msg_priv_reset_restored_skipped').replace('{n}', skippedProjects);
+    setStatusMsg(statusEl, msg, false);
+  }catch(e){
+    setStatusMsg(statusEl, t('msg_priv_reset_restore_failed'), true);
+  }finally{
+    privResetBusy = false;
+  }
+}
+
+function privResetFormatDate(d){
+  return d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Alle Ansichten neu aufbauen, die von den betroffenen Daten abhaengen.
+function privResetAfterChange(){
+  selectedPrivateEntryIds.clear(); selectedPrivCollectibleIds.clear(); selectedPrivProjectIds.clear();
+  selectedEntryIds.clear(); selectedCollectibleIds.clear();
+  editingPrivateId = null; editingPrivateCollectibleId = null; editingPrivateProjectId = null;
+  editingId = null; editingCollectibleId = null;
+  render();
+  renderCollectibles();
+  renderNeeds();
+  updateProjectAvailability();
+  renderProjects();
+  updatePrivateProjectAvailability();
+  renderPrivate();               // ruft u.a. renderPrivateProjects() und renderPrivResetSection() auf
+  renderPrivateCollectibles();
+  scheduleRenderDashboard();
+}
+
+// ---- Oberflaeche ----
+function renderPrivResetSection(){
+  const wrap = document.getElementById('privResetOptions');
+  if(!wrap || !currentUser) return;
+  const bKey = privResetBackupKey();
+  if(privResetBackupsLoadedFor !== bKey && privResetBackupsLoadingFor !== bKey){
+    privResetBackups = null;
+    privResetBackupsLoadingFor = bKey;
+    loadPrivResetBackups().then(()=>{ privResetBackupsLoadingFor = null; renderPrivResetSection(); });
+  }
+  const ov = privResetCategoryOverview();
+  const sharedOn = privResetSel.shared && privResetCanUseShared();
+  const countLabel = c=> sharedOn && c.shared ? t('label_priv_reset_count_both').replace('{priv}', c.priv).replace('{shared}', c.shared) : t('label_priv_reset_count').replace('{n}', c.priv);
+  const block = (kind, title, cats, map, enabled, excluded)=>{
+    let h = `<div style="margin-top:12px;">
+      <label style="display:flex;align-items:center;gap:8px;font-family:'Orbitron', sans-serif;font-size:11.5px;text-transform:uppercase;letter-spacing:1px;cursor:pointer;">
+        <input type="checkbox" class="privreset-type" data-kind="${kind}" ${enabled?'checked':''}> ${title}
+      </label>`;
+    if(cats.length===0){
+      h += `<div style="font-size:12px;color:var(--ink-soft);margin:6px 0 0 26px;">${t('label_priv_reset_keine_daten')}</div>`;
+    } else {
+      h += `<div style="font-size:11px;color:var(--ink-soft);margin:6px 0 4px 26px;">${t('label_priv_reset_kategorien_hint')}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px 18px;margin-left:26px;">`;
+      cats.forEach(cat=>{
+        const c = map[cat];
+        const visible = c.priv>0 || sharedOn;
+        if(!visible) return;
+        h += `<label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer;${enabled?'':'opacity:0.45;'}">
+          <input type="checkbox" class="privreset-cat" data-kind="${kind}" data-category="${escapeHtml(cat)}" ${!excluded.has(cat)?'checked':''} ${enabled?'':'disabled'}>
+          ${escapeHtml(cat)} <span style="color:var(--ink-soft);font-size:11px;">(${countLabel(c)})</span>
+        </label>`;
+      });
+      h += `</div>`;
+    }
+    return h + `</div>`;
+  };
+  let html = '';
+  html += block('mat', t('label_priv_reset_materialien'), ov.matCats, ov.mat, privResetSel.materials, privResetSel.matExcluded);
+  html += block('coll', t('label_priv_reset_sammelobjekte'), ov.collCats, ov.coll, privResetSel.collectibles, privResetSel.collExcluded);
+  html += `<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">`;
+  if(privResetCanUseShared()){
+    html += `<label style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;cursor:pointer;">
+      <input type="checkbox" id="privreset-shared" ${privResetSel.shared?'checked':''} style="margin-top:2px;"> <span>${t('label_priv_reset_shared')}</span></label>`;
+  }
+  html += `<label style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;cursor:pointer;">
+    <input type="checkbox" id="privreset-projects" ${privResetSel.projects?'checked':''} ${ov.projectCount?'':'disabled'} style="margin-top:2px;"> <span>${t('label_priv_reset_projects').replace('{n}', ov.projectCount)}</span></label>`;
+  html += `</div>`;
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('.privreset-type').forEach(cb=>cb.addEventListener('change', ()=>{
+    if(cb.dataset.kind==='mat') privResetSel.materials = cb.checked; else privResetSel.collectibles = cb.checked;
+    renderPrivResetSection();
+  }));
+  wrap.querySelectorAll('.privreset-cat').forEach(cb=>cb.addEventListener('change', ()=>{
+    const set = cb.dataset.kind==='mat' ? privResetSel.matExcluded : privResetSel.collExcluded;
+    if(cb.checked) set.delete(cb.dataset.category); else set.add(cb.dataset.category);
+    renderPrivResetPreview();
+  }));
+  const sharedCb = document.getElementById('privreset-shared');
+  if(sharedCb) sharedCb.addEventListener('change', ()=>{ privResetSel.shared = sharedCb.checked; renderPrivResetSection(); });
+  const projCb = document.getElementById('privreset-projects');
+  if(projCb) projCb.addEventListener('change', ()=>{ privResetSel.projects = projCb.checked; renderPrivResetPreview(); });
+
+  renderPrivResetPreview();
+  renderPrivResetBackups();
+}
+
+function renderPrivResetPreview(){
+  const el = document.getElementById('privResetPreview');
+  const btn = document.getElementById('btnPrivReset');
+  if(!el || !btn || !currentUser) return;
+  const plan = computePrivateResetPlan(privResetSel);
+  const s = plan.stats;
+  if(s.removedTotal === 0){
+    el.innerHTML = `<span style="color:var(--ink-soft);">${t('priv_reset_preview_none')}</span>`;
+    btn.disabled = true;
+    return;
+  }
+  btn.disabled = false;
+  const items = [];
+  if(plan.privateEntries.length) items.push(t('priv_reset_item_priv_entries').replace('{n}', plan.privateEntries.length));
+  if(plan.privateCollectibles.length) items.push(t('priv_reset_item_priv_colls').replace('{n}', plan.privateCollectibles.length));
+  if(plan.entries.length) items.push(t('priv_reset_item_shared_entries').replace('{n}', plan.entries.length));
+  if(plan.collectibles.length) items.push(t('priv_reset_item_shared_colls').replace('{n}', plan.collectibles.length));
+  if(plan.privateProjects.length) items.push(t('priv_reset_item_projects').replace('{n}', plan.privateProjects.length));
+  const rel = [];
+  if(s.inPrivateProjects) rel.push(t('priv_reset_rel_private_proj').replace('{n}', s.inPrivateProjects));
+  if(s.sharedCommitments) rel.push(t('priv_reset_rel_shared_commit').replace('{n}', s.sharedCommitments));
+  if(s.sharedAssigned) rel.push(t('priv_reset_rel_shared_assigned').replace('{n}', s.sharedAssigned));
+  if(s.released) rel.push(t('priv_reset_rel_released').replace('{n}', s.released));
+  el.innerHTML = `<div style="font-weight:600;margin-bottom:4px;">${t('priv_reset_preview_head')}</div>
+    <ul style="margin:0 0 0 18px;padding:0;">${items.map(i=>`<li>${i}</li>`).join('')}</ul>
+    ${rel.length ? `<div style="margin-top:8px;color:var(--ink-soft);">${rel.map(r=>`<div>↳ ${r}</div>`).join('')}</div>` : ''}`;
+}
+
+function renderPrivResetBackups(){
+  const el = document.getElementById('privResetBackups');
+  if(!el) return;
+  const list = privResetBackups || [];
+  if(!list.length){ el.innerHTML = ''; return; }
+  let html = `<div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin:18px 0 8px;">${t('label_priv_reset_backups')}</div>`;
+  list.forEach(b=>{
+    const created = new Date(b.createdAt);
+    const until = new Date(created.getTime() + PRIV_RESET_KEEP_DAYS*24*60*60*1000);
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:6px 0;border-top:1px dashed var(--panel-border);font-size:12.5px;">
+      <span>${t('label_priv_reset_backup_row').replace('{datum}', privResetFormatDate(created)).replace('{n}', b.count).replace('{bis}', privResetFormatDate(until))}</span>
+      <button class="btn-ghost btn-compact" data-action="privreset-restore" data-id="${b.id}">${t('btn_priv_reset_restore')}</button>
+    </div>`;
+  });
+  el.innerHTML = html;
+  el.querySelectorAll('[data-action="privreset-restore"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      armConfirm(btn, ()=>restorePrivateReset(btn.dataset.id), t('tooltip_priv_reset_restore_confirm'));
+    });
+  });
+}
+
+(function initPrivResetButton(){
+  const btn = document.getElementById('btnPrivReset');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    if(btn.disabled) return;
+    armConfirm(btn, ()=>executePrivateReset(), t('tooltip_priv_reset_confirm'));
+  });
+})();
+
+
 function renderPrivate(){
   if(!currentUser) return;
   updatePrivateFilterOptions();
   renderPrivateSummary();
   updateTabBadges();
   renderPrivateProjects();
+  renderPrivResetSection();
   const mine = myPrivateEntries();
   renderRecentChips('priv-material-recent-chips', 'priv-material', getRecentDistinctValues(mine, 'material', 1));
   renderRecentChips('priv-lagerort-recent-chips', 'priv-lagerort', getRecentDistinctValues(mine, 'lagerort', 1));
@@ -19973,6 +20540,13 @@ function renderPrivate(){
         await savePrivateEntries();
         if(e) await logAction('Privatbestand gelöscht', `${e.material}, ${e.menge} ${e.einheit} @ ${e.lagerort}`);
         renderPrivate();
+        // Ab 11. Oktober 2026: auch die Ansichten neu berechnen, die diesen
+        // Eintrag indirekt anzeigen -- "privat zugesagt" bei geteilten
+        // Projekten sowie die Verfuegbarkeit im Projekt-Formular. Bislang
+        // aktualisierten sich diese erst beim naechsten Neuaufbau.
+        updateProjectAvailability();
+        renderProjects();
+        updatePrivateProjectAvailability();
         setPrivateStatus(t('msg_entry_deleted'));
       });
     });
