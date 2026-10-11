@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.127 -->
+<!-- Version: 0.128 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2018,6 +2018,18 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="orgResetStatus"></div>
   </details>
 
+  <!-- ===== DATENKONSISTENZ (ab 11. Oktober 2026) ===== -->
+  <details class="panel admin-collapsible" data-default-open="false" id="consistencyPanel" style="display:none;">
+    <summary><h2 data-i18n="panel_consistency">Datenkonsistenz prüfen</h2></summary>
+    <div class="user-note" style="margin:0 0 12px 0;" data-i18n="hint_consistency">Sucht in der gerade geöffneten Organisation nach Altlasten früherer Fehler: Zuordnungen zu nicht mehr existierenden Projekten, private Daten nicht mehr vorhandener Personen und Einträge ohne Katalogbezug. „Prüfen“ ändert nichts — behoben wird erst nach ausdrücklicher Auswahl und Bestätigung.</div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <button class="btn-ghost" id="btnConsistencyCheck" data-i18n="btn_consistency_check">Prüfen</button>
+      <button class="btn-ghost danger" id="btnConsistencyRepair" style="display:none;" data-i18n="btn_consistency_repair">Ausgewählte Probleme beheben</button>
+      <div class="status-msg" id="consistencyStatus" style="margin:0;"></div>
+    </div>
+    <div id="consistencyReport" style="margin-top:10px;"></div>
+  </details>
+
   <details class="panel admin-collapsible" data-default-open="true" id="adminPanel" style="display:none;">
     <summary><h2 data-i18n="panel_benutzerverwaltung">Benutzerverwaltung</h2></summary>
     <div class="form-grid-flex">
@@ -2965,8 +2977,48 @@ function markStorageFailure(){
   }
 }
 
+// ============================================================
+// Schutz vor Datenverlust durch fehlgeschlagenes Laden (ab 11. Oktober 2026)
+// ------------------------------------------------------------
+// get() liefert bei einem Lesefehler (Netzwerk, Datenbank) dasselbe wie
+// bei "noch keine Daten vorhanden": null. Die Ladefunktionen machen
+// daraus eine LEERE Liste. Wurde danach etwas gespeichert (z.B. ein neuer
+// Bestandseintrag), ueberschrieb die App den kompletten Datenblock mit
+// "leere Liste + neuer Eintrag" -- der gesamte bisherige Inhalt (etwa der
+// geteilte Bestand der Organisation, das Protokoll oder die Bedarfe) waere
+// verloren gewesen. Zudem meldete set() Schreibfehler nie als Fehler, die
+// vorhandene Fehlerbehandlung der Speicherfunktionen griff dadurch nie.
+// Jetzt:
+//  - Ein Schluessel, dessen LESEN fehlgeschlagen ist, wird fuer das
+//    Schreiben gesperrt, bis er erfolgreich neu gelesen wurde. Ein
+//    gesperrter Schreibversuch wird als Fehler gemeldet und es erscheint
+//    ein deutlicher Hinweis, die Seite neu zu laden.
+//  - setOrThrow(): wie set(), loest bei Fehler aber eine Ausnahme aus --
+//    genutzt von allen Speicherfunktionen mit eigener Fehlerbehandlung.
+//  - getStrict(): wie get(), loest bei Lesefehler eine Ausnahme aus
+//    (statt null) -- fuer Vorgaenge, die auf einem vollstaendigen,
+//    frischen Stand aufbauen muessen (Reset, Wiederherstellung,
+//    Konsistenzpruefung, organisationsuebergreifende Benutzeraenderungen).
+// ============================================================
+const storageReadFailedKeys = new Set();
+function storageGuardKey(key, shared){ return (shared ? 'S|' : 'D|') + key; }
+function showStorageGuardBanner(){
+  let el = document.getElementById('storageGuardBanner');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'storageGuardBanner';
+    el.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:100000;max-width:min(680px,calc(100vw - 32px));padding:12px 16px;background:#2a0710;border:1px solid #FF3B5C;border-radius:4px;color:#FFD7DE;font-family:Rajdhani, sans-serif;font-weight:600;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,0.6);display:flex;gap:12px;align-items:center;';
+    document.body.appendChild(el);
+  }
+  const txt = (typeof t === 'function') ? t('msg_storage_guard') : 'Daten konnten nicht vollständig geladen werden. Speichern ist zum Schutz vor Datenverlust gesperrt — bitte Seite neu laden.';
+  const btnTxt = (typeof t === 'function') ? t('btn_seite_neu_laden') : 'Neu laden';
+  el.innerHTML = `<span>⚠ ${txt}</span><button type="button" class="btn-ghost btn-compact" style="flex-shrink:0;">${btnTxt}</button>`;
+  el.querySelector('button').addEventListener('click', ()=>location.reload());
+}
+
 window.storage = {
   async get(key, shared){
+    const gk = storageGuardKey(key, shared);
     try{
       const owner = shared ? SHARED_OWNER : getDeviceId();
       const res = await supabaseClient
@@ -2975,13 +3027,29 @@ window.storage = {
         .eq('key', key)
         .eq('owner_id', owner)
         .maybeSingle();
-      if(res.error){ markStorageFailure(); return null; }
+      if(res.error){ markStorageFailure(); storageReadFailedKeys.add(gk); return null; }
       markStorageSuccess();
+      storageReadFailedKeys.delete(gk);
       if(!res.data) return null;
       return { key, value: res.data.value, shared: !!shared };
-    }catch(e){ markStorageFailure(); return null; }
+    }catch(e){ markStorageFailure(); storageReadFailedKeys.add(gk); return null; }
+  },
+  async getStrict(key, shared){
+    const res = await window.storage.get(key, shared);
+    if(storageReadFailedKeys.has(storageGuardKey(key, shared))) throw new Error('storage read failed: ' + key);
+    return res;
+  },
+  async setOrThrow(key, value, shared){
+    const res = await window.storage.set(key, value, shared);
+    if(!res) throw new Error('storage write failed: ' + key);
+    return res;
   },
   async set(key, value, shared){
+    if(storageReadFailedKeys.has(storageGuardKey(key, shared))){
+      markStorageFailure();
+      showStorageGuardBanner();
+      return null;
+    }
     try{
       const owner = shared ? SHARED_OWNER : getDeviceId();
       const res = await supabaseClient
@@ -3382,6 +3450,29 @@ const I18N = {
   "label_import_bestaetigung": "Zur Bestätigung Namen der aktuell aktiven Organisation eingeben:",
   "tooltip_org_import_bestaetigen": "Wirklich unwiderruflich wiederherstellen (bestehende Daten werden ersetzt)? Erneut klicken zum Bestätigen.",
   "tooltip_org_reset_bestaetigen": "Wirklich unwiderruflich zurücksetzen? Erneut klicken zum Bestätigen.",
+  "msg_storage_guard": "Daten konnten nicht vollständig geladen werden. Speichern ist zum Schutz vor Datenverlust gesperrt — bitte die Seite neu laden.",
+  "btn_seite_neu_laden": "Neu laden",
+  "msg_load_incomplete_abort": "Daten konnten nicht vollständig geladen werden — abgebrochen, es wurde nichts geändert. Bitte erneut versuchen.",
+  "msg_priv_reset_partial_failed": "Speichern teilweise fehlgeschlagen. Die Sicherung wurde zuvor angelegt — über „Wiederherstellen“ lässt sich der vorherige Stand zurückholen.",
+  "msg_trash_restore_name_conflict": "Wiederherstellen nicht möglich: Es existiert bereits ein Projekt „{name}“.",
+  "msg_trash_restore_catalog_missing": "Wiederherstellen nicht möglich: Material, Sammelobjekt oder Lagerort wurde inzwischen aus dem Katalog gelöscht.",
+  "label_import_zuordnungen_bereinigt": "{n} Zuordnung(en) zu nicht vorhandenen Projekten gelöst",
+  "panel_consistency": "Datenkonsistenz prüfen",
+  "hint_consistency": "Sucht in der gerade geöffneten Organisation nach Altlasten früherer Fehler: Zuordnungen zu nicht mehr existierenden Projekten, private Daten nicht mehr vorhandener Personen und Einträge ohne Katalogbezug. „Prüfen“ ändert nichts — behoben wird erst nach ausdrücklicher Auswahl und Bestätigung.",
+  "btn_consistency_check": "Prüfen",
+  "btn_consistency_repair": "Ausgewählte Probleme beheben",
+  "msg_consistency_checking": "Prüfe …",
+  "msg_consistency_ok": "Keine Unstimmigkeiten gefunden.",
+  "msg_consistency_repaired": "Behoben: {refs} Zuordnung(en) gelöst, {orphans} verwaiste private Einträge und {catalog} Einträge ohne Katalogbezug entfernt.",
+  "label_consistency_refs": "Zuordnungen zu nicht mehr existierenden Projekten",
+  "hint_consistency_refs": "Werden gelöst — die Einträge selbst bleiben erhalten und gelten wieder als frei.",
+  "label_consistency_orphans": "Private Daten nicht mehr vorhandener Personen",
+  "label_consistency_orphans_detail": "{e} Materialeinträge, {c} Sammelobjekte, {p} Projekte",
+  "hint_consistency_orphans": "Für niemanden mehr erreichbar — werden entfernt (wie beim Löschen eines Benutzers).",
+  "label_consistency_catalog": "Einträge ohne Katalogbezug",
+  "label_consistency_catalog_detail": "{e} Materialeinträge, {c} Sammelobjekte, {n} Bedarfe",
+  "hint_consistency_catalog": "Material, Sammelobjekt oder Lagerort steht nicht (mehr) im Katalog. Bitte vorher prüfen — z. B. nach einem Import aus einer anderen Installation fehlt evtl. nur der Katalogeintrag. Werden entfernt.",
+  "tooltip_consistency_repair_confirm": "Wirklich beheben? Erneut klicken zum Bestätigen.",
   "panel_priv_reset": "Private Daten zurücksetzen",
   "hint_priv_reset": "Für einen Neuanfang, z. B. nach einem Wipe im Spiel: Entfernt die ausgewählten eigenen Einträge in einem Schritt. Projektfortschritte und Zusagen werden automatisch neu berechnet, Zuordnungen zu entfernten Projekten sauber gelöst. Jeder Reset lässt sich 7 Tage lang wiederherstellen.",
   "label_priv_reset_materialien": "Materialien",
@@ -4178,6 +4269,29 @@ const I18N = {
   "label_import_bestaetigung": "Type the name of the currently active organization to confirm:",
   "tooltip_org_import_bestaetigen": "Really restore irreversibly (existing data will be replaced)? Click again to confirm.",
   "tooltip_org_reset_bestaetigen": "Really reset irreversibly? Click again to confirm.",
+  "msg_storage_guard": "Data could not be loaded completely. Saving is blocked to prevent data loss — please reload the page.",
+  "btn_seite_neu_laden": "Reload",
+  "msg_load_incomplete_abort": "Data could not be loaded completely — aborted, nothing was changed. Please try again.",
+  "msg_priv_reset_partial_failed": "Saving partially failed. The backup was created beforehand — use \"Restore\" to bring back the previous state.",
+  "msg_trash_restore_name_conflict": "Cannot restore: a project \"{name}\" already exists.",
+  "msg_trash_restore_catalog_missing": "Cannot restore: the material, collectible or location has since been removed from the catalog.",
+  "label_import_zuordnungen_bereinigt": "{n} assignment(s) to non-existent projects released",
+  "panel_consistency": "Check data consistency",
+  "hint_consistency": "Searches the currently open organization for leftovers of earlier bugs: assignments to projects that no longer exist, private data of people who no longer exist, and entries without a catalog match. \"Check\" changes nothing — fixes are only applied after explicit selection and confirmation.",
+  "btn_consistency_check": "Check",
+  "btn_consistency_repair": "Fix selected issues",
+  "msg_consistency_checking": "Checking …",
+  "msg_consistency_ok": "No inconsistencies found.",
+  "msg_consistency_repaired": "Fixed: {refs} assignment(s) released, {orphans} orphaned private entries and {catalog} entries without catalog match removed.",
+  "label_consistency_refs": "Assignments to projects that no longer exist",
+  "hint_consistency_refs": "Will be released — the entries themselves are kept and count as free again.",
+  "label_consistency_orphans": "Private data of people who no longer exist",
+  "label_consistency_orphans_detail": "{e} material entries, {c} collectibles, {p} projects",
+  "hint_consistency_orphans": "No longer reachable by anyone — will be removed (as when deleting a user).",
+  "label_consistency_catalog": "Entries without catalog match",
+  "label_consistency_catalog_detail": "{e} material entries, {c} collectibles, {n} needs",
+  "hint_consistency_catalog": "The material, collectible or location is not (or no longer) in the catalog. Please check first — e.g. after an import from another installation, only the catalog entry may be missing. Will be removed.",
+  "tooltip_consistency_repair_confirm": "Really fix? Click again to confirm.",
   "panel_priv_reset": "Reset private data",
   "hint_priv_reset": "For a fresh start, e.g. after an in-game wipe: removes the selected entries of your own in one step. Project progress and commitments are recalculated automatically, assignments to removed projects are cleanly released. Every reset can be restored for 7 days.",
   "label_priv_reset_materialien": "Materials",
@@ -4974,6 +5088,29 @@ const I18N = {
   "label_import_bestaetigung": "Saisissez le nom de l'organisation actuellement active pour confirmer :",
   "tooltip_org_import_bestaetigen": "Vraiment restaurer de façon irréversible (les données existantes seront remplacées) ? Cliquez à nouveau pour confirmer.",
   "tooltip_org_reset_bestaetigen": "Vraiment réinitialiser de façon irréversible ? Cliquez à nouveau pour confirmer.",
+  "msg_storage_guard": "Les données n'ont pas pu être entièrement chargées. L'enregistrement est bloqué pour éviter toute perte de données — veuillez recharger la page.",
+  "btn_seite_neu_laden": "Recharger",
+  "msg_load_incomplete_abort": "Les données n'ont pas pu être entièrement chargées — annulé, rien n'a été modifié. Veuillez réessayer.",
+  "msg_priv_reset_partial_failed": "L'enregistrement a partiellement échoué. La sauvegarde a été créée au préalable — utilisez « Restaurer » pour revenir à l'état précédent.",
+  "msg_trash_restore_name_conflict": "Restauration impossible : un projet « {name} » existe déjà.",
+  "msg_trash_restore_catalog_missing": "Restauration impossible : le matériau, l'objet de collection ou le lieu a été supprimé du catalogue entre-temps.",
+  "label_import_zuordnungen_bereinigt": "{n} affectation(s) à des projets inexistants levée(s)",
+  "panel_consistency": "Vérifier la cohérence des données",
+  "hint_consistency": "Recherche dans l'organisation ouverte les résidus d'anciennes erreurs : affectations à des projets qui n'existent plus, données privées de personnes qui n'existent plus et entrées sans correspondance au catalogue. « Vérifier » ne modifie rien — la correction n'a lieu qu'après sélection et confirmation explicites.",
+  "btn_consistency_check": "Vérifier",
+  "btn_consistency_repair": "Corriger les problèmes sélectionnés",
+  "msg_consistency_checking": "Vérification …",
+  "msg_consistency_ok": "Aucune incohérence trouvée.",
+  "msg_consistency_repaired": "Corrigé : {refs} affectation(s) levée(s), {orphans} entrées privées orphelines et {catalog} entrées sans correspondance au catalogue supprimées.",
+  "label_consistency_refs": "Affectations à des projets qui n'existent plus",
+  "hint_consistency_refs": "Seront levées — les entrées elles-mêmes sont conservées et redeviennent libres.",
+  "label_consistency_orphans": "Données privées de personnes qui n'existent plus",
+  "label_consistency_orphans_detail": "{e} entrées de matériaux, {c} objets de collection, {p} projets",
+  "hint_consistency_orphans": "Plus accessibles à personne — seront supprimées (comme lors de la suppression d'un utilisateur).",
+  "label_consistency_catalog": "Entrées sans correspondance au catalogue",
+  "label_consistency_catalog_detail": "{e} entrées de matériaux, {c} objets de collection, {n} besoins",
+  "hint_consistency_catalog": "Le matériau, l'objet de collection ou le lieu n'est pas (ou plus) au catalogue. Vérifiez d'abord — p. ex. après un import depuis une autre installation, seule l'entrée du catalogue peut manquer. Seront supprimées.",
+  "tooltip_consistency_repair_confirm": "Vraiment corriger ? Cliquez à nouveau pour confirmer.",
   "panel_priv_reset": "Réinitialiser les données privées",
   "hint_priv_reset": "Pour repartir de zéro, p. ex. après un wipe du jeu : supprime en une seule étape les entrées personnelles sélectionnées. La progression des projets et les engagements sont recalculés automatiquement, les affectations à des projets supprimés sont proprement levées. Chaque réinitialisation peut être restaurée pendant 7 jours.",
   "label_priv_reset_materialien": "Matériaux",
@@ -5472,7 +5609,7 @@ async function loadLanguagePref(){
 async function saveLanguagePref(lang){
   currentLang = lang;
   try{
-    await window.storage.set('ui-language', lang, false);
+    await window.storage.setOrThrow('ui-language', lang, false);
   }catch(e){
     // Auswahl gilt zumindest für die laufende Sitzung weiter.
   }
@@ -5599,7 +5736,7 @@ async function loadOrganizations(){
   organizationsLoaded = true;
 }
 async function saveOrganizations(){
-  try{ await window.storage.set(ORGANIZATIONS_KEY, JSON.stringify(ORGANIZATIONS), true); return true; }
+  try{ await window.storage.setOrThrow(ORGANIZATIONS_KEY, JSON.stringify(ORGANIZATIONS), true); return true; }
   catch(e){ return false; }
 }
 
@@ -5644,7 +5781,7 @@ async function loadUsers(){
 
 async function saveUsers(){
   try{
-    await window.storage.set(USERS_KEY, JSON.stringify(USERS), true);
+    await window.storage.setOrThrow(USERS_KEY, JSON.stringify(USERS), true);
     return true;
   }catch(e){
     return false;
@@ -5697,7 +5834,7 @@ async function loadOrgDefaultPassword(organizationId){
 
 async function saveOrgDefaultPassword(newPassword){
   try{
-    await window.storage.set(orgKey(DEFAULT_PASSWORD_KEY), newPassword, true);
+    await window.storage.setOrThrow(orgKey(DEFAULT_PASSWORD_KEY), newPassword, true);
     currentOrgDefaultPassword = newPassword;
     return true;
   }catch(e){
@@ -5731,7 +5868,7 @@ async function loadOrgDiscordSettings(){
 
 async function saveOrgDiscordSettings(settings){
   try{
-    await window.storage.set(orgKey(DISCORD_SETTINGS_KEY), JSON.stringify(settings), true);
+    await window.storage.setOrThrow(orgKey(DISCORD_SETTINGS_KEY), JSON.stringify(settings), true);
     currentOrgDiscordSettings = settings;
     return true;
   }catch(e){
@@ -5806,7 +5943,7 @@ async function loadSpecificOrgDefaultPassword(organizationId){
 async function saveSpecificOrgDefaultPassword(organizationId, newPassword){
   try{
     const key = `${DEFAULT_PASSWORD_KEY}__org_${organizationId}`;
-    await window.storage.set(key, newPassword, true);
+    await window.storage.setOrThrow(key, newPassword, true);
     orgDefaultPasswordCache[organizationId] = newPassword;
     if(organizationId === currentOrgId){
       currentOrgDefaultPassword = newPassword;
@@ -5840,7 +5977,7 @@ async function loadSpecificOrgDiscordSettings(organizationId){
 async function saveSpecificOrgDiscordSettings(organizationId, settings){
   try{
     const key = `${DISCORD_SETTINGS_KEY}__org_${organizationId}`;
-    await window.storage.set(key, JSON.stringify(settings), true);
+    await window.storage.setOrThrow(key, JSON.stringify(settings), true);
     orgDiscordSettingsCache[organizationId] = settings;
     if(organizationId === currentOrgId){
       currentOrgDiscordSettings = settings;
@@ -5925,7 +6062,7 @@ async function verifyLoginPassword(username, enteredPassword){
 
 async function saveCredentials(){
   try{
-    await window.storage.set(CREDENTIALS_KEY, JSON.stringify(credentials), true);
+    await window.storage.setOrThrow(CREDENTIALS_KEY, JSON.stringify(credentials), true);
     return true;
   }catch(e){
     return false;
@@ -5959,7 +6096,7 @@ async function loadAdminPanelState(){
 
 async function saveAdminPanelState(){
   try{
-    await window.storage.set(ADMIN_PANEL_STATE_KEY, JSON.stringify(adminPanelState), true);
+    await window.storage.setOrThrow(ADMIN_PANEL_STATE_KEY, JSON.stringify(adminPanelState), true);
     return true;
   }catch(e){
     return false;
@@ -6374,36 +6511,51 @@ async function saveUserEdit(idx){
   }
 
   if(newUsername !== oldUsername){
+    // Ab 11. Oktober 2026: Daten der Organisation, ZU DER DIE PERSON
+    // GEHOERT (nicht zwingend die gerade geoeffnete), streng laden und
+    // umschreiben -- schlaegt das Laden fehl, wird abgebrochen, BEVOR
+    // irgendetwas geaendert wurde.
+    // KRITISCH: Private Bestaende/Sammelobjekte/Projekte werden strikt
+    // nach owner===Benutzername gefiltert (siehe myPrivateEntries() etc.).
+    // Ohne diese Aktualisierung wuerde die betroffene Person nach der
+    // Umbenennung ihre KOMPLETTE private Sammlung nicht mehr sehen.
+    // Zusaetzlich betroffen: eigene Bedarfe sowie die Person/Besitzer-
+    // Angabe bei geteilten Eintraegen -- und (ab 11. Oktober 2026) das
+    // Feld "person" privater Eintraege, das beim Uebertragen in den
+    // geteilten Bestand uebernommen wird. Historische Log-Eintraege und
+    // "abgeschlossen von"-Angaben werden bewusst NICHT umgeschrieben, da
+    // sie den damaligen Stand dokumentieren.
+    const targetOrgId = USERS[idx].organizationId || currentOrgId;
+    let renamedCount = 0;
+    try{
+      await applyOrgDataChange(targetOrgId, d=>{
+        const changed = new Set();
+        const bump = name=>{ renamedCount++; changed.add(name); };
+        d.privateEntries.forEach(e=>{ if(e.owner===oldUsername){ e.owner=newUsername; bump('privateEntries'); } if(e.person===oldUsername){ e.person=newUsername; changed.add('privateEntries'); } });
+        d.privateCollectibles.forEach(e=>{ if(e.owner===oldUsername){ e.owner=newUsername; bump('privateCollectibles'); } });
+        d.privateProjects.forEach(p=>{ if(p.owner===oldUsername){ p.owner=newUsername; bump('privateProjects'); } });
+        d.entries.forEach(e=>{ if(e.person===oldUsername){ e.person=newUsername; bump('entries'); } });
+        d.collectibles.forEach(e=>{ if(e.besitzer===oldUsername){ e.besitzer=newUsername; bump('collectibles'); } });
+        d.needs.forEach(n=>{ if(n.user===oldUsername){ n.user=newUsername; bump('needs'); } });
+        return changed;
+      });
+      await moveUserResetBackups(targetOrgId, oldUsername, newUsername);
+    }catch(e){
+      setStatusMsg(statusEl, t('msg_load_incomplete_abort'), true);
+      return;
+    }
+
     await ensureCredentialsLoaded();
     if(credentials[oldUsername] !== undefined){
       credentials[newUsername] = credentials[oldUsername];
       delete credentials[oldUsername];
       await saveCredentials();
     }
-
-    // KRITISCH: Private Bestaende/Sammelobjekte/Projekte werden strikt
-    // nach owner===Benutzername gefiltert (siehe myPrivateEntries() etc.).
-    // Ohne diese Aktualisierung wuerde die betroffene Person nach der
-    // Umbenennung ihre KOMPLETTE private Sammlung nicht mehr sehen --
-    // wirkt fuer sie wie Datenverlust, obwohl die Daten technisch noch
-    // vorhanden sind. Zusaetzlich betroffen: eigene Bedarfe (verlieren
-    // sonst "Erhoehen"-Button + Erinnerungs-Modal-Zugehoerigkeit) sowie
-    // die Anzeige bei geteilten Bestand-Eintraegen/Sammelobjekten
-    // (Person/Besitzer-Spalte). Historische Log-Eintraege werden bewusst
-    // NICHT nachtraeglich umgeschrieben, da sie den damaligen Stand
-    // dokumentieren sollen. Siehe Nutzerwunsch vom 6. August 2026.
-    let renamedCount = 0;
-    privateEntries.forEach(e=>{ if(e.owner===oldUsername){ e.owner=newUsername; renamedCount++; } });
-    privateCollectibles.forEach(e=>{ if(e.owner===oldUsername){ e.owner=newUsername; renamedCount++; } });
-    privateProjects.forEach(p=>{ if(p.owner===oldUsername){ p.owner=newUsername; renamedCount++; } });
-    entries.forEach(e=>{ if(e.person===oldUsername){ e.person=newUsername; renamedCount++; } });
-    collectibles.forEach(e=>{ if(e.besitzer===oldUsername){ e.besitzer=newUsername; renamedCount++; } });
-    needs.forEach(n=>{ if(n.user===oldUsername){ n.user=newUsername; renamedCount++; } });
-    if(renamedCount > 0){
-      await Promise.all([
-        savePrivateEntries(), savePrivateCollectibles(), savePrivateProjects(),
-        save(), saveCollectibles(), saveNeeds()
-      ]);
+    // Persoenlicher Auf-/Zuklapp-Zustand der Verwaltungs-Panels
+    if(adminPanelState && adminPanelState[oldUsername]){
+      adminPanelState[newUsername] = adminPanelState[oldUsername];
+      delete adminPanelState[oldUsername];
+      await saveAdminPanelState();
     }
   }
 
@@ -6489,24 +6641,41 @@ async function deleteUser(idx){
     return;
   }
 
-  const usage = countUserPrivateData(user.username);
-  USERS.splice(idx,1);
+  // Ab 11. Oktober 2026: private Daten in der Organisation der Person
+  // entfernen (nicht zwingend die gerade geoeffnete) -- streng geladen,
+  // bei Lesefehler Abbruch, BEVOR der Benutzer entfernt wird.
+  const targetOrgId = user.organizationId || currentOrgId;
+  const usage = { total: 0 };
   setStatusMsg(statusEl, t('msg_saving'), false);
+  try{
+    await applyOrgDataChange(targetOrgId, d=>{
+      const changed = new Set();
+      const before = d.privateEntries.length + d.privateCollectibles.length + d.privateProjects.length;
+      d.privateEntries = d.privateEntries.filter(e=>e.owner!==user.username);
+      d.privateCollectibles = d.privateCollectibles.filter(e=>e.owner!==user.username);
+      d.privateProjects = d.privateProjects.filter(p=>p.owner!==user.username);
+      usage.total = before - (d.privateEntries.length + d.privateCollectibles.length + d.privateProjects.length);
+      if(usage.total > 0){ changed.add('privateEntries'); changed.add('privateCollectibles'); changed.add('privateProjects'); }
+      // Bedarfe, die aus privaten Projekten der Person stammen, verlieren
+      // ihre (nun nicht mehr existierende) Projekt-Verknuepfung.
+      d.needs.forEach(n=>{ if(n.user===user.username && n.sourceProjektTyp==='private' && n.sourceProjekt){ n.sourceProjekt = null; n.sourceProjektTyp = null; changed.add('needs'); } });
+      return changed;
+    });
+  }catch(e){
+    setStatusMsg(statusEl, t('msg_load_incomplete_abort'), true);
+    return;
+  }
+  await deleteUserResetBackups(targetOrgId, user.username);
+  USERS.splice(idx,1);
   await ensureCredentialsLoaded();
   if(credentials[user.username] !== undefined){
     delete credentials[user.username];
     await saveCredentials();
   }
   await saveUsers();
-  // Verwaiste private Daten der geloeschten Person konsequent mitloeschen
-  // (nach vorheriger Warnung im Bestaetigungs-Tooltip, siehe Aufrufstelle)
-  // -- sonst blieben sie dauerhaft unerreichbar in der Datenbank liegen.
-  if(usage.total > 0){
-    privateEntries = privateEntries.filter(e=>e.owner!==user.username);
-    privateCollectibles = privateCollectibles.filter(e=>e.owner!==user.username);
-    privateProjects = privateProjects.filter(p=>p.owner!==user.username);
-    await Promise.all([savePrivateEntries(), savePrivateCollectibles(), savePrivateProjects()]);
-  }
+  // Verwaiste private Daten der geloeschten Person wurden bereits oben
+  // (vor dem Entfernen des Benutzers) in ihrer Organisation entfernt.
+  if(adminPanelState && adminPanelState[user.username]){ delete adminPanelState[user.username]; await saveAdminPanelState(); }
   await logAction('Benutzer gelöscht', `${user.username}${usage.total>0 ? ` (${usage.total} private(r) Eintrag/Einträge mitgelöscht)` : ''}`);
   setStatusMsg(statusEl, t('msg_user_deleted').replace('{name}', user.username), false);
   renderUserList();
@@ -7274,6 +7443,7 @@ function renderOrgResetGranularOptions(overview){
 }
 
 function renderOrgResetSection(){
+  renderConsistencySection();
   const panel = document.getElementById('orgResetPanel');
   const select = document.getElementById('orgResetSelect');
   if(!panel) return;
@@ -7355,9 +7525,11 @@ async function resetOrganizationContentFor(targetOrgId){
   // Organisation bezieht, sicherheitshalber frisch nachladen -- der
   // eigentliche Reset darf keinesfalls mit veralteten oder falsch
   // zugeordneten Daten arbeiten.
-  if(!orgResetOverviewCache || orgResetOverviewCache.targetOrgId !== targetOrgId){
-    orgResetOverviewCache = await loadOrgResetOverview(targetOrgId);
-  }
+  // Ab 11. Oktober 2026: IMMER unmittelbar vor dem Zuruecksetzen frisch
+  // laden -- die Uebersicht kann aelter sein (Panel wurde frueher
+  // geoeffnet), Aenderungen anderer Mitglieder seitdem wuerden sonst
+  // ueberschrieben.
+  orgResetOverviewCache = await loadOrgResetOverview(targetOrgId);
   const data = orgResetOverviewCache.data;
 
   // Ab 26. August 2026 (Nutzerwunsch): granularer Reset statt
@@ -7386,16 +7558,30 @@ async function resetOrganizationContentFor(targetOrgId){
   const newProjects = keepProjects ? data.projects : [];
   const newPrivateProjects = keepPrivateProjects ? data.privateProjects : [];
 
+  // Ab 11. Oktober 2026: Zuordnungen behaltener Eintraege/Bedarfe zu
+  // NICHT behaltenen Projekten loesen -- sonst blieben sie als
+  // "reserviert" fuer ein Projekt markiert, das es nicht mehr gibt.
+  const cleaned = cleanDanglingProjectRefs({
+    entries: newEntries, collectibles: newCollectibles, privateEntries: newPrivateEntries,
+    privateCollectibles: newPrivateCollectibles, needs: newNeeds, projects: newProjects, privateProjects: newPrivateProjects
+  });
+
   const key = base => `${base}__org_${targetOrgId}`;
-  await Promise.all([
-    window.storage.set(key(STORAGE_KEY), JSON.stringify(newEntries), true),
-    window.storage.set(key(NEEDS_KEY), JSON.stringify(newNeeds), true),
-    window.storage.set(key(PROJECTS_KEY), JSON.stringify(newProjects), true),
-    window.storage.set(key(COLLECTIBLES_KEY), JSON.stringify(newCollectibles), true),
-    window.storage.set(key(PRIVATE_STORAGE_KEY), JSON.stringify(newPrivateEntries), true),
-    window.storage.set(key(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(newPrivateCollectibles), true),
-    window.storage.set(key(PRIVATE_PROJECTS_KEY), JSON.stringify(newPrivateProjects), true)
-  ]);
+  try{
+    await Promise.all([
+      window.storage.setOrThrow(key(STORAGE_KEY), JSON.stringify(newEntries), true),
+      window.storage.setOrThrow(key(NEEDS_KEY), JSON.stringify(newNeeds), true),
+      window.storage.setOrThrow(key(PROJECTS_KEY), JSON.stringify(newProjects), true),
+      window.storage.setOrThrow(key(COLLECTIBLES_KEY), JSON.stringify(newCollectibles), true),
+      window.storage.setOrThrow(key(PRIVATE_STORAGE_KEY), JSON.stringify(newPrivateEntries), true),
+      window.storage.setOrThrow(key(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(newPrivateCollectibles), true),
+      window.storage.setOrThrow(key(PRIVATE_PROJECTS_KEY), JSON.stringify(newPrivateProjects), true)
+    ]);
+  }catch(e){
+    setStatusMsg(statusEl, t('msg_save_failed'), true);
+    orgResetOverviewCache = null;
+    return;
+  }
 
   const removed = {
     entries: data.entries.length - newEntries.length,
@@ -7406,7 +7592,7 @@ async function resetOrganizationContentFor(targetOrgId){
     projects: data.projects.length - newProjects.length,
     privateProjects: data.privateProjects.length - newPrivateProjects.length,
   };
-  await logAction('Organisations-Inhalte teilweise zurückgesetzt', `Organisation „${orgName}“ — entfernt: ${removed.entries} Bestandseinträge, ${removed.privateEntries} private Bestandseinträge, ${removed.needs} Bedarfe, ${removed.collectibles} Sammelobjekte, ${removed.privateCollectibles} private Sammelobjekte, ${removed.projects} Projekte, ${removed.privateProjects} private Projekte. Ausgewählte Kategorien blieben erhalten.`);
+  await logAction('Organisations-Inhalte teilweise zurückgesetzt', `Organisation „${orgName}“ — entfernt: ${removed.entries} Bestandseinträge, ${removed.privateEntries} private Bestandseinträge, ${removed.needs} Bedarfe, ${removed.collectibles} Sammelobjekte, ${removed.privateCollectibles} private Sammelobjekte, ${removed.projects} Projekte, ${removed.privateProjects} private Projekte. Ausgewählte Kategorien blieben erhalten.${cleaned.count ? ` ${cleaned.count} Zuordnung(en) zu entfernten Projekten gelöst.` : ''}`);
 
   if(targetOrgId === currentOrgId){
     entries = newEntries; needs = newNeeds; projects = newProjects; collectibles = newCollectibles;
@@ -8007,6 +8193,17 @@ async function performOrgImport(){
     privateProjects = data.privateProjects;
     await savePrivateProjects();
     importedParts.push(`${privateProjects.length} ${t('label_import_private_projekte')}`);
+  }
+  // Ab 11. Oktober 2026: Bei einem Teil-Import (z.B. Bestand ohne
+  // Projekte) koennen Zuordnungen auf nicht vorhandene Projekte entstehen
+  // -- diese werden direkt nach dem Import geloest.
+  {
+    const cleaned = cleanDanglingProjectRefs({ entries, collectibles, privateEntries, privateCollectibles, needs, projects, privateProjects });
+    if(cleaned.count){
+      const savers = { entries: save, collectibles: saveCollectibles, privateEntries: savePrivateEntries, privateCollectibles: savePrivateCollectibles, needs: saveNeeds };
+      await Promise.all([...cleaned.changed].map(n=>savers[n]()));
+      importedParts.push(t('label_import_zuordnungen_bereinigt').replace('{n}', cleaned.count));
+    }
   }
   if(Array.isArray(data.activityLog) && selected('activityLog')){
     await window.storage.set(orgKey(LOG_KEY), JSON.stringify(data.activityLog), true);
@@ -9280,7 +9477,7 @@ async function loadCollectibles(){
 }
 async function saveCollectibles(){
   try{
-    await window.storage.set(orgKey(COLLECTIBLES_KEY), JSON.stringify(collectibles), true);
+    await window.storage.setOrThrow(orgKey(COLLECTIBLES_KEY), JSON.stringify(collectibles), true);
     return true;
   }catch(e){
     return false;
@@ -9651,7 +9848,7 @@ async function loadPrivateCollectibles(){
 }
 async function savePrivateCollectibles(){
   try{
-    await window.storage.set(orgKey(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(privateCollectibles), true);
+    await window.storage.setOrThrow(orgKey(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(privateCollectibles), true);
     return true;
   }catch(e){
     return false;
@@ -9773,8 +9970,13 @@ async function transferPrivateCollectible(id){
   // uebernommen, statt komplett zu entfallen. Behoben, nachdem genau
   // dieser Bug gemeldet wurde ("Sammelobjekt verliert die Projekt-
   // Zuordnung beim Uebertragen") -- Nutzerwunsch vom 12. August 2026.
+  // Ab 11. Oktober 2026: zusaetzlich gleicher Besitzer und gleicher
+  // Standort -- bislang wurde mit einem beliebigen gleichen Sammelobjekt
+  // zusammengefuehrt, auch mit dem einer anderen Person oder an einem
+  // anderen Standort (die uebertragene Anzahl "wanderte" dorthin).
   const match = collectibles.find(pub =>
-    pub.objekt === c.objekt && (pub.tier||'') === (c.tier||'') && (pub.projekt||'') === effektivesProjekt
+    pub.objekt === c.objekt && (pub.tier||'') === (c.tier||'') && (pub.projekt||'') === effektivesProjekt &&
+    pub.besitzer === currentUser.username && (pub.standort||'') === (c.standort||'')
   );
 
   let logDetail;
@@ -10088,7 +10290,7 @@ async function loadLocations(){
 }
 async function saveLocations(){
   try{
-    await window.storage.set(LOCATIONS_KEY, JSON.stringify(LOCATIONS), true);
+    await window.storage.setOrThrow(LOCATIONS_KEY, JSON.stringify(LOCATIONS), true);
     return true;
   }catch(e){
     return false;
@@ -10119,7 +10321,7 @@ async function loadMaterials(){
 }
 async function saveMaterials(){
   try{
-    await window.storage.set(MATERIALS_KEY, JSON.stringify(MATERIALS), true);
+    await window.storage.setOrThrow(MATERIALS_KEY, JSON.stringify(MATERIALS), true);
     return true;
   }catch(e){
     return false;
@@ -10151,7 +10353,7 @@ async function loadCollectiblesCatalog(){
 }
 async function saveCollectiblesCatalog(){
   try{
-    await window.storage.set(COLLECTIBLES_CATALOG_KEY, JSON.stringify(COLLECTIBLES), true);
+    await window.storage.setOrThrow(COLLECTIBLES_CATALOG_KEY, JSON.stringify(COLLECTIBLES), true);
     return true;
   }catch(e){
     return false;
@@ -10331,30 +10533,59 @@ async function addMaterial(){
 function countMaterialUsage(materialName){
   const entriesCount = entries.filter(e=>e.material===materialName).length;
   const privateEntriesCount = privateEntries.filter(e=>e.material===materialName).length;
-  return { total: entriesCount + privateEntriesCount, entriesCount, privateEntriesCount };
+  const needsCount = needs.filter(n=>n.material===materialName).length;
+  return { total: entriesCount + privateEntriesCount + needsCount, entriesCount, privateEntriesCount, needsCount };
+}
+
+
+// Ab 11. Oktober 2026: Kataloge (Material, Sammelobjekt, Lagerort) gelten
+// fuer ALLE Organisationen -- zugehoerige Eintraege werden daher in allen
+// Organisationen mitentfernt (bislang nur in der gerade geoeffneten), und
+// zusaetzlich verwaiste Bedarfe fuer ein geloeschtes Material/Sammelobjekt.
+// Abbruch VOR dem Loeschen des Katalogeintrags, falls die Daten einer
+// Organisation nicht vollstaendig geladen werden koennen.
+async function removeCatalogUsageAllOrgs(predicates){
+  return applyAllOrgsDataChange(d=>{
+    const changed = new Set(); let count = 0;
+    Object.entries(predicates).forEach(([name, pred])=>{
+      const before = d[name].length;
+      d[name] = d[name].filter(x=>!pred(x));
+      const diff = before - d[name].length;
+      if(diff){ changed.add(name); count += diff; }
+    });
+    return { changed, count };
+  });
 }
 
 async function deleteMaterial(idx){
   if(currentUser.role !== 'owner') return;
   const item = MATERIALS[idx];
   if(!item) return;
-  const usage = countMaterialUsage(item.name);
-  MATERIALS.splice(idx,1);
-  await saveMaterials();
   // Nach Bestaetigung durch den Nutzer (siehe Bestaetigungs-Text vor dem
   // Aufruf dieser Funktion) werden verwaiste Eintraege konsequent
   // MIT geloescht, statt als nicht mehr auswaehlbare Karteileichen
-  // liegen zu bleiben.
-  if(usage.total > 0){
-    entries = entries.filter(e=>e.material!==item.name);
-    privateEntries = privateEntries.filter(e=>e.material!==item.name);
-    await Promise.all([save(), savePrivateEntries()]);
+  // liegen zu bleiben -- in allen Organisationen, inkl. Bedarfen.
+  const usage = { total: 0 };
+  try{
+    usage.total = await removeCatalogUsageAllOrgs({
+      entries: e=>e.material===item.name,
+      privateEntries: e=>e.material===item.name,
+      needs: n=>n.material===item.name
+    });
+  }catch(e){
+    setStatusMsg(document.getElementById('matFormStatus'), t('msg_load_incomplete_abort'), true);
+    return;
   }
+  MATERIALS.splice(idx,1);
+  await saveMaterials();
   if(item) await logAction('Material gelöscht', `${item.name} (${item.category})${usage.total>0 ? `, ${usage.total} verwaiste(r) Bestand-Eintrag/Einträge mitgelöscht` : ''}`);
   renderCatalogLists();
   await refreshCatalogDropdowns();
   render();
   renderPrivate();
+  renderNeeds();
+  updateProjectAvailability();
+  renderProjects();
 }
 
 // Analog zu countMaterialUsage() weiter oben -- Sammelobjekte nutzen
@@ -10363,28 +10594,39 @@ async function deleteMaterial(idx){
 function countCollectibleCatalogUsage(name){
   const collCount = collectibles.filter(c=>c.objekt===name).length;
   const privCollCount = privateCollectibles.filter(c=>c.objekt===name).length;
-  return { total: collCount + privCollCount, collCount, privCollCount };
+  const needsCount = needs.filter(n=>n.material===name).length;
+  return { total: collCount + privCollCount + needsCount, collCount, privCollCount, needsCount };
 }
 
 async function deleteCollectibleCatalogEntry(idx){
   if(currentUser.role !== 'owner') return;
   const item = COLLECTIBLES[idx];
   if(!item) return;
-  const usage = countCollectibleCatalogUsage(item.name);
+  // Siehe Kommentar bei deleteMaterial() weiter oben -- dasselbe
+  // Prinzip: nach Bestaetigung werden verwaiste Bestands-Eintraege (und
+  // Bedarfe) in allen Organisationen konsequent mitgeloescht.
+  const usage = { total: 0 };
+  try{
+    usage.total = await removeCatalogUsageAllOrgs({
+      collectibles: c=>c.objekt===item.name,
+      privateCollectibles: c=>c.objekt===item.name,
+      needs: n=>n.material===item.name
+    });
+  }catch(e){
+    setStatusMsg(document.getElementById('collCatalogFormStatus'), t('msg_load_incomplete_abort'), true);
+    return;
+  }
   COLLECTIBLES.splice(idx,1);
   await saveCollectiblesCatalog();
-  // Siehe Kommentar bei deleteMaterial() weiter oben -- dasselbe
-  // Prinzip: nach Bestaetigung werden verwaiste Bestands-Eintraege
-  // konsequent mitgeloescht, statt als Karteileichen liegen zu bleiben.
-  if(usage.total > 0){
-    collectibles = collectibles.filter(c=>c.objekt!==item.name);
-    privateCollectibles = privateCollectibles.filter(c=>c.objekt!==item.name);
-    await Promise.all([saveCollectibles(), savePrivateCollectibles()]);
-  }
   await logAction('Sammelobjekt-Katalogeintrag gelöscht', `${item.name} (${item.category})${usage.total>0 ? `, ${usage.total} verwaiste(r) Bestand-Eintrag/Einträge mitgelöscht` : ''}`);
   renderCatalogLists();
   renderCollectibles();
   renderPrivateCollectibles();
+  renderNeeds();
+  updateProjectAvailability();
+  renderProjects();
+  updatePrivateProjectAvailability();
+  renderPrivateProjects();
 }
 
 async function addCollectibleCatalogEntry(){
@@ -10499,17 +10741,23 @@ async function deleteLocation(idx){
   if(currentUser.role !== 'owner') return;
   const item = LOCATIONS[idx];
   if(!item) return;
-  const usage = countLocationUsage(item);
   const label = locLabel(item);
+  // Ab 11. Oktober 2026: in allen Organisationen (Lagerort-Katalog ist
+  // organisationsuebergreifend), Abbruch vor dem Loeschen bei Lesefehler.
+  const usage = { total: 0 };
+  try{
+    usage.total = await removeCatalogUsageAllOrgs({
+      entries: e=>e.lagerort===label,
+      privateEntries: e=>e.lagerort===label,
+      collectibles: c=>c.standort===label,
+      privateCollectibles: c=>c.standort===label
+    });
+  }catch(e){
+    setStatusMsg(document.getElementById('locFormStatus'), t('msg_load_incomplete_abort'), true);
+    return;
+  }
   LOCATIONS.splice(idx,1);
   await saveLocations();
-  if(usage.total > 0){
-    entries = entries.filter(e=>e.lagerort!==label);
-    privateEntries = privateEntries.filter(e=>e.lagerort!==label);
-    collectibles = collectibles.filter(c=>c.standort!==label);
-    privateCollectibles = privateCollectibles.filter(c=>c.standort!==label);
-    await Promise.all([save(), savePrivateEntries(), saveCollectibles(), savePrivateCollectibles()]);
-  }
   if(item) await logAction('Lagerort gelöscht', `${item.code} – ${item.name} (${item.system})${usage.total>0 ? `, ${usage.total} verwaiste(r) Eintrag/Einträge mitgelöscht` : ''}`);
   renderCatalogLists();
   await refreshCatalogDropdowns();
@@ -10517,6 +10765,9 @@ async function deleteLocation(idx){
   renderPrivate();
   renderCollectibles();
   renderPrivateCollectibles();
+  updateProjectAvailability();
+  renderProjects();
+  updatePrivateProjectAvailability();
 }
 
 // ============================================================
@@ -10537,7 +10788,7 @@ async function loadProjects(){
 }
 async function saveProjects(){
   try{
-    await window.storage.set(orgKey(PROJECTS_KEY), JSON.stringify(projects), true);
+    await window.storage.setOrThrow(orgKey(PROJECTS_KEY), JSON.stringify(projects), true);
     return true;
   }catch(e){
     return false;
@@ -11193,20 +11444,25 @@ function countProjectReferences(ziel, typ){
 // zugeordnet" -- verhindert die zuvor moegliche "Geister-Reservierung"
 // fuer ein bereits gelöschtes Projekt.
 async function releaseProjectReferences(ziel, typ){
-  let changed = false;
+  // Ab 11. Oktober 2026: liefert die geloesten Zuordnungen zurueck
+  // ({list, id, projekt, projektTyp}) -- beim Loeschen eines geteilten
+  // Projekts werden sie im Papierkorb mitgespeichert, damit eine
+  // Wiederherstellung das Projekt MIT seinen Zuordnungen zurueckbringt.
+  const released = [];
   if(typ === 'shared'){
-    entries.forEach(e=>{ if(e.projekt === ziel){ e.projekt = ''; changed = true; } });
-    collectibles.forEach(e=>{ if(e.projekt === ziel){ e.projekt = ''; e.projektTyp = null; changed = true; } });
+    entries.forEach(e=>{ if(e.projekt === ziel){ released.push({ list:'entries', id:e.id, projekt:ziel, projektTyp:null }); e.projekt = ''; } });
+    collectibles.forEach(e=>{ if(e.projekt === ziel){ released.push({ list:'collectibles', id:e.id, projekt:ziel, projektTyp:e.projektTyp||null }); e.projekt = ''; e.projektTyp = null; } });
   }
   const own = e => typ !== 'private' || ownsPrivateRef(e);
   const ownNeed = n => typ !== 'private' || ownsPrivateNeedRef(n);
-  privateEntries.forEach(e=>{ if(e.projekt === ziel && (e.projektTyp||'shared') === typ && own(e)){ e.projekt = ''; e.projektTyp = null; changed = true; } });
-  privateCollectibles.forEach(e=>{ if(e.projekt === ziel && (e.projektTyp||'shared') === typ && own(e)){ e.projekt = ''; e.projektTyp = null; changed = true; } });
-  needs.forEach(n=>{ if(n.sourceProjekt === ziel && (n.sourceProjektTyp||'shared') === typ && ownNeed(n)){ n.sourceProjekt = null; n.sourceProjektTyp = null; changed = true; } });
+  privateEntries.forEach(e=>{ if(e.projekt === ziel && (e.projektTyp||'shared') === typ && own(e)){ released.push({ list:'privateEntries', id:e.id, projekt:ziel, projektTyp:typ }); e.projekt = ''; e.projektTyp = null; } });
+  privateCollectibles.forEach(e=>{ if(e.projekt === ziel && (e.projektTyp||'shared') === typ && own(e)){ released.push({ list:'privateCollectibles', id:e.id, projekt:ziel, projektTyp:typ }); e.projekt = ''; e.projektTyp = null; } });
+  needs.forEach(n=>{ if(n.sourceProjekt === ziel && (n.sourceProjektTyp||'shared') === typ && ownNeed(n)){ released.push({ list:'needs', id:n.id, projekt:ziel, projektTyp:typ }); n.sourceProjekt = null; n.sourceProjektTyp = null; } });
 
-  if(changed){
+  if(released.length){
     await Promise.all([save(), saveCollectibles(), savePrivateEntries(), savePrivateCollectibles(), saveNeeds()]);
   }
+  return released;
 }
 
 // Aktualisiert die Projekt-Zuordnung (.projekt bzw. sourceProjekt) bei
@@ -11469,8 +11725,12 @@ function releaseProjectSurplus(project, typ){
 
     // -- Materialien --
     const matList = isPrivate ? privateEntries : entries;
+    // Ab 11. Oktober 2026: bei privaten Projekten ausschliesslich die
+    // Eintraege der Projekt-Besitzerin/des Projekt-Besitzers -- ein
+    // gleichnamiges privates Projekt eines anderen Mitglieds darf nicht
+    // mit freigegeben/aufgeteilt werden.
     const matching = matList.filter(e => e.material===r.material && (isPrivate
-      ? (e.projekt===project.ziel && (e.projektTyp||'shared')==='private')
+      ? (e.projekt===project.ziel && (e.projektTyp||'shared')==='private' && e.owner===project.owner)
       : ((e.projekt||'')===project.ziel)
     ));
     matching.forEach(e=>{
@@ -11506,7 +11766,7 @@ function releaseProjectSurplus(project, typ){
     // -- Sammelobjekte -- (analog, anzahl statt menge)
     const collList = isPrivate ? privateCollectibles : collectibles;
     const matchingColl = collList.filter(c => c.objekt===r.material && (isPrivate
-      ? (c.projekt===project.ziel && (c.projektTyp||'shared')==='private')
+      ? (c.projekt===project.ziel && (c.projektTyp||'shared')==='private' && c.owner===project.owner)
       : ((c.projekt||'')===project.ziel)
     ));
     matchingColl.forEach(c=>{
@@ -11820,7 +12080,7 @@ async function loadProjectTemplates(){
 }
 async function saveProjectTemplates(){
   try{
-    await window.storage.set(PROJECT_TEMPLATES_KEY, JSON.stringify({
+    await window.storage.setOrThrow(PROJECT_TEMPLATES_KEY, JSON.stringify({
       templates: projectTemplates,
       importedAt: projectTemplatesImportedAt,
       versionLabel: projectTemplatesVersionLabel
@@ -11842,14 +12102,15 @@ async function backupProjectTemplatesBeforeImport(){
   try{
     const current = await window.storage.get(PROJECT_TEMPLATES_KEY, true);
     if(current && current.value){
-      await window.storage.set(PROJECT_TEMPLATES_BACKUP_KEY, current.value, true);
+      await window.storage.setOrThrow(PROJECT_TEMPLATES_BACKUP_KEY, current.value, true);
     }
   }catch(e){ /* Backup ist ein Sicherheitsnetz -- ein Fehlschlag hier soll den eigentlichen Import nicht blockieren */ }
 }
 async function restoreProjectTemplatesBackup(){
   const backup = await window.storage.get(PROJECT_TEMPLATES_BACKUP_KEY, true);
   if(!backup || !backup.value) return false;
-  await window.storage.set(PROJECT_TEMPLATES_KEY, backup.value, true);
+  const ok = await window.storage.set(PROJECT_TEMPLATES_KEY, backup.value, true);
+  if(!ok) return false;
   await loadProjectTemplates();
   return true;
 }
@@ -12846,7 +13107,7 @@ async function loadWikeloTemplates(){
 }
 async function saveWikeloTemplates(){
   try{
-    await window.storage.set(WIKELO_TEMPLATES_KEY, JSON.stringify({
+    await window.storage.setOrThrow(WIKELO_TEMPLATES_KEY, JSON.stringify({
       templates: wikeloTemplates,
       importedAt: wikeloTemplatesImportedAt,
       versionLabel: wikeloTemplatesVersionLabel
@@ -12862,14 +13123,15 @@ async function backupWikeloTemplatesBeforeImport(){
   try{
     const current = await window.storage.get(WIKELO_TEMPLATES_KEY, true);
     if(current && current.value){
-      await window.storage.set(WIKELO_TEMPLATES_BACKUP_KEY, current.value, true);
+      await window.storage.setOrThrow(WIKELO_TEMPLATES_BACKUP_KEY, current.value, true);
     }
   }catch(e){ /* siehe Kommentar bei backupProjectTemplatesBeforeImport() */ }
 }
 async function restoreWikeloTemplatesBackup(){
   const backup = await window.storage.get(WIKELO_TEMPLATES_BACKUP_KEY, true);
   if(!backup || !backup.value) return false;
-  await window.storage.set(WIKELO_TEMPLATES_KEY, backup.value, true);
+  const ok = await window.storage.set(WIKELO_TEMPLATES_KEY, backup.value, true);
+  if(!ok) return false;
   await loadWikeloTemplates();
   return true;
 }
@@ -13976,8 +14238,8 @@ function renderProjects(){
         projects = projects.filter(pr=>pr.id !== btn.dataset.id);
         await saveProjects();
         if(p){
-          await releaseProjectReferences(p.ziel, 'shared');
-          await moveToTrash(p, 'project');
+          const releasedRefs = await releaseProjectReferences(p.ziel, 'shared');
+          await moveToTrash(p, 'project', { releasedRefs });
           await logAction('Projekt gelöscht', `${p.ziel}${refs.total>0 ? ` (Zuordnung bei ${refs.total} Eintrag(en) aufgehoben)` : ''}`);
         }
         renderProjects();
@@ -14091,7 +14353,7 @@ async function loadPrivateProjects(){
 }
 async function savePrivateProjects(){
   try{
-    await window.storage.set(orgKey(PRIVATE_PROJECTS_KEY), JSON.stringify(privateProjects), true);
+    await window.storage.setOrThrow(orgKey(PRIVATE_PROJECTS_KEY), JSON.stringify(privateProjects), true);
     return true;
   }catch(e){
     return false;
@@ -14388,7 +14650,9 @@ function renderPrivateProjects(){
       // aktualisieren statt einen zweiten anzulegen. sourceProjektTyp
       // 'private' verhindert eine Verwechslung mit einem GETEILTEN
       // Projekt zufaellig gleichen Namens.
-      const existing = needs.find(n=>n.material===material && n.sourceProjekt===ziel && n.sourceProjektTyp==='private');
+      // Ab 11. Oktober 2026: nur eigene Bedarfe (gleichnamige private
+      // Projekte anderer Mitglieder duerfen nicht ueberschrieben werden).
+      const existing = needs.find(n=>n.material===material && n.sourceProjekt===ziel && n.sourceProjektTyp==='private' && n.user===currentUser.username);
       if(existing){
         const oldMenge = existing.menge;
         existing.menge = menge;
@@ -14427,7 +14691,7 @@ function renderPrivateProjects(){
         const avail = privateStockAmount(r.material, p.ziel, undefined, 'private');
         const fehlend = (effMenge!=null && effMenge>avail) ? Math.round((effMenge-avail)*100)/100 : 0;
         if(fehlend > 0){
-          const existing = needs.find(n=>n.material===r.material && n.sourceProjekt===p.ziel && n.sourceProjektTyp==='private');
+          const existing = needs.find(n=>n.material===r.material && n.sourceProjekt===p.ziel && n.sourceProjektTyp==='private' && n.user===currentUser.username);
           if(existing){
             existing.menge = fehlend;
             updatedCount++;
@@ -14592,7 +14856,7 @@ function gaugeColor(q){
 
 async function saveNeeds(){
   try{
-    await window.storage.set(orgKey(NEEDS_KEY), JSON.stringify(needs), true);
+    await window.storage.setOrThrow(orgKey(NEEDS_KEY), JSON.stringify(needs), true);
     return true;
   }catch(e){
     return false;
@@ -14927,8 +15191,8 @@ btnBulkDeleteProjects.addEventListener('click', ()=>{
     await saveProjects();
     for(const p of toDelete){
       const refs = countProjectReferences(p.ziel, 'shared');
-      await releaseProjectReferences(p.ziel, 'shared');
-      await moveToTrash(p, 'project');
+      const releasedRefs = await releaseProjectReferences(p.ziel, 'shared');
+      await moveToTrash(p, 'project', { releasedRefs });
       await logAction('Projekt gelöscht', `${p.ziel} (Sammel-Löschung)${refs.total>0 ? `, Zuordnung bei ${refs.total} Eintrag(en) aufgehoben` : ''}`);
     }
     selectedProjectIds.clear();
@@ -15571,9 +15835,11 @@ function renderLineChart(containerId, points){
 
 async function save(){
   try{
-    await window.storage.set(orgKey(STORAGE_KEY), JSON.stringify(entries), true);
+    await window.storage.setOrThrow(orgKey(STORAGE_KEY), JSON.stringify(entries), true);
+    return true;
   }catch(e){
     setStatus(t('msg_save_failed_local'), true);
+    return false;
   }
 }
 
@@ -16007,11 +16273,16 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
     // Passenden bestehenden Eintrag suchen (gleiches Material, gleiche
     // Qualität, gleicher Lagerort, gleiche Einheit, gleiches Projektziel)
     // und dessen Menge erweitern, statt die Tabelle mit Duplikaten zu füllen.
+    // Ab 11. Oktober 2026: zusaetzlich nur mit einem Eintrag DERSELBEN
+    // verantwortlichen Person zusammenfuehren -- sonst wanderte die Menge
+    // stillschweigend in den Eintrag einer anderen Person (die danach als
+    // verantwortlich galt, auch fuer Loeschen/Reset).
     const match = entries.find(e=>
       e.material === material &&
       e.qualitaet === qualitaet &&
       e.lagerort === lagerort &&
       e.einheit === einheit &&
+      e.person === person &&
       (e.projekt||'') === (projekt||'')
     );
 
@@ -16090,7 +16361,12 @@ document.getElementById('btnToggleGroupByLocation').addEventListener('click', ()
 function renderBulkTableSharedFields(isPrivate){
   const prefix = isPrivate ? 'priv-' : '';
   document.getElementById(prefix+'bulkTableLagerortWrap').innerHTML = buildLocationSelectHTML(prefix+'bulkTableLagerort', '', '');
-  document.getElementById(prefix+'bulkTableProjektWrap').innerHTML = buildProjectZielSelectHTML(prefix+'bulkTableProjekt', '', '');
+  // Ab 11. Oktober 2026: im Privatbestand -- wie bei der Einzel-Anlage --
+  // auch eigene private Projekte waehlbar; die Zuordnungsart wird
+  // ausdruecklich mitgespeichert.
+  document.getElementById(prefix+'bulkTableProjektWrap').innerHTML = isPrivate
+    ? buildCombinedProjectSelectHTML(prefix+'bulkTableProjekt', '', null, '', true)
+    : buildProjectZielSelectHTML(prefix+'bulkTableProjekt', '', '');
 }
 
 function addBulkTableRow(isPrivate){
@@ -16126,7 +16402,9 @@ async function submitBulkTable(isPrivate){
   const statusEl = document.getElementById(prefix+'bulkAddStatus');
   const lagerort = document.getElementById(prefix+'bulkTableLagerort').value;
   const person = currentUser.username;
-  const projekt = document.getElementById(prefix+'bulkTableProjekt').value;
+  const projektRaw = document.getElementById(prefix+'bulkTableProjekt').value;
+  const projektAssign = isPrivate ? parseProjectAssignmentValue(projektRaw) : { ziel: projektRaw, typ: projektRaw ? 'shared' : null };
+  const projekt = projektAssign.ziel;
 
   if(!lagerort){
     setStatusMsg(statusEl, t('val_bestand_required'), true);
@@ -16150,7 +16428,7 @@ async function submitBulkTable(isPrivate){
     // Nutzerwunsch vom 7. August 2026.
     const einheit = getDefaultEinheitForMaterial(material);
     if(isPrivate){
-      privateEntries.push({ id: privateUid(), material, qualitaet, menge, einheit, lagerort, person, projekt: projekt||'', owner: currentUser.username });
+      privateEntries.push({ id: privateUid(), material, qualitaet, menge, einheit, lagerort, person, projekt: projekt||'', projektTyp: projekt ? projektAssign.typ : null, owner: currentUser.username });
     } else {
       entries.push({ id: uid(), material, qualitaet, menge, einheit, lagerort, person, projekt: projekt||'', createdAt: new Date().toISOString() });
     }
@@ -18799,7 +19077,7 @@ async function saveTrash(){
   const cutoff = Date.now() - TRASH_MAX_AGE_DAYS*24*60*60*1000;
   trash = trash.filter(t=> new Date(t.deletedAt).getTime() > cutoff);
   try{
-    await window.storage.set(orgKey(TRASH_KEY), JSON.stringify(trash), true);
+    await window.storage.setOrThrow(orgKey(TRASH_KEY), JSON.stringify(trash), true);
     return true;
   }catch(e){
     return false;
@@ -18813,8 +19091,8 @@ async function saveTrash(){
 // Papierkorb-Eintraegen ohne dieses Feld) laesst sich derselbe
 // Papierkorb jetzt fuer alle vier Typen gemeinsam nutzen. Siehe
 // Nutzerwunsch vom 17. August 2026.
-async function moveToTrash(entry, kind){
-  trash.push({ ...entry, kind: kind || 'entry', deletedAt: new Date().toISOString(), deletedBy: currentUser ? currentUser.username : 'Unbekannt' });
+async function moveToTrash(entry, kind, extra){
+  trash.push({ ...entry, ...(extra||{}), kind: kind || 'entry', deletedAt: new Date().toISOString(), deletedBy: currentUser ? currentUser.username : 'Unbekannt' });
   await saveTrash();
 }
 function recentTrash(){
@@ -18849,12 +19127,67 @@ async function toggleTrashView(){
 async function restoreFromTrash(id){
   const tr = trash.find(t=>t.id===id);
   if(!tr) return false;
-  const { deletedAt, deletedBy, kind, ...restored } = tr;
+  const { deletedAt, deletedBy, kind, releasedRefs, ...restored } = tr;
   const effectiveKind = kind || 'entry';
+  // Ab 11. Oktober 2026: Konsistenzpruefung vor dem Wiederherstellen.
+  // - Ein Projekt wird nicht wiederhergestellt, wenn inzwischen ein
+  //   gleichnamiges Projekt existiert (Zuordnungen laufen ueber den Namen,
+  //   zwei gleichnamige Projekte waeren nicht unterscheidbar).
+  // - Bestand/Sammelobjekt/Bedarf wird nicht wiederhergestellt, wenn das
+  //   Material, das Sammelobjekt oder der Lagerort inzwischen aus dem
+  //   Katalog geloescht wurde (beim Katalog-Loeschen werden zugehoerige
+  //   Eintraege bewusst mitentfernt -- sie duerfen nicht als verwaiste
+  //   Eintraege zurueckkehren).
+  // - Eine Projekt-Zuordnung wird nur beibehalten, wenn das Projekt noch
+  //   existiert -- sonst entstuende eine "Geister-Reservierung".
+  const sharedZiele = new Set(projects.map(p=>p.ziel));
+  const locLabels = new Set(LOCATIONS.map(l=>locLabel(l)));
+  const isKnownMaterial = name => MATERIALS.some(m=>m.name===name);
+  const isKnownCollectible = name => COLLECTIBLES.some(c=>c.name===name);
+  if(effectiveKind === 'project'){
+    if(sharedZiele.has(restored.ziel)){ setStatus(t('msg_trash_restore_name_conflict').replace('{name}', restored.ziel), true); return false; }
+  } else if(effectiveKind === 'need'){
+    if(!isKnownMaterial(restored.material) && !isKnownCollectible(restored.material)){ setStatus(t('msg_trash_restore_catalog_missing'), true); return false; }
+    if(restored.sourceProjekt){
+      const typ = restored.sourceProjektTyp || 'shared';
+      const exists = typ==='private'
+        ? privateProjects.some(p=>p.owner===restored.user && p.ziel===restored.sourceProjekt)
+        : sharedZiele.has(restored.sourceProjekt);
+      if(!exists){ restored.sourceProjekt = null; restored.sourceProjektTyp = null; }
+    }
+  } else if(effectiveKind === 'collectible'){
+    if(!isKnownCollectible(restored.objekt) || (restored.standort && restored.standort!=='–' && !locLabels.has(restored.standort))){ setStatus(t('msg_trash_restore_catalog_missing'), true); return false; }
+    if(restored.projekt && !sharedZiele.has(restored.projekt)){ restored.projekt = ''; if('projektTyp' in restored) restored.projektTyp = null; }
+  } else {
+    if(!isKnownMaterial(restored.material) || !locLabels.has(restored.lagerort)){ setStatus(t('msg_trash_restore_catalog_missing'), true); return false; }
+    if(restored.projekt && !sharedZiele.has(restored.projekt)) restored.projekt = '';
+  }
+
   if(effectiveKind === 'project'){
     projects.push(restored);
     await saveProjects();
-    await logAction('Projekt aus Papierkorb wiederhergestellt', restored.ziel);
+    // Beim Loeschen geloeste Zuordnungen wiederherstellen -- nur, wenn der
+    // Eintrag noch existiert und inzwischen nicht anderweitig zugeordnet wurde.
+    let reassigned = 0;
+    const lists = { entries, collectibles, privateEntries, privateCollectibles, needs };
+    const dirty = new Set();
+    (releasedRefs||[]).forEach(r=>{
+      const arr = lists[r.list];
+      const x = arr && arr.find(y=>y.id===r.id);
+      if(!x) return;
+      if(r.list==='needs'){
+        if(x.sourceProjekt) return;
+        x.sourceProjekt = r.projekt; x.sourceProjektTyp = r.projektTyp || 'shared';
+      } else {
+        if(x.projekt) return;
+        x.projekt = r.projekt;
+        if(r.list!=='entries') x.projektTyp = r.projektTyp || (r.list==='collectibles' ? null : 'shared');
+      }
+      reassigned++; dirty.add(r.list);
+    });
+    const savers = { entries: save, collectibles: saveCollectibles, privateEntries: savePrivateEntries, privateCollectibles: savePrivateCollectibles, needs: saveNeeds };
+    await Promise.all([...dirty].map(n=>savers[n]()));
+    await logAction('Projekt aus Papierkorb wiederhergestellt', `${restored.ziel}${reassigned ? ` (${reassigned} Zuordnung(en) wiederhergestellt)` : ''}`);
   } else if(effectiveKind === 'need'){
     needs.push(restored);
     await saveNeeds();
@@ -18878,6 +19211,8 @@ async function restoreFromTrash(id){
   renderProjects();
   scheduleRenderDashboard();
   renderTrash();
+  renderPrivate();
+  renderPrivateCollectibles();
   return true;
 }
 
@@ -19560,7 +19895,7 @@ async function loadPrivateEntries(){
 }
 async function savePrivateEntries(){
   try{
-    await window.storage.set(orgKey(PRIVATE_STORAGE_KEY), JSON.stringify(privateEntries), true);
+    await window.storage.setOrThrow(orgKey(PRIVATE_STORAGE_KEY), JSON.stringify(privateEntries), true);
     return true;
   }catch(e){
     setPrivateStatus(t('msg_save_failed_local'), true);
@@ -19866,11 +20201,15 @@ async function transferPrivateEntry(id, amount){
   // Passenden bestehenden öffentlichen Eintrag suchen (gleiches Material,
   // gleiche Qualität, gleicher Lagerort, gleiche Einheit, gleiches Projektziel)
   // und dessen Menge erweitern, statt immer eine neue Zeile anzulegen.
+  // Ab 11. Oktober 2026: nur mit einem Eintrag derselben Person
+  // zusammenfuehren (siehe Kommentar bei der Einzel-Anlage im geteilten
+  // Bestand).
   const match = entries.find(pub =>
     pub.material === e.material &&
     pub.qualitaet === e.qualitaet &&
     pub.lagerort === e.lagerort &&
     pub.einheit === e.einheit &&
+    pub.person === e.person &&
     (pub.projekt||'') === effektivesProjekt
   );
 
@@ -19943,13 +20282,18 @@ async function transferEntryToPrivate(id, amount){
   // (gleiches Material, gleiche Qualitaet, gleicher Lagerort, gleiche
   // Einheit, gleiches Projektziel) und dessen Menge erweitern, statt
   // immer eine neue Zeile anzulegen -- analog zur Gegenrichtung.
+  // Ab 11. Oktober 2026: Zuordnungsart beachten -- ein geteilter Eintrag
+  // mit Projekt-Zuordnung darf nur mit einem privaten Eintrag
+  // zusammengefuehrt werden, der demselben GETEILTEN Projekt zugesagt ist,
+  // nicht mit einem, der einem gleichnamigen PRIVATEN Projekt gehoert.
   const match = privateEntries.find(priv =>
     priv.owner === e.person &&
     priv.material === e.material &&
     priv.qualitaet === e.qualitaet &&
     priv.lagerort === e.lagerort &&
     priv.einheit === e.einheit &&
-    (priv.projekt||'') === (e.projekt||'')
+    (priv.projekt||'') === (e.projekt||'') &&
+    (!e.projekt || (priv.projektTyp||'shared') === 'shared')
   );
 
   // Ausfuehrende Person weicht vom Verantwortlichen ab (typischerweise
@@ -20042,32 +20386,36 @@ function privResetPrune(list){
 async function loadPrivResetBackups(){
   const key = privResetBackupKey();
   try{
-    const res = await window.storage.get(key, true);
+    const res = await window.storage.getStrict(key, true);
     const raw = res && res.value ? JSON.parse(res.value) : [];
     privResetBackups = privResetPrune(raw);
     // Abgelaufene Sicherungen tatsaechlich aus dem Speicher entfernen
     if(privResetBackups.length !== raw.length) await window.storage.set(key, JSON.stringify(privResetBackups), true);
   }catch(e){
+    // Lesefehler: leere Anzeige; ein Reset waere ohnehin blockiert, da
+    // die Sicherung dann nicht geschrieben werden kann (Schreibsperre).
     privResetBackups = [];
   }
   privResetBackupsLoadedFor = key;
 }
 async function savePrivResetBackups(){
-  await window.storage.set(privResetBackupKey(), JSON.stringify(privResetPrune(privResetBackups)), true);
+  await window.storage.setOrThrow(privResetBackupKey(), JSON.stringify(privResetPrune(privResetBackups)), true);
 }
 
 // Frisches Laden aller betroffenen Datenbestaende (siehe Kopfkommentar).
+// STRENG: Schlaegt auch nur ein Lesevorgang fehl, wird abgebrochen (Ausnahme),
+// statt mit einer faelschlich leeren Liste weiterzuarbeiten.
+async function strictLoadList(key){
+  const res = await window.storage.getStrict(orgKey(key), true);
+  return res && res.value ? JSON.parse(res.value) : [];
+}
 async function privResetReloadAll(){
-  const reloadShared = async (k, setter)=>{
-    const res = await window.storage.get(orgKey(k), true);
-    setter(res && res.value ? JSON.parse(res.value) : []);
-  };
-  await Promise.all([
-    loadPrivateEntries(), loadPrivateCollectibles(), loadPrivateProjects(),
-    loadCollectibles(), loadProjects(),
-    reloadShared(STORAGE_KEY, v=>{ entries = v; }),
-    reloadShared(NEEDS_KEY, v=>{ needs = v; })
+  const [pe, pc, pp, e, c, pr, n] = await Promise.all([
+    strictLoadList(PRIVATE_STORAGE_KEY), strictLoadList(PRIVATE_COLLECTIBLES_KEY), strictLoadList(PRIVATE_PROJECTS_KEY),
+    strictLoadList(STORAGE_KEY), strictLoadList(COLLECTIBLES_KEY), strictLoadList(PROJECTS_KEY), strictLoadList(NEEDS_KEY)
   ]);
+  privateEntries = pe; privateCollectibles = pc; privateProjects = pp;
+  entries = e; collectibles = c; projects = pr; needs = n;
 }
 
 function privResetCanUseShared(){
@@ -20132,7 +20480,12 @@ async function executePrivateReset(){
   const statusEl = document.getElementById('privResetStatus');
   setStatusMsg(statusEl, t('msg_saving'), false);
   try{
-    await privResetReloadAll();
+    try{
+      await privResetReloadAll();
+    }catch(e){
+      setStatusMsg(statusEl, t('msg_load_incomplete_abort'), true);
+      return;
+    }
     await loadPrivResetBackups();
     const plan = computePrivateResetPlan(privResetSel);
     if(plan.stats.removedTotal === 0 && plan.released.length === 0){
@@ -20172,12 +20525,12 @@ async function executePrivateReset(){
     });
     // 4. Speichern (nur tatsaechlich betroffene Bloecke)
     const writes = [];
-    if(rmPE.size || plan.released.some(r=>r.list==='privateEntries')) writes.push(window.storage.set(orgKey(PRIVATE_STORAGE_KEY), JSON.stringify(privateEntries), true));
-    if(rmPC.size || plan.released.some(r=>r.list==='privateCollectibles')) writes.push(window.storage.set(orgKey(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(privateCollectibles), true));
-    if(rmE.size) writes.push(window.storage.set(orgKey(STORAGE_KEY), JSON.stringify(entries), true));
-    if(rmC.size) writes.push(window.storage.set(orgKey(COLLECTIBLES_KEY), JSON.stringify(collectibles), true));
-    if(rmPP.size) writes.push(window.storage.set(orgKey(PRIVATE_PROJECTS_KEY), JSON.stringify(privateProjects), true));
-    if(plan.released.some(r=>r.list==='needs')) writes.push(window.storage.set(orgKey(NEEDS_KEY), JSON.stringify(needs), true));
+    if(rmPE.size || plan.released.some(r=>r.list==='privateEntries')) writes.push(window.storage.setOrThrow(orgKey(PRIVATE_STORAGE_KEY), JSON.stringify(privateEntries), true));
+    if(rmPC.size || plan.released.some(r=>r.list==='privateCollectibles')) writes.push(window.storage.setOrThrow(orgKey(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(privateCollectibles), true));
+    if(rmE.size) writes.push(window.storage.setOrThrow(orgKey(STORAGE_KEY), JSON.stringify(entries), true));
+    if(rmC.size) writes.push(window.storage.setOrThrow(orgKey(COLLECTIBLES_KEY), JSON.stringify(collectibles), true));
+    if(rmPP.size) writes.push(window.storage.setOrThrow(orgKey(PRIVATE_PROJECTS_KEY), JSON.stringify(privateProjects), true));
+    if(plan.released.some(r=>r.list==='needs')) writes.push(window.storage.setOrThrow(orgKey(NEEDS_KEY), JSON.stringify(needs), true));
     await Promise.all(writes);
 
     await logAction('Private Daten zurückgesetzt',
@@ -20194,7 +20547,11 @@ async function executePrivateReset(){
     const until = new Date(new Date(backup.createdAt).getTime() + PRIV_RESET_KEEP_DAYS*24*60*60*1000);
     setStatusMsg(statusEl, t('msg_priv_reset_done').replace('{n}', plan.stats.removedTotal).replace('{datum}', privResetFormatDate(until)), false);
   }catch(e){
-    setStatusMsg(statusEl, t('msg_save_failed'), true);
+    // Die Sicherung wurde zu diesem Zeitpunkt bereits geschrieben -- ein
+    // teilweise fehlgeschlagener Reset laesst sich ueber "Wiederherstellen"
+    // vollstaendig rueckgaengig machen.
+    setStatusMsg(statusEl, t('msg_priv_reset_partial_failed'), true);
+    try{ privResetAfterChange(); }catch(e2){}
   }finally{
     privResetBusy = false;
   }
@@ -20213,7 +20570,12 @@ async function restorePrivateReset(backupId){
   const statusEl = document.getElementById('privResetStatus');
   setStatusMsg(statusEl, t('msg_saving'), false);
   try{
-    await privResetReloadAll();
+    try{
+      await privResetReloadAll();
+    }catch(e){
+      setStatusMsg(statusEl, t('msg_load_incomplete_abort'), true);
+      return;
+    }
     await loadPrivResetBackups();
     const b = privResetBackups.find(x=>x.id===backupId);
     if(!b){ setStatusMsg(statusEl, t('msg_priv_reset_restore_failed'), true); return; }
@@ -20236,30 +20598,28 @@ async function restorePrivateReset(backupId){
       return x;
     };
     const fixSharedAssign = x=>{ if(x.projekt && !sharedZiele.has(x.projekt)){ x.projekt = ''; if('projektTyp' in x) x.projektTyp = null; } return x; };
-    const addMissing = (arr, items, fix)=>{ (items||[]).forEach(it=>{ if(arr.some(x=>x.id===it.id)) return; arr.push(fix({ ...it })); restored++; }); };
-    addMissing(privateEntries, b.privateEntries, fixPrivAssign);
-    addMissing(privateCollectibles, b.privateCollectibles, fixPrivAssign);
-    addMissing(entries, b.entries, fixSharedAssign);
-    addMissing(collectibles, b.collectibles, fixSharedAssign);
+    const dirty = new Set();
+    if(restored > 0) dirty.add('privateProjects');
+    const addMissing = (arr, items, fix, name)=>{ (items||[]).forEach(it=>{ if(arr.some(x=>x.id===it.id)) return; arr.push(fix({ ...it })); restored++; dirty.add(name); }); };
+    addMissing(privateEntries, b.privateEntries, fixPrivAssign, 'privateEntries');
+    addMissing(privateCollectibles, b.privateCollectibles, fixPrivAssign, 'privateCollectibles');
+    addMissing(entries, b.entries, fixSharedAssign, 'entries');
+    addMissing(collectibles, b.collectibles, fixSharedAssign, 'collectibles');
     // Geloeste Zuordnungen wiederherstellen -- nur, wenn der Eintrag noch
     // existiert, inzwischen nicht anderweitig zugeordnet wurde und das
     // Projekt (wieder) existiert.
     (b.released||[]).forEach(r=>{
       if(!myPrivZiele.has(r.projekt)) return;
-      if(r.list==='needs'){ const n = needs.find(x=>x.id===r.id); if(n && !n.sourceProjekt){ n.sourceProjekt = r.projekt; n.sourceProjektTyp = r.projektTyp; } return; }
+      if(r.list==='needs'){ const n = needs.find(x=>x.id===r.id); if(n && !n.sourceProjekt){ n.sourceProjekt = r.projekt; n.sourceProjektTyp = r.projektTyp; dirty.add('needs'); } return; }
       const arr = r.list==='privateEntries' ? privateEntries : privateCollectibles;
       const x = arr.find(y=>y.id===r.id);
-      if(x && !x.projekt){ x.projekt = r.projekt; x.projektTyp = r.projektTyp; }
+      if(x && !x.projekt){ x.projekt = r.projekt; x.projektTyp = r.projektTyp; dirty.add(r.list); }
     });
 
-    await Promise.all([
-      window.storage.set(orgKey(PRIVATE_STORAGE_KEY), JSON.stringify(privateEntries), true),
-      window.storage.set(orgKey(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(privateCollectibles), true),
-      window.storage.set(orgKey(PRIVATE_PROJECTS_KEY), JSON.stringify(privateProjects), true),
-      window.storage.set(orgKey(STORAGE_KEY), JSON.stringify(entries), true),
-      window.storage.set(orgKey(COLLECTIBLES_KEY), JSON.stringify(collectibles), true),
-      window.storage.set(orgKey(NEEDS_KEY), JSON.stringify(needs), true)
-    ]);
+    // Nur tatsaechlich geaenderte Datenbloecke schreiben
+    const keyOf = { privateEntries: PRIVATE_STORAGE_KEY, privateCollectibles: PRIVATE_COLLECTIBLES_KEY, privateProjects: PRIVATE_PROJECTS_KEY, entries: STORAGE_KEY, collectibles: COLLECTIBLES_KEY, needs: NEEDS_KEY };
+    const valOf = { privateEntries, privateCollectibles, privateProjects, entries, collectibles, needs };
+    await Promise.all([...dirty].map(name=> window.storage.setOrThrow(orgKey(keyOf[name]), JSON.stringify(valOf[name]), true)));
     privResetBackups = privResetBackups.filter(x=>x.id!==backupId);
     await savePrivResetBackups();
     await logAction('Zurückgesetzte private Daten wiederhergestellt', `${restored} Eintrag/Einträge (Reset vom ${privResetFormatDate(new Date(b.createdAt))})${skippedProjects ? ` — ${skippedProjects} Projekt(e) übersprungen (gleichnamiges Projekt vorhanden)` : ''}`);
@@ -20421,6 +20781,285 @@ function renderPrivResetBackups(){
   });
 })();
 
+
+// ============================================================
+// Organisationsdaten sicher aendern (ab 11. Oktober 2026)
+// ------------------------------------------------------------
+// Benutzer-Umbenennung/-Loeschung sowie Katalog-Loeschungen veraendern
+// Daten, die organisationsgebunden gespeichert sind. Bislang wurde dabei
+// immer nur die GERADE GEOEFFNETE Organisation angepasst -- fuer einen
+// Benutzer einer anderen Organisation bzw. fuer die (organisations-
+// uebergreifenden) Kataloge blieben in allen anderen Organisationen
+// verwaiste Daten zurueck. Diese Hilfsfunktionen laden die betroffenen
+// Datenbloecke STRENG (Abbruch bei Lesefehler), wenden die Aenderung an
+// und schreiben nur tatsaechlich geaenderte Bloecke zurueck. Bei mehreren
+// Organisationen wird zuerst ALLES geladen und erst danach geschrieben,
+// damit ein Lesefehler keine halb erledigte Aenderung hinterlaesst.
+// ============================================================
+const ORG_DATA_LISTS = {
+  privateEntries: PRIVATE_STORAGE_KEY, privateCollectibles: PRIVATE_COLLECTIBLES_KEY, privateProjects: PRIVATE_PROJECTS_KEY,
+  entries: STORAGE_KEY, collectibles: COLLECTIBLES_KEY, needs: NEEDS_KEY, projects: PROJECTS_KEY
+};
+function orgDataKey(base, orgId){ return orgId ? `${base}__org_${orgId}` : base; }
+async function loadOrgDataStrict(orgId){
+  const data = {};
+  await Promise.all(Object.entries(ORG_DATA_LISTS).map(async ([name, base])=>{
+    const res = await window.storage.getStrict(orgDataKey(base, orgId), true);
+    data[name] = res && res.value ? JSON.parse(res.value) : [];
+  }));
+  return data;
+}
+function adoptOrgDataIfCurrent(orgId, data){
+  if(orgId !== currentOrgId) return;
+  privateEntries = data.privateEntries; privateCollectibles = data.privateCollectibles; privateProjects = data.privateProjects;
+  entries = data.entries; collectibles = data.collectibles; needs = data.needs; projects = data.projects;
+}
+async function writeOrgDataChanges(orgId, data, changed){
+  await Promise.all([...changed].map(name=> window.storage.setOrThrow(orgDataKey(ORG_DATA_LISTS[name], orgId), JSON.stringify(data[name]), true)));
+}
+// mutate(data, orgId) -> Set der geaenderten Listen-Namen
+async function applyOrgDataChange(orgId, mutate){
+  const data = await loadOrgDataStrict(orgId);
+  const changed = mutate(data, orgId) || new Set();
+  await writeOrgDataChanges(orgId, data, changed);
+  adoptOrgDataIfCurrent(orgId, data);
+  return changed;
+}
+function allOrgIds(){
+  const ids = (ORGANIZATIONS||[]).map(o=>o.id).filter(Boolean);
+  if(!ids.length) return [currentOrgId || null];
+  if(currentOrgId && !ids.includes(currentOrgId)) ids.push(currentOrgId);
+  return ids;
+}
+// Wie applyOrgDataChange, aber fuer ALLE Organisationen (zweiphasig).
+async function applyAllOrgsDataChange(mutate){
+  // Organisationsliste frisch lesen (eine inzwischen angelegte Organisation
+  // darf nicht uebergangen werden); Abbruch bei Lesefehler.
+  organizationsLoaded = false;
+  await loadOrganizations();
+  if(storageReadFailedKeys.has(storageGuardKey(ORGANIZATIONS_KEY, true))) throw new Error('read failed: organizations');
+  const ids = allOrgIds();
+  const loaded = [];
+  for(const id of ids) loaded.push({ id, data: await loadOrgDataStrict(id) });
+  let total = 0;
+  for(const { id, data } of loaded){
+    const res = mutate(data, id) || { changed: new Set(), count: 0 };
+    await writeOrgDataChanges(id, data, res.changed);
+    adoptOrgDataIfCurrent(id, data);
+    total += res.count || 0;
+  }
+  return total;
+}
+
+// Entfernt verwaiste Projekt-Zuordnungen (Projekt existiert nicht mehr)
+// in einem Datensatz einer Organisation. Private Projekte gelten je
+// Besitzer/in. Liefert { count, changed }.
+function cleanDanglingProjectRefs(d){
+  const shared = new Set((d.projects||[]).map(p=>p.ziel));
+  const privByOwner = {};
+  (d.privateProjects||[]).forEach(p=>{ (privByOwner[p.owner] = privByOwner[p.owner] || new Set()).add(p.ziel); });
+  const hasPriv = (owner, z)=> !!(privByOwner[owner] && privByOwner[owner].has(z));
+  const changed = new Set(); let count = 0;
+  (d.entries||[]).forEach(e=>{ if(e.projekt && !shared.has(e.projekt)){ e.projekt = ''; changed.add('entries'); count++; } });
+  (d.collectibles||[]).forEach(c=>{ if(c.projekt && !shared.has(c.projekt)){ c.projekt = ''; if('projektTyp' in c) c.projektTyp = null; changed.add('collectibles'); count++; } });
+  ['privateEntries','privateCollectibles'].forEach(n=>(d[n]||[]).forEach(x=>{
+    if(!x.projekt) return;
+    const typ = x.projektTyp || 'shared';
+    const ok = typ==='private' ? hasPriv(x.owner, x.projekt) : shared.has(x.projekt);
+    if(!ok){ x.projekt = ''; x.projektTyp = null; changed.add(n); count++; }
+  }));
+  (d.needs||[]).forEach(n=>{
+    if(!n.sourceProjekt) return;
+    const typ = n.sourceProjektTyp || 'shared';
+    const ok = typ==='private' ? hasPriv(n.user, n.sourceProjekt) : shared.has(n.sourceProjekt);
+    if(!ok){ n.sourceProjekt = null; n.sourceProjektTyp = null; changed.add('needs'); count++; }
+  });
+  return { count, changed };
+}
+
+// Reset-Sicherungen einer Person (siehe "Private Daten zuruecksetzen")
+// beim Umbenennen mitziehen bzw. beim Loeschen entfernen. Die gesicherten
+// Eintraege tragen den Benutzernamen (owner/person/besitzer/user) und
+// werden entsprechend umgeschrieben, damit eine spaetere Wiederherstellung
+// bei der umbenannten Person landet.
+function privResetBackupKeyFor(username, orgId){ return orgDataKey(`${PRIV_RESET_BACKUP_KEY}__${username}`, orgId); }
+async function moveUserResetBackups(orgId, oldName, newName){
+  const res = await window.storage.getStrict(privResetBackupKeyFor(oldName, orgId), true);
+  if(!res || !res.value) return;
+  const list = JSON.parse(res.value).map(b=>{
+    const fix = x=>{ const y = { ...x }; ['owner','person','besitzer','user'].forEach(f=>{ if(y[f]===oldName) y[f] = newName; }); return y; };
+    return { ...b, user: newName,
+      privateEntries: (b.privateEntries||[]).map(fix), privateCollectibles: (b.privateCollectibles||[]).map(fix),
+      entries: (b.entries||[]).map(fix), collectibles: (b.collectibles||[]).map(fix), privateProjects: (b.privateProjects||[]).map(fix) };
+  });
+  await window.storage.setOrThrow(privResetBackupKeyFor(newName, orgId), JSON.stringify(list), true);
+  await window.storage.delete(privResetBackupKeyFor(oldName, orgId), true);
+}
+async function deleteUserResetBackups(orgId, username){
+  try{ await window.storage.delete(privResetBackupKeyFor(username, orgId), true); }catch(e){}
+}
+
+// ============================================================
+// Datenkonsistenz pruefen und beheben (ab 11. Oktober 2026)
+// ------------------------------------------------------------
+// Findet Altlasten, die durch fruehere (inzwischen behobene) Luecken
+// entstanden sein koennen, in der GERADE GEOEFFNETEN Organisation:
+//  1. Projekt-Zuordnungen auf nicht mehr existierende Projekte
+//     ("Geister-Reservierungen", z.B. nach Organisations-Reset/-Import),
+//  2. private Daten von Personen, die es in dieser Organisation nicht
+//     mehr gibt (z.B. nach dem Loeschen eines Benutzers aus einer anderen
+//     als der gerade geoeffneten Organisation),
+//  3. Eintraege/Bedarfe, deren Material, Sammelobjekt oder Lagerort nicht
+//     mehr im Katalog steht (z.B. nach einer Katalog-Loeschung, die nur in
+//     einer Organisation wirkte) -- standardmaessig NICHT angehakt, da dies
+//     z.B. nach einem Import aus einer anderen Installation auch gewollte
+//     Daten betreffen kann.
+// "Pruefen" aendert nichts. "Beheben" laedt erneut streng (Abbruch bei
+// Lesefehler, damit nie auf Basis einer faelschlich leeren Liste
+// geloescht wird) und schreibt nur geaenderte Datenbloecke.
+// ============================================================
+let consistencyLastReport = null;
+const consistencyFixSel = { refs: true, orphans: true, catalog: false };
+
+async function loadConsistencyBasisStrict(){
+  // Kataloge und Benutzerliste frisch laden und sicherstellen, dass das
+  // Lesen tatsaechlich erfolgreich war (sonst stuende z.B. die
+  // eingebaute Standardliste statt des echten Katalogs im Speicher).
+  // Die Ladefunktionen merken sich "bereits geladen" -- fuer diese Pruefung
+  // wird bewusst neu gelesen (z.B. koennte inzwischen ein neuer Benutzer
+  // angelegt worden sein, dessen private Daten sonst als verwaist galten).
+  materialsLoaded = false; locationsLoaded = false; collectiblesCatalogLoaded = false; usersLoaded = false;
+  await Promise.all([loadMaterials(), loadLocations(), loadCollectiblesCatalog(), loadUsers()]);
+  [MATERIALS_KEY, LOCATIONS_KEY, COLLECTIBLES_CATALOG_KEY, USERS_KEY].forEach(k=>{
+    if(storageReadFailedKeys.has(storageGuardKey(k, true))) throw new Error('read failed: '+k);
+  });
+  return loadOrgDataStrict(currentOrgId);
+}
+
+function analyzeConsistency(d){
+  const clone = JSON.parse(JSON.stringify(d));
+  const refs = cleanDanglingProjectRefs(clone);
+  const orgUsers = new Set(USERS.filter(u=>(u.organizationId||currentOrgId)===currentOrgId).map(u=>u.username));
+  const orphanOwner = x=> orgUsers.size>0 && !orgUsers.has(x.owner);
+  const orphans = {
+    privateEntries: d.privateEntries.filter(orphanOwner).length,
+    privateCollectibles: d.privateCollectibles.filter(orphanOwner).length,
+    privateProjects: d.privateProjects.filter(orphanOwner).length
+  };
+  const locLabels = new Set(LOCATIONS.map(l=>locLabel(l)));
+  const matOk = n=> MATERIALS.some(m=>m.name===n);
+  const collOk = n=> COLLECTIBLES.some(c=>c.name===n);
+  const entryBad = e=> !matOk(e.material) || (e.lagerort && !locLabels.has(e.lagerort));
+  const collBad = c=> !collOk(c.objekt) || (c.standort && c.standort!=='–' && !locLabels.has(c.standort));
+  const needBad = n=> !matOk(n.material) && !collOk(n.material);
+  const catalog = {
+    entries: d.entries.filter(entryBad).length,
+    privateEntries: d.privateEntries.filter(entryBad).length,
+    collectibles: d.collectibles.filter(collBad).length,
+    privateCollectibles: d.privateCollectibles.filter(collBad).length,
+    needs: d.needs.filter(needBad).length
+  };
+  const sum = o=> Object.values(o).reduce((a,b)=>a+b,0);
+  return { refs: refs.count, orphans, orphansTotal: sum(orphans), orgUserCount: orgUsers.size, catalog, catalogTotal: sum(catalog),
+    preds: { orphanOwner, entryBad, collBad, needBad } };
+}
+
+async function runConsistencyCheck(){
+  const statusEl = document.getElementById('consistencyStatus');
+  setStatusMsg(statusEl, t('msg_consistency_checking'), false);
+  try{
+    const d = await loadConsistencyBasisStrict();
+    consistencyLastReport = analyzeConsistency(d);
+    statusEl.textContent = '';
+  }catch(e){
+    consistencyLastReport = null;
+    setStatusMsg(statusEl, t('msg_load_incomplete_abort'), true);
+  }
+  renderConsistencyReport();
+}
+
+async function repairConsistency(){
+  const statusEl = document.getElementById('consistencyStatus');
+  setStatusMsg(statusEl, t('msg_saving'), false);
+  let summary = { refs: 0, orphans: 0, catalog: 0 };
+  try{
+    await loadConsistencyBasisStrict(); // Kataloge/Benutzer streng aktualisieren
+    await applyOrgDataChange(currentOrgId, d=>{
+      const report = analyzeConsistency(d);
+      const changed = new Set();
+      const drop = (name, pred)=>{ const before = d[name].length; d[name] = d[name].filter(x=>!pred(x)); const diff = before - d[name].length; if(diff) changed.add(name); return diff; };
+      if(consistencyFixSel.orphans && report.orgUserCount > 0){
+        summary.orphans += drop('privateEntries', report.preds.orphanOwner);
+        summary.orphans += drop('privateCollectibles', report.preds.orphanOwner);
+        summary.orphans += drop('privateProjects', report.preds.orphanOwner);
+      }
+      if(consistencyFixSel.catalog){
+        summary.catalog += drop('entries', report.preds.entryBad);
+        summary.catalog += drop('privateEntries', report.preds.entryBad);
+        summary.catalog += drop('collectibles', report.preds.collBad);
+        summary.catalog += drop('privateCollectibles', report.preds.collBad);
+        summary.catalog += drop('needs', report.preds.needBad);
+      }
+      // Zuordnungen zuletzt -- entfernte private Projekte (verwaiste
+      // Besitzer) koennen weitere Zuordnungen verwaisen lassen.
+      if(consistencyFixSel.refs){
+        const r = cleanDanglingProjectRefs(d);
+        summary.refs = r.count;
+        r.changed.forEach(n=>changed.add(n));
+      }
+      return changed;
+    });
+  }catch(e){
+    setStatusMsg(statusEl, t('msg_load_incomplete_abort'), true);
+    return;
+  }
+  await logAction('Datenkonsistenz bereinigt', `${summary.refs} verwaiste Projekt-Zuordnung(en) gelöst, ${summary.orphans} private(r) Eintrag/Einträge nicht mehr vorhandener Personen entfernt, ${summary.catalog} Eintrag/Einträge ohne Katalogbezug entfernt`);
+  render(); renderCollectibles(); renderNeeds(); updateProjectAvailability(); renderProjects();
+  updatePrivateProjectAvailability(); renderPrivate(); renderPrivateCollectibles(); scheduleRenderDashboard();
+  await runConsistencyCheck();
+  setStatusMsg(statusEl, t('msg_consistency_repaired').replace('{refs}', summary.refs).replace('{orphans}', summary.orphans).replace('{catalog}', summary.catalog), false);
+}
+
+function renderConsistencySection(){
+  const panel = document.getElementById('consistencyPanel');
+  if(!panel || !currentUser) return;
+  panel.style.display = roleAtLeast(currentUser.role, 'org_admin') ? '' : 'none';
+}
+
+function renderConsistencyReport(){
+  const el = document.getElementById('consistencyReport');
+  const btn = document.getElementById('btnConsistencyRepair');
+  if(!el || !btn) return;
+  const r = consistencyLastReport;
+  if(!r){ el.innerHTML = ''; btn.style.display = 'none'; return; }
+  const total = r.refs + r.orphansTotal + r.catalogTotal;
+  if(total === 0){
+    el.innerHTML = `<div style="color:var(--high);font-size:13px;">✓ ${t('msg_consistency_ok')}</div>`;
+    btn.style.display = 'none';
+    return;
+  }
+  const row = (key, checked, title, count, detail, hint)=> `<label style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;margin-top:8px;cursor:pointer;${count?'':'opacity:0.45;'}">
+      <input type="checkbox" class="consistency-fix" data-key="${key}" ${checked&&count?'checked':''} ${count?'':'disabled'} style="margin-top:2px;">
+      <span><strong>${title}: ${count}</strong>${detail ? `<span style="color:var(--ink-soft);"> — ${detail}</span>` : ''}${hint ? `<div style="color:var(--ink-soft);font-size:11.5px;margin-top:2px;">${hint}</div>` : ''}</span></label>`;
+  const o = r.orphans, c = r.catalog;
+  el.innerHTML =
+    row('refs', consistencyFixSel.refs, t('label_consistency_refs'), r.refs, '', t('hint_consistency_refs')) +
+    row('orphans', consistencyFixSel.orphans, t('label_consistency_orphans'), r.orphansTotal,
+      t('label_consistency_orphans_detail').replace('{e}', o.privateEntries).replace('{c}', o.privateCollectibles).replace('{p}', o.privateProjects), t('hint_consistency_orphans')) +
+    row('catalog', consistencyFixSel.catalog, t('label_consistency_catalog'), r.catalogTotal,
+      t('label_consistency_catalog_detail').replace('{e}', c.entries+c.privateEntries).replace('{c}', c.collectibles+c.privateCollectibles).replace('{n}', c.needs), t('hint_consistency_catalog'));
+  el.querySelectorAll('.consistency-fix').forEach(cb=>cb.addEventListener('change', ()=>{ consistencyFixSel[cb.dataset.key] = cb.checked; }));
+  btn.style.display = '';
+}
+
+(function initConsistencyPanel(){
+  const checkBtn = document.getElementById('btnConsistencyCheck');
+  const repairBtn = document.getElementById('btnConsistencyRepair');
+  if(checkBtn) checkBtn.addEventListener('click', ()=>runConsistencyCheck());
+  if(repairBtn) repairBtn.addEventListener('click', ()=>{
+    armConfirm(repairBtn, ()=>repairConsistency(), t('tooltip_consistency_repair_confirm'));
+  });
+})();
 
 function renderPrivate(){
   if(!currentUser) return;
