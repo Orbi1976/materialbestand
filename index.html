@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.131 -->
+<!-- Version: 0.133 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -906,6 +906,20 @@ tbody tr:hover{background:rgba(0,216,255,0.05);}
 .qdist-seg{min-width:4px;box-shadow:0 0 6px currentColor;}
 .qdist-nums{display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:5px;font-family:'Share Tech Mono', monospace;font-size:12px;}
 .qdist-num{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+/* Legende der Qualitaetsstufen (ab 12. Oktober 2026): direkt ueber der
+   Zusammenfassung, "klebend" (sticky) -- bleibt beim Scrollen durch eine
+   lange Tabelle am oberen Bildschirmrand sichtbar, bis das Panel endet.
+   Bewusst AUSSERHALB des seitlich scrollbaren Tabellen-Containers, da
+   sticky innerhalb eines overflow-Containers nicht greifen wuerde. */
+.qlegend{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;
+  margin:6px 0 10px;padding:8px 12px;background:#0D141C;border:1px solid var(--panel-border);border-radius:var(--radius);
+  font-size:12.5px;box-shadow:0 6px 14px rgba(0,0,0,0.35);}
+.qlegend-title{font-family:'Orbitron', sans-serif;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);}
+.qlegend-item{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
+.qlegend-swatch{width:18px;height:8px;border-radius:2px;box-shadow:0 0 6px currentColor;}
+.qlegend-range{font-family:'Share Tech Mono', monospace;font-weight:600;}
+.qlegend-name{color:var(--ink-soft);}
+.qlegend-hint{flex-basis:100%;font-size:11px;color:var(--ink-soft);}
 .badge.low{background:var(--low-bg);color:var(--low);}
 .badge.neutral{background:rgba(110,143,160,0.12);color:var(--ink-soft);}
 .badge.prio-kritisch{background:var(--low-bg);color:var(--low);}
@@ -1033,6 +1047,16 @@ tbody tr:hover{background:rgba(0,216,255,0.05);}
   tbody tr{border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;padding:8px;}
   tbody td{border:none;padding:5px 4px;}
   tbody td::before{content:attr(data-label);font-size:10px;text-transform:uppercase;color:var(--ink-soft);display:block;font-family:'Share Tech Mono', monospace;}
+  /* Ab 12. Oktober 2026: kleine Untertabellen (Aufschluesselungen in
+     Infofenstern und Aufklapp-Zeilen) bleiben auch auf schmalen
+     Bildschirmen echte Tabellen -- sie sind kompakt, eine Karten-
+     Darstellung wuerde sie unleserlich machen. */
+  table.keep-table{display:table;width:100%;}
+  table.keep-table thead{display:table-header-group;}
+  table.keep-table tbody{display:table-row-group;}
+  table.keep-table tr{display:table-row;border:none;border-radius:0;margin:0;padding:0;}
+  table.keep-table th, table.keep-table td{display:table-cell;padding:4px 6px;}
+  table.keep-table td::before{content:none;}
 }
 
 /* Mobilgerät (per JS erkannt, nicht nur Viewport-Breite) — größere Tap-Ziele
@@ -2414,6 +2438,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <h2 style="margin:0;" data-i18n="panel_zusammenfassung">Zusammenfassung nach Material</h2>
       <div id="commodityPriceStatus" style="font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;"></div>
     </div>
+    <div class="qlegend" id="summaryQualityLegend" style="display:none;"></div>
     <div id="summaryContainer"></div>
   </div>
 
@@ -2647,6 +2672,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
          waechst die Tabelle durch mehr Materialien natuerlich darueber
          hinaus, bleibt sie weiterhin uneingeschraenkt mitwachsend. Siehe
          Nutzerwunsch vom 12. August 2026. -->
+    <div class="qlegend" id="privateSummaryQualityLegend" style="display:none;"></div>
     <div id="privateSummaryContainer" style="min-height:420px;"></div>
   </div>
 
@@ -3328,6 +3354,16 @@ const I18N = {
   "col_gruen": "Grün (≥ 801)",
   "col_orange": "Orange (501–700)",
   "col_qualitaetsverteilung": "Qualitätsverteilung",
+  "label_qualitaetsstufen": "Qualitätsstufen",
+  "qtier_range_low": "≤ 500",
+  "qtier_range_orange": "501–700",
+  "qtier_range_med": "701–800",
+  "qtier_range_high": "≥ 801",
+  "qtier_name_low": "Gering",
+  "qtier_name_orange": "Mittelmaß",
+  "qtier_name_med": "Gehobenes Mittel",
+  "qtier_name_high": "Optimal",
+  "hint_qualitaetsverteilung": "Der Balken in „Qualitätsverteilung“ zeigt den Mengenanteil je Stufe, darunter die Mengen. Mouse-over über den Eintrag „Gesamt“ zeigt alle Werte.",
   "tooltip_sort_verteilung": "Klicken zum Sortieren nach Anteil der Stufe Grün (≥ 801)",
   "empty_bestand_title": "Noch kein Material erfasst",
   "empty_bestand_sub": "Trag oben den ersten Bestand ein.",
@@ -4150,6 +4186,16 @@ const I18N = {
   "col_gruen": "Green (≥ 801)",
   "col_orange": "Orange (501–700)",
   "col_qualitaetsverteilung": "Quality distribution",
+  "label_qualitaetsstufen": "Quality tiers",
+  "qtier_range_low": "≤ 500",
+  "qtier_range_orange": "501–700",
+  "qtier_range_med": "701–800",
+  "qtier_range_high": "≥ 801",
+  "qtier_name_low": "Low",
+  "qtier_name_orange": "Average",
+  "qtier_name_med": "Upper average",
+  "qtier_name_high": "Optimal",
+  "hint_qualitaetsverteilung": "The bar in \"Quality distribution\" shows the share of quantity per tier, with the quantities below. Hover over the \"Total\" entry to see all values.",
   "tooltip_sort_verteilung": "Click to sort by share of the green tier (≥ 801)",
   "empty_bestand_title": "No material recorded yet",
   "empty_bestand_sub": "Add your first stock above.",
@@ -4972,6 +5018,16 @@ const I18N = {
   "col_gruen": "Vert (≥ 801)",
   "col_orange": "Orange (501–700)",
   "col_qualitaetsverteilung": "Répartition de qualité",
+  "label_qualitaetsstufen": "Niveaux de qualité",
+  "qtier_range_low": "≤ 500",
+  "qtier_range_orange": "501–700",
+  "qtier_range_med": "701–800",
+  "qtier_range_high": "≥ 801",
+  "qtier_name_low": "Faible",
+  "qtier_name_orange": "Moyen",
+  "qtier_name_med": "Moyen supérieur",
+  "qtier_name_high": "Optimal",
+  "hint_qualitaetsverteilung": "La barre « Répartition de qualité » montre la part de quantité par niveau, les quantités en dessous. Survolez l'entrée « Total » pour voir toutes les valeurs.",
   "tooltip_sort_verteilung": "Cliquez pour trier selon la part du niveau vert (≥ 801)",
   "empty_bestand_title": "Aucun matériau enregistré pour l'instant",
   "empty_bestand_sub": "Ajoutez votre premier stock ci-dessus.",
@@ -7410,7 +7466,7 @@ function renderOrgResetGranularOptions(overview){
   if(overview.materialCategories.length > 0){
     html += `<div style="margin-top:12px;">
       <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px;">${t('label_org_reset_material_kategorien')}</div>
-      <table style="width:100%;font-size:12.5px;"><thead><tr>
+      <table class="keep-table" style="width:100%;font-size:12.5px;"><thead><tr>
         <th style="text-align:left;padding:4px 8px 4px 0;">${t('label_kategorie')}</th>
         <th style="text-align:center;padding:4px 8px;">${t('panel_bestand_table')}</th>
         <th style="text-align:center;padding:4px 8px;">${t('panel_privatbestand')}</th>
@@ -7430,7 +7486,7 @@ function renderOrgResetGranularOptions(overview){
   if(overview.collectibleCategories.length > 0){
     html += `<div style="margin-top:14px;">
       <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px;">${t('label_org_reset_sammelobjekt_kategorien')}</div>
-      <table style="width:100%;font-size:12.5px;"><thead><tr>
+      <table class="keep-table" style="width:100%;font-size:12.5px;"><thead><tr>
         <th style="text-align:left;padding:4px 8px 4px 0;">${t('label_kategorie')}</th>
         <th style="text-align:center;padding:4px 8px;">${t('panel_sammelobjekte')}</th>
         <th style="text-align:center;padding:4px 8px;">${t('label_privat')}</th>
@@ -9835,12 +9891,12 @@ function renderCollectibleSummary(){
     const frei = r.total - r.reserviert;
     const isExpanded = expandedUsageCollectible === r.objekt;
     html += `<tr>
-      <td class="material-name">${escapeHtml(r.objekt)}<span class="usage-search-btn${isExpanded?' active':''}" data-action="toggle-usage-collectible" data-objekt="${escapeHtml(r.objekt)}" title="${t('tooltip_rueckwaertssuche')}">🔍</span></td>
-      <td>${r.tier ? escapeHtml(r.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
-      <td class="sum-total">${r.total}</td>
-      <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${r.reserviert}</span>` : `<span style="color:var(--ink-soft);">0</span>`}</td>
-      <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${frei}</span></td>
-      <td>${ownerList}</td>
+      <td class="material-name" data-label="${t('label_objekt')}">${escapeHtml(r.objekt)}<span class="usage-search-btn${isExpanded?' active':''}" data-action="toggle-usage-collectible" data-objekt="${escapeHtml(r.objekt)}" title="${t('tooltip_rueckwaertssuche')}">🔍</span></td>
+      <td data-label="${t('label_qualitaet_stufe')}">${r.tier ? escapeHtml(r.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
+      <td class="sum-total" data-label="${t('col_gesamt')}">${r.total}</td>
+      <td data-label="${t('col_reserviert')}">${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${r.reserviert}</span>` : `<span style="color:var(--ink-soft);">0</span>`}</td>
+      <td data-label="${t('col_frei_verfuegbar')}"><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${frei}</span></td>
+      <td data-label="${t('col_besitzer')}">${ownerList}</td>
     </tr>`;
     if(isExpanded){
       html += `<tr><td colspan="6" style="padding:0;">${buildUsageBreakdownHTML(r.objekt)}</td></tr>`;
@@ -10269,11 +10325,11 @@ function renderPrivateCollectibleSummary(){
   rows.forEach(r=>{
     const frei = r.total - r.reserviert;
     html += `<tr>
-      <td class="material-name">${escapeHtml(r.objekt)}</td>
-      <td>${r.tier ? escapeHtml(r.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
-      <td class="sum-total">${r.total}</td>
-      <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${r.reserviert}</span>` : `<span style="color:var(--ink-soft);">0</span>`}</td>
-      <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${frei}</span></td>
+      <td class="material-name" data-label="${t('label_objekt')}">${escapeHtml(r.objekt)}</td>
+      <td data-label="${t('label_qualitaet_stufe')}">${r.tier ? escapeHtml(r.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
+      <td class="sum-total" data-label="${t('col_gesamt')}">${r.total}</td>
+      <td data-label="${t('col_reserviert')}">${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${r.reserviert}</span>` : `<span style="color:var(--ink-soft);">0</span>`}</td>
+      <td data-label="${t('col_frei_verfuegbar')}"><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${frei}</span></td>
     </tr>`;
   });
   html += '</tbody></table>';
@@ -11077,7 +11133,7 @@ function buildStockBreakdownHTML(material, projekt){
     // diese Funktion auch OHNE Projekt-Bezug fuer die reine
     // Bestands-Aufschluesselung verwendet werden koennte.
     const showUnlink = !!projekt;
-    body = `<table><thead><tr><th style="width:${showUnlink?'30%':'34%'};">Owner</th><th style="width:${showUnlink?'38%':'44%'};">Loc</th><th style="width:${showUnlink?'18%':'22%'};">${t('label_menge')}</th>${showUnlink?`<th style="width:14%;"></th>`:''}</tr></thead><tbody>`;
+    body = `<table class="keep-table"><thead><tr><th style="width:${showUnlink?'30%':'34%'};">Owner</th><th style="width:${showUnlink?'38%':'44%'};">Loc</th><th style="width:${showUnlink?'18%':'22%'};">${t('label_menge')}</th>${showUnlink?`<th style="width:14%;"></th>`:''}</tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person||'–')}</span></td>
@@ -11103,7 +11159,7 @@ function buildTotalStockBreakdownHTML(material){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
     const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
-    body = `<table><thead><tr><th style="width:26%;">Owner</th><th style="width:30%;">Loc</th><th style="width:24%;">${t('col_projekt')}</th><th style="width:20%;">${t('label_menge')}</th></tr></thead><tbody>`;
+    body = `<table class="keep-table"><thead><tr><th style="width:26%;">Owner</th><th style="width:30%;">Loc</th><th style="width:24%;">${t('col_projekt')}</th><th style="width:20%;">${t('label_menge')}</th></tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
@@ -11140,7 +11196,7 @@ function buildNeedCoverageBreakdownHTML(need){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
     const sorted = [...matching].sort((a,b)=> a.person.localeCompare(b.person) || a.lagerort.localeCompare(b.lagerort));
-    body = `<table><thead><tr><th style="width:26%;">Owner</th><th style="width:30%;">Loc</th><th style="width:24%;">${t('col_projekt')}</th><th style="width:20%;">${t('label_menge')}</th></tr></thead><tbody>`;
+    body = `<table class="keep-table"><thead><tr><th style="width:26%;">Owner</th><th style="width:30%;">Loc</th><th style="width:24%;">${t('col_projekt')}</th><th style="width:20%;">${t('label_menge')}</th></tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${userDot(e.person)}${escapeHtml(e.person)}</span></td>
@@ -11169,7 +11225,7 @@ function getCompetingNeeds(need){
 
 function buildCompetingNeedsHTML(need, competing){
   const sorted = [...competing].sort((a,b)=> (a.createdAt||'').localeCompare(b.createdAt||''));
-  let body = `<table><thead><tr><th>${t('col_benutzer')}</th><th>${t('label_menge')}</th><th>${t('label_prioritaet')}</th></tr></thead><tbody>`;
+  let body = `<table class="keep-table"><thead><tr><th>${t('col_benutzer')}</th><th>${t('label_menge')}</th><th>${t('label_prioritaet')}</th></tr></thead><tbody>`;
   sorted.forEach(n=>{
     body += `<tr>
       <td><span style="display:inline-flex;align-items:center;">${userDot(n.user)}${escapeHtml(n.user)}</span></td>
@@ -11719,9 +11775,9 @@ function renderStockOverview(){
   list.forEach(item=>{
     const unitLabel = item.type==='collectible' ? t('unit_stueck') : einheitLabel(item.einheit);
     html += `<tr>
-      <td>${item.type==='collectible' ? t('label_sammelobjekt_typ') : t('label_material_typ')}</td>
-      <td>${escapeHtml(item.name)}</td>
-      <td class="qty-cell">${item.menge} ${escapeHtml(unitLabel)}</td>
+      <td data-label="${t('col_typ')}">${item.type==='collectible' ? t('label_sammelobjekt_typ') : t('label_material_typ')}</td>
+      <td data-label="${t('col_material')}">${escapeHtml(item.name)}</td>
+      <td class="qty-cell" data-label="${t('label_menge')}">${item.menge} ${escapeHtml(unitLabel)}</td>
       <td><button type="button" class="btn-icon" data-action="goto-stock-position" data-goto-name="${escapeHtml(item.name)}" data-goto-type="${item.type}" title="${t('tooltip_zur_position_springen')}" style="padding:2px 8px;">→</button></td>
     </tr>`;
   });
@@ -14879,10 +14935,10 @@ function buildLocationSelectHTML(id, selected, extraClass){
 // "Amber" unterscheidet.
 // ============================================================
 const QUALITY_TIERS = [
-  { key: 'low',    max: 500,      color: '#FF3B5C', labelKey: 'col_rot' },
-  { key: 'orange', max: 700,      color: '#FF5A2E', labelKey: 'col_orange' },
-  { key: 'med',    max: 800,      color: '#FFC93C', labelKey: 'col_gelb' },
-  { key: 'high',   max: Infinity, color: '#2CFFA0', labelKey: 'col_gruen' }
+  { key: 'low',    max: 500,      color: '#FF3B5C', labelKey: 'col_rot',    rangeKey: 'qtier_range_low',    nameKey: 'qtier_name_low' },
+  { key: 'orange', max: 700,      color: '#FF5A2E', labelKey: 'col_orange', rangeKey: 'qtier_range_orange', nameKey: 'qtier_name_orange' },
+  { key: 'med',    max: 800,      color: '#FFC93C', labelKey: 'col_gelb',   rangeKey: 'qtier_range_med',    nameKey: 'qtier_name_med' },
+  { key: 'high',   max: Infinity, color: '#2CFFA0', labelKey: 'col_gruen',  rangeKey: 'qtier_range_high',   nameKey: 'qtier_name_high' }
 ];
 function qualityTier(q){
   return QUALITY_TIERS.find(t=> q <= t.max) || QUALITY_TIERS[QUALITY_TIERS.length-1];
@@ -14894,6 +14950,21 @@ function emptyQualityBuckets(){
 }
 function qualityBucketsTotal(r){
   return QUALITY_TIERS.reduce((sum,t)=> sum + (r[t.key]||0), 0);
+}
+
+// Legende der Qualitaetsstufen (ueber den Zusammenfassungen).
+function buildQualityLegendHTML(){
+  const items = QUALITY_TIERS.map(tier=>`<span class="qlegend-item"><span class="qlegend-swatch" style="background:${tier.color};color:${tier.color};"></span><span class="qlegend-range">${t(tier.rangeKey)}</span><span class="qlegend-name">${t(tier.nameKey)}</span></span>`).join('');
+  return `<span class="qlegend-title">${t('label_qualitaetsstufen')}</span>${items}<span class="qlegend-hint">${t('hint_qualitaetsverteilung')}</span>`;
+}
+function renderQualityLegends(show){
+  ['summaryQualityLegend','privateSummaryQualityLegend'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(show && show[id] === false){ el.style.display = 'none'; return; }
+    el.innerHTML = buildQualityLegendHTML();
+    el.style.display = '';
+  });
 }
 
 // Kombinierte Spalte "Qualitaetsverteilung" fuer die Zusammenfassungen.
@@ -15016,8 +15087,8 @@ function renderConsolidatedNeedsSummary(){
   let html = `<table><thead><tr><th>${t('col_material')}</th><th>${t('label_gesamtbedarf')}</th></tr></thead><tbody>`;
   list.forEach(item=>{
     html += `<tr>
-      <td>${escapeHtml(item.material)}</td>
-      <td class="qty-cell">${item.menge} ${escapeHtml(einheitLabel(item.einheit))}</td>
+      <td data-label="${t('col_material')}">${escapeHtml(item.material)}</td>
+      <td class="qty-cell" data-label="${t('label_gesamtbedarf')}">${item.menge} ${escapeHtml(einheitLabel(item.einheit))}</td>
     </tr>`;
   });
   html += '</tbody></table>';
@@ -16431,9 +16502,9 @@ function addBulkTableRow(isPrivate){
   const tr = document.createElement('tr');
   tr.dataset.rowId = rowId;
   tr.innerHTML = `
-    <td>${buildMaterialSelectHTML(prefix+'bulk-mat-'+rowId, '', 'edit-input', isPrivate ? null : getUserCategoryRestriction())}</td>
-    <td><input class="edit-input" id="${prefix}bulk-qual-${rowId}" type="number" step="0.01" style="width:90px;"></td>
-    <td><input class="edit-input" id="${prefix}bulk-menge-${rowId}" type="number" step="0.001" style="width:110px;"></td>
+    <td data-label="${t('label_material')}">${buildMaterialSelectHTML(prefix+'bulk-mat-'+rowId, '', 'edit-input', isPrivate ? null : getUserCategoryRestriction())}</td>
+    <td data-label="${t('label_qualitaet')}"><input class="edit-input" id="${prefix}bulk-qual-${rowId}" type="number" step="0.01" style="width:90px;"></td>
+    <td data-label="${t('label_menge')}"><input class="edit-input" id="${prefix}bulk-menge-${rowId}" type="number" step="0.001" style="width:110px;"></td>
     <td><button type="button" class="btn-icon danger" data-remove-row="${rowId}" title="${t('btn_delete')}">✕</button></td>
   `;
   tbody.appendChild(tr);
@@ -18214,10 +18285,10 @@ function renderOcrPreview(){
     // uebersprungen, statt einen unerwuenschten Eintrag zu erzeugen.
     // Siehe Nutzerwunsch vom 7. August 2026.
     html += `<tr class="ocr-prev-row" data-row-idx="${i}">
-      <td><img class="ocr-row-snippet" src="${snippetSrc}" alt=""></td>
-      <td>${materialSelect}${rawHint}</td>
-      <td><input type="number" step="0.01" class="edit-input ocr-prev-quality ${r.qualityConfident?'':'ocr-uncertain'}" data-idx="${i}" value="${r.quality!=null?r.quality:''}" title="${r.qualityConfident?'':t('ocr_uncertain_hint')}"></td>
-      <td><input type="number" step="0.001" class="edit-input ocr-prev-menge ${r.mengeConfident?'':'ocr-uncertain'}" data-idx="${i}" value="${r.menge!=null?r.menge:''}" title="${r.mengeConfident?'':t('ocr_uncertain_hint')}"></td>
+      <td data-label="${t('ocr_col_snippet')}"><img class="ocr-row-snippet" src="${snippetSrc}" alt=""></td>
+      <td data-label="${t('label_material')}">${materialSelect}${rawHint}</td>
+      <td data-label="${t('label_qualitaet')}"><input type="number" step="0.01" class="edit-input ocr-prev-quality ${r.qualityConfident?'':'ocr-uncertain'}" data-idx="${i}" value="${r.quality!=null?r.quality:''}" title="${r.qualityConfident?'':t('ocr_uncertain_hint')}"></td>
+      <td data-label="${t('label_menge')} (SCU)"><input type="number" step="0.001" class="edit-input ocr-prev-menge ${r.mengeConfident?'':'ocr-uncertain'}" data-idx="${i}" value="${r.menge!=null?r.menge:''}" title="${r.mengeConfident?'':t('ocr_uncertain_hint')}"></td>
       <td><label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink-soft);cursor:pointer;white-space:nowrap;" title="${t('ocr_tooltip_ignore_row')}">
         <input type="checkbox" class="ocr-prev-ignore" data-idx="${i}"> ${t('ocr_ignore_row')}
       </label></td>
@@ -19362,7 +19433,7 @@ function buildQualityBreakdownHTML(material, einheit){
 
   const fmt = n => (Math.round(n*100)/100).toLocaleString('de-DE');
 
-  let body = `<table><thead><tr><th>${t('label_qualitaet')}</th><th>${t('label_menge')}</th></tr></thead><tbody>`;
+  let body = `<table class="keep-table"><thead><tr><th>${t('label_qualitaet')}</th><th>${t('label_menge')}</th></tr></thead><tbody>`;
   rows.forEach(r=>{
     body += `<tr>
       <td><span class="badge ${badgeClass(r.qualitaet)}">${fmt(r.qualitaet)}</span></td>
@@ -19376,6 +19447,8 @@ function buildQualityBreakdownHTML(material, einheit){
 function renderSummary(){
   const container = document.getElementById('summaryContainer');
   if(entries.length === 0){
+    const emptyLegendEl = document.getElementById('summaryQualityLegend');
+    if(emptyLegendEl) emptyLegendEl.style.display = 'none';
     container.innerHTML = `<div class="empty"><div class="big">${t('empty_history_none_title')}</div>${t('empty_summary_sub')}</div>`;
     return;
   }
@@ -19432,6 +19505,8 @@ function renderSummary(){
 
   const sortArrow = key => summarySortKey===key ? (summarySortDir===1?' ▲':' ▼') : '';
 
+  const legendEl = document.getElementById('summaryQualityLegend');
+  if(legendEl){ legendEl.innerHTML = buildQualityLegendHTML(); legendEl.style.display = ''; }
   let html = `<table class="summary-table"><thead><tr>
     <th data-sort="material">${t('label_material')}${sortArrow('material')}</th>
     <th data-sort="einheit">${t('col_einheit')}${sortArrow('einheit')}</th>
@@ -19459,15 +19534,15 @@ function renderSummary(){
     const estValue = (price && price.sellBest != null) ? total * price.sellBest : null;
     if(estValue != null){ totalValue += estValue; anyPriceFound = true; }
     html += `<tr${underMin ? ' style="background:rgba(255,59,92,0.06);"' : ''}>
-      <td class="material-name">${escapeHtml(r.material)}<span class="usage-search-btn${isExpanded?' active':''}" data-action="toggle-usage-material" data-material="${escapeHtml(r.material)}" title="${t('tooltip_rueckwaertssuche')}">🔍</span></td>
-      <td>${escapeHtml(r.einheit)}</td>
-      <td>${r.avgQuality!=null ? `<span class="badge ${badgeClass(r.avgQuality)}" style="cursor:pointer;${isQualityExpanded?'outline:1px solid var(--cyan);':''}" data-action="toggle-quality-breakdown" data-material="${escapeHtml(r.material)}" title="${t('tooltip_qualitaet_aufschluesselung')}">${fmt(r.avgQuality)}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
-      <td>${buildQualityDistributionHTML(r, r.einheit, fmt)}</td>
-      <td class="sum-total"><span class="qty-cell stock-hover-wrap" style="cursor:help;">${fmt(total)}<span class="stock-hover-tooltip">${buildTotalStockBreakdownHTML(r.material)}</span></span></td>
-      <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${fmt(r.reserviert)}</span>` : `<span style="color:var(--ink-soft);">${fmt(0)}</span>`}</td>
-      <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${fmt(frei)}</span></td>
-      <td>${minStock!=null ? `<span class="badge ${underMin?'low':'high'}">${underMin ? t('label_under_min_stock')+' ('+minStock+')' : t('label_ok_min_stock')+' ('+minStock+')'}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
-      <td>${estValue!=null ? `<span class="qty-cell stock-hover-wrap">${fmt(estValue)} aUEC<span class="stock-hover-tooltip">${buildSellLocationTooltipHTML(price)}</span></span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
+      <td class="material-name" data-label="${t('label_material')}">${escapeHtml(r.material)}<span class="usage-search-btn${isExpanded?' active':''}" data-action="toggle-usage-material" data-material="${escapeHtml(r.material)}" title="${t('tooltip_rueckwaertssuche')}">🔍</span></td>
+      <td data-label="${t('col_einheit')}">${escapeHtml(r.einheit)}</td>
+      <td data-label="${t('col_avg_qualitaet')}">${r.avgQuality!=null ? `<span class="badge ${badgeClass(r.avgQuality)}" style="cursor:pointer;${isQualityExpanded?'outline:1px solid var(--cyan);':''}" data-action="toggle-quality-breakdown" data-material="${escapeHtml(r.material)}" title="${t('tooltip_qualitaet_aufschluesselung')}">${fmt(r.avgQuality)}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
+      <td data-label="${t('col_qualitaetsverteilung')}">${buildQualityDistributionHTML(r, r.einheit, fmt)}</td>
+      <td class="sum-total" data-label="${t('col_gesamt')}"><span class="qty-cell stock-hover-wrap" style="cursor:help;">${fmt(total)}<span class="stock-hover-tooltip">${buildTotalStockBreakdownHTML(r.material)}</span></span></td>
+      <td data-label="${t('col_reserviert')}">${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${fmt(r.reserviert)}</span>` : `<span style="color:var(--ink-soft);">${fmt(0)}</span>`}</td>
+      <td data-label="${t('col_frei_verfuegbar')}"><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${fmt(frei)}</span></td>
+      <td data-label="${t('col_sollbestand')}">${minStock!=null ? `<span class="badge ${underMin?'low':'high'}">${underMin ? t('label_under_min_stock')+' ('+minStock+')' : t('label_ok_min_stock')+' ('+minStock+')'}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
+      <td data-label="${t('col_geschaetzter_wert')}">${estValue!=null ? `<span class="qty-cell stock-hover-wrap">${fmt(estValue)} aUEC<span class="stock-hover-tooltip">${buildSellLocationTooltipHTML(price)}</span></span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
     </tr>`;
     if(isQualityExpanded){
       html += `<tr><td colspan="9" style="padding:0;">${buildQualityBreakdownHTML(r.material, r.einheit)}</td></tr>`;
@@ -20102,7 +20177,7 @@ function buildPrivateTotalStockBreakdownHTML(material){
     body = `<div class="stock-hover-empty">${t('empty_no_contributions')}</div>`;
   } else {
     const sorted = [...matching].sort((a,b)=> b.qualitaet - a.qualitaet || a.lagerort.localeCompare(b.lagerort));
-    body = `<table><thead><tr><th style="width:32%;">${t('col_lagerort')}</th><th style="width:24%;">${t('label_qualitaet')}</th><th style="width:24%;">${t('col_projekt')}</th><th style="width:20%;">${t('label_menge')}</th></tr></thead><tbody>`;
+    body = `<table class="keep-table"><thead><tr><th style="width:32%;">${t('col_lagerort')}</th><th style="width:24%;">${t('label_qualitaet')}</th><th style="width:24%;">${t('col_projekt')}</th><th style="width:20%;">${t('label_menge')}</th></tr></thead><tbody>`;
     sorted.forEach(e=>{
       body += `<tr>
         <td><span style="display:inline-flex;align-items:center;">${locationDot(e.lagerort)}${escapeHtml(shortLocLabel(e.lagerort))}</span></td>
@@ -20119,10 +20194,13 @@ function buildPrivateTotalStockBreakdownHTML(material){
 function renderPrivateSummary(){
   const container = document.getElementById('privateSummaryContainer');
   const mine = myPrivateEntries();
+  const privLegendEl = document.getElementById('privateSummaryQualityLegend');
   if(mine.length === 0){
+    if(privLegendEl) privLegendEl.style.display = 'none';
     container.innerHTML = `<div class="empty"><div class="big">${t('empty_history_none_title')}</div>${t('empty_summary_sub')}</div>`;
     return;
   }
+  if(privLegendEl){ privLegendEl.innerHTML = buildQualityLegendHTML(); privLegendEl.style.display = ''; }
 
   const groups = {};
   mine.forEach(e=>{
@@ -20149,13 +20227,13 @@ function renderPrivateSummary(){
     const estValue = (price && price.sellBest != null) ? total * price.sellBest : null;
     if(estValue != null){ totalValue += estValue; anyPriceFound = true; }
     html += `<tr>
-      <td class="material-name">${escapeHtml(r.material)}</td>
-      <td>${escapeHtml(r.einheit)}</td>
-      <td>${buildQualityDistributionHTML(r, r.einheit, fmt)}</td>
-      <td class="sum-total"><span class="qty-cell stock-hover-wrap" style="cursor:help;">${fmt(total)}<span class="stock-hover-tooltip">${buildPrivateTotalStockBreakdownHTML(r.material)}</span></span></td>
-      <td>${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${fmt(r.reserviert)}</span>` : `<span style="color:var(--ink-soft);">${fmt(0)}</span>`}</td>
-      <td><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${fmt(frei)}</span></td>
-      <td>${estValue!=null ? `<span class="qty-cell stock-hover-wrap">${fmt(estValue)} aUEC<span class="stock-hover-tooltip">${buildSellLocationTooltipHTML(price)}</span></span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
+      <td class="material-name" data-label="${t('label_material')}">${escapeHtml(r.material)}</td>
+      <td data-label="${t('col_einheit')}">${escapeHtml(r.einheit)}</td>
+      <td data-label="${t('col_qualitaetsverteilung')}">${buildQualityDistributionHTML(r, r.einheit, fmt)}</td>
+      <td class="sum-total" data-label="${t('col_gesamt')}"><span class="qty-cell stock-hover-wrap" style="cursor:help;">${fmt(total)}<span class="stock-hover-tooltip">${buildPrivateTotalStockBreakdownHTML(r.material)}</span></span></td>
+      <td data-label="${t('col_reserviert')}">${r.reserviert>0 ? `<span class="badge project-reserved">📌 ${fmt(r.reserviert)}</span>` : `<span style="color:var(--ink-soft);">${fmt(0)}</span>`}</td>
+      <td data-label="${t('col_frei_verfuegbar')}"><span style="color:${frei>0 ? '#2CFFA0' : 'var(--ink-soft)'};font-weight:600;">${fmt(frei)}</span></td>
+      <td data-label="${t('col_geschaetzter_wert')}">${estValue!=null ? `<span class="qty-cell stock-hover-wrap">${fmt(estValue)} aUEC<span class="stock-hover-tooltip">${buildSellLocationTooltipHTML(price)}</span></span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
     </tr>`;
   });
 
