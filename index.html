@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.133 -->
+<!-- Version: 0.134 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -1982,6 +1982,12 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
         <input type="checkbox" id="discordEvent-projektAbgeschlossen" style="margin-top:3px;">
         <label for="discordEvent-projektAbgeschlossen" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektabgeschlossen">✅ Projekt vollständig abgeschlossen</label>
+
+        <input type="checkbox" id="discordEvent-projektAktualisiert" style="margin-top:3px;">
+        <label for="discordEvent-projektAktualisiert" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektaktualisiert">✏️ Projekt aktualisiert (nur die Änderungen, auch bei Übernahme aus einer Vorlage)</label>
+
+        <input type="checkbox" id="discordEvent-projektGeloescht" style="margin-top:3px;">
+        <label for="discordEvent-projektGeloescht" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektgeloescht">🗑️ Projekt gelöscht / wiederhergestellt</label>
       </div>
     </div>
     <div style="margin-top:14px;display:flex;gap:10px;">
@@ -3743,6 +3749,8 @@ const I18N = {
   "label_discord_event_projekt": "🚀 Neues Projekt angelegt",
   "label_discord_event_projekt50": "🎯 Projekt zu 50% abgeschlossen (inkl. noch fehlender Materialien)",
   "label_discord_event_projektabgeschlossen": "✅ Projekt vollständig abgeschlossen",
+  "label_discord_event_projektaktualisiert": "✏️ Projekt aktualisiert (nur die Änderungen, auch bei Übernahme aus einer Vorlage)",
+  "label_discord_event_projektgeloescht": "🗑️ Projekt gelöscht / wiederhergestellt",
   "label_noch_benoetigt": "Noch benötigt",
   "label_alle_ressourcen_gedeckt": "Alle Ressourcen bereits gedeckt.",
   "label_discord_event_projektbedarf": "📦 Bedarf aus einem Projekt gemeldet",
@@ -4575,6 +4583,8 @@ const I18N = {
   "label_discord_event_projekt": "🚀 New project created",
   "label_discord_event_projekt50": "🎯 Project 50% complete (incl. still-missing materials)",
   "label_discord_event_projektabgeschlossen": "✅ Project fully complete",
+  "label_discord_event_projektaktualisiert": "✏️ Project updated (changes only, also when applied from a template)",
+  "label_discord_event_projektgeloescht": "🗑️ Project deleted / restored",
   "label_noch_benoetigt": "Still needed",
   "label_alle_ressourcen_gedeckt": "All resources already covered.",
   "label_discord_event_projektbedarf": "📦 Need reported from a project",
@@ -5407,6 +5417,8 @@ const I18N = {
   "label_discord_event_projekt": "🚀 Nouveau projet créé",
   "label_discord_event_projekt50": "🎯 Projet complété à 50 % (avec les matériaux encore manquants)",
   "label_discord_event_projektabgeschlossen": "✅ Projet entièrement terminé",
+  "label_discord_event_projektaktualisiert": "✏️ Projet mis à jour (uniquement les modifications, y compris depuis un modèle)",
+  "label_discord_event_projektgeloescht": "🗑️ Projet supprimé / restauré",
   "label_noch_benoetigt": "Encore nécessaire",
   "label_alle_ressourcen_gedeckt": "Toutes les ressources sont déjà couvertes.",
   "label_discord_event_projektbedarf": "📦 Besoin signalé depuis un projet",
@@ -5931,7 +5943,7 @@ const DISCORD_SETTINGS_KEY = 'discord-settings';
 let currentOrgDiscordSettings = null;
 
 function defaultDiscordSettings(){
-  return { webhookUrl: '', events: { kritischerBedarf:false, zuweisung:false, projektAngelegt:false, projektBedarf:false, projekt50:false, projektAbgeschlossen:false } };
+  return { webhookUrl: '', events: { kritischerBedarf:false, zuweisung:false, projektAngelegt:false, projektBedarf:false, projekt50:false, projektAbgeschlossen:false, projektAktualisiert:false, projektGeloescht:false } };
 }
 
 async function loadOrgDiscordSettings(){
@@ -5963,6 +5975,8 @@ function loadDiscordSettingsIntoForm(){
   document.getElementById('discordEvent-projektBedarf').checked = !!s.events.projektBedarf;
   document.getElementById('discordEvent-projekt50').checked = !!s.events.projekt50;
   document.getElementById('discordEvent-projektAbgeschlossen').checked = !!s.events.projektAbgeschlossen;
+  document.getElementById('discordEvent-projektAktualisiert').checked = !!s.events.projektAktualisiert;
+  document.getElementById('discordEvent-projektGeloescht').checked = !!s.events.projektGeloescht;
 }
 
 // Zentrale Versandfunktion -- wird an allen vier Ausloese-Stellen
@@ -5975,18 +5989,44 @@ function loadDiscordSettingsIntoForm(){
 // Benachrichtigung ist immer nur ein Nice-to-have obendrauf, nie eine
 // Voraussetzung. Discord-Webhooks erwarten ein JSON-Objekt mit einem
 // "content"-Feld (einfacher Textinhalt), siehe Discord-Entwicklerdoku.
-async function sendDiscordNotification(eventKey, message){
-  const s = currentOrgDiscordSettings;
-  if(!s || !s.webhookUrl || !s.events[eventKey]) return;
-  try{
-    await fetch(s.webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: message })
-    });
-  }catch(e){
-    // Bewusst stillschweigend ignoriert -- siehe Kommentar oben.
+// Ab 13. Oktober 2026 (v0.134): Alle Nachrichten laufen durch eine
+// gemeinsame Warteschlange mit Mindestabstand. Discord nimmt pro Webhook
+// nur etwa 5 Nachrichten in 2 Sekunden an -- bei einer Sammel-Loeschung
+// vieler Projekte (je Projekt eine Meldung, Nutzerwunsch) oder einer
+// Vorlagen-Uebernahme in viele Projekte wuerden sonst Meldungen verloren
+// gehen. Antwortet Discord trotzdem mit 429 (Rate-Limit), wird nach der
+// angegebenen Wartezeit genau einmal erneut gesendet. Nachrichten ueber
+// Discords 2000-Zeichen-Grenze werden gekuerzt statt abgelehnt.
+const DISCORD_MIN_GAP_MS = 450;
+const DISCORD_MAX_CONTENT = 1990;
+let discordQueue = Promise.resolve();
+let discordLastSentAt = 0;
+
+function discordWait(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+async function discordPost(url, message){
+  const gap = discordLastSentAt + DISCORD_MIN_GAP_MS - Date.now();
+  if(gap > 0) await discordWait(gap);
+  const content = message.length > DISCORD_MAX_CONTENT ? message.slice(0, DISCORD_MAX_CONTENT - 1) + '…' : message;
+  const body = JSON.stringify({ content });
+  for(let attempt=0; attempt<2; attempt++){
+    discordLastSentAt = Date.now();
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+    if(!res || res.status !== 429) return;
+    let retry = 2;
+    try{ const j = await res.json(); if(j && j.retry_after) retry = Number(j.retry_after); }catch(e){}
+    await discordWait(Math.min(Math.max(retry, 0.5), 10) * 1000);
   }
+}
+
+function sendDiscordNotification(eventKey, message){
+  const s = currentOrgDiscordSettings;
+  if(!s || !s.webhookUrl || !s.events[eventKey] || !message) return Promise.resolve();
+  const url = s.webhookUrl;
+  discordQueue = discordQueue.then(()=>discordPost(url, message)).catch(()=>{
+    // Bewusst stillschweigend ignoriert -- siehe Kommentar oben.
+  });
+  return discordQueue;
 }
 
 // Cache fuer bereits abgefragte Standard-Passwoerter ANDERER
@@ -7893,7 +7933,9 @@ document.getElementById('btnSaveDiscord').addEventListener('click', async ()=>{
       projektAngelegt: document.getElementById('discordEvent-projektAngelegt').checked,
       projektBedarf: document.getElementById('discordEvent-projektBedarf').checked,
       projekt50: document.getElementById('discordEvent-projekt50').checked,
-      projektAbgeschlossen: document.getElementById('discordEvent-projektAbgeschlossen').checked
+      projektAbgeschlossen: document.getElementById('discordEvent-projektAbgeschlossen').checked,
+      projektAktualisiert: document.getElementById('discordEvent-projektAktualisiert').checked,
+      projektGeloescht: document.getElementById('discordEvent-projektGeloescht').checked
     }
   };
   // Webhook-URL grob validieren -- verhindert nicht jeden Tippfehler,
@@ -12738,10 +12780,18 @@ document.getElementById('btnTemplatePropagateApply').addEventListener('click', a
   if(!pendingTemplatePropagation) return;
   const { diff, affectedShared, affectedPrivate, templateName } = pendingTemplatePropagation;
 
+  const sharedBefore = affectedShared.map(p=>snapshotProjectForDiscord(p));
   affectedShared.forEach(p=>applyTemplateDiffToProject(p, diff));
   affectedPrivate.forEach(p=>applyTemplateDiffToProject(p, diff));
 
-  if(affectedShared.length>0) await saveProjects();
+  if(affectedShared.length>0){
+    await saveProjects();
+    // Nur geteilte Projekte werden nach Discord gemeldet (private nie).
+    affectedShared.forEach((p, i)=>{
+      const msg = buildDiscordProjectChange(sharedBefore[i], p, { templateName });
+      if(msg) sendDiscordNotification('projektAktualisiert', msg);
+    });
+  }
   if(affectedPrivate.length>0) await savePrivateProjects();
   await logAction('Vorlagen-Änderung in Projekte übernommen',
     `${templateName}: ${affectedShared.length} geteilte, ${affectedPrivate.length} private Projekte aktualisiert`);
@@ -13879,6 +13929,72 @@ function buildDiscordResourceList(resources, anzahl){
   return '```\n' + lines.join('\n') + '\n```';
 }
 
+// Ab 13. Oktober 2026 (v0.134): Aenderungsmeldung fuer ein geteiltes
+// Projekt -- enthaelt NUR, was sich tatsaechlich geaendert hat (alt -> neu).
+// Liefert null, wenn sich nichts geaendert hat (dann wird nichts gesendet).
+// Mengen werden so angezeigt, wie sie im Projekt gepflegt werden (bei
+// perUnit-Projekten "pro Einheit"), damit eine reine Anzahl-Aenderung
+// nicht zusaetzlich jede Materialzeile als geaendert erscheinen laesst.
+function snapshotProjectForDiscord(p){
+  return {
+    ziel: p.ziel, anzahl: p.anzahl, prioritaet: p.prioritaet || 'Mittel',
+    notiz: p.notiz || '', perUnit: !!p.perUnit,
+    resources: (p.resources||[]).filter(r=>r.material).map(r=>({ material: r.material, menge: r.menge ?? null, mindestqualitaet: r.mindestqualitaet ?? null }))
+  };
+}
+
+function buildDiscordProjectChange(oldP, newP, opts){
+  const o = snapshotProjectForDiscord(oldP), n = snapshotProjectForDiscord(newP);
+  const fmtNum = v => v==null || v==='' ? '–' : String(Math.round(Number(v)*1000)/1000);
+  const short = v => { const x = (v||'').replace(/\s+/g,' ').trim(); return x ? '„' + (x.length>80 ? x.slice(0,79)+'…' : x) + '“' : '–'; };
+  const lines = [];
+  if(o.ziel !== n.ziel) lines.push(`• Name: ${o.ziel} → ${n.ziel}`);
+  if(Number(o.anzahl) !== Number(n.anzahl)) lines.push(`• Anzahl: ${fmtNum(o.anzahl)}x → ${fmtNum(n.anzahl)}x`);
+  if(o.prioritaet !== n.prioritaet) lines.push(`• Priorität: ${o.prioritaet} → ${n.prioritaet}`);
+  if(o.notiz.trim() !== n.notiz.trim()) lines.push(`• Notiz: ${short(o.notiz)} → ${short(n.notiz)}`);
+
+  const oldMap = new Map(); o.resources.forEach(r=>{ if(!oldMap.has(r.material)) oldMap.set(r.material, r); });
+  const newMap = new Map(); n.resources.forEach(r=>{ if(!newMap.has(r.material)) newMap.set(r.material, r); });
+  const resLines = [];
+  const qualTxt = q => q==null ? '' : ` (Qualität ≥ ${fmtNum(q)})`;
+  newMap.forEach((r, name)=>{
+    const einheit = getDefaultEinheitForMaterial(name);
+    const before = oldMap.get(name);
+    if(!before){
+      resLines.push({ sign:'+', name, rest: `${r.menge!=null ? fmtNum(r.menge)+' '+einheit : '?'}${qualTxt(r.mindestqualitaet)}` });
+      return;
+    }
+    const mengeChanged = Number(before.menge ?? NaN) !== Number(r.menge ?? NaN) && !(before.menge==null && r.menge==null);
+    const qualChanged = Number(before.mindestqualitaet ?? NaN) !== Number(r.mindestqualitaet ?? NaN) && !(before.mindestqualitaet==null && r.mindestqualitaet==null);
+    if(!mengeChanged && !qualChanged) return;
+    const mengePart = mengeChanged ? `${fmtNum(before.menge)} → ${fmtNum(r.menge)} ${einheit}` : `${fmtNum(r.menge)} ${einheit}`;
+    const qualPart = qualChanged ? ` (Qualität ≥ ${fmtNum(before.mindestqualitaet)} → ${fmtNum(r.mindestqualitaet)})` : qualTxt(r.mindestqualitaet);
+    resLines.push({ sign:'~', name, rest: mengePart + qualPart });
+  });
+  oldMap.forEach((r, name)=>{ if(!newMap.has(name)) resLines.push({ sign:'-', name, rest:'' }); });
+
+  if(lines.length===0 && resLines.length===0) return null;
+
+  let msg = `✏️ **Projekt aktualisiert**: ${n.ziel}`;
+  if(opts && opts.templateName) msg += ` — aus Vorlage „${opts.templateName}“ übernommen`;
+  msg += ` — von ${currentUser.username}`;
+  if(lines.length) msg += '\n' + lines.join('\n');
+  if(resLines.length){
+    const MAX_LINES = 15;
+    const shown = resLines.slice(0, MAX_LINES);
+    const pad = Math.max(...shown.map(r=>r.name.length)) + 1;
+    const body = shown.map(r=> r.rest ? `${r.sign} ${r.name.padEnd(pad)}${r.rest}` : `${r.sign} ${r.name}`);
+    const rest = resLines.length - shown.length;
+    if(rest>0) body.push(`… und ${rest} weitere Änderung${rest===1?'':'en'}`);
+    msg += `\n• Materialien${n.perUnit ? ' (Menge pro Einheit)' : ''}:\n` + '```diff\n' + body.join('\n') + '\n```';
+  }
+  return msg;
+}
+
+function notifyDiscordProjectDeleted(p){
+  return sendDiscordNotification('projektGeloescht', `🗑️ **Projekt gelöscht**: ${p.ziel} — von ${currentUser.username}`);
+}
+
 document.getElementById('btnAddProject').addEventListener('click', async ()=>{
   const ziel = document.getElementById('proj-ziel').value.trim();
   const anzahl = document.getElementById('proj-anzahl').value;
@@ -14319,6 +14435,7 @@ function renderProjects(){
           const releasedRefs = await releaseProjectReferences(p.ziel, 'shared');
           await moveToTrash(p, 'project', { releasedRefs });
           await logAction('Projekt gelöscht', `${p.ziel}${refs.total>0 ? ` (Zuordnung bei ${refs.total} Eintrag(en) aufgehoben)` : ''}`);
+          notifyDiscordProjectDeleted(p);
         }
         renderProjects();
         scheduleRenderDashboard();
@@ -14357,6 +14474,7 @@ function renderProjects(){
   const saveBtn = container.querySelector('[data-action="save-project"]');
   if(saveBtn){
     saveBtn.addEventListener('click', async ()=>{
+      let pendingDiscordMsg = null;
       const idx = projects.findIndex(p=>p.id===editingProjectId);
       if(idx>-1){
         const resContainer = document.getElementById('editProjResources-'+editingProjectId);
@@ -14372,6 +14490,7 @@ function renderProjects(){
           };
         }).filter(r=>r.material);
         const oldZiel = projects[idx].ziel;
+        const beforeEdit = snapshotProjectForDiscord(projects[idx]);
         const newZiel = document.getElementById('edit-proj-ziel').value.trim();
         // Dieselbe Eindeutigkeits-Pruefung wie bei der Neuanlage (siehe
         // dortiger Kommentar) -- verhindert, dass ein Projekt durch
@@ -14394,9 +14513,13 @@ function renderProjects(){
         };
         const renamedCount = await renameProjectReferences(oldZiel, newZiel, 'shared');
         await logAction('Projekt bearbeitet', `${projects[idx].ziel}${renamedCount>0 ? ` (Zuordnung bei ${renamedCount} Eintrag(en) auf neuen Namen aktualisiert)` : ''}`);
+        pendingDiscordMsg = buildDiscordProjectChange(beforeEdit, projects[idx]);
       }
       editingProjectId = null;
       await saveProjects();
+      // Erst NACH erfolgreichem Speichern melden (saveProjects wirft bei
+      // einem Speicherfehler, dann geht auch keine Meldung raus).
+      if(pendingDiscordMsg) sendDiscordNotification('projektAktualisiert', pendingDiscordMsg);
       renderProjects();
       scheduleRenderDashboard();
     });
@@ -15320,6 +15443,9 @@ btnBulkDeleteProjects.addEventListener('click', ()=>{
       const releasedRefs = await releaseProjectReferences(p.ziel, 'shared');
       await moveToTrash(p, 'project', { releasedRefs });
       await logAction('Projekt gelöscht', `${p.ziel} (Sammel-Löschung)${refs.total>0 ? `, Zuordnung bei ${refs.total} Eintrag(en) aufgehoben` : ''}`);
+      // Je Projekt eine eigene Meldung (Nutzerwunsch); die Warteschlange in
+      // sendDiscordNotification sorgt fuer den noetigen Abstand.
+      notifyDiscordProjectDeleted(p);
     }
     selectedProjectIds.clear();
     renderProjects();
@@ -19314,6 +19440,7 @@ async function restoreFromTrash(id){
     const savers = { entries: save, collectibles: saveCollectibles, privateEntries: savePrivateEntries, privateCollectibles: savePrivateCollectibles, needs: saveNeeds };
     await Promise.all([...dirty].map(n=>savers[n]()));
     await logAction('Projekt aus Papierkorb wiederhergestellt', `${restored.ziel}${reassigned ? ` (${reassigned} Zuordnung(en) wiederhergestellt)` : ''}`);
+    sendDiscordNotification('projektGeloescht', `♻️ **Projekt wiederhergestellt**: ${restored.ziel} — von ${currentUser.username}`);
   } else if(effectiveKind === 'need'){
     needs.push(restored);
     await saveNeeds();
