@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.136 -->
+<!-- Version: 0.137 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -534,6 +534,8 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
 label.capture-assign-toggle-label span{flex:1 1 auto;min-width:0;}
 .ca-dialog{background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:24px 26px;max-width:620px;width:100%;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 0 40px var(--cyan-glow);}
 .ca-title{font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 10px;}
+.ca-banner{margin:0 0 12px;padding:10px 12px;border:1px solid #FF8A3D;border-left-width:4px;border-radius:var(--radius);background:rgba(255,138,61,0.12);color:#FFB27A;font-size:14px;font-weight:600;line-height:1.45;}
+.ca-none{font-size:12.5px;color:var(--ink-soft);padding:2px 0;}
 .ca-intro{font-size:13.5px;line-height:1.5;color:var(--ink);margin:0 0 10px;}
 .ca-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
 .ca-prefill-hint{font-size:12px;color:var(--ink-soft);}
@@ -1655,9 +1657,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 <!-- Ab 31. Oktober 2026 (v0.135): Projekt-Zuordnung nach der Erfassung -->
 <div id="captureAssignModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:247;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
   <div class="ca-dialog">
-    <h3 class="ca-title">📌 <span data-i18n="capture_assign_title">Neue Einträge Projekten zuordnen?</span></h3>
-    <p class="ca-intro" data-i18n="capture_assign_intro"></p>
-    <div class="ca-toolbar">
+    <h3 class="ca-title">📌 <span id="captureAssignTitle">Neue Einträge Projekten zuordnen?</span></h3>
+    <div class="ca-banner">⚠ <span data-i18n="capture_assign_banner">Kein Projekt ausgewählt – die Einträge wurden ohne Projektzuweisung gespeichert.</span></div>
+    <p class="ca-intro" id="captureAssignIntro"></p>
+    <div class="ca-toolbar" id="captureAssignToolbar">
       <span class="ca-prefill-hint" data-i18n="capture_assign_prefill_hint"></span>
       <button type="button" class="btn-ghost btn-compact" id="btnCaptureAssignSelectAll" data-i18n="capture_assign_select_all">Alle vorbelegten Mengen auswählen</button>
     </div>
@@ -3960,9 +3963,13 @@ const I18N = {
   "capture_assign_too_much": "Zu viel zugeordnet: {sum} von {amount} {einheit}.",
   "capture_assign_over_rest": "Mehr als der Restbedarf – wird trotzdem vollständig reserviert (z. B. als Puffer).",
   "capture_assign_apply": "Zuordnung übernehmen",
-  "capture_assign_skip": "Überspringen",
+  "capture_assign_skip": "Ohne Zuweisung fortfahren",
+  "capture_assign_banner": "Kein Projekt ausgewählt – die Einträge wurden ohne Projektzuweisung gespeichert.",
+  "capture_assign_title_none": "Hinweis: keine Projektzuweisung",
+  "capture_assign_intro_none": "Für diese Einträge gibt es derzeit keinen offenen Projektbedarf. Sie bleiben frei verfügbar und lassen sich später jederzeit über die Bestandstabelle einem Projekt zuordnen.",
+  "capture_assign_no_need": "Derzeit kein offener Projektbedarf",
   "capture_assign_dont_ask": "Künftig nicht mehr vorschlagen (im Erfassungsformular jederzeit wieder einschaltbar)",
-  "capture_assign_none_checked": "Nichts ausgewählt. Mit „Überspringen“ bleibt alles frei verfügbar.",
+  "capture_assign_none_checked": "Nichts ausgewählt. Mit „Ohne Zuweisung fortfahren“ bleibt alles frei verfügbar.",
   "capture_assign_fix_errors": "Bitte zuerst die rot markierten Mengen korrigieren.",
   "capture_assign_done": "{count} Projekt-Zuordnung(en) übernommen.",
   "capture_assign_tag_private": "Privat",
@@ -4817,9 +4824,13 @@ const I18N = {
   "capture_assign_too_much": "Too much assigned: {sum} of {amount} {einheit}.",
   "capture_assign_over_rest": "More than still needed – will be reserved in full anyway (e.g. as a buffer).",
   "capture_assign_apply": "Apply assignment",
-  "capture_assign_skip": "Skip",
+  "capture_assign_skip": "Continue without assignment",
+  "capture_assign_banner": "No project selected – the entries were saved without a project assignment.",
+  "capture_assign_title_none": "Note: no project assignment",
+  "capture_assign_intro_none": "There is currently no open project need for these entries. They stay freely available and can be assigned to a project at any time later via the stock table.",
+  "capture_assign_no_need": "No open project need at the moment",
   "capture_assign_dont_ask": "Don't suggest again (can be switched back on in the entry form at any time)",
-  "capture_assign_none_checked": "Nothing selected. \"Skip\" leaves everything freely available.",
+  "capture_assign_none_checked": "Nothing selected. \"Continue without assignment\" leaves everything freely available.",
   "capture_assign_fix_errors": "Please correct the amounts marked in red first.",
   "capture_assign_done": "{count} project assignment(s) applied.",
   "capture_assign_tag_private": "Private",
@@ -5674,9 +5685,13 @@ const I18N = {
   "capture_assign_too_much": "Trop attribué : {sum} sur {amount} {einheit}.",
   "capture_assign_over_rest": "Plus que le besoin restant – sera tout de même entièrement réservé (p. ex. comme réserve).",
   "capture_assign_apply": "Appliquer l'attribution",
-  "capture_assign_skip": "Ignorer",
+  "capture_assign_skip": "Continuer sans attribution",
+  "capture_assign_banner": "Aucun projet sélectionné – les entrées ont été enregistrées sans attribution à un projet.",
+  "capture_assign_title_none": "Remarque : aucune attribution de projet",
+  "capture_assign_intro_none": "Il n'existe actuellement aucun besoin de projet ouvert pour ces entrées. Elles restent librement disponibles et peuvent être attribuées à un projet à tout moment via le tableau du stock.",
+  "capture_assign_no_need": "Aucun besoin de projet ouvert pour le moment",
   "capture_assign_dont_ask": "Ne plus proposer (réactivable à tout moment dans le formulaire de saisie)",
-  "capture_assign_none_checked": "Rien de sélectionné. « Ignorer » laisse tout librement disponible.",
+  "capture_assign_none_checked": "Rien de sélectionné. « Continuer sans attribution » laisse tout librement disponible.",
   "capture_assign_fix_errors": "Veuillez d'abord corriger les quantités marquées en rouge.",
   "capture_assign_done": "{count} attribution(s) de projet appliquée(s).",
   "capture_assign_tag_private": "Privé",
@@ -13410,11 +13425,15 @@ let captureAssignState = null;
 // statusFn (optional): meldet das Ergebnis im jeweiligen Formular.
 function offerCaptureProjectAssignment(items, statusFn){
   if(!captureAssignSuggestEnabled || !currentUser || !items || items.length === 0) return;
+  // Ab v0.137: Das Fenster erscheint IMMER, wenn ohne Projekt erfasst
+  // wurde (Nutzerwunsch: "mit der Nase draufstossen") -- mit deutlichem
+  // Hinweis, dass keine Zuweisung erfolgt ist. Gibt es keinen passenden
+  // offenen Bedarf, zeigt es nur den Hinweis und "Ohne Zuweisung fortfahren".
   const blocks = items
     .filter(it=>it && it.id && it.amount > 0)
-    .map(it=>({ item: it, cands: getCaptureAssignCandidates(it) }))
-    .filter(b=>b.cands.some(c=>c.qualOk));
+    .map(it=>({ item: it, cands: getCaptureAssignCandidates(it) }));
   if(blocks.length === 0) return;
+  const hasNeed = blocks.some(b=>b.cands.some(c=>c.qualOk));
 
   // Vorbelegung: Mengen je Projekt nach Alter verteilen; mehrere neue
   // Eintraege desselben Materials teilen sich denselben Restbedarf.
@@ -13437,7 +13456,11 @@ function offerCaptureProjectAssignment(items, statusFn){
     b.cands.forEach(c=>{ c.checked = eligible.length === 1 && c === eligible[0] && c.prefill > 0; });
   });
 
-  captureAssignState = { blocks, statusFn };
+  captureAssignState = { blocks, statusFn, hasNeed };
+  document.getElementById('captureAssignTitle').textContent = hasNeed ? t('capture_assign_title') : t('capture_assign_title_none');
+  document.getElementById('captureAssignIntro').textContent = hasNeed ? t('capture_assign_intro') : t('capture_assign_intro_none');
+  document.getElementById('captureAssignToolbar').style.display = hasNeed ? '' : 'none';
+  document.getElementById('btnCaptureAssignApply').style.display = hasNeed ? '' : 'none';
   renderCaptureAssignModal();
   document.getElementById('captureAssignDontAsk').checked = false;
   document.getElementById('captureAssignError').style.display = 'none';
@@ -13468,10 +13491,11 @@ function renderCaptureAssignModal(){
         <input type="number" class="ca-amt" data-b="${bi}" data-c="${ci}" min="0" step="${it.kind === 'collectible' ? '1' : '0.001'}" value="${c.prefill > 0 ? c.prefill : ''}" aria-label="${escapeHtml(t('label_menge'))}">
       </div>`;
     }).join('');
+    const hasEligible = b.cands.some(c=>c.qualOk);
     return `<div class="ca-block" data-b="${bi}">
       <div class="ca-head">${escapeHtml(it.name)} <span class="ca-sub">${sub}</span></div>
-      ${rows}
-      <div class="ca-free" id="caFree-${bi}"></div>
+      ${rows || `<div class="ca-none">${escapeHtml(t('capture_assign_no_need'))}</div>`}
+      ${hasEligible ? `<div class="ca-free" id="caFree-${bi}"></div>` : ''}
     </div>`;
   }).join('');
   updateCaptureAssignSummary();
@@ -13526,6 +13550,7 @@ function updateCaptureAssignSummary(){
     });
     const free = caRound(it.amount - sum);
     const el = document.getElementById('caFree-' + bi);
+    if(!el) return; // Eintrag ohne waehlbares Projekt (ab v0.137 trotzdem angezeigt)
     if(free < -1e-9 || invalid){
       hasError = true;
       el.classList.add('ca-neg');
