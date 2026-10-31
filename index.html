@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.134 -->
+<!-- Version: 0.136 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -527,6 +527,36 @@ body.device-mobile #ocrPreviewImg{max-height:38vh;}
 
 /* Schnellauswahl-Chips "zuletzt verwendet" ueber Material-/Lagerort-
    Dropdowns in den Eingabeformularen. */
+/* Ab 31. Oktober 2026 (v0.135): Projekt-Zuordnung nach der Erfassung */
+.field label.capture-assign-toggle-label, label.capture-assign-toggle-label{display:flex;align-items:flex-start;gap:7px;margin-top:8px;font-size:12px;line-height:1.35;color:var(--ink-soft);cursor:pointer;text-transform:none;letter-spacing:0;font-family:'Rajdhani', sans-serif;font-weight:normal;max-width:100%;}
+/* .field input setzt width:100% und Padding -- fuer die Checkbox hier bewusst aufgehoben */
+.field label.capture-assign-toggle-label input[type=checkbox], label.capture-assign-toggle-label input[type=checkbox]{flex:0 0 auto;width:auto;min-width:0;padding:0;margin:2px 0 0;}
+label.capture-assign-toggle-label span{flex:1 1 auto;min-width:0;}
+.ca-dialog{background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:24px 26px;max-width:620px;width:100%;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 0 40px var(--cyan-glow);}
+.ca-title{font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 10px;}
+.ca-intro{font-size:13.5px;line-height:1.5;color:var(--ink);margin:0 0 10px;}
+.ca-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
+.ca-prefill-hint{font-size:12px;color:var(--ink-soft);}
+.ca-body{display:flex;flex-direction:column;gap:12px;}
+.ca-block{border:1px solid rgba(0,229,255,0.25);border-radius:var(--radius);padding:10px 12px;background:rgba(0,10,16,0.5);}
+.ca-head{font-weight:600;font-size:14px;color:var(--ink);margin-bottom:8px;}
+.ca-head .ca-sub{font-weight:normal;color:var(--ink-soft);font-size:12.5px;}
+.ca-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:5px 0;border-top:1px dashed rgba(255,255,255,0.08);font-size:13px;}
+.ca-row:first-of-type{border-top:none;}
+.ca-row label{display:flex;align-items:center;gap:7px;cursor:pointer;flex:1 1 200px;min-width:0;}
+.ca-proj{color:var(--ink);overflow-wrap:anywhere;}
+.ca-tag{display:inline-block;font-size:10px;padding:1px 6px;margin-left:4px;border-radius:3px;border:1px solid var(--ink-soft);color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.5px;vertical-align:middle;}
+.ca-rest{color:var(--ink-soft);font-size:12.5px;white-space:nowrap;}
+.ca-amt{width:110px;}
+.ca-amt.ca-over{border-color:#FF8A3D !important;color:#FF8A3D;}
+.ca-row.ca-disabled{color:var(--ink-soft);opacity:0.75;}
+.ca-free{margin-top:6px;font-size:12.5px;color:var(--ink-soft);}
+.ca-free.ca-neg{color:#FF3B5C;font-weight:600;}
+.ca-error{margin-top:12px;color:#FF3B5C;font-size:13px;}
+.ca-dont-ask{display:flex;align-items:flex-start;gap:8px;margin-top:14px;font-size:12.5px;color:var(--ink-soft);cursor:pointer;}
+.ca-dont-ask input{flex-shrink:0;margin-top:2px;}
+.ca-buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+
 .recent-chips{
   display:flex;
   flex-wrap:wrap;
@@ -1622,6 +1652,39 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 </div>
 
+<!-- Ab 31. Oktober 2026 (v0.135): Projekt-Zuordnung nach der Erfassung -->
+<div id="captureAssignModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:247;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div class="ca-dialog">
+    <h3 class="ca-title">📌 <span data-i18n="capture_assign_title">Neue Einträge Projekten zuordnen?</span></h3>
+    <p class="ca-intro" data-i18n="capture_assign_intro"></p>
+    <div class="ca-toolbar">
+      <span class="ca-prefill-hint" data-i18n="capture_assign_prefill_hint"></span>
+      <button type="button" class="btn-ghost btn-compact" id="btnCaptureAssignSelectAll" data-i18n="capture_assign_select_all">Alle vorbelegten Mengen auswählen</button>
+    </div>
+    <div id="captureAssignBody" class="ca-body"></div>
+    <div id="captureAssignError" class="ca-error" style="display:none;"></div>
+    <label class="ca-dont-ask"><input type="checkbox" id="captureAssignDontAsk"><span data-i18n="capture_assign_dont_ask"></span></label>
+    <div class="ca-buttons">
+      <button class="btn-primary" id="btnCaptureAssignApply" data-i18n="capture_assign_apply">Zuordnung übernehmen</button>
+      <button class="btn-ghost" id="btnCaptureAssignSkip" data-i18n="capture_assign_skip">Überspringen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ab 31. Oktober 2026 (v0.135): Ueberschuss-Pruefung fuer die Massen-Eingabe -->
+<div id="bulkOverflowModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:247;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0D141C;border:1px solid #FF3B5C;border-radius:var(--radius);padding:26px 28px;max-width:500px;width:100%;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 0 40px rgba(255,59,92,0.3);">
+    <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:#FF3B5C;margin:0 0 14px;">⚠ <span data-i18n="modal_ueberschuss_titel">Mehr als benötigt?</span></h3>
+    <p id="bulkOverflowText" style="font-size:14px;line-height:1.5;color:var(--ink);margin:0 0 10px;"></p>
+    <ul id="bulkOverflowList" style="font-size:13.5px;line-height:1.5;color:var(--ink);margin:0 0 18px;padding-left:20px;"></ul>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn-primary" id="btnBulkOverflowCap" data-i18n="bulk_overflow_cap">Nur den Restbedarf zuweisen (Überschuss bleibt frei verfügbar)</button>
+      <button class="btn-ghost" id="btnBulkOverflowFull" data-i18n="btn_ueberschuss_trotzdem_alle">Trotzdem die volle Menge zuweisen</button>
+      <button class="btn-ghost" id="btnBulkOverflowCancel" data-i18n="btn_cancel">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <div id="resetPasswordModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:246;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
   <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:26px 28px;max-width:420px;width:100%;box-shadow:0 0 40px var(--cyan-glow);">
     <h3 style="font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 6px;">🔑 <span data-i18n="modal_passwort_aendern">Passwort ändern</span></h3>
@@ -2381,6 +2444,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div id="f-lagerort-recent-chips" class="recent-chips"></div>
         <label for="f-projekt" data-i18n="label_projektziel" style="margin-top:6px;">Projektziel</label>
         <div id="f-projekt-wrap"></div>
+        <label class="capture-assign-toggle-label" title="" data-i18n-title="capture_assign_toggle_tooltip"><input type="checkbox" class="capture-assign-toggle" id="f-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label>
       </div>
       <div class="field">
         <button class="btn-primary" id="btnAdd" data-i18n="btn_add">Eintragen</button>
@@ -2412,6 +2476,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
               <div id="bulkTableProjektWrap"></div>
             </div>
           </div>
+          <div style="display:flex;justify-content:flex-end;"><label class="capture-assign-toggle-label" style="margin-top:6px;" title="" data-i18n-title="capture_assign_toggle_tooltip"><input type="checkbox" class="capture-assign-toggle" id="bulk-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label></div>
           <div style="overflow-x:auto;margin-top:10px;">
             <table>
               <thead><tr>
@@ -2534,6 +2599,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div id="priv-lagerort-recent-chips" class="recent-chips"></div>
         <label for="priv-projekt" data-i18n="label_projektziel" style="margin-top:6px;">Projektziel</label>
         <div id="priv-projekt-wrap"></div>
+        <label class="capture-assign-toggle-label" title="" data-i18n-title="capture_assign_toggle_tooltip"><input type="checkbox" class="capture-assign-toggle" id="priv-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label>
       </div>
       <div class="field">
         <button class="btn-primary" id="btnAddPrivate" data-i18n="btn_add">Eintragen</button>
@@ -2565,6 +2631,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
               <div id="priv-bulkTableProjektWrap"></div>
             </div>
           </div>
+          <div style="display:flex;justify-content:flex-end;"><label class="capture-assign-toggle-label" style="margin-top:6px;" title="" data-i18n-title="capture_assign_toggle_tooltip"><input type="checkbox" class="capture-assign-toggle" id="priv-bulk-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label></div>
           <div style="overflow-x:auto;margin-top:10px;">
             <table>
               <thead><tr>
@@ -2650,6 +2717,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <div class="field">
         <label for="priv-coll-projekt" data-i18n="label_projekt">Projekt</label>
         <div id="priv-coll-projekt-wrap"></div>
+        <label class="capture-assign-toggle-label" title="" data-i18n-title="capture_assign_toggle_tooltip"><input type="checkbox" class="capture-assign-toggle" id="priv-coll-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label>
       </div>
       <div class="field">
         <button class="btn-primary" id="btnAddPrivateCollectible" data-i18n="btn_add">Eintragen</button>
@@ -2900,6 +2968,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <div class="field">
           <label for="coll-projekt" data-i18n="label_projekt">Projekt</label>
           <div id="coll-projekt-wrap"></div>
+          <label class="capture-assign-toggle-label" title="" data-i18n-title="capture_assign_toggle_tooltip"><input type="checkbox" class="capture-assign-toggle" id="coll-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label>
         </div>
         <div class="field">
           <button class="btn-primary" id="btnAddCollectible" data-i18n="btn_add">Eintragen</button>
@@ -3879,6 +3948,29 @@ const I18N = {
   "modal_ueberschuss_titel": "Mehr als benötigt?",
   "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
   "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
+  "capture_assign_toggle": "Nach dem Eintragen passende Projekte vorschlagen",
+  "capture_assign_toggle_tooltip": "Zeigt nach dem Speichern an, welche offenen Projekte das erfasste Material benötigen, und bietet die direkte Zuordnung an. Gilt für alle Erfassungswege und wird je Benutzer gespeichert.",
+  "capture_assign_title": "Neue Einträge Projekten zuordnen?",
+  "capture_assign_intro": "Für folgende neu erfasste Einträge gibt es offene Projektbedarfe. Häkchen setzen, welchem Projekt welche Menge zugeordnet werden soll – nicht zugeordnete Mengen bleiben frei verfügbar.",
+  "capture_assign_prefill_hint": "Mengen sind vorbelegt, ältestes Projekt zuerst.",
+  "capture_assign_select_all": "Alle vorbelegten Mengen auswählen",
+  "capture_assign_rest": "Restbedarf: {rest} {einheit}",
+  "capture_assign_minqual": "verlangt Qualität ≥ {min} – nicht erfüllt",
+  "capture_assign_free": "Danach noch frei verfügbar: {free} {einheit}",
+  "capture_assign_too_much": "Zu viel zugeordnet: {sum} von {amount} {einheit}.",
+  "capture_assign_over_rest": "Mehr als der Restbedarf – wird trotzdem vollständig reserviert (z. B. als Puffer).",
+  "capture_assign_apply": "Zuordnung übernehmen",
+  "capture_assign_skip": "Überspringen",
+  "capture_assign_dont_ask": "Künftig nicht mehr vorschlagen (im Erfassungsformular jederzeit wieder einschaltbar)",
+  "capture_assign_none_checked": "Nichts ausgewählt. Mit „Überspringen“ bleibt alles frei verfügbar.",
+  "capture_assign_fix_errors": "Bitte zuerst die rot markierten Mengen korrigieren.",
+  "capture_assign_done": "{count} Projekt-Zuordnung(en) übernommen.",
+  "capture_assign_tag_private": "Privat",
+  "capture_assign_tag_shared": "Geteilt",
+  "capture_assign_quality": "Qualität {q}",
+  "bulk_overflow_text": "Für das Projekt „{projekt}“ übersteigen folgende Zeilen den Restbedarf:",
+  "bulk_overflow_row": "{material}: {entered} {einheit} eingegeben, Restbedarf {remaining} {einheit}",
+  "bulk_overflow_cap": "Nur den Restbedarf zuweisen (Überschuss bleibt frei verfügbar)",
   "btn_ueberschuss_trotzdem_alle": "Trotzdem die volle Menge zuweisen",
   "val_object_qty_required": "Bitte Objekt und Anzahl angeben.",
   "val_category_name_required": "Bitte Kategorie und Materialname angeben.",
@@ -4713,6 +4805,29 @@ const I18N = {
   "modal_ueberschuss_titel": "More than needed?",
   "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
   "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
+  "capture_assign_toggle": "Suggest matching projects after adding",
+  "capture_assign_toggle_tooltip": "After saving, shows which open projects need the added material and offers to assign it right away. Applies to all ways of adding and is saved per user.",
+  "capture_assign_title": "Assign new entries to projects?",
+  "capture_assign_intro": "Open project needs exist for the following newly added entries. Tick which project should receive which amount – unassigned amounts stay freely available.",
+  "capture_assign_prefill_hint": "Amounts are prefilled, oldest project first.",
+  "capture_assign_select_all": "Select all prefilled amounts",
+  "capture_assign_rest": "Still needed: {rest} {einheit}",
+  "capture_assign_minqual": "requires quality ≥ {min} – not met",
+  "capture_assign_free": "Still freely available afterwards: {free} {einheit}",
+  "capture_assign_too_much": "Too much assigned: {sum} of {amount} {einheit}.",
+  "capture_assign_over_rest": "More than still needed – will be reserved in full anyway (e.g. as a buffer).",
+  "capture_assign_apply": "Apply assignment",
+  "capture_assign_skip": "Skip",
+  "capture_assign_dont_ask": "Don't suggest again (can be switched back on in the entry form at any time)",
+  "capture_assign_none_checked": "Nothing selected. \"Skip\" leaves everything freely available.",
+  "capture_assign_fix_errors": "Please correct the amounts marked in red first.",
+  "capture_assign_done": "{count} project assignment(s) applied.",
+  "capture_assign_tag_private": "Private",
+  "capture_assign_tag_shared": "Shared",
+  "capture_assign_quality": "Quality {q}",
+  "bulk_overflow_text": "For project \"{projekt}\", the following rows exceed what is still needed:",
+  "bulk_overflow_row": "{material}: {entered} {einheit} entered, still needed {remaining} {einheit}",
+  "bulk_overflow_cap": "Assign only what is still needed (surplus stays freely available)",
   "btn_ueberschuss_trotzdem_alle": "Assign the full amount anyway",
   "val_object_qty_required": "Please enter item and quantity.",
   "val_category_name_required": "Please enter category and material name.",
@@ -5547,6 +5662,29 @@ const I18N = {
   "modal_ueberschuss_titel": "Plus que nécessaire ?",
   "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
   "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
+  "capture_assign_toggle": "Proposer les projets correspondants après l'ajout",
+  "capture_assign_toggle_tooltip": "Après l'enregistrement, indique quels projets ouverts ont besoin du matériau ajouté et propose de l'attribuer directement. S'applique à tous les modes de saisie et est enregistré par utilisateur.",
+  "capture_assign_title": "Attribuer les nouvelles entrées à des projets ?",
+  "capture_assign_intro": "Des besoins de projets ouverts existent pour les entrées suivantes. Cochez quel projet doit recevoir quelle quantité – les quantités non attribuées restent librement disponibles.",
+  "capture_assign_prefill_hint": "Quantités préremplies, projet le plus ancien en premier.",
+  "capture_assign_select_all": "Sélectionner toutes les quantités préremplies",
+  "capture_assign_rest": "Besoin restant : {rest} {einheit}",
+  "capture_assign_minqual": "exige une qualité ≥ {min} – non atteinte",
+  "capture_assign_free": "Encore disponible ensuite : {free} {einheit}",
+  "capture_assign_too_much": "Trop attribué : {sum} sur {amount} {einheit}.",
+  "capture_assign_over_rest": "Plus que le besoin restant – sera tout de même entièrement réservé (p. ex. comme réserve).",
+  "capture_assign_apply": "Appliquer l'attribution",
+  "capture_assign_skip": "Ignorer",
+  "capture_assign_dont_ask": "Ne plus proposer (réactivable à tout moment dans le formulaire de saisie)",
+  "capture_assign_none_checked": "Rien de sélectionné. « Ignorer » laisse tout librement disponible.",
+  "capture_assign_fix_errors": "Veuillez d'abord corriger les quantités marquées en rouge.",
+  "capture_assign_done": "{count} attribution(s) de projet appliquée(s).",
+  "capture_assign_tag_private": "Privé",
+  "capture_assign_tag_shared": "Partagé",
+  "capture_assign_quality": "Qualité {q}",
+  "bulk_overflow_text": "Pour le projet « {projekt} », les lignes suivantes dépassent le besoin restant :",
+  "bulk_overflow_row": "{material} : {entered} {einheit} saisi(s), besoin restant {remaining} {einheit}",
+  "bulk_overflow_cap": "N'attribuer que le besoin restant (le surplus reste disponible)",
   "btn_ueberschuss_trotzdem_alle": "Attribuer quand même la quantité totale",
   "val_object_qty_required": "Veuillez indiquer l'objet et la quantité.",
   "val_category_name_required": "Veuillez indiquer la catégorie et le nom du matériau.",
@@ -8848,6 +8986,7 @@ function completeLogin(user){
   document.getElementById('badgeRole').textContent = roleLabel(user.role);
   document.getElementById('btnHelp').style.display = '';
   loadTabOrderPref();
+  loadCaptureAssignPref();
   // Zeitpunkt der letzten Anmeldung merken (für die Benutzerverwaltung) —
   // bewusst nicht abgewartet, damit das Speichern den eigentlichen Login
   // nicht künstlich verzögert.
@@ -9646,8 +9785,9 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
   checkAndResolveProjectOverflow(objekt, projektAssign.ziel, projektAssign.typ, parseFloat(anzahl), false, einheit, async (finalMenge, restMenge)=>{
     if(finalMenge == null) return; // Nutzer hat abgebrochen
 
+    const capturedCollId = collectibleUid();
     collectibles.push({
-      id: collectibleUid(),
+      id: capturedCollId,
       kategorie: item ? item.category : '',
       objekt, tier,
       anzahl: finalMenge,
@@ -9688,6 +9828,10 @@ document.getElementById('btnAddCollectible').addEventListener('click', async ()=
     updateProjectAvailability();
     renderProjects();
     setTimeout(()=>{ statusEl.textContent=''; }, 2500);
+    // Ab v0.135: ohne gewaehltes Projekt passende Projekte anbieten.
+    if(!projektAssign.ziel){
+      offerCaptureProjectAssignment([{ kind:'collectible', isPrivate:false, id: capturedCollId, name: objekt, qualitaet: null, amount: finalMenge, einheit: t('unit_stueck'), ort: standort }], msg=>{ setStatusMsg(statusEl, msg, false); setTimeout(()=>{ statusEl.textContent=''; }, 4000); });
+    }
   });
 });
 
@@ -10019,8 +10163,9 @@ document.getElementById('btnAddPrivateCollectible').addEventListener('click', as
   checkAndResolveProjectOverflow(objekt, projektAssign.ziel, projektAssign.typ, parseFloat(anzahl), true, einheit, async (finalMenge, restMenge)=>{
     if(finalMenge == null) return; // Nutzer hat abgebrochen
 
+    const capturedPrivCollId = privateCollectibleUid();
     privateCollectibles.push({
-      id: privateCollectibleUid(),
+      id: capturedPrivCollId,
       kategorie: item ? item.category : '',
       objekt, tier,
       anzahl: finalMenge,
@@ -10066,6 +10211,10 @@ document.getElementById('btnAddPrivateCollectible').addEventListener('click', as
     updatePrivateProjectAvailability();
     renderPrivateProjects();
     setTimeout(()=>{ statusEl.textContent=''; }, 2500);
+    // Ab v0.135: ohne gewaehltes Projekt passende Projekte anbieten.
+    if(!projektAssign.ziel){
+      offerCaptureProjectAssignment([{ kind:'collectible', isPrivate:true, id: capturedPrivCollId, name: objekt, qualitaet: null, amount: finalMenge, einheit: t('unit_stueck'), ort: standort }], msg=>{ setStatusMsg(statusEl, msg, false); setTimeout(()=>{ statusEl.textContent=''; }, 4000); });
+    }
   });
 });
 
@@ -13069,7 +13218,10 @@ function closePartialAssignModal(){
 // Formulare, analog zur bereits bestehenden Pruefung bei Neuanlage).
 function checkAndResolveProjectOverflow(material, projekt, projektTyp, enteredMenge, isPrivate, einheit, callback, excludeAmount){
   if(!projekt || enteredMenge == null || enteredMenge <= 0){ callback(enteredMenge, 0); return; }
-  const projectList = projektTyp === 'private' ? privateProjects : projects;
+  // Ab v0.136: private Projekte nur aus den EIGENEN suchen -- Namen sind
+  // nur je Person eindeutig, ein gleichnamiges Projekt eines anderen
+  // Mitglieds darf hier nicht getroffen werden.
+  const projectList = projektTyp === 'private' ? myPrivateProjects() : projects;
   const project = projectList.find(p=>p.ziel === projekt);
   if(!project){ callback(enteredMenge, 0); return; }
   const resource = project.resources.map(normalizeResource).find(r=>r.material === material);
@@ -13080,9 +13232,26 @@ function checkAndResolveProjectOverflow(material, projekt, projektTyp, enteredMe
   // Eintrag selbst ist zu diesem Zeitpunkt noch nicht angelegt, zaehlt
   // also korrekt noch nicht mit. Beim Bearbeiten wird der eigene,
   // bisherige Beitrag ueber excludeAmount zusaetzlich herausgerechnet.
-  const currentAvail = (isPrivate
-    ? privateStockAmount(material, projekt, undefined, projektTyp)
-    : stockAmount(material, projekt)) - (excludeAmount || 0);
+  //
+  // Ab 31. Oktober 2026 (v0.136): Massgeblich ist der TYP DES PROJEKTS,
+  // nicht der Bereich des Eintrags. Bisher wurde ein privater Eintrag fuer
+  // ein GETEILTES Projekt nur gegen den eigenen, diesem Projekt
+  // zugeordneten Privatbestand geprueft -- der bereits zugeordnete
+  // geteilte Bestand blieb unberuecksichtigt, die Warnung griff dadurch
+  // praktisch nie. Jetzt fuer geteilte Projekte einheitlich: geteilter
+  // Bestand + privat zugesagte, noch nicht uebertragene Mengen aller
+  // Mitglieder (identisch zur Projekt-Zuordnung nach der Erfassung und zur
+  // Massen-Eingabe, siehe getProjectRemainingNeed()). Beim Bearbeiten
+  // eines privaten, bereits zugesagten Eintrags steckt dessen bisherige
+  // Menge in den Zusagen und wird ueber excludeAmount herausgerechnet.
+  let baseAvail;
+  if(projektTyp === 'private'){
+    baseAvail = privateStockAmount(material, projekt, undefined, 'private');
+  } else {
+    const pledged = getPendingPrivateCommitments(material, projekt).reduce((s,c)=>s + (c.menge || 0), 0);
+    baseAvail = stockAmount(material, projekt) + pledged;
+  }
+  const currentAvail = baseAvail - (excludeAmount || 0);
   const remaining = Math.max(0, Math.round((effMenge - currentAvail) * 1000) / 1000);
 
   if(enteredMenge <= remaining){ callback(enteredMenge, 0); return; }
@@ -13092,7 +13261,7 @@ function checkAndResolveProjectOverflow(material, projekt, projektTyp, enteredMe
     .replace('{material}', material)
     .replace('{remaining}', remaining)
     .replace('{entered}', enteredMenge)
-    .replace('{einheit}', einheitLabel);
+    .replace(/\{einheit\}/g, einheitLabel); // ab v0.136: Platzhalter kommt im Text zweimal vor
   document.getElementById('btnOverflowCap').textContent = t('btn_ueberschuss_kappen').replace('{remaining}', remaining).replace('{einheit}', einheitLabel);
   document.getElementById('overflowWarningModal').style.display = 'flex';
 
@@ -13112,6 +13281,488 @@ function checkAndResolveProjectOverflow(material, projekt, projektTyp, enteredMe
   document.getElementById('btnOverflowCap').addEventListener('click', ()=>{ cleanup(); callback(remaining, Math.round((enteredMenge - remaining)*1000)/1000); });
   document.getElementById('btnOverflowFull').addEventListener('click', ()=>{ cleanup(); callback(enteredMenge, 0); });
   document.getElementById('btnOverflowCancel').addEventListener('click', ()=>{ cleanup(); callback(null, null); });
+}
+
+// ============================================================
+// Projekt-Zuordnung nach der Erfassung (ab 31. Oktober 2026, v0.135)
+// ------------------------------------------------------------
+// Nutzererfahrung: Nach einer Neuanlage (einzeln, per Massen-Eingabe oder
+// per Foto-Erfassung) erwarteten Nutzer, dass das Material direkt einem
+// Projekt zugeordnet wird. Die bestehenden Felder "Projektziel" bzw.
+// "Projekt (optional)" wurden dabei haeufig uebersehen und gelten in der
+// Massen-Eingabe zudem fuer die ganze Tabelle. Jetzt wird nach dem
+// Speichern -- nur fuer Eintraege OHNE gewaehlte Projektzuordnung --
+// ein Fenster angeboten, das je neuem Eintrag ALLE offenen Projekte mit
+// Bedarf an diesem Material auflistet (aelteste zuerst) und die direkte
+// Zuordnung mit frei waehlbarer Menge erlaubt.
+//  - Bereichsregeln wie ueberall: geteilte Eintraege nur an geteilte
+//    Projekte, private an eigene private ODER geteilte Projekte.
+//  - Abgeschlossene Projekte und Projekte ohne Restbedarf erscheinen nicht.
+//  - Mindestqualitaet (nur Materialien) wird beachtet: nicht erfuellte
+//    Projekte werden ausgegraut angezeigt und sind nicht waehlbar.
+//  - Vorbelegung: genau ein passendes Projekt -> angehakt; mehrere ->
+//    Mengen nach Alter (aeltestes zuerst) vorbefuellt, aber NICHT
+//    angehakt (bewusste Entscheidung beim Nutzer).
+//  - Wird ein Eintrag auf mehrere Projekte verteilt oder nur teilweise
+//    zugeordnet, wird er wie bei der Teilmengen-Zuweisung aufgeteilt.
+//  - Private Eintraege, die einem GETEILTEN Projekt zugeordnet werden,
+//    werden -- wie bei der Einzel-Anlage seit 15. August 2026 -- direkt
+//    in den geteilten Bestand uebertragen.
+//  - Abschaltbar je Benutzer (Checkbox direkt in den Erfassungsformularen,
+//    standardmaessig aktiv).
+// ============================================================
+const CAPTURE_ASSIGN_PREF_KEY = 'capture-assign-suggest';
+let captureAssignSuggestEnabled = true;
+
+async function loadCaptureAssignPref(){
+  captureAssignSuggestEnabled = true;
+  if(currentUser){
+    try{
+      const res = await window.storage.get(userKey(CAPTURE_ASSIGN_PREF_KEY), true);
+      if(res && res.value != null) captureAssignSuggestEnabled = String(res.value) !== 'false';
+    }catch(e){ /* Standard (aktiv) bleibt bestehen */ }
+  }
+  syncCaptureAssignToggles();
+}
+async function setCaptureAssignSuggest(enabled){
+  captureAssignSuggestEnabled = !!enabled;
+  syncCaptureAssignToggles();
+  try{ await window.storage.set(userKey(CAPTURE_ASSIGN_PREF_KEY), captureAssignSuggestEnabled ? 'true' : 'false', true); }catch(e){}
+}
+function syncCaptureAssignToggles(){
+  document.querySelectorAll('input.capture-assign-toggle').forEach(cb=>{ cb.checked = captureAssignSuggestEnabled; });
+}
+document.addEventListener('change', (ev)=>{
+  const el = ev.target;
+  if(el && el.classList && el.classList.contains('capture-assign-toggle')){
+    setCaptureAssignSuggest(el.checked);
+  }
+});
+
+function caRound(x){ return Math.round(x * 1000) / 1000; }
+
+// Alter eines Projekts fuer die Reihenfolge "aeltestes zuerst". Neue
+// Projekte tragen ab v0.135 ein createdAt; aeltere Projekte haben keines,
+// ihre ID enthaelt aber den Anlage-Zeitstempel (projectUid()/
+// privateProjectUid(): 'p'/'pp' + Date.now()). Faellt auch das weg,
+// entscheidet die Reihenfolge in der Projektliste (= Anlage-Reihenfolge).
+function projectCreatedMs(p){
+  if(p && p.createdAt){
+    const ms = Date.parse(p.createdAt);
+    if(!isNaN(ms)) return ms;
+  }
+  const m = /^pp?(\d{13})/.exec((p && p.id) || '');
+  return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
+}
+
+// Tatsaechlicher Restbedarf einer Ressource in einem Projekt.
+//  - Geteilte Projekte: benoetigte Menge minus bereits zugeordneter
+//    geteilter Bestand (Materialien + Sammelobjekte) minus bereits PRIVAT
+//    ZUGESAGTER, noch nicht uebertragener Mengen aller Mitglieder -- sonst
+//    wuerde dieselbe Luecke doppelt "gefuellt".
+//  - Private Projekte: benoetigte Menge minus eigener, diesem privaten
+//    Projekt zugeordneter Privatbestand.
+// Liefert null, wenn das Projekt die Ressource nicht (mit Mengenangabe) kennt.
+function getProjectRemainingNeed(material, typ, ziel){
+  if(!material || !ziel) return null;
+  const list = typ === 'private' ? myPrivateProjects() : projects;
+  const project = list.find(p=>p.ziel === ziel);
+  if(!project) return null;
+  const resource = (project.resources || []).map(normalizeResource).find(r=>r.material === material);
+  if(!resource) return null;
+  const eff = effectiveResourceMenge(project, resource);
+  if(eff == null) return null;
+  let have;
+  if(typ === 'private'){
+    have = privateStockAmount(material, ziel, undefined, 'private');
+  } else {
+    const pledged = getPendingPrivateCommitments(material, ziel).reduce((s,c)=>s + (c.menge || 0), 0);
+    have = stockAmount(material, ziel) + pledged;
+  }
+  return {
+    project, resource, eff,
+    rest: Math.max(0, caRound(eff - have)),
+    minQual: resource.mindestqualitaet != null ? resource.mindestqualitaet : null
+  };
+}
+
+// Alle offenen Projekte mit Restbedarf an diesem Material, aelteste zuerst.
+function getCaptureAssignCandidates(item){
+  const out = [];
+  const consider = (p, typ, idx)=>{
+    if(!p || p.status === 'completed') return;
+    const info = getProjectRemainingNeed(item.name, typ, p.ziel);
+    if(!info || info.rest <= 0) return;
+    const minQual = item.kind === 'material' ? info.minQual : null;
+    const qualOk = minQual == null || (item.qualitaet != null && item.qualitaet >= minQual);
+    out.push({ typ, ziel: p.ziel, rest: info.rest, minQual, qualOk, age: projectCreatedMs(p), order: (typ === 'private' ? 1e6 : 0) + idx });
+  };
+  projects.forEach((p,i)=>consider(p, 'shared', i));
+  if(item.isPrivate) myPrivateProjects().forEach((p,i)=>consider(p, 'private', i));
+  out.sort((a,b)=> (a.age - b.age) || (a.order - b.order));
+  return out;
+}
+
+let captureAssignState = null;
+
+// items: [{ kind:'material'|'collectible', isPrivate, id, name, qualitaet,
+//           amount (neu erfasste Menge), einheit, ort }]
+// statusFn (optional): meldet das Ergebnis im jeweiligen Formular.
+function offerCaptureProjectAssignment(items, statusFn){
+  if(!captureAssignSuggestEnabled || !currentUser || !items || items.length === 0) return;
+  const blocks = items
+    .filter(it=>it && it.id && it.amount > 0)
+    .map(it=>({ item: it, cands: getCaptureAssignCandidates(it) }))
+    .filter(b=>b.cands.some(c=>c.qualOk));
+  if(blocks.length === 0) return;
+
+  // Vorbelegung: Mengen je Projekt nach Alter verteilen; mehrere neue
+  // Eintraege desselben Materials teilen sich denselben Restbedarf.
+  const used = {};
+  blocks.forEach(b=>{
+    let avail = b.item.amount;
+    b.cands.forEach(c=>{
+      c.prefill = 0;
+      if(!c.qualOk) return;
+      const key = c.typ + '::' + c.ziel + '::' + b.item.name;
+      const restLeft = Math.max(0, caRound(c.rest - (used[key] || 0)));
+      const amt = caRound(Math.min(avail, restLeft));
+      if(amt > 0){
+        c.prefill = amt;
+        avail = caRound(avail - amt);
+        used[key] = caRound((used[key] || 0) + amt);
+      }
+    });
+    const eligible = b.cands.filter(c=>c.qualOk);
+    b.cands.forEach(c=>{ c.checked = eligible.length === 1 && c === eligible[0] && c.prefill > 0; });
+  });
+
+  captureAssignState = { blocks, statusFn };
+  renderCaptureAssignModal();
+  document.getElementById('captureAssignDontAsk').checked = false;
+  document.getElementById('captureAssignError').style.display = 'none';
+  document.getElementById('captureAssignModal').style.display = 'flex';
+}
+
+function renderCaptureAssignModal(){
+  const st = captureAssignState;
+  if(!st) return;
+  const body = document.getElementById('captureAssignBody');
+  body.innerHTML = st.blocks.map((b, bi)=>{
+    const it = b.item;
+    const unit = escapeHtml(it.einheit || '');
+    const sub = [
+      it.kind === 'material' && it.qualitaet != null ? t('capture_assign_quality').replace('{q}', it.qualitaet) : null,
+      `${it.amount} ${unit}`,
+      it.ort ? escapeHtml(shortLocLabel(it.ort)) : null,
+      it.isPrivate ? t('capture_assign_tag_private') : null
+    ].filter(Boolean).join(' · ');
+    const rows = b.cands.map((c, ci)=>{
+      const tag = it.isPrivate ? `<span class="ca-tag">${escapeHtml(c.typ === 'private' ? t('capture_assign_tag_private') : t('capture_assign_tag_shared'))}</span>` : '';
+      if(!c.qualOk){
+        return `<div class="ca-row ca-disabled"><span>⚠ <span class="ca-proj">${escapeHtml(c.ziel)}</span>${tag}</span><span class="ca-rest">${escapeHtml(t('capture_assign_minqual').replace('{min}', c.minQual))}</span></div>`;
+      }
+      return `<div class="ca-row">
+        <label><input type="checkbox" class="ca-check" data-b="${bi}" data-c="${ci}" ${c.checked ? 'checked' : ''}><span class="ca-proj">${escapeHtml(c.ziel)}</span>${tag}</label>
+        <span class="ca-rest">${escapeHtml(t('capture_assign_rest').replace('{rest}', c.rest).replace('{einheit}', it.einheit || ''))}</span>
+        <input type="number" class="ca-amt" data-b="${bi}" data-c="${ci}" min="0" step="${it.kind === 'collectible' ? '1' : '0.001'}" value="${c.prefill > 0 ? c.prefill : ''}" aria-label="${escapeHtml(t('label_menge'))}">
+      </div>`;
+    }).join('');
+    return `<div class="ca-block" data-b="${bi}">
+      <div class="ca-head">${escapeHtml(it.name)} <span class="ca-sub">${sub}</span></div>
+      ${rows}
+      <div class="ca-free" id="caFree-${bi}"></div>
+    </div>`;
+  }).join('');
+  updateCaptureAssignSummary();
+}
+
+function readCaptureAssignInputs(){
+  const st = captureAssignState;
+  st.blocks.forEach((b, bi)=>{
+    b.cands.forEach((c, ci)=>{
+      if(!c.qualOk) return;
+      const cb = document.querySelector(`#captureAssignBody .ca-check[data-b="${bi}"][data-c="${ci}"]`);
+      const inp = document.querySelector(`#captureAssignBody .ca-amt[data-b="${bi}"][data-c="${ci}"]`);
+      c.checked = !!(cb && cb.checked);
+      const v = inp ? parseFloat(inp.value) : NaN;
+      c.amount = isNaN(v) ? 0 : caRound(v);
+    });
+  });
+}
+
+// Live-Pruefung: Summe je Eintrag darf die erfasste Menge nicht
+// uebersteigen (rot, blockiert die Uebernahme); Zuordnung ueber den
+// Restbedarf hinaus ist erlaubt, wird aber orange markiert.
+function updateCaptureAssignSummary(){
+  const st = captureAssignState;
+  if(!st) return;
+  readCaptureAssignInputs();
+  let hasError = false;
+  const perProject = {};
+  st.blocks.forEach(b=>{
+    b.cands.forEach(c=>{
+      if(c.qualOk && c.checked && c.amount > 0){
+        const key = c.typ + '::' + c.ziel + '::' + b.item.name;
+        perProject[key] = caRound((perProject[key] || 0) + c.amount);
+      }
+    });
+  });
+  st.blocks.forEach((b, bi)=>{
+    const it = b.item;
+    let sum = 0, invalid = false;
+    b.cands.forEach((c, ci)=>{
+      if(!c.qualOk) return;
+      const inp = document.querySelector(`#captureAssignBody .ca-amt[data-b="${bi}"][data-c="${ci}"]`);
+      if(!inp) return;
+      const key = c.typ + '::' + c.ziel + '::' + it.name;
+      const over = c.checked && c.amount > 0 && (perProject[key] || 0) > c.rest + 1e-9;
+      inp.classList.toggle('ca-over', over);
+      inp.title = over ? t('capture_assign_over_rest') : '';
+      if(c.checked){
+        if(c.amount < 0 || (it.kind === 'collectible' && Math.round(c.amount) !== c.amount)) invalid = true;
+        sum = caRound(sum + Math.max(0, c.amount));
+      }
+    });
+    const free = caRound(it.amount - sum);
+    const el = document.getElementById('caFree-' + bi);
+    if(free < -1e-9 || invalid){
+      hasError = true;
+      el.classList.add('ca-neg');
+      el.textContent = t('capture_assign_too_much').replace('{sum}', sum).replace('{amount}', it.amount).replace('{einheit}', it.einheit || '');
+    } else {
+      el.classList.remove('ca-neg');
+      el.textContent = t('capture_assign_free').replace('{free}', Math.max(0, free)).replace('{einheit}', it.einheit || '');
+    }
+  });
+  st.hasError = hasError;
+  const btn = document.getElementById('btnCaptureAssignApply');
+  btn.disabled = hasError;
+  btn.style.opacity = hasError ? '0.5' : '';
+  btn.title = hasError ? t('capture_assign_fix_errors') : '';
+}
+
+document.getElementById('captureAssignBody').addEventListener('input', (ev)=>{
+  if(!captureAssignState) return;
+  const el = ev.target;
+  // Menge eingetragen -> Haken automatisch setzen (bzw. bei 0/leer entfernen)
+  if(el.classList.contains('ca-amt')){
+    const cb = document.querySelector(`#captureAssignBody .ca-check[data-b="${el.dataset.b}"][data-c="${el.dataset.c}"]`);
+    const v = parseFloat(el.value);
+    if(cb) cb.checked = !isNaN(v) && v > 0;
+  }
+  updateCaptureAssignSummary();
+});
+document.getElementById('captureAssignBody').addEventListener('change', (ev)=>{
+  if(!captureAssignState) return;
+  const el = ev.target;
+  // Haken gesetzt, aber keine Menge -> sinnvolle Menge vorschlagen
+  // (Rest des Eintrags, hoechstens der Restbedarf des Projekts).
+  if(el.classList.contains('ca-check') && el.checked){
+    const bi = +el.dataset.b, ci = +el.dataset.c;
+    const inp = document.querySelector(`#captureAssignBody .ca-amt[data-b="${bi}"][data-c="${ci}"]`);
+    const cur = inp ? parseFloat(inp.value) : NaN;
+    if(inp && (isNaN(cur) || cur <= 0)){
+      readCaptureAssignInputs();
+      const b = captureAssignState.blocks[bi];
+      const c = b.cands[ci];
+      const usedInBlock = b.cands.reduce((s,x)=> s + ((x !== c && x.qualOk && x.checked) ? Math.max(0, x.amount) : 0), 0);
+      const key = c.typ + '::' + c.ziel + '::' + b.item.name;
+      let usedForProject = 0;
+      captureAssignState.blocks.forEach(ob=>ob.cands.forEach(x=>{
+        if(x !== c && x.qualOk && x.checked && (x.typ + '::' + x.ziel + '::' + ob.item.name) === key) usedForProject += Math.max(0, x.amount);
+      }));
+      const suggestion = caRound(Math.max(0, Math.min(b.item.amount - usedInBlock, c.rest - usedForProject)));
+      inp.value = suggestion > 0 ? suggestion : '';
+    }
+  }
+  updateCaptureAssignSummary();
+});
+document.getElementById('btnCaptureAssignSelectAll').addEventListener('click', ()=>{
+  if(!captureAssignState) return;
+  captureAssignState.blocks.forEach((b, bi)=>{
+    b.cands.forEach((c, ci)=>{
+      if(!c.qualOk) return;
+      const inp = document.querySelector(`#captureAssignBody .ca-amt[data-b="${bi}"][data-c="${ci}"]`);
+      const cb = document.querySelector(`#captureAssignBody .ca-check[data-b="${bi}"][data-c="${ci}"]`);
+      const v = inp ? parseFloat(inp.value) : NaN;
+      if(cb) cb.checked = !isNaN(v) && v > 0;
+    });
+  });
+  updateCaptureAssignSummary();
+});
+
+async function closeCaptureAssignModal(){
+  document.getElementById('captureAssignModal').style.display = 'none';
+  if(document.getElementById('captureAssignDontAsk').checked){
+    await setCaptureAssignSuggest(false);
+  }
+  captureAssignState = null;
+}
+document.getElementById('btnCaptureAssignSkip').addEventListener('click', ()=>{ closeCaptureAssignModal(); });
+document.getElementById('btnCaptureAssignApply').addEventListener('click', async ()=>{
+  const st = captureAssignState;
+  if(!st) return;
+  updateCaptureAssignSummary();
+  const errEl = document.getElementById('captureAssignError');
+  if(st.hasError){
+    errEl.textContent = t('capture_assign_fix_errors');
+    errEl.style.display = '';
+    return;
+  }
+  const anyChecked = st.blocks.some(b=>b.cands.some(c=>c.qualOk && c.checked && c.amount > 0));
+  if(!anyChecked){
+    errEl.textContent = t('capture_assign_none_checked');
+    errEl.style.display = '';
+    return;
+  }
+  errEl.style.display = 'none';
+  const btn = document.getElementById('btnCaptureAssignApply');
+  btn.disabled = true;
+  try{
+    const count = await applyCaptureAssignment(st.blocks);
+    if(st.statusFn && count > 0) st.statusFn(t('capture_assign_done').replace('{count}', count));
+  } finally {
+    btn.disabled = false;
+    await closeCaptureAssignModal();
+  }
+});
+
+// Fuehrt die gewaehlten Zuordnungen aus. Ein Eintrag wird -- analog zur
+// Teilmengen-Zuweisung -- aufgeteilt, sobald nicht seine GESAMTE Menge an
+// genau ein Projekt geht. Detail-Angaben (Lagerort, Qualitaet,
+// Verantwortliche/r bzw. Besitzer/in, Stufe) bleiben dabei unveraendert.
+async function applyCaptureAssignment(blocks){
+  const touched = { entries:false, priv:false, coll:false, privColl:false };
+  const transfers = [];
+  const logParts = [];
+  let count = 0;
+
+  for(const b of blocks){
+    const it = b.item;
+    const allocs = b.cands.filter(c=>c.qualOk && c.checked && c.amount > 0);
+    if(allocs.length === 0) continue;
+
+    const isColl = it.kind === 'collectible';
+    const qtyField = isColl ? 'anzahl' : 'menge';
+    let list, makeId;
+    if(isColl){
+      list = it.isPrivate ? privateCollectibles : collectibles;
+      makeId = it.isPrivate ? privateCollectibleUid : collectibleUid;
+    } else {
+      list = it.isPrivate ? privateEntries : entries;
+      makeId = it.isPrivate ? privateUid : uid;
+    }
+    const rec = list.find(x=>x.id === it.id);
+    if(!rec) continue; // zwischenzeitlich geaendert/geloescht -- nichts tun
+    // Nur die NEU erfasste Menge ist zuordenbar (bei der Einzel-Anlage im
+    // geteilten Bestand kann sie in einen bestehenden Eintrag eingeflossen sein).
+    const assignable = Math.min(it.amount, rec[qtyField]);
+    const total = caRound(allocs.reduce((s,c)=>s + c.amount, 0));
+    if(total > assignable + 1e-9) continue;
+
+    for(const c of allocs){
+      let target;
+      if(c.amount >= rec[qtyField] - 1e-9){
+        // gesamter (verbleibender) Eintrag geht an dieses Projekt
+        target = rec;
+        rec.projekt = c.ziel;
+        if(it.isPrivate || isColl) rec.projektTyp = c.typ;
+        delete rec.flaggedForReview;
+      } else {
+        rec[qtyField] = caRound(rec[qtyField] - c.amount);
+        const clone = { ...rec, id: makeId(), [qtyField]: c.amount, projekt: c.ziel };
+        if(it.isPrivate || isColl) clone.projektTyp = c.typ;
+        delete clone.flaggedForReview;
+        if(!isColl && !it.isPrivate){
+          clone.createdAt = new Date().toISOString();
+          // Wie bei der Einzel-Anlage: mit passendem bestehendem Eintrag
+          // DERSELBEN Person und desselben Projektziels zusammenfuehren.
+          const match = entries.find(e=>e !== rec &&
+            e.material === rec.material && e.qualitaet === rec.qualitaet &&
+            e.lagerort === rec.lagerort && e.einheit === rec.einheit &&
+            e.person === rec.person && (e.projekt||'') === c.ziel);
+          if(match){
+            match.menge = caRound(match.menge + c.amount);
+            target = match;
+          }
+        }
+        if(!target){
+          list.push(clone);
+          target = clone;
+        }
+      }
+      if(it.isPrivate && c.typ === 'shared'){
+        transfers.push({ kind: it.kind, id: target.id });
+      }
+      logParts.push(`${it.name}: ${c.amount} ${it.einheit || ''} → ${c.ziel}${c.typ === 'private' ? ' (privat)' : ''}`);
+      count++;
+      if(target === rec) break; // Eintrag vollstaendig vergeben
+    }
+    if(rec[qtyField] <= 1e-9){
+      const idx = list.indexOf(rec);
+      if(idx !== -1) list.splice(idx, 1);
+    }
+    if(isColl){ if(it.isPrivate) touched.privColl = true; else touched.coll = true; }
+    else { if(it.isPrivate) touched.priv = true; else touched.entries = true; }
+  }
+
+  if(count === 0) return 0;
+  const saves = [];
+  if(touched.entries) saves.push(save());
+  if(touched.priv) saves.push(savePrivateEntries());
+  if(touched.coll) saves.push(saveCollectibles());
+  if(touched.privColl) saves.push(savePrivateCollectibles());
+  await Promise.all(saves);
+  await logAction('Projekt-Zuordnung nach Erfassung', logParts.join('; '));
+
+  // Private Eintraege an GETEILTE Projekte direkt uebertragen (siehe
+  // Einzel-Anlage im Privatbestand, Nutzerwunsch vom 15. August 2026).
+  for(const tr of transfers){
+    if(tr.kind === 'collectible') await transferPrivateCollectible(tr.id);
+    else await transferPrivateEntry(tr.id, null);
+  }
+
+  render();
+  renderCollectibles();
+  renderPrivate();
+  renderPrivateCollectibles();
+  updateProjectAvailability();
+  updatePrivateProjectAvailability();
+  renderProjects();
+  renderPrivateProjects();
+  renderNeeds();
+  scheduleRenderDashboard();
+  return count;
+}
+
+// ============================================================
+// Ueberschuss-Pruefung fuer die Massen-Eingabe (ab 31. Oktober 2026,
+// v0.135). Bisher wurde bei gewaehltem Tabellen-Projekt die volle Menge
+// jeder Zeile ungeprueft reserviert. Jetzt werden alle Zeilen gegen den
+// Restbedarf geprueft -- Zeilen desselben Materials belasten dabei
+// gemeinsam denselben Restbedarf -- und bei Ueberschreitung erscheint
+// EIN gemeinsames Fenster mit denselben drei Optionen wie bei der
+// Einzel-Anlage. Liefert 'cap' | 'full' | 'cancel'.
+// ============================================================
+function askBulkProjectOverflow(overRows, projekt){
+  return new Promise(resolve=>{
+    document.getElementById('bulkOverflowText').textContent = t('bulk_overflow_text').replace('{projekt}', projekt);
+    document.getElementById('bulkOverflowList').innerHTML = overRows.map(r=>`<li>${escapeHtml(
+      t('bulk_overflow_row').replace('{material}', r.material).replace('{entered}', r.menge)
+        .replace('{remaining}', r.capTo).replace(/\{einheit\}/g, r.einheit)
+    )}</li>`).join('');
+    const modal = document.getElementById('bulkOverflowModal');
+    modal.style.display = 'flex';
+    const ids = ['btnBulkOverflowCap', 'btnBulkOverflowFull', 'btnBulkOverflowCancel'];
+    const results = ['cap', 'full', 'cancel'];
+    ids.forEach((id, i)=>{
+      const old = document.getElementById(id);
+      const fresh = old.cloneNode(true);
+      old.replaceWith(fresh);
+      fresh.addEventListener('click', ()=>{ modal.style.display = 'none'; resolve(results[i]); });
+    });
+  });
 }
 
 document.querySelectorAll('input[name="partialAssignMode"]').forEach(radio=>{
@@ -14056,7 +14707,10 @@ document.getElementById('btnAddProject').addEventListener('click', async ()=>{
     // dieses Projekt zu uebernehmen (siehe offerTemplatePropagation()).
     // Bleibt undefined, wenn das Projekt manuell ohne Vorlage angelegt
     // wurde.
-    templateId: pendingProjTemplateId
+    templateId: pendingProjTemplateId,
+    // Ab 31. Oktober 2026 (v0.135): Anlagezeitpunkt fuer die Reihenfolge
+    // "aeltestes Projekt zuerst" bei der Projekt-Zuordnung nach der Erfassung.
+    createdAt: new Date().toISOString()
   });
   pendingProjTemplateId = null;
 
@@ -14683,7 +15337,8 @@ document.getElementById('btnAddPrivProject').addEventListener('click', async ()=
     notiz: document.getElementById('priv-proj-notiz').value.trim(),
     // Siehe Kommentar bei der geteilten Projekt-Anlage weiter oben.
     perUnit: true,
-    templateId: pendingPrivProjTemplateId
+    templateId: pendingPrivProjTemplateId,
+    createdAt: new Date().toISOString()
   });
   pendingPrivProjTemplateId = null;
 
@@ -16539,12 +17194,15 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
     );
 
     let logDetail;
+    let capturedId;
     if(match){
       match.menge = Math.round((match.menge + finalMenge) * 100) / 100;
+      capturedId = match.id;
       logDetail = `${material}, +${finalMenge} ${einheit} @ ${lagerort} (neuer Bestand: ${match.menge} ${einheit})`;
     } else {
+      capturedId = uid();
       entries.push({
-        id: uid(),
+        id: capturedId,
         material, qualitaet,
         menge: finalMenge, einheit,
         lagerort, person, projekt,
@@ -16590,6 +17248,10 @@ document.getElementById('btnAdd').addEventListener('click', async ()=>{
     renderNeeds();
     scheduleRenderDashboard();
     setStatus(match ? t('msg_stock_extended') : t('msg_entry_saved'));
+    // Ab v0.135: ohne gewaehltes Projektziel passende Projekte anbieten.
+    if(!projekt){
+      offerCaptureProjectAssignment([{ kind:'material', isPrivate:false, id: capturedId, name: material, qualitaet, amount: finalMenge, einheit, ort: lagerort }], msg=>setStatus(msg));
+    }
   });
 });
 
@@ -16666,6 +17328,9 @@ async function submitBulkTable(isPrivate){
   const rows = Array.from(document.getElementById(prefix+'bulkTableBody').querySelectorAll('tr'));
   let added = 0, skipped = 0;
 
+  // Erst alle gueltigen Zeilen einlesen (ab v0.135), damit die
+  // Ueberschuss-Pruefung VOR dem Anlegen ueber die ganze Tabelle laufen kann.
+  const parsedRows = [];
   rows.forEach(tr=>{
     const rowId = tr.dataset.rowId;
     const material = document.getElementById(prefix+'bulk-mat-'+rowId).value;
@@ -16679,11 +17344,64 @@ async function submitBulkTable(isPrivate){
     // SCU), statt wie bisher immer fest SCU anzunehmen. Siehe
     // Nutzerwunsch vom 7. August 2026.
     const einheit = getDefaultEinheitForMaterial(material);
-    if(isPrivate){
-      privateEntries.push({ id: privateUid(), material, qualitaet, menge, einheit, lagerort, person, projekt: projekt||'', projektTyp: projekt ? projektAssign.typ : null, owner: currentUser.username });
-    } else {
-      entries.push({ id: uid(), material, qualitaet, menge, einheit, lagerort, person, projekt: projekt||'', createdAt: new Date().toISOString() });
+    parsedRows.push({ material, qualitaet, menge, einheit, capTo: null });
+  });
+
+  // Ueberschuss-Pruefung (ab 31. Oktober 2026, v0.135): siehe
+  // askBulkProjectOverflow(). Zeilen desselben Materials teilen sich den
+  // Restbedarf in Tabellen-Reihenfolge.
+  if(projekt && parsedRows.length > 0){
+    const restLeft = {};
+    const overRows = [];
+    parsedRows.forEach(r=>{
+      if(!(r.material in restLeft)){
+        const info = getProjectRemainingNeed(r.material, projektAssign.typ || 'shared', projekt);
+        restLeft[r.material] = info ? info.rest : null;
+      }
+      const left = restLeft[r.material];
+      if(left == null) return; // Projekt kennt dieses Material nicht -- wie bisher keine Pruefung
+      if(r.menge > left + 1e-9){
+        r.capTo = left;
+        overRows.push(r);
+      }
+      restLeft[r.material] = Math.max(0, Math.round((left - r.menge) * 1000) / 1000);
+    });
+    if(overRows.length > 0){
+      const choice = await askBulkProjectOverflow(overRows, projekt);
+      if(choice === 'cancel') return;
+      if(choice === 'full') parsedRows.forEach(r=>{ r.capTo = null; });
     }
+  }
+
+  const capturedItems = [];
+  // Ab v0.136: private Zeilen mit GETEILTEM Tabellen-Projekt werden -- wie
+  // bei der Einzelerfassung im Privatbestand (seit 15. August 2026) --
+  // direkt in den geteilten Bestand uebertragen.
+  const autoTransferIds = [];
+  parsedRows.forEach(r=>{
+    const { material, qualitaet, einheit } = r;
+    const parts = [];
+    if(r.capTo != null){
+      if(r.capTo > 0) parts.push({ menge: r.capTo, projekt: projekt });
+      parts.push({ menge: Math.round((r.menge - r.capTo) * 1000) / 1000, projekt: '' });
+    } else {
+      parts.push({ menge: r.menge, projekt: projekt || '' });
+    }
+    parts.forEach(part=>{
+      if(!(part.menge > 0)) return;
+      const menge = part.menge;
+      const pj = part.projekt;
+      const newId = isPrivate ? privateUid() : uid();
+      if(isPrivate){
+        privateEntries.push({ id: newId, material, qualitaet, menge, einheit, lagerort, person, projekt: pj||'', projektTyp: pj ? projektAssign.typ : null, owner: currentUser.username });
+        if(pj && projektAssign.typ === 'shared') autoTransferIds.push(newId);
+      } else {
+        entries.push({ id: newId, material, qualitaet, menge, einheit, lagerort, person, projekt: pj||'', createdAt: new Date().toISOString() });
+      }
+      // Fuer die Projekt-Zuordnung nach der Erfassung nur Zeilen OHNE
+      // Tabellen-Projekt (ein bewusst abgespaltener Ueberschuss bleibt frei).
+      if(!projekt) capturedItems.push({ kind:'material', isPrivate, id: newId, name: material, qualitaet, amount: menge, einheit, ort: lagerort });
+    });
     added++;
   });
 
@@ -16696,7 +17414,12 @@ async function submitBulkTable(isPrivate){
   if(isPrivate){
     await savePrivateEntries();
     await logAction('Privatbestand per Tabellen-Massen-Eingabe hinzugefügt', `${added} Einträge, Lagerort: ${lagerort}`);
+    for(const id of autoTransferIds){
+      await transferPrivateEntry(id, null);
+    }
     renderPrivate();
+    updatePrivateProjectAvailability();
+    renderPrivateProjects();
   } else {
     await save();
     await logAction('Bestand per Tabellen-Massen-Eingabe hinzugefügt', `${added} Einträge, Lagerort: ${lagerort}`);
@@ -16712,6 +17435,11 @@ async function submitBulkTable(isPrivate){
   statusEl.textContent = skipped>0
     ? t('msg_bulk_table_added_with_skipped').replace('{count}', added).replace('{skipped}', skipped)
     : t('msg_bulk_table_added').replace('{count}', added);
+
+  // Ab v0.135: passende Projekte fuer die neuen Eintraege anbieten.
+  if(capturedItems.length > 0){
+    offerCaptureProjectAssignment(capturedItems, msg=>{ statusEl.textContent = statusEl.textContent + ' ' + msg; });
+  }
 
   // Stammte die soeben erfolgreich übernommene Eingabe aus einer
   // OCR-Erkennung, wird das gesamte Panel auf den Ausgangszustand
@@ -20194,8 +20922,9 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
   checkAndResolveProjectOverflow(material, projekt, projektTyp, privMenge, true, einheit, async (finalMenge, restMenge)=>{
     if(finalMenge == null) return; // Nutzer hat abgebrochen
 
+    const capturedPrivId = privateUid();
     privateEntries.push({
-      id: privateUid(),
+      id: capturedPrivId,
       material, qualitaet: privQualitaet,
       menge: finalMenge, einheit,
       lagerort, person, projekt, projektTyp,
@@ -20246,6 +20975,10 @@ document.getElementById('btnAddPrivate').addEventListener('click', async ()=>{
     updatePrivateProjectAvailability();
     renderPrivateProjects();
     setPrivateStatus(t('msg_entry_saved'));
+    // Ab v0.135: ohne gewaehltes Projektziel passende Projekte anbieten.
+    if(!projekt){
+      offerCaptureProjectAssignment([{ kind:'material', isPrivate:true, id: capturedPrivId, name: material, qualitaet: privQualitaet, amount: finalMenge, einheit, ort: lagerort }], msg=>setPrivateStatus(msg));
+    }
   });
 });
 
