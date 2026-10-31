@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.137 -->
+<!-- Version: 0.138 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -535,6 +535,8 @@ label.capture-assign-toggle-label span{flex:1 1 auto;min-width:0;}
 .ca-dialog{background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:24px 26px;max-width:620px;width:100%;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 0 40px var(--cyan-glow);}
 .ca-title{font-family:'Orbitron', sans-serif;font-size:15px;letter-spacing:1px;color:var(--cyan);margin:0 0 10px;}
 .ca-banner{margin:0 0 12px;padding:10px 12px;border:1px solid #FF8A3D;border-left-width:4px;border-radius:var(--radius);background:rgba(255,138,61,0.12);color:#FFB27A;font-size:14px;font-weight:600;line-height:1.45;}
+.bulk-suggest-status{font-size:12px;color:var(--ink-soft);}
+.bulk-row-proj{min-width:170px;max-width:260px;}
 .ca-none{font-size:12.5px;color:var(--ink-soft);padding:2px 0;}
 .ca-intro{font-size:13.5px;line-height:1.5;color:var(--ink);margin:0 0 10px;}
 .ca-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
@@ -2468,24 +2470,25 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         </div>
 
         <div id="bulkTableWrap">
-          <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_bulk_table">Lagerort, Verantwortlicher und Projekt gelten für die ganze Tabelle. Für jede Zeile Material, Qualität und Menge auswählen/eintragen.</div>
+          <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_bulk_table">Lagerort gilt für die ganze Tabelle, das Projekt je Zeile. Für jede Zeile Material, Qualität und Menge auswählen/eintragen.</div>
           <div class="form-grid" style="grid-template-columns:1fr 1fr;">
             <div class="field">
               <label for="bulkTableLagerortWrap" data-i18n="col_lagerort">Lagerort</label>
               <div id="bulkTableLagerortWrap"></div>
             </div>
             <div class="field">
-              <label for="bulkTableProjektWrap" data-i18n="label_ziel_optional">Projekt (optional)</label>
+              <label for="bulkTableProjektWrap" data-i18n="label_bulk_projekt_alle">Projekt für alle passenden Zeilen (optional)</label>
               <div id="bulkTableProjektWrap"></div>
             </div>
           </div>
-          <div style="display:flex;justify-content:flex-end;"><label class="capture-assign-toggle-label" style="margin-top:6px;" title="" data-i18n-title="capture_assign_toggle_tooltip"><input type="checkbox" class="capture-assign-toggle" id="bulk-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label></div>
+          <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;"><span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;"><button type="button" class="btn-ghost btn-compact" id="btnBulkSuggestProjects" data-i18n="btn_bulk_suggest_projects">Passende Projekte vorschlagen</button><span class="bulk-suggest-status" id="bulkSuggestStatus"></span></span><label class="capture-assign-toggle-label" style="margin-top:0;" title="" data-i18n-title="capture_assign_toggle_tooltip"><input type="checkbox" class="capture-assign-toggle" id="bulk-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label></div>
           <div style="overflow-x:auto;margin-top:10px;">
             <table>
               <thead><tr>
                 <th data-i18n="label_material">Material</th>
                 <th data-i18n="label_qualitaet">Qualität</th>
                 <th data-i18n="label_menge">Menge</th>
+                <th data-i18n="label_projekt">Projekt</th>
                 <th></th>
               </tr></thead>
               <tbody id="bulkTableBody"></tbody>
@@ -2623,24 +2626,25 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         </div>
 
         <div id="priv-bulkTableWrap">
-          <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_bulk_table">Lagerort, Verantwortlicher und Projekt gelten für die ganze Tabelle. Für jede Zeile Material, Qualität und Menge auswählen/eintragen.</div>
+          <div class="user-note" style="margin:0 0 10px 0;" data-i18n="hint_bulk_table">Lagerort gilt für die ganze Tabelle, das Projekt je Zeile. Für jede Zeile Material, Qualität und Menge auswählen/eintragen.</div>
           <div class="form-grid" style="grid-template-columns:1fr 1fr;">
             <div class="field">
               <label for="priv-bulkTableLagerortWrap" data-i18n="col_lagerort">Lagerort</label>
               <div id="priv-bulkTableLagerortWrap"></div>
             </div>
             <div class="field">
-              <label for="priv-bulkTableProjektWrap" data-i18n="label_ziel_optional">Projekt (optional)</label>
+              <label for="priv-bulkTableProjektWrap" data-i18n="label_bulk_projekt_alle">Projekt für alle passenden Zeilen (optional)</label>
               <div id="priv-bulkTableProjektWrap"></div>
             </div>
           </div>
-          <div style="display:flex;justify-content:flex-end;"><label class="capture-assign-toggle-label" style="margin-top:6px;" title="" data-i18n-title="capture_assign_toggle_tooltip"><input type="checkbox" class="capture-assign-toggle" id="priv-bulk-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label></div>
+          <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;"><span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;"><button type="button" class="btn-ghost btn-compact" id="priv-btnBulkSuggestProjects" data-i18n="btn_bulk_suggest_projects">Passende Projekte vorschlagen</button><span class="bulk-suggest-status" id="priv-bulkSuggestStatus"></span></span><label class="capture-assign-toggle-label" style="margin-top:0;" title="" data-i18n-title="capture_assign_toggle_tooltip"><input type="checkbox" class="capture-assign-toggle" id="priv-bulk-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label></div>
           <div style="overflow-x:auto;margin-top:10px;">
             <table>
               <thead><tr>
                 <th data-i18n="label_material">Material</th>
                 <th data-i18n="label_qualitaet">Qualität</th>
                 <th data-i18n="label_menge">Menge</th>
+                <th data-i18n="label_projekt">Projekt</th>
                 <th></th>
               </tr></thead>
               <tbody id="priv-bulkTableBody"></tbody>
@@ -3648,7 +3652,7 @@ const I18N = {
   "msg_connection_issue": "Verbindungsproblem — Änderungen werden möglicherweise nicht gespeichert.",
   "label_ziel_optional": "Projekt (optional)",
   "btn_add_bulk_row": "Weitere Zeile hinzufügen",
-  "hint_bulk_table": "Lagerort und Projekt gelten für die ganze Tabelle (als Verantwortlicher wirst automatisch du hinterlegt). Für jede Zeile Material, Qualität und Menge auswählen/eintragen.",
+  "hint_bulk_table": "Der Lagerort gilt für die ganze Tabelle (als Verantwortlicher wirst automatisch du hinterlegt), das Projekt lässt sich je Zeile wählen. Die Auswahl „Projekt für alle passenden Zeilen“ übernimmt ein Projekt in alle Zeilen, deren Material es benötigt.",
   "val_no_valid_bulk_rows": "Keine gültige Zeile — bitte Material auswählen und Qualität/Menge korrekt eintragen.",
   "msg_bulk_table_added": "{count} Einträge hinzugefügt.",
   "msg_bulk_table_added_with_skipped": "{count} Einträge hinzugefügt, {skipped} Zeile(n) übersprungen (unvollständig).",
@@ -3952,6 +3956,12 @@ const I18N = {
   "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
   "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
   "capture_assign_toggle": "Nach dem Eintragen passende Projekte vorschlagen",
+  "label_bulk_projekt_alle": "Projekt für alle passenden Zeilen (optional)",
+  "btn_bulk_suggest_projects": "Passende Projekte vorschlagen",
+  "bulk_suggest_done": "{count} Zeile(n) vorbelegt.",
+  "bulk_suggest_none": "Keine passenden offenen Projekte für die Zeilen ohne Projekt.",
+  "bulk_proj_option_rest": "Rest {rest} {einheit}",
+  "bulk_proj_option_minqual": "Qualität ≥ {min} nötig",
   "capture_assign_toggle_tooltip": "Zeigt nach dem Speichern an, welche offenen Projekte das erfasste Material benötigen, und bietet die direkte Zuordnung an. Gilt für alle Erfassungswege und wird je Benutzer gespeichert.",
   "capture_assign_title": "Neue Einträge Projekten zuordnen?",
   "capture_assign_intro": "Für folgende neu erfasste Einträge gibt es offene Projektbedarfe. Häkchen setzen, welchem Projekt welche Menge zugeordnet werden soll – nicht zugeordnete Mengen bleiben frei verfügbar.",
@@ -3975,8 +3985,8 @@ const I18N = {
   "capture_assign_tag_private": "Privat",
   "capture_assign_tag_shared": "Geteilt",
   "capture_assign_quality": "Qualität {q}",
-  "bulk_overflow_text": "Für das Projekt „{projekt}“ übersteigen folgende Zeilen den Restbedarf:",
-  "bulk_overflow_row": "{material}: {entered} {einheit} eingegeben, Restbedarf {remaining} {einheit}",
+  "bulk_overflow_text": "Folgende Zeilen übersteigen den Restbedarf ihres Projekts:",
+  "bulk_overflow_row": "{material} → {projekt}: {entered} {einheit} eingegeben, Restbedarf {remaining} {einheit}",
   "bulk_overflow_cap": "Nur den Restbedarf zuweisen (Überschuss bleibt frei verfügbar)",
   "btn_ueberschuss_trotzdem_alle": "Trotzdem die volle Menge zuweisen",
   "val_object_qty_required": "Bitte Objekt und Anzahl angeben.",
@@ -4509,7 +4519,7 @@ const I18N = {
   "msg_connection_issue": "Connection issue — changes may not be saved.",
   "label_ziel_optional": "Project (optional)",
   "btn_add_bulk_row": "Add another row",
-  "hint_bulk_table": "Location and project apply to the whole table (you are automatically set as the responsible person). For each row, select/enter material, quality, and quantity.",
+  "hint_bulk_table": "The location applies to the whole table (you are automatically set as the responsible person); the project can be chosen per row. \"Project for all matching rows\" applies a project to every row whose material it needs.",
   "val_no_valid_bulk_rows": "No valid row — please select a material and enter a correct quality/quantity.",
   "msg_bulk_table_added": "{count} entries added.",
   "msg_bulk_table_added_with_skipped": "{count} entries added, {skipped} row(s) skipped (incomplete).",
@@ -4813,6 +4823,12 @@ const I18N = {
   "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
   "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
   "capture_assign_toggle": "Suggest matching projects after adding",
+  "label_bulk_projekt_alle": "Project for all matching rows (optional)",
+  "btn_bulk_suggest_projects": "Suggest matching projects",
+  "bulk_suggest_done": "{count} row(s) prefilled.",
+  "bulk_suggest_none": "No matching open projects for the rows without a project.",
+  "bulk_proj_option_rest": "still needed {rest} {einheit}",
+  "bulk_proj_option_minqual": "quality ≥ {min} required",
   "capture_assign_toggle_tooltip": "After saving, shows which open projects need the added material and offers to assign it right away. Applies to all ways of adding and is saved per user.",
   "capture_assign_title": "Assign new entries to projects?",
   "capture_assign_intro": "Open project needs exist for the following newly added entries. Tick which project should receive which amount – unassigned amounts stay freely available.",
@@ -4836,8 +4852,8 @@ const I18N = {
   "capture_assign_tag_private": "Private",
   "capture_assign_tag_shared": "Shared",
   "capture_assign_quality": "Quality {q}",
-  "bulk_overflow_text": "For project \"{projekt}\", the following rows exceed what is still needed:",
-  "bulk_overflow_row": "{material}: {entered} {einheit} entered, still needed {remaining} {einheit}",
+  "bulk_overflow_text": "The following rows exceed what their project still needs:",
+  "bulk_overflow_row": "{material} → {projekt}: {entered} {einheit} entered, still needed {remaining} {einheit}",
   "bulk_overflow_cap": "Assign only what is still needed (surplus stays freely available)",
   "btn_ueberschuss_trotzdem_alle": "Assign the full amount anyway",
   "val_object_qty_required": "Please enter item and quantity.",
@@ -5370,7 +5386,7 @@ const I18N = {
   "msg_connection_issue": "Problème de connexion — les modifications risquent de ne pas être enregistrées.",
   "label_ziel_optional": "Projet (facultatif)",
   "btn_add_bulk_row": "Ajouter une autre ligne",
-  "hint_bulk_table": "L'emplacement et le projet s'appliquent à toute la table (vous êtes automatiquement défini comme responsable). Pour chaque ligne, sélectionnez/saisissez le matériau, la qualité et la quantité.",
+  "hint_bulk_table": "L'emplacement s'applique à toute la table (vous êtes automatiquement défini comme responsable), le projet se choisit par ligne. « Projet pour toutes les lignes correspondantes » applique un projet à chaque ligne dont il a besoin du matériau.",
   "val_no_valid_bulk_rows": "Aucune ligne valide — veuillez sélectionner un matériau et saisir une qualité/quantité correcte.",
   "msg_bulk_table_added": "{count} entrées ajoutées.",
   "msg_bulk_table_added_with_skipped": "{count} entrées ajoutées, {skipped} ligne(s) ignorée(s) (incomplète(s)).",
@@ -5674,6 +5690,12 @@ const I18N = {
   "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
   "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
   "capture_assign_toggle": "Proposer les projets correspondants après l'ajout",
+  "label_bulk_projekt_alle": "Projet pour toutes les lignes correspondantes (facultatif)",
+  "btn_bulk_suggest_projects": "Proposer les projets correspondants",
+  "bulk_suggest_done": "{count} ligne(s) préremplie(s).",
+  "bulk_suggest_none": "Aucun projet ouvert correspondant pour les lignes sans projet.",
+  "bulk_proj_option_rest": "reste {rest} {einheit}",
+  "bulk_proj_option_minqual": "qualité ≥ {min} requise",
   "capture_assign_toggle_tooltip": "Après l'enregistrement, indique quels projets ouverts ont besoin du matériau ajouté et propose de l'attribuer directement. S'applique à tous les modes de saisie et est enregistré par utilisateur.",
   "capture_assign_title": "Attribuer les nouvelles entrées à des projets ?",
   "capture_assign_intro": "Des besoins de projets ouverts existent pour les entrées suivantes. Cochez quel projet doit recevoir quelle quantité – les quantités non attribuées restent librement disponibles.",
@@ -5697,8 +5719,8 @@ const I18N = {
   "capture_assign_tag_private": "Privé",
   "capture_assign_tag_shared": "Partagé",
   "capture_assign_quality": "Qualité {q}",
-  "bulk_overflow_text": "Pour le projet « {projekt} », les lignes suivantes dépassent le besoin restant :",
-  "bulk_overflow_row": "{material} : {entered} {einheit} saisi(s), besoin restant {remaining} {einheit}",
+  "bulk_overflow_text": "Les lignes suivantes dépassent le besoin restant de leur projet :",
+  "bulk_overflow_row": "{material} → {projekt} : {entered} {einheit} saisi(s), besoin restant {remaining} {einheit}",
   "bulk_overflow_cap": "N'attribuer que le besoin restant (le surplus reste disponible)",
   "btn_ueberschuss_trotzdem_alle": "Attribuer quand même la quantité totale",
   "val_object_qty_required": "Veuillez indiquer l'objet et la quantité.",
@@ -13770,11 +13792,11 @@ async function applyCaptureAssignment(blocks){
 // EIN gemeinsames Fenster mit denselben drei Optionen wie bei der
 // Einzel-Anlage. Liefert 'cap' | 'full' | 'cancel'.
 // ============================================================
-function askBulkProjectOverflow(overRows, projekt){
+function askBulkProjectOverflow(overRows){
   return new Promise(resolve=>{
-    document.getElementById('bulkOverflowText').textContent = t('bulk_overflow_text').replace('{projekt}', projekt);
+    document.getElementById('bulkOverflowText').textContent = t('bulk_overflow_text');
     document.getElementById('bulkOverflowList').innerHTML = overRows.map(r=>`<li>${escapeHtml(
-      t('bulk_overflow_row').replace('{material}', r.material).replace('{entered}', r.menge)
+      t('bulk_overflow_row').replace('{material}', r.material).replace('{projekt}', r.projekt || '').replace('{entered}', r.menge)
         .replace('{remaining}', r.capTo).replace(/\{einheit\}/g, r.einheit)
     )}</li>`).join('');
     const modal = document.getElementById('bulkOverflowModal');
@@ -17318,6 +17340,7 @@ function addBulkTableRow(isPrivate){
     <td data-label="${t('label_material')}">${buildMaterialSelectHTML(prefix+'bulk-mat-'+rowId, '', 'edit-input', isPrivate ? null : getUserCategoryRestriction())}</td>
     <td data-label="${t('label_qualitaet')}"><input class="edit-input" id="${prefix}bulk-qual-${rowId}" type="number" step="0.01" style="width:90px;"></td>
     <td data-label="${t('label_menge')}"><input class="edit-input" id="${prefix}bulk-menge-${rowId}" type="number" step="0.001" style="width:110px;"></td>
+    <td data-label="${t('label_projekt')}"><select class="edit-input bulk-row-proj" id="${prefix}bulk-proj-${rowId}"><option value="">${escapeHtml(t('placeholder_no_project'))}</option></select></td>
     <td><button type="button" class="btn-icon danger" data-remove-row="${rowId}" title="${t('btn_delete')}">✕</button></td>
   `;
   tbody.appendChild(tr);
@@ -17333,17 +17356,167 @@ function initBulkTableIfEmpty(isPrivate){
   if(tbody.children.length === 0){
     renderBulkTableSharedFields(isPrivate);
     addBulkTableRow(isPrivate);
+  } else {
+    // Ab v0.138: Projekt-Dropdowns je Zeile auf den aktuellen Bedarf bringen
+    refreshAllBulkRowProjects(isPrivate);
   }
 }
+
+// ============================================================
+// Projekt je Zeile in der Massen-Eingabe (ab 31. Oktober 2026, v0.138)
+// ------------------------------------------------------------
+// Nutzerwunsch: zusaetzlich zur Zuordnung nach dem Speichern eine
+// zeilenweise Zuweisung direkt in der Tabelle (deckt auch die Foto-
+// Erfassung ab, die in diese Tabelle uebernimmt).
+//  - Das Dropdown je Zeile zeigt NUR Projekte mit offenem Restbedarf an
+//    genau dem Material der Zeile (wie das Zuordnungsfenster), aelteste
+//    zuerst; Projekte mit nicht erfuellter Mindestqualitaet sind
+//    ausgegraut (nicht waehlbar). Wird bei Material-/Qualitaetsaenderung
+//    neu aufgebaut.
+//  - Das Tabellen-Dropdown "Projekt fuer alle passenden Zeilen" setzt das
+//    Projekt nur in Zeilen, deren Material es benoetigt.
+//  - "Passende Projekte vorschlagen" belegt Zeilen OHNE Projekt mit dem
+//    aeltesten passenden Projekt vor (Restbedarf wird ueber die Zeilen
+//    hinweg verbraucht) -- nur auf Klick, nichts wird ungefragt zugeordnet.
+// Optionswert immer kodiert als "shared::<Ziel>" / "private::<Ziel>".
+// ============================================================
+function getBulkTableWideProjectValue(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  const el = document.getElementById(prefix+'bulkTableProjekt');
+  if(!el || !el.value) return '';
+  return isPrivate ? el.value : ('shared::' + el.value);
+}
+
+function refreshBulkRowProject(isPrivate, rowId){
+  const prefix = isPrivate ? 'priv-' : '';
+  const sel = document.getElementById(prefix+'bulk-proj-'+rowId);
+  if(!sel) return;
+  const material = (document.getElementById(prefix+'bulk-mat-'+rowId) || {}).value || '';
+  const qualRaw = (document.getElementById(prefix+'bulk-qual-'+rowId) || {}).value;
+  const qualitaet = (qualRaw === '' || qualRaw == null) ? null : parseFloat(qualRaw);
+  const prev = sel.value;
+  let html = `<option value="">${escapeHtml(t('placeholder_no_project'))}</option>`;
+  const validValues = new Set();
+  if(material){
+    const einheit = getDefaultEinheitForMaterial(material);
+    const cands = getCaptureAssignCandidates({ kind:'material', isPrivate, name: material, qualitaet: (qualitaet == null || isNaN(qualitaet)) ? null : qualitaet });
+    cands.forEach(c=>{
+      const val = c.typ + '::' + c.ziel;
+      const tag = isPrivate ? ' · ' + (c.typ === 'private' ? t('capture_assign_tag_private') : t('capture_assign_tag_shared')) : '';
+      // Ohne eingetragene Qualitaet laesst sich die Mindestqualitaet noch
+      // nicht beurteilen -- Projekt dann waehlbar lassen (Pruefung beim
+      // Absenden ist ohnehin durch die Zeilen-Validierung abgedeckt).
+      const blocked = !c.qualOk && qualitaet != null && !isNaN(qualitaet);
+      const info = blocked
+        ? t('bulk_proj_option_minqual').replace('{min}', c.minQual)
+        : t('bulk_proj_option_rest').replace('{rest}', c.rest).replace('{einheit}', einheit);
+      html += `<option value="${escapeHtml(val)}" ${blocked ? 'disabled' : ''}>${escapeHtml(c.ziel + tag + ' (' + info + ')')}</option>`;
+      if(!blocked) validValues.add(val);
+    });
+  }
+  sel.innerHTML = html;
+  if(prev && validValues.has(prev)){
+    sel.value = prev;
+  } else {
+    // Neu gewaehltes Material: Tabellen-Projekt uebernehmen, sofern passend
+    const wide = getBulkTableWideProjectValue(isPrivate);
+    sel.value = (wide && validValues.has(wide)) ? wide : '';
+  }
+}
+
+function refreshAllBulkRowProjects(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  const tbody = document.getElementById(prefix+'bulkTableBody');
+  if(!tbody) return;
+  tbody.querySelectorAll('tr').forEach(tr=>refreshBulkRowProject(isPrivate, tr.dataset.rowId));
+}
+
+function applyBulkTableWideProject(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  const wide = getBulkTableWideProjectValue(isPrivate);
+  const tbody = document.getElementById(prefix+'bulkTableBody');
+  if(!tbody) return;
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    const sel = document.getElementById(prefix+'bulk-proj-'+tr.dataset.rowId);
+    if(!sel) return;
+    if(!wide){ sel.value = ''; return; } // "Kein Projekt" leert alle Zeilen
+    const opt = Array.from(sel.options).find(o=>o.value === wide && !o.disabled);
+    if(opt) sel.value = wide; // nur passende Zeilen; uebrige bleiben unveraendert
+  });
+}
+
+function suggestBulkRowProjects(isPrivate){
+  const prefix = isPrivate ? 'priv-' : '';
+  const tbody = document.getElementById(prefix+'bulkTableBody');
+  const statusEl = document.getElementById(prefix+'bulkSuggestStatus');
+  if(!tbody) return;
+  refreshAllBulkRowProjects(isPrivate);
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const used = {};
+  const rowInfo = rows.map(tr=>{
+    const rowId = tr.dataset.rowId;
+    const sel = document.getElementById(prefix+'bulk-proj-'+rowId);
+    const material = (document.getElementById(prefix+'bulk-mat-'+rowId) || {}).value || '';
+    const menge = parseFloat((document.getElementById(prefix+'bulk-menge-'+rowId) || {}).value);
+    return { rowId, sel, material, menge: isNaN(menge) ? 0 : menge };
+  });
+  // Bereits gesetzte Zeilen verbrauchen ihren Restbedarf zuerst
+  rowInfo.forEach(r=>{
+    if(r.sel && r.sel.value && r.material){
+      const key = r.sel.value + '::' + r.material;
+      used[key] = (used[key] || 0) + r.menge;
+    }
+  });
+  let count = 0;
+  rowInfo.forEach(r=>{
+    if(!r.sel || r.sel.value || !r.material) return;
+    const qualRaw = (document.getElementById(prefix+'bulk-qual-'+r.rowId) || {}).value;
+    const qualitaet = qualRaw === '' ? null : parseFloat(qualRaw);
+    const cands = getCaptureAssignCandidates({ kind:'material', isPrivate, name: r.material, qualitaet })
+      .filter(c=>c.qualOk || qualitaet == null || isNaN(qualitaet));
+    const pick = cands.find(c=>{
+      const key = c.typ + '::' + c.ziel + '::' + r.material;
+      return c.rest - (used[key] || 0) > 1e-9;
+    });
+    if(pick){
+      r.sel.value = pick.typ + '::' + pick.ziel;
+      const key = pick.typ + '::' + pick.ziel + '::' + r.material;
+      used[key] = (used[key] || 0) + r.menge;
+      count++;
+    }
+  });
+  if(statusEl){
+    statusEl.textContent = count > 0 ? t('bulk_suggest_done').replace('{count}', count) : t('bulk_suggest_none');
+    clearTimeout(statusEl._timer);
+    statusEl._timer = setTimeout(()=>{ statusEl.textContent = ''; }, 5000);
+  }
+}
+
+[false, true].forEach(isPrivate=>{
+  const prefix = isPrivate ? 'priv-' : '';
+  const tbody = document.getElementById(prefix+'bulkTableBody');
+  if(tbody){
+    tbody.addEventListener('change', (ev)=>{
+      const id = (ev.target && ev.target.id) || '';
+      const m = /bulk-(mat|qual)-(.+)$/.exec(id);
+      if(m) refreshBulkRowProject(isPrivate, m[2]);
+    });
+  }
+  // Tabellen-Projekt: Delegation am Wrapper, da das Select neu gerendert wird
+  const wrap = document.getElementById(prefix+'bulkTableProjektWrap');
+  if(wrap) wrap.addEventListener('change', ()=>applyBulkTableWideProject(isPrivate));
+  const btn = document.getElementById(prefix+'btnBulkSuggestProjects');
+  if(btn) btn.addEventListener('click', ()=>suggestBulkRowProjects(isPrivate));
+});
 
 async function submitBulkTable(isPrivate){
   const prefix = isPrivate ? 'priv-' : '';
   const statusEl = document.getElementById(prefix+'bulkAddStatus');
   const lagerort = document.getElementById(prefix+'bulkTableLagerort').value;
   const person = currentUser.username;
-  const projektRaw = document.getElementById(prefix+'bulkTableProjekt').value;
-  const projektAssign = isPrivate ? parseProjectAssignmentValue(projektRaw) : { ziel: projektRaw, typ: projektRaw ? 'shared' : null };
-  const projekt = projektAssign.ziel;
+  // Ab v0.138: Das Projekt kommt je Zeile aus der Spalte "Projekt"; das
+  // Tabellen-Dropdown ist nur noch die Schnellwahl dafuer (siehe
+  // applyBulkTableWideProject()).
 
   if(!lagerort){
     setStatusMsg(statusEl, t('val_bestand_required'), true);
@@ -17369,63 +17542,69 @@ async function submitBulkTable(isPrivate){
     // SCU), statt wie bisher immer fest SCU anzunehmen. Siehe
     // Nutzerwunsch vom 7. August 2026.
     const einheit = getDefaultEinheitForMaterial(material);
-    parsedRows.push({ material, qualitaet, menge, einheit, capTo: null });
+    const projSel = document.getElementById(prefix+'bulk-proj-'+rowId);
+    const assign = parseProjectAssignmentValue(projSel ? projSel.value : '');
+    parsedRows.push({ material, qualitaet, menge, einheit, capTo: null, projekt: assign.ziel || '', projektTyp: assign.ziel ? (assign.typ || 'shared') : null });
   });
 
-  // Ueberschuss-Pruefung (ab 31. Oktober 2026, v0.135): siehe
-  // askBulkProjectOverflow(). Zeilen desselben Materials teilen sich den
-  // Restbedarf in Tabellen-Reihenfolge.
-  if(projekt && parsedRows.length > 0){
+  // Ueberschuss-Pruefung (ab v0.135, ab v0.138 je Zeilen-Projekt): Zeilen
+  // mit demselben Projekt und Material teilen sich dessen Restbedarf in
+  // Tabellen-Reihenfolge; ein gemeinsames Fenster fuer alle Ueberschreitungen.
+  {
     const restLeft = {};
     const overRows = [];
     parsedRows.forEach(r=>{
-      if(!(r.material in restLeft)){
-        const info = getProjectRemainingNeed(r.material, projektAssign.typ || 'shared', projekt);
-        restLeft[r.material] = info ? info.rest : null;
+      if(!r.projekt) return;
+      const key = r.projektTyp + '::' + r.projekt + '::' + r.material;
+      if(!(key in restLeft)){
+        const info = getProjectRemainingNeed(r.material, r.projektTyp, r.projekt);
+        restLeft[key] = info ? info.rest : null;
       }
-      const left = restLeft[r.material];
-      if(left == null) return; // Projekt kennt dieses Material nicht -- wie bisher keine Pruefung
+      const left = restLeft[key];
+      if(left == null) return;
       if(r.menge > left + 1e-9){
         r.capTo = left;
         overRows.push(r);
       }
-      restLeft[r.material] = Math.max(0, Math.round((left - r.menge) * 1000) / 1000);
+      restLeft[key] = Math.max(0, Math.round((left - r.menge) * 1000) / 1000);
     });
     if(overRows.length > 0){
-      const choice = await askBulkProjectOverflow(overRows, projekt);
+      const choice = await askBulkProjectOverflow(overRows);
       if(choice === 'cancel') return;
       if(choice === 'full') parsedRows.forEach(r=>{ r.capTo = null; });
     }
   }
 
   const capturedItems = [];
-  // Ab v0.136: private Zeilen mit GETEILTEM Tabellen-Projekt werden -- wie
-  // bei der Einzelerfassung im Privatbestand (seit 15. August 2026) --
-  // direkt in den geteilten Bestand uebertragen.
+  // Ab v0.136: private Zeilen mit GETEILTEM Projekt werden -- wie bei der
+  // Einzelerfassung im Privatbestand (seit 15. August 2026) -- direkt in
+  // den geteilten Bestand uebertragen.
   const autoTransferIds = [];
+  let assignedRows = 0;
   parsedRows.forEach(r=>{
     const { material, qualitaet, einheit } = r;
     const parts = [];
     if(r.capTo != null){
-      if(r.capTo > 0) parts.push({ menge: r.capTo, projekt: projekt });
-      parts.push({ menge: Math.round((r.menge - r.capTo) * 1000) / 1000, projekt: '' });
+      if(r.capTo > 0) parts.push({ menge: r.capTo, projekt: r.projekt });
+      parts.push({ menge: Math.round((r.menge - r.capTo) * 1000) / 1000, projekt: '', surplus: true });
     } else {
-      parts.push({ menge: r.menge, projekt: projekt || '' });
+      parts.push({ menge: r.menge, projekt: r.projekt });
     }
+    if(r.projekt) assignedRows++;
     parts.forEach(part=>{
       if(!(part.menge > 0)) return;
       const menge = part.menge;
       const pj = part.projekt;
       const newId = isPrivate ? privateUid() : uid();
       if(isPrivate){
-        privateEntries.push({ id: newId, material, qualitaet, menge, einheit, lagerort, person, projekt: pj||'', projektTyp: pj ? projektAssign.typ : null, owner: currentUser.username });
-        if(pj && projektAssign.typ === 'shared') autoTransferIds.push(newId);
+        privateEntries.push({ id: newId, material, qualitaet, menge, einheit, lagerort, person, projekt: pj||'', projektTyp: pj ? r.projektTyp : null, owner: currentUser.username });
+        if(pj && r.projektTyp === 'shared') autoTransferIds.push(newId);
       } else {
         entries.push({ id: newId, material, qualitaet, menge, einheit, lagerort, person, projekt: pj||'', createdAt: new Date().toISOString() });
       }
       // Fuer die Projekt-Zuordnung nach der Erfassung nur Zeilen OHNE
-      // Tabellen-Projekt (ein bewusst abgespaltener Ueberschuss bleibt frei).
-      if(!projekt) capturedItems.push({ kind:'material', isPrivate, id: newId, name: material, qualitaet, amount: menge, einheit, ort: lagerort });
+      // Projekt (ein bewusst abgespaltener Ueberschuss bleibt frei).
+      if(!r.projekt) capturedItems.push({ kind:'material', isPrivate, id: newId, name: material, qualitaet, amount: menge, einheit, ort: lagerort });
     });
     added++;
   });
@@ -17438,7 +17617,7 @@ async function submitBulkTable(isPrivate){
   setStatusMsg(statusEl, t('msg_saving'), false);
   if(isPrivate){
     await savePrivateEntries();
-    await logAction('Privatbestand per Tabellen-Massen-Eingabe hinzugefügt', `${added} Einträge, Lagerort: ${lagerort}`);
+    await logAction('Privatbestand per Tabellen-Massen-Eingabe hinzugefügt', `${added} Einträge, Lagerort: ${lagerort}${assignedRows ? `, davon ${assignedRows} mit Projekt` : ''}`);
     for(const id of autoTransferIds){
       await transferPrivateEntry(id, null);
     }
@@ -17447,7 +17626,7 @@ async function submitBulkTable(isPrivate){
     renderPrivateProjects();
   } else {
     await save();
-    await logAction('Bestand per Tabellen-Massen-Eingabe hinzugefügt', `${added} Einträge, Lagerort: ${lagerort}`);
+    await logAction('Bestand per Tabellen-Massen-Eingabe hinzugefügt', `${added} Einträge, Lagerort: ${lagerort}${assignedRows ? `, davon ${assignedRows} mit Projekt` : ''}`);
     render();
     updateProjectAvailability();
     renderProjects();
@@ -19294,6 +19473,7 @@ document.getElementById('btnApplyOcrPreview').addEventListener('click', ()=>{
   // Felder (Lagerort/Projekt-Dropdown) korrekt initialisiert sind, bevor
   // der Lagerort ueberschrieben wird.
   renderBulkTableSharedFields(isPrivate);
+  refreshAllBulkRowProjects(isPrivate);
   const lagerortSelect = document.getElementById(prefix+'bulkTableLagerort');
   if(lagerortSelect) lagerortSelect.value = lagerort;
 
@@ -19395,13 +19575,19 @@ document.getElementById('priv-bulkAddText').addEventListener('input', ()=>{
 // per Ereignis-Delegation auf dem tbody, da Zeilen dynamisch hinzugefuegt/
 // entfernt werden und einzelne Listener pro Zeile die Rueckstellung sonst
 // bei neu hinzugefuegten Zeilen verpassen wuerden.
-document.getElementById('bulkTableBody').addEventListener('input', ()=>{
+document.getElementById('bulkTableBody').addEventListener('input', (ev)=>{
+  // Ab v0.138: Die Projekt-Auswahl je Zeile ist kein OCR-Wert und entwertet
+  // die Bestaetigung "Daten korrekt" daher nicht.
+  if(ev && ev.target && ev.target.classList && ev.target.classList.contains('bulk-row-proj')) return;
   if(bulkOcrPending.public && bulkOcrConfirmed.public){
     bulkOcrConfirmed.public = false;
     updateBulkOcrUI('public');
   }
 });
-document.getElementById('priv-bulkTableBody').addEventListener('input', ()=>{
+document.getElementById('priv-bulkTableBody').addEventListener('input', (ev)=>{
+  // Ab v0.138: Die Projekt-Auswahl je Zeile ist kein OCR-Wert und entwertet
+  // die Bestaetigung "Daten korrekt" daher nicht.
+  if(ev && ev.target && ev.target.classList && ev.target.classList.contains('bulk-row-proj')) return;
   if(bulkOcrPending.private && bulkOcrConfirmed.private){
     bulkOcrConfirmed.private = false;
     updateBulkOcrUI('private');
