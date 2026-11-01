@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.141 -->
+<!-- Version: 0.142 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -587,6 +587,23 @@ label.capture-assign-toggle-label span{flex:1 1 auto;min-width:0;}
 .scope-badge{display:inline-block;margin-left:10px;padding:2px 8px;border:1px solid var(--panel-border);border-radius:20px;font-family:'Share Tech Mono', monospace;font-size:10.5px;font-weight:400;letter-spacing:0.3px;text-transform:none;color:var(--ink-soft);vertical-align:middle;white-space:nowrap;}
 .danger-zone{margin-top:22px;padding:12px 12px 2px;border:1px dashed #FF3B5C;border-radius:var(--radius);}
 .danger-zone-title{font-family:'Orbitron', sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#FF3B5C;margin:0 0 10px 4px;}
+
+/* Ab 1. November 2026 (v0.142): zusammengefuehrte Bereiche */
+.admin-subpanel{margin-top:6px;padding-top:14px;border-top:1px solid var(--panel-border);}
+.admin-subpanel:first-of-type{border-top:none;padding-top:4px;}
+.admin-subpanel-title{font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px;color:var(--steel, var(--ink));}
+.admin-subpanel-inline{margin-top:18px;}
+.admin-subpanel .user-note, .tpl-steps li{overflow-wrap:anywhere;}
+.admin-innertabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px;border-bottom:1px solid var(--panel-border);}
+.admin-innertab{font-family:'Rajdhani', sans-serif;font-weight:600;font-size:14px;padding:8px 14px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--ink-soft);cursor:pointer;}
+.admin-innertab:hover{color:var(--ink);}
+.admin-innertab.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+.admin-subcollapsible{margin-top:16px;border:1px solid var(--panel-border);border-radius:var(--radius);padding:8px 12px;}
+.admin-subcollapsible > summary{cursor:pointer;font-family:'Rajdhani', sans-serif;font-weight:600;font-size:14px;color:var(--ink);}
+.admin-subcollapsible .admin-subpanel:first-of-type{border-top:none;}
+a.btn-ghost{display:inline-flex;align-items:center;text-decoration:none;font-family:'Orbitron', sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;border-radius:var(--radius);padding:10px 18px;}
+.tpl-steps{margin:10px 0 0;padding-left:20px;font-size:13px;line-height:1.6;color:var(--ink);}
+.tpl-steps li{margin-bottom:4px;}
 
 .recent-chips{
   display:flex;
@@ -1999,115 +2016,120 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="admin-group" data-group="organisation">
-  <details class="panel admin-collapsible" data-default-open="false" id="orgBrandingPanel" data-scope="org" style="display:none;">
-    <summary><h2 data-i18n="panel_org_branding">Organisation anpassen</h2></summary>
-    <div class="field">
-      <label for="orgMottoInput" data-i18n="label_org_motto">Motto / Untertitel (optional)</label>
-      <input type="text" id="orgMottoInput" placeholder="z. B. Mining Division" maxlength="60">
-    </div>
-    <div class="field" style="margin-top:12px;">
-      <label data-i18n="label_org_accent">Akzentfarbe</label>
-      <div id="orgAccentSwatches" style="display:flex;gap:10px;margin-top:6px;"></div>
-    </div>
-    <div class="field" style="margin-top:12px;">
-      <label data-i18n="label_org_background">Hintergrundfarbe</label>
-      <div id="orgBackgroundSwatches" style="display:flex;gap:10px;margin-top:6px;"></div>
-    </div>
-    <div class="field" style="margin-top:12px;">
-      <label data-i18n="label_org_symbol">Wappentier / Symbol</label>
-      <div id="orgSymbolSwatches" style="display:flex;gap:10px;margin-top:6px;"></div>
-    </div>
-    <div class="field" style="margin-top:12px;">
-      <label data-i18n="label_org_emblem">Eigenes Emblem (optional, ersetzt das Symbol oben)</label>
-      <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap;">
-        <img id="orgEmblemPreview" style="display:none;width:48px;height:48px;object-fit:contain;border:1px solid var(--panel-border);border-radius:4px;background:rgba(0,0,0,0.3);">
-        <button type="button" class="btn-ghost" id="btnUploadEmblem" data-i18n="btn_upload_emblem">Bild hochladen</button>
-        <button type="button" class="btn-ghost danger" id="btnRemoveEmblem" style="display:none;" data-i18n="btn_remove_emblem">Emblem entfernen</button>
-        <input type="file" id="orgEmblemFileInput" accept="image/*" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+  <!-- Ab v0.142: Organisation anpassen, Organisations-Information und Discord in einem Bereich -->
+  <details class="panel admin-collapsible" data-default-open="true" id="orgSettingsPanel" data-scope="org" data-combined="1" style="display:none;">
+    <summary><h2 data-i18n="panel_org_settings">Organisationseinstellungen</h2></summary>
+    <section class="admin-subpanel" id="orgBrandingPanel" style="display:none;">
+      <h3 class="admin-subpanel-title" data-i18n="panel_org_branding">Organisation anpassen</h3>
+      <div class="field">
+        <label for="orgMottoInput" data-i18n="label_org_motto">Motto / Untertitel (optional)</label>
+        <input type="text" id="orgMottoInput" placeholder="z. B. Mining Division" maxlength="60">
       </div>
-      <div class="user-note" style="margin-top:6px;" data-i18n="hint_emblem_size">Wird automatisch verkleinert und komprimiert (max. ca. 150 KB). Empfohlen: einfaches, kontrastreiches Bild.</div>
-    </div>
-    <div class="user-note" style="margin-top:12px;" data-i18n="hint_branding_live_preview">Farbe und Symbol werden sofort zur Vorschau angewendet — dauerhaft übernommen wird alles erst mit "Speichern".</div>
-    <div style="margin-top:12px;">
-      <button class="btn-primary" id="btnSaveOrgBranding" data-i18n="btn_save">Speichern</button>
-    </div>
-    <div class="status-msg" id="orgBrandingStatus"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="orgInfoPanel" data-scope="org" style="display:none;">
-    <summary><h2 data-i18n="panel_org_info">Organisations-Information</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_org_info">Optionaler Hinweistext, der allen Mitgliedern dieser Organisation ganz oben im Dashboard angezeigt wird — z. B. aktuelle Ankündigungen oder Regeln. Leer lassen bzw. über "Nachricht entfernen" löschen, um nichts anzuzeigen.</span></div>
-    <div class="field">
-      <label for="orgInfoTitleInput" data-i18n="label_org_info_titel">Titel</label>
-      <input type="text" id="orgInfoTitleInput" placeholder="z. B. Willkommen im Team!" maxlength="80">
-    </div>
-    <div class="field" style="margin-top:12px;">
-      <label data-i18n="label_org_info_inhalt">Inhalt</label>
-      <div style="display:flex;gap:6px;margin:6px 0;flex-wrap:wrap;">
-        <button type="button" class="btn-ghost" id="orgInfoBtnBold" title="Fett" data-i18n-title="tooltip_fett" style="padding:5px 12px;font-weight:700;">F</button>
-        <button type="button" class="btn-ghost" id="orgInfoBtnItalic" title="Kursiv" data-i18n-title="tooltip_kursiv" style="padding:5px 12px;font-style:italic;">K</button>
-        <button type="button" class="btn-ghost" id="orgInfoBtnUL" title="Aufzählung" data-i18n-title="tooltip_liste_ul" style="padding:5px 12px;">☰ <span data-i18n="btn_liste">Liste</span></button>
-        <button type="button" class="btn-ghost" id="orgInfoBtnOL" title="Nummerierte Liste" data-i18n-title="tooltip_liste_ol" style="padding:5px 12px;">① <span data-i18n="btn_liste_nummeriert">Nummeriert</span></button>
-        <button type="button" class="btn-ghost" id="orgInfoBtnLink" title="Link einfügen" data-i18n-title="tooltip_link" style="padding:5px 12px;">🔗 <span data-i18n="btn_link">Link</span></button>
+      <div class="field" style="margin-top:12px;">
+        <label data-i18n="label_org_accent">Akzentfarbe</label>
+        <div id="orgAccentSwatches" style="display:flex;gap:10px;margin-top:6px;"></div>
       </div>
-      <div id="orgInfoBodyInput" contenteditable="true" style="min-height:120px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);font-family:'Rajdhani', sans-serif;font-size:14px;line-height:1.5;"></div>
-    </div>
-    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="btn-primary" id="btnSaveOrgInfo" data-i18n="btn_save">Speichern</button>
-      <button class="btn-ghost danger" id="btnClearOrgInfo" data-i18n="btn_org_info_entfernen">Nachricht entfernen</button>
-    </div>
-    <div class="status-msg" id="orgInfoStatus"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="discordPanel" data-scope="org" style="display:none;">
-    <summary><h2 data-i18n="panel_discord">Discord-Benachrichtigungen</h2></summary>
-    <div class="user-note" data-i18n="hint_discord">Sendet bei ausgewählten Ereignissen automatisch eine kurze Nachricht an einen Discord-Kanal eurer Wahl — praktisch als eigener, separat stummschaltbarer Kanal, damit andere Kanäle nicht überflutet werden. Die Webhook-URL wird wie ein Passwort behandelt: Wer sie kennt, kann in diesem Kanal posten.</div>
-    <div class="field" style="margin-top:12px;">
-      <label for="discordWebhookInput" data-i18n="label_discord_webhook">Discord-Webhook-URL</label>
-      <input type="password" id="discordWebhookInput" placeholder="https://discord.com/api/webhooks/…" autocomplete="off">
-    </div>
-    <div class="field" style="margin-top:14px;">
-      <label data-i18n="label_discord_events">Benachrichtigen bei</label>
-      <!-- Grid statt einzelner Flex-Zeilen: stellt sicher, dass sowohl
-           die Checkboxen als auch die Beschreibungstexte jeweils exakt
-           in einer eigenen, sauberen Spalte untereinander stehen --
-           unabhaengig davon, wie lang der einzelne Beschreibungstext ist
-           (z.B. die deutlich laengere 50%-Beschreibung gegenueber den
-           kuerzeren Zeilen) oder ob ein Text auf mehrere Zeilen umbricht.
-           Erste Spalte fest auf Checkbox-Breite begrenzt (auto),
-           zweite Spalte nimmt den restlichen Platz ein (1fr). Siehe
-           Nutzerwunsch vom 12. August 2026. -->
-      <div style="display:grid;grid-template-columns:auto 1fr;column-gap:8px;row-gap:8px;margin-top:6px;align-items:start;">
-        <input type="checkbox" id="discordEvent-kritischerBedarf" style="margin-top:3px;">
-        <label for="discordEvent-kritischerBedarf" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_kritisch">⚠ Kritischer Bedarf gemeldet</label>
-
-        <input type="checkbox" id="discordEvent-zuweisung" style="margin-top:3px;">
-        <label for="discordEvent-zuweisung" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_zuweisung">🎁 Material einer Person zugewiesen</label>
-
-        <input type="checkbox" id="discordEvent-projektAngelegt" style="margin-top:3px;">
-        <label for="discordEvent-projektAngelegt" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projekt">🚀 Neues Projekt angelegt</label>
-
-        <input type="checkbox" id="discordEvent-projektBedarf" style="margin-top:3px;">
-        <label for="discordEvent-projektBedarf" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektbedarf">📦 Bedarf aus einem Projekt gemeldet</label>
-
-        <input type="checkbox" id="discordEvent-projekt50" style="margin-top:3px;">
-        <label for="discordEvent-projekt50" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projekt50">🎯 Projekt zu 50% abgeschlossen (inkl. noch fehlender Materialien)</label>
-
-        <input type="checkbox" id="discordEvent-projektAbgeschlossen" style="margin-top:3px;">
-        <label for="discordEvent-projektAbgeschlossen" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektabgeschlossen">✅ Projekt vollständig abgeschlossen</label>
-
-        <input type="checkbox" id="discordEvent-projektAktualisiert" style="margin-top:3px;">
-        <label for="discordEvent-projektAktualisiert" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektaktualisiert">✏️ Projekt aktualisiert (nur die Änderungen, auch bei Übernahme aus einer Vorlage)</label>
-
-        <input type="checkbox" id="discordEvent-projektGeloescht" style="margin-top:3px;">
-        <label for="discordEvent-projektGeloescht" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektgeloescht">🗑️ Projekt gelöscht / wiederhergestellt</label>
+      <div class="field" style="margin-top:12px;">
+        <label data-i18n="label_org_background">Hintergrundfarbe</label>
+        <div id="orgBackgroundSwatches" style="display:flex;gap:10px;margin-top:6px;"></div>
       </div>
-    </div>
-    <div style="margin-top:14px;display:flex;gap:10px;">
-      <button class="btn-primary" id="btnSaveDiscord" data-i18n="btn_save">Speichern</button>
-      <button class="btn-ghost" id="btnTestDiscord" data-i18n="btn_discord_test">Testnachricht senden</button>
-    </div>
-    <div class="status-msg" id="discordStatus"></div>
+      <div class="field" style="margin-top:12px;">
+        <label data-i18n="label_org_symbol">Wappentier / Symbol</label>
+        <div id="orgSymbolSwatches" style="display:flex;gap:10px;margin-top:6px;"></div>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label data-i18n="label_org_emblem">Eigenes Emblem (optional, ersetzt das Symbol oben)</label>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap;">
+          <img id="orgEmblemPreview" style="display:none;width:48px;height:48px;object-fit:contain;border:1px solid var(--panel-border);border-radius:4px;background:rgba(0,0,0,0.3);">
+          <button type="button" class="btn-ghost" id="btnUploadEmblem" data-i18n="btn_upload_emblem">Bild hochladen</button>
+          <button type="button" class="btn-ghost danger" id="btnRemoveEmblem" style="display:none;" data-i18n="btn_remove_emblem">Emblem entfernen</button>
+          <input type="file" id="orgEmblemFileInput" accept="image/*" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+        </div>
+        <div class="user-note" style="margin-top:6px;" data-i18n="hint_emblem_size">Wird automatisch verkleinert und komprimiert (max. ca. 150 KB). Empfohlen: einfaches, kontrastreiches Bild.</div>
+      </div>
+      <div class="user-note" style="margin-top:12px;" data-i18n="hint_branding_live_preview">Farbe und Symbol werden sofort zur Vorschau angewendet — dauerhaft übernommen wird alles erst mit "Speichern".</div>
+      <div style="margin-top:12px;">
+        <button class="btn-primary" id="btnSaveOrgBranding" data-i18n="btn_save">Speichern</button>
+      </div>
+      <div class="status-msg" id="orgBrandingStatus"></div>
+    </section>
+
+    <section class="admin-subpanel" id="orgInfoPanel" style="display:none;">
+      <h3 class="admin-subpanel-title" data-i18n="panel_org_info">Organisations-Information</h3>
+      <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_org_info">Optionaler Hinweistext, der allen Mitgliedern dieser Organisation ganz oben im Dashboard angezeigt wird — z. B. aktuelle Ankündigungen oder Regeln. Leer lassen bzw. über "Nachricht entfernen" löschen, um nichts anzuzeigen.</span></div>
+      <div class="field">
+        <label for="orgInfoTitleInput" data-i18n="label_org_info_titel">Titel</label>
+        <input type="text" id="orgInfoTitleInput" placeholder="z. B. Willkommen im Team!" maxlength="80">
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label data-i18n="label_org_info_inhalt">Inhalt</label>
+        <div style="display:flex;gap:6px;margin:6px 0;flex-wrap:wrap;">
+          <button type="button" class="btn-ghost" id="orgInfoBtnBold" title="Fett" data-i18n-title="tooltip_fett" style="padding:5px 12px;font-weight:700;">F</button>
+          <button type="button" class="btn-ghost" id="orgInfoBtnItalic" title="Kursiv" data-i18n-title="tooltip_kursiv" style="padding:5px 12px;font-style:italic;">K</button>
+          <button type="button" class="btn-ghost" id="orgInfoBtnUL" title="Aufzählung" data-i18n-title="tooltip_liste_ul" style="padding:5px 12px;">☰ <span data-i18n="btn_liste">Liste</span></button>
+          <button type="button" class="btn-ghost" id="orgInfoBtnOL" title="Nummerierte Liste" data-i18n-title="tooltip_liste_ol" style="padding:5px 12px;">① <span data-i18n="btn_liste_nummeriert">Nummeriert</span></button>
+          <button type="button" class="btn-ghost" id="orgInfoBtnLink" title="Link einfügen" data-i18n-title="tooltip_link" style="padding:5px 12px;">🔗 <span data-i18n="btn_link">Link</span></button>
+        </div>
+        <div id="orgInfoBodyInput" contenteditable="true" style="min-height:120px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);font-family:'Rajdhani', sans-serif;font-size:14px;line-height:1.5;"></div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-primary" id="btnSaveOrgInfo" data-i18n="btn_save">Speichern</button>
+        <button class="btn-ghost danger" id="btnClearOrgInfo" data-i18n="btn_org_info_entfernen">Nachricht entfernen</button>
+      </div>
+      <div class="status-msg" id="orgInfoStatus"></div>
+    </section>
+
+    <section class="admin-subpanel" id="discordPanel" style="display:none;">
+      <h3 class="admin-subpanel-title" data-i18n="panel_discord">Discord-Benachrichtigungen</h3>
+      <div class="user-note" data-i18n="hint_discord">Sendet bei ausgewählten Ereignissen automatisch eine kurze Nachricht an einen Discord-Kanal eurer Wahl — praktisch als eigener, separat stummschaltbarer Kanal, damit andere Kanäle nicht überflutet werden. Die Webhook-URL wird wie ein Passwort behandelt: Wer sie kennt, kann in diesem Kanal posten.</div>
+      <div class="field" style="margin-top:12px;">
+        <label for="discordWebhookInput" data-i18n="label_discord_webhook">Discord-Webhook-URL</label>
+        <input type="password" id="discordWebhookInput" placeholder="https://discord.com/api/webhooks/…" autocomplete="off">
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label data-i18n="label_discord_events">Benachrichtigen bei</label>
+        <!-- Grid statt einzelner Flex-Zeilen: stellt sicher, dass sowohl
+             die Checkboxen als auch die Beschreibungstexte jeweils exakt
+             in einer eigenen, sauberen Spalte untereinander stehen --
+             unabhaengig davon, wie lang der einzelne Beschreibungstext ist
+             (z.B. die deutlich laengere 50%-Beschreibung gegenueber den
+             kuerzeren Zeilen) oder ob ein Text auf mehrere Zeilen umbricht.
+             Erste Spalte fest auf Checkbox-Breite begrenzt (auto),
+             zweite Spalte nimmt den restlichen Platz ein (1fr). Siehe
+             Nutzerwunsch vom 12. August 2026. -->
+        <div style="display:grid;grid-template-columns:auto 1fr;column-gap:8px;row-gap:8px;margin-top:6px;align-items:start;">
+          <input type="checkbox" id="discordEvent-kritischerBedarf" style="margin-top:3px;">
+          <label for="discordEvent-kritischerBedarf" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_kritisch">⚠ Kritischer Bedarf gemeldet</label>
+  
+          <input type="checkbox" id="discordEvent-zuweisung" style="margin-top:3px;">
+          <label for="discordEvent-zuweisung" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_zuweisung">🎁 Material einer Person zugewiesen</label>
+  
+          <input type="checkbox" id="discordEvent-projektAngelegt" style="margin-top:3px;">
+          <label for="discordEvent-projektAngelegt" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projekt">🚀 Neues Projekt angelegt</label>
+  
+          <input type="checkbox" id="discordEvent-projektBedarf" style="margin-top:3px;">
+          <label for="discordEvent-projektBedarf" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektbedarf">📦 Bedarf aus einem Projekt gemeldet</label>
+  
+          <input type="checkbox" id="discordEvent-projekt50" style="margin-top:3px;">
+          <label for="discordEvent-projekt50" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projekt50">🎯 Projekt zu 50% abgeschlossen (inkl. noch fehlender Materialien)</label>
+  
+          <input type="checkbox" id="discordEvent-projektAbgeschlossen" style="margin-top:3px;">
+          <label for="discordEvent-projektAbgeschlossen" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektabgeschlossen">✅ Projekt vollständig abgeschlossen</label>
+  
+          <input type="checkbox" id="discordEvent-projektAktualisiert" style="margin-top:3px;">
+          <label for="discordEvent-projektAktualisiert" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektaktualisiert">✏️ Projekt aktualisiert (nur die Änderungen, auch bei Übernahme aus einer Vorlage)</label>
+  
+          <input type="checkbox" id="discordEvent-projektGeloescht" style="margin-top:3px;">
+          <label for="discordEvent-projektGeloescht" style="font-weight:normal;cursor:pointer;" data-i18n="label_discord_event_projektgeloescht">🗑️ Projekt gelöscht / wiederhergestellt</label>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:10px;">
+        <button class="btn-primary" id="btnSaveDiscord" data-i18n="btn_save">Speichern</button>
+        <button class="btn-ghost" id="btnTestDiscord" data-i18n="btn_discord_test">Testnachricht senden</button>
+      </div>
+      <div class="status-msg" id="discordStatus"></div>
+    </section>
+
   </details>
 
   </div>
@@ -2253,69 +2275,98 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="admin-group" data-group="vorlagen">
-  <details class="panel admin-collapsible" data-default-open="true" id="unifiedTemplateManagePanel" data-scope="all" style="display:none;">
-    <summary><h2 data-i18n="panel_vorlagen_einzeln_verwalten">Einzelne Vorlagen verwalten</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten">Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen. Durchsucht Rezepte und Wikelo-Handelsangebote gemeinsam.</div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
-      <input type="text" id="tpl-unified-search" placeholder="Suche nach Name oder Kategorie…" data-i18n-placeholder="placeholder_vorlage_suchen_beide" style="flex:1;min-width:200px;">
-      <button type="button" class="btn-primary" id="tpl-unified-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
-      <button type="button" class="btn-ghost" id="btnShowDuplicateTemplates" data-i18n="btn_duplikate_anzeigen">Mögliche Duplikate anzeigen</button>
+  <!-- Ab v0.142: alle Vorlagen-Bereiche in einem Bereich mit drei Unterreitern -->
+  <details class="panel admin-collapsible" data-default-open="true" id="templatesPanel" data-scope="all" data-combined="1" style="display:none;">
+    <summary><h2 data-i18n="panel_vorlagen">Projekt-Vorlagen (Rezepte & Wikelo)</h2></summary>
+    <div class="admin-innertabs" role="tablist">
+      <button type="button" class="admin-innertab active" data-pane="tplPaneBrowse" data-i18n="tpl_tab_browse">Durchsuchen & bearbeiten</button>
+      <button type="button" class="admin-innertab" data-pane="tplPaneImport" data-i18n="tpl_tab_import">Importieren</button>
+      <button type="button" class="admin-innertab" data-pane="tplPaneSources" data-i18n="tpl_tab_sources">Quellen & Abgleich</button>
     </div>
-    <div id="tpl-unified-list" style="max-height:320px;overflow-y:auto;"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="templateManagePanel" data-scope="all" style="display:none;">
-    <summary><h2 data-i18n="panel_vorlagen_verwalten">Projekt-Vorlagen verwalten</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
-    <div id="tplManagePanelList"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="templateManagePanelWikeloWrap" data-scope="all" style="display:none;">
-    <summary><h2 data-i18n="panel_wikelo_verwalten">Wikelo-Handelsangebote verwalten</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
-    <div id="tplManagePanelListWikelo"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="templateImportPanel" data-scope="all" style="display:none;">
-    <summary><h2 data-i18n="panel_rezepte_import">Projekt-Vorlagen importieren</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rezepte_import">Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Format pro Zeile: Kategorie;Name;Material1,Material2,Material3 — optional lässt sich je Material eine vorgeschlagene Menge anhängen, z. B. "Material:15". Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
-    <div style="margin-bottom:10px;">
-      <button type="button" class="btn-ghost" id="btnSelectTemplateFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
-      <input type="file" id="templateFileInput" accept=".txt,.csv" style="display:none;">
+    <div class="admin-innerpane" id="tplPaneBrowse">
+    <section class="admin-subpanel" id="unifiedTemplateManagePanel" style="display:none;">
+      <h3 class="admin-subpanel-title" data-i18n="panel_vorlagen_einzeln_verwalten">Einzelne Vorlagen verwalten</h3>
+      <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten">Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen. Durchsucht Rezepte und Wikelo-Handelsangebote gemeinsam.</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+        <input type="text" id="tpl-unified-search" placeholder="Suche nach Name oder Kategorie…" data-i18n-placeholder="placeholder_vorlage_suchen_beide" style="flex:1;min-width:200px;">
+        <button type="button" class="btn-primary" id="tpl-unified-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
+        <button type="button" class="btn-ghost" id="btnShowDuplicateTemplates" data-i18n="btn_duplikate_anzeigen">Mögliche Duplikate anzeigen</button>
+      </div>
+      <div id="tpl-unified-list" style="max-height:320px;overflow-y:auto;"></div>
+    </section>
+      <details class="admin-subcollapsible" id="tplBrowseByCategory">
+        <summary data-i18n="tpl_browse_by_category">Nach Kategorie durchstöbern</summary>
+    <section class="admin-subpanel" id="templateManagePanel" style="display:none;">
+      <h3 class="admin-subpanel-title" data-i18n="panel_vorlagen_verwalten">Projekt-Vorlagen verwalten</h3>
+      <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
+      <div id="tplManagePanelList"></div>
+    </section>
+    <section class="admin-subpanel" id="templateManagePanelWikeloWrap" style="display:none;">
+      <h3 class="admin-subpanel-title" data-i18n="panel_wikelo_verwalten">Wikelo-Handelsangebote verwalten</h3>
+      <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
+      <div id="tplManagePanelListWikelo"></div>
+    </section>
+      </details>
     </div>
-    <textarea id="templateImportText" rows="8" placeholder="Rüstungsteile;ADP Arms;Ouratite,Aslarite" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
-    <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-      <button class="btn-primary" id="btnImportTemplates" data-i18n="btn_rezepte_importieren">Importieren</button>
-      <button class="btn-ghost" id="btnRestoreTemplatesBackup" style="display:none;font-size:11px;" data-i18n="btn_vorherige_version_wiederherstellen">↺ Vorherige Version wiederherstellen</button>
-      <span id="templateCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
+    <div class="admin-innerpane" id="tplPaneImport" style="display:none;">
+      <div class="field" style="max-width:320px;">
+        <label for="tplImportKind" data-i18n="label_tpl_import_kind">Was importieren?</label>
+        <select id="tplImportKind"><option value="rezepte" data-i18n="option_tpl_kind_rezepte">Rezepte (Projekt-Vorlagen)</option><option value="wikelo" data-i18n="option_tpl_kind_wikelo">Wikelo-Handelsangebote</option></select>
+      </div>
+      <div data-import-kind="rezepte">
+    <section class="admin-subpanel" id="templateImportPanel" style="display:none;">
+      <h3 class="admin-subpanel-title" data-i18n="panel_rezepte_import">Projekt-Vorlagen importieren</h3>
+      <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rezepte_import">Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Format pro Zeile: Kategorie;Name;Material1,Material2,Material3 — optional lässt sich je Material eine vorgeschlagene Menge anhängen, z. B. "Material:15". Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
+      <div style="margin-bottom:10px;">
+        <button type="button" class="btn-ghost" id="btnSelectTemplateFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
+        <input type="file" id="templateFileInput" accept=".txt,.csv" style="display:none;">
+      </div>
+      <textarea id="templateImportText" rows="8" placeholder="Rüstungsteile;ADP Arms;Ouratite,Aslarite" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn-primary" id="btnImportTemplates" data-i18n="btn_rezepte_importieren">Importieren</button>
+        <button class="btn-ghost" id="btnRestoreTemplatesBackup" style="display:none;font-size:11px;" data-i18n="btn_vorherige_version_wiederherstellen">↺ Vorherige Version wiederherstellen</button>
+        <span id="templateCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
+      </div>
+      <div class="status-msg" id="templateImportStatus"></div>
+    </section>
+      </div>
+      <div data-import-kind="wikelo" style="display:none;">
+    <section class="admin-subpanel" id="wikeloImportPanel" style="display:none;">
+      <h3 class="admin-subpanel-title" data-i18n="panel_wikelo_import">Wikelo-Handelsangebote importieren</h3>
+      <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_wikelo_import">Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — optional lässt sich je Gegenstand eine vorgeschlagene Menge anhängen, z. B. "Gegenstand:15". Ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
+      <div style="margin-bottom:10px;">
+        <button type="button" class="btn-ghost" id="btnSelectWikeloFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
+        <input type="file" id="wikeloFileInput" accept=".txt,.csv" style="display:none;">
+      </div>
+      <textarea id="wikeloImportText" rows="8" placeholder="Kampf;Guardian;Wikelo Favor,Irradiated Valakkar Pearl (Grade AA),Ace Interceptor Helmet,Tevarin War Service Marker" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn-primary" id="btnImportWikelo" data-i18n="btn_rezepte_importieren">Importieren</button>
+        <button class="btn-ghost" id="btnRestoreWikeloBackup" style="display:none;font-size:11px;" data-i18n="btn_vorherige_version_wiederherstellen">↺ Vorherige Version wiederherstellen</button>
+        <span id="wikeloCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
+      </div>
+      <div class="status-msg" id="wikeloImportStatus"></div>
+    </section>
+      </div>
     </div>
-    <div class="status-msg" id="templateImportStatus"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="wikeloImportPanel" data-scope="all" style="display:none;">
-    <summary><h2 data-i18n="panel_wikelo_import">Wikelo-Handelsangebote importieren</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_wikelo_import">Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — optional lässt sich je Gegenstand eine vorgeschlagene Menge anhängen, z. B. "Gegenstand:15". Ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
-    <div style="margin-bottom:10px;">
-      <button type="button" class="btn-ghost" id="btnSelectWikeloFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
-      <input type="file" id="wikeloFileInput" accept=".txt,.csv" style="display:none;">
+    <div class="admin-innerpane" id="tplPaneSources" style="display:none;">
+    <section class="admin-subpanel" id="scmdbImportPanel" style="display:none;">
+      <h3 class="admin-subpanel-title" data-i18n="panel_tpl_sources">Quellen & Abgleich</h3>
+      <div class="user-note" data-i18n="hint_tpl_sources">Aktuelle Rezeptdaten kommen von scmdb.net. Die beiden Scripts laufen lokal (Python 3) und erzeugen eine fertige Importdatei, ohne vorhandene Mindestqualitäten zu verlieren.</div>
+      <ol class="tpl-steps">
+        <li data-i18n="tpl_step_1">Beide Scripts herunterladen und in einen Ordner legen. Einmalig: pip install playwright und playwright install chromium.</li>
+        <li data-i18n="tpl_step_2">Aktuellen Bestand sichern: Daten & Sicherung → „Alles exportieren (JSON)“ (ohne Benutzer) in denselben Ordner speichern.</li>
+        <li data-i18n="tpl_step_3">python scrape_scmdb_rezepte.py — lädt alle Rezepte von scmdb.net (Ergebnis: scmdb-rezepte_JJJJ-MM-TT.txt).</li>
+        <li data-i18n="tpl_step_4">python vorlagen_abgleich.py scmdb-rezepte_JJJJ-MM-TT.txt --basis &lt;Export&gt;.json — ergänzt fehlende und aktualisiert abweichende Mengen; Bericht als CSV.</li>
+        <li data-i18n="tpl_step_5">Bericht prüfen, dann die erzeugte projekt-vorlagen-import_abgleich_….txt unter „Importieren“ einlesen. Gleichnamige Vorlagen behalten ihre ID.</li>
+      </ol>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
+        <a href="https://scmdb.net/?page=fab" target="_blank" rel="noopener noreferrer" class="btn-ghost" data-i18n="btn_scmdb_quelle_oeffnen">↗ scmdb.net öffnen (Quelle)</a>
+        <button type="button" class="btn-ghost" id="btnDownloadScmdbScript" data-i18n="btn_scmdb_skript_herunterladen">⇩ Scraping-Script herunterladen</button>
+        <button type="button" class="btn-ghost" id="btnDownloadAbgleichScript" data-i18n="btn_abgleich_skript_herunterladen">⇩ Abgleich-Script herunterladen</button>
+      </div>
+      <div class="user-note" style="margin-top:8px;" data-i18n="hint_tpl_sources_options">Optionen des Abgleichs: --nur-ergaenzen (vorhandene Mengen nie ändern), --neue-rezepte (Rezepte, die es nur bei scmdb gibt, mit aufnehmen).</div>
+    </section>
     </div>
-    <textarea id="wikeloImportText" rows="8" placeholder="Kampf;Guardian;Wikelo Favor,Irradiated Valakkar Pearl (Grade AA),Ace Interceptor Helmet,Tevarin War Service Marker" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
-    <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-      <button class="btn-primary" id="btnImportWikelo" data-i18n="btn_rezepte_importieren">Importieren</button>
-      <button class="btn-ghost" id="btnRestoreWikeloBackup" style="display:none;font-size:11px;" data-i18n="btn_vorherige_version_wiederherstellen">↺ Vorherige Version wiederherstellen</button>
-      <span id="wikeloCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
-    </div>
-    <div class="status-msg" id="wikeloImportStatus"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="scmdbImportPanel" data-scope="all" style="display:none;">
-    <summary><h2 data-i18n="panel_scmdb_import">Alternative Quelle: scmdb.net</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_scmdb_import">Unabhängiges Gegenstück zur obigen Rezepte-Liste — praktisch, um fehlende oder abweichende Rezepte aufzuspüren. Ablauf: Skript herunterladen, lokal ausführen (siehe Kommentar am Dateianfang für Voraussetzungen), die dabei erzeugte Datei hier einfügen oder auswählen. Der Import läuft anschließend über dasselbe Textfeld wie oben — dieser Bereich stellt lediglich Quelle und Skript bequem bereit.</span></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
-      <a href="https://scmdb.net/?page=fab" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n="btn_scmdb_quelle_oeffnen">↗ scmdb.net öffnen (Quelle)</a>
-      <button type="button" class="btn-ghost" id="btnDownloadScmdbScript" data-i18n="btn_scmdb_skript_herunterladen">⇩ Scraping-Skript herunterladen</button>
-    </div>
-    <div class="user-note" style="font-size:11px;" data-i18n="hint_scmdb_script_requirements">Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.</div>
   </details>
 
   </div>
@@ -2369,6 +2420,21 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="user-list" id="locationListContainer" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
     <div class="user-note" data-i18n="hint_auto_category">Neue Kategorien bzw. Systeme entstehen automatisch, sobald du einen noch nicht existierenden Namen einträgst.</div>
 
+    <section class="admin-subpanel admin-subpanel-inline" id="locationImportPanel" style="display:none;">
+      <h3 class="admin-subpanel-title" data-i18n="panel_lagerort_import">Lagerorte importieren</h3>
+      <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_lagerort_import">Fügt neue Lagerorte zur bestehenden Liste hinzu — anders als bei Rezepten/Wikelo wird die bestehende Liste dabei NICHT ersetzt, sondern nur ergänzt (bereits vorhandene System+Code-Kombinationen werden übersprungen, nicht überschrieben). Format pro Zeile: System;Code;Name — Zeilen, die mit # beginnen, werden als Kommentar ignoriert. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
+      <div style="margin-bottom:10px;">
+        <button type="button" class="btn-ghost" id="btnSelectLocationFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
+        <input type="file" id="locationFileInput" accept=".txt,.csv" style="display:none;">
+      </div>
+      <textarea id="locationImportText" rows="8" placeholder="Stanton;ARC-L1;Wide Forest Station" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn-primary" id="btnImportLocations" data-i18n="btn_lagerorte_importieren">Hinzufügen</button>
+        <span id="locationCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
+      </div>
+      <div class="status-msg" id="locationImportStatus"></div>
+    </section>
+
     <h3 data-i18n="heading_sammelobjekt_hinzufuegen" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px 0;color:var(--steel);">Sammelobjekt hinzufügen</h3>
     <div class="form-grid-flex">
       <div class="field">
@@ -2405,21 +2471,6 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     </div>
     <div class="status-msg" id="collCatalogFormStatus"></div>
     <div class="user-list" id="collectibleCatalogListContainer" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="locationImportPanel" data-scope="all" style="display:none;">
-    <summary><h2 data-i18n="panel_lagerort_import">Lagerorte importieren</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_lagerort_import">Fügt neue Lagerorte zur bestehenden Liste hinzu — anders als bei Rezepten/Wikelo wird die bestehende Liste dabei NICHT ersetzt, sondern nur ergänzt (bereits vorhandene System+Code-Kombinationen werden übersprungen, nicht überschrieben). Format pro Zeile: System;Code;Name — Zeilen, die mit # beginnen, werden als Kommentar ignoriert. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
-    <div style="margin-bottom:10px;">
-      <button type="button" class="btn-ghost" id="btnSelectLocationFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
-      <input type="file" id="locationFileInput" accept=".txt,.csv" style="display:none;">
-    </div>
-    <textarea id="locationImportText" rows="8" placeholder="Stanton;ARC-L1;Wide Forest Station" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
-    <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-      <button class="btn-primary" id="btnImportLocations" data-i18n="btn_lagerorte_importieren">Hinzufügen</button>
-      <span id="locationCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
-    </div>
-    <div class="status-msg" id="locationImportStatus"></div>
   </details>
 
   </div>
@@ -3865,7 +3916,7 @@ const I18N = {
   "panel_scmdb_import": "Alternative Quelle: scmdb.net",
   "hint_scmdb_import": "Script herunterladen, lokal ausführen und die erzeugte Datei oben bei „Projekt-Vorlagen importieren“ einfügen. Für den Abgleich mit dem aktuellen Bestand siehe die Abgleich-Scripts im Projektordner.",
   "btn_scmdb_quelle_oeffnen": "↗ scmdb.net öffnen (Quelle)",
-  "btn_scmdb_skript_herunterladen": "⇩ Scraping-Skript herunterladen",
+  "btn_scmdb_skript_herunterladen": "⇩ Scraping-Script herunterladen",
   "hint_scmdb_script_requirements": "Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.",
   "hint_vorlagen_verwalten": "Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen. Durchsucht Rezepte und Wikelo-Handelsangebote gemeinsam.",
   "btn_duplikate_anzeigen": "Mögliche Duplikate anzeigen",
@@ -3886,12 +3937,12 @@ const I18N = {
   "val_kategorie_name_required": "Bitte Kategorie und Name angeben.",
   "val_vorlage_moeglw_duplikat": "Eine Vorlage mit diesem Namen existiert bereits — zum Speichern trotzdem erneut auf \"Speichern\" klicken.",
   "val_mindestens_ein_material": "Bitte mindestens ein Material angeben.",
-  "panel_vorlagen_einzeln_verwalten": "Einzelne Vorlagen verwalten",
+  "panel_vorlagen_einzeln_verwalten": "Suchen & bearbeiten",
   "label_vorlagen_art": "Art",
   "option_vorlagen_art_rezept": "Rezept",
   "option_vorlagen_art_wikelo": "Wikelo-Handelsangebot",
   "placeholder_vorlage_suchen_beide": "Suche nach Name oder Kategorie (Rezepte + Wikelo)…",
-  "panel_vorlagen_verwalten": "Projekt-Vorlagen verwalten",
+  "panel_vorlagen_verwalten": "Rezepte nach Kategorie",
   "hint_vorlagen_verwalten_panel": "Alle Vorlagen nach Kategorie gruppiert. Doppelklick öffnet eine Vorlage zum Bearbeiten; Änderungen an Materialien lassen sich anschließend in bestehende Projekte aus dieser Vorlage übernehmen.",
   "empty_vorlagen_sub": "Vorlagen speichern typische Materiallisten für wiederkehrende Bauvorhaben (z. B. eine bestimmte Waffe) und lassen sich beim Anlegen eines Projekts automatisch übernehmen. Über \"Projekt-Vorlagen importieren\" lässt sich eine größere Sammlung auf einmal einspielen, oder über \"+ Neue Vorlage\" einzeln von Hand.",
   "empty_vorlagen_title": "Noch keine Projekt-Vorlagen vorhanden",
@@ -3901,7 +3952,7 @@ const I18N = {
   "text_vorlage_uebernehmen_summary": "Die Vorlage „{name}“ wird von {shared} geteilten und {private} privaten (eigenen) Projekten verwendet. Folgende Änderungen können übernommen werden:",
   "btn_nur_vorlage": "Nur Vorlage speichern",
   "btn_uebernehmen": "Übernehmen",
-  "panel_rezepte_import": "Projekt-Vorlagen importieren",
+  "panel_rezepte_import": "Rezepte importieren",
   "hint_rezepte_import": "Format je Zeile: Kategorie;Name;Material1,Material2:15,Material3:15:800 (optional Menge bzw. Menge:Mindestqualität). Auch der rohe scmdb.net-Export wird erkannt. Ersetzt die komplette Rezeptliste; der vorherige Stand wird gesichert, gleichnamige Vorlagen behalten ihre ID.",
   "btn_rezepte_importieren": "Importieren",
   "msg_templates_imported": "{count} Vorlagen importiert.",
@@ -3926,7 +3977,7 @@ const I18N = {
   "btn_datei_auswaehlen": "Datei auswählen …",
   "msg_file_loaded": "Datei „{name}“ geladen — bitte prüfen und auf „Importieren“ klicken.",
   "val_file_read_error": "Datei konnte nicht gelesen werden.",
-  "panel_wikelo_verwalten": "Wikelo-Handelsangebote verwalten",
+  "panel_wikelo_verwalten": "Wikelo-Handelsangebote nach Kategorie",
   "panel_wikelo_import": "Wikelo-Handelsangebote importieren",
   "panel_lagerort_import": "Lagerorte importieren",
   "hint_lagerort_import": "Ergänzt die Lagerort-Liste (bestehende werden nicht ersetzt, vorhandene System+Code-Kombinationen übersprungen). Format je Zeile: System;Code;Name — Zeilen mit # werden ignoriert.",
@@ -4100,6 +4151,24 @@ const I18N = {
   "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
   "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
   "capture_assign_toggle": "Nach dem Eintragen passende Projekte vorschlagen",
+  "panel_org_settings": "Organisationseinstellungen",
+  "panel_vorlagen": "Projekt-Vorlagen (Rezepte & Wikelo)",
+  "tpl_tab_browse": "Durchsuchen & bearbeiten",
+  "tpl_tab_import": "Importieren",
+  "tpl_tab_sources": "Quellen & Abgleich",
+  "tpl_browse_by_category": "Nach Kategorie durchstöbern (Rezepte und Wikelo getrennt)",
+  "label_tpl_import_kind": "Was importieren?",
+  "option_tpl_kind_rezepte": "Rezepte (Projekt-Vorlagen)",
+  "option_tpl_kind_wikelo": "Wikelo-Handelsangebote",
+  "panel_tpl_sources": "Quellen & Abgleich",
+  "hint_tpl_sources": "Aktuelle Rezeptdaten kommen von scmdb.net. Die beiden Scripts laufen lokal (Python 3) und erzeugen eine fertige Importdatei, ohne vorhandene Mindestqualitäten zu verlieren.",
+  "tpl_step_1": "Beide Scripts herunterladen und in einen Ordner legen. Einmalig: pip install playwright und playwright install chromium.",
+  "tpl_step_2": "Aktuellen Bestand sichern: Daten & Sicherung → „Alles exportieren (JSON)“ (ohne Benutzer) in denselben Ordner speichern.",
+  "tpl_step_3": "python scrape_scmdb_rezepte.py — lädt alle Rezepte von scmdb.net (Ergebnis: scmdb-rezepte_JJJJ-MM-TT.txt).",
+  "tpl_step_4": "python vorlagen_abgleich.py scmdb-rezepte_JJJJ-MM-TT.txt --basis <Export>.json — ergänzt fehlende und aktualisiert abweichende Mengen; Bericht als CSV.",
+  "tpl_step_5": "Bericht prüfen, dann die erzeugte projekt-vorlagen-import_abgleich_….txt unter „Importieren“ einlesen. Gleichnamige Vorlagen behalten ihre ID.",
+  "btn_abgleich_skript_herunterladen": "⇩ Abgleich-Script herunterladen",
+  "hint_tpl_sources_options": "Optionen des Abgleichs: --nur-ergaenzen (vorhandene Mengen nie ändern), --neue-rezepte (Rezepte, die es nur bei scmdb gibt, mit aufnehmen).",
   "admin_group_konto": "👤 Mein Konto",
   "admin_group_organisation": "🏢 Organisation",
   "admin_group_benutzer": "👥 Benutzer",
@@ -4843,12 +4912,12 @@ const I18N = {
   "val_kategorie_name_required": "Please enter a category and name.",
   "val_vorlage_moeglw_duplikat": "A template with this name already exists — click \"Save\" again to save anyway.",
   "val_mindestens_ein_material": "Please enter at least one material.",
-  "panel_vorlagen_einzeln_verwalten": "Manage individual templates",
+  "panel_vorlagen_einzeln_verwalten": "Search & edit",
   "label_vorlagen_art": "Type",
   "option_vorlagen_art_rezept": "Recipe",
   "option_vorlagen_art_wikelo": "Wikelo trade offer",
   "placeholder_vorlage_suchen_beide": "Search by name or category (recipes + Wikelo)…",
-  "panel_vorlagen_verwalten": "Manage project templates",
+  "panel_vorlagen_verwalten": "Recipes by category",
   "hint_vorlagen_verwalten_panel": "All templates grouped by category. Double-click opens a template for editing; material changes can then be applied to existing projects created from it.",
   "empty_vorlagen_sub": "Templates store typical material lists for recurring builds (e.g. a specific weapon) and can be applied automatically when creating a project. Use \"Import project templates\" to bring in a larger collection at once, or \"+ New template\" to add one by hand.",
   "empty_vorlagen_title": "No project templates yet",
@@ -4858,7 +4927,7 @@ const I18N = {
   "text_vorlage_uebernehmen_summary": "The template \"{name}\" is used by {shared} shared and {private} private (your own) projects. The following changes can be applied:",
   "btn_nur_vorlage": "Save template only",
   "btn_uebernehmen": "Apply",
-  "panel_rezepte_import": "Import project templates",
+  "panel_rezepte_import": "Import recipes",
   "hint_rezepte_import": "Format per line: Category;Name;Material1,Material2:15,Material3:15:800 (optional quantity or quantity:minimum quality). The raw scmdb.net export is recognized too. Replaces the complete recipe list; the previous state is backed up, templates with the same name keep their ID.",
   "btn_rezepte_importieren": "Import",
   "msg_templates_imported": "{count} templates imported.",
@@ -4883,8 +4952,8 @@ const I18N = {
   "btn_datei_auswaehlen": "Select file …",
   "msg_file_loaded": "File “{name}” loaded — please review and click “Import”.",
   "val_file_read_error": "Could not read the file.",
-  "panel_wikelo_verwalten": "Manage Wikelo trades",
-  "panel_wikelo_import": "Import Wikelo trades",
+  "panel_wikelo_verwalten": "Wikelo trade offers by category",
+  "panel_wikelo_import": "Import Wikelo trade offers",
   "panel_lagerort_import": "Import locations",
   "hint_lagerort_import": "Adds to the location list (existing ones are not replaced, existing system+code combinations are skipped). Format per line: System;Code;Name — lines starting with # are ignored.",
   "btn_lagerorte_importieren": "Add",
@@ -5057,6 +5126,24 @@ const I18N = {
   "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
   "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
   "capture_assign_toggle": "Suggest matching projects after adding",
+  "panel_org_settings": "Organization settings",
+  "panel_vorlagen": "Project templates (recipes & Wikelo)",
+  "tpl_tab_browse": "Browse & edit",
+  "tpl_tab_import": "Import",
+  "tpl_tab_sources": "Sources & comparison",
+  "tpl_browse_by_category": "Browse by category (recipes and Wikelo separately)",
+  "label_tpl_import_kind": "What to import?",
+  "option_tpl_kind_rezepte": "Recipes (project templates)",
+  "option_tpl_kind_wikelo": "Wikelo trade offers",
+  "panel_tpl_sources": "Sources & comparison",
+  "hint_tpl_sources": "Current recipe data comes from scmdb.net. Both scripts run locally (Python 3) and create a ready-to-import file without losing existing minimum qualities.",
+  "tpl_step_1": "Download both scripts into one folder. Once: pip install playwright and playwright install chromium.",
+  "tpl_step_2": "Back up the current state: Data & backup → \"Export everything (JSON)\" (without users) into the same folder.",
+  "tpl_step_3": "python scrape_scmdb_rezepte.py — downloads all recipes from scmdb.net (result: scmdb-rezepte_YYYY-MM-DD.txt).",
+  "tpl_step_4": "python vorlagen_abgleich.py scmdb-rezepte_YYYY-MM-DD.txt --basis <export>.json — fills missing and updates differing quantities; report as CSV.",
+  "tpl_step_5": "Check the report, then import the generated projekt-vorlagen-import_abgleich_….txt under \"Import\". Templates with the same name keep their ID.",
+  "btn_abgleich_skript_herunterladen": "⇩ Download comparison script",
+  "hint_tpl_sources_options": "Comparison options: --nur-ergaenzen (never change existing quantities), --neue-rezepte (also add recipes that only exist on scmdb).",
   "admin_group_konto": "👤 My account",
   "admin_group_organisation": "🏢 Organization",
   "admin_group_benutzer": "👥 Users",
@@ -5779,7 +5866,7 @@ const I18N = {
   "panel_scmdb_import": "Source alternative : scmdb.net",
   "hint_scmdb_import": "Télécharger le script, l'exécuter localement et coller le fichier obtenu ci-dessus sous « Importer des modèles de projet ». Pour la comparaison avec les modèles actuels, voir les scripts de comparaison dans le dossier du projet.",
   "btn_scmdb_quelle_oeffnen": "↗ Ouvrir scmdb.net (source)",
-  "btn_scmdb_skript_herunterladen": "⇩ Télécharger le script de scraping",
+  "btn_scmdb_skript_herunterladen": "⇩ Télécharger le script de collecte",
   "hint_scmdb_script_requirements": "Prérequis pour l'exécution : Python 3, ainsi que <code>pip install playwright</code> et <code>playwright install chromium</code> (une seule fois). Les détails figurent en commentaire en haut du fichier téléchargé.",
   "hint_vorlagen_verwalten": "Pour de petites modifications ou des ajouts ponctuels — sans devoir réimporter toute la liste. Recherche dans les recettes et les offres Wikelo simultanément.",
   "btn_duplikate_anzeigen": "Afficher les doublons possibles",
@@ -5800,12 +5887,12 @@ const I18N = {
   "val_kategorie_name_required": "Veuillez indiquer une catégorie et un nom.",
   "val_vorlage_moeglw_duplikat": "Un modèle portant ce nom existe déjà — cliquez à nouveau sur « Enregistrer » pour enregistrer quand même.",
   "val_mindestens_ein_material": "Veuillez indiquer au moins un matériau.",
-  "panel_vorlagen_einzeln_verwalten": "Gérer les modèles individuels",
+  "panel_vorlagen_einzeln_verwalten": "Rechercher & modifier",
   "label_vorlagen_art": "Type",
   "option_vorlagen_art_rezept": "Recette",
   "option_vorlagen_art_wikelo": "Offre commerciale Wikelo",
   "placeholder_vorlage_suchen_beide": "Rechercher par nom ou catégorie (recettes + Wikelo)…",
-  "panel_vorlagen_verwalten": "Gérer les modèles de projet",
+  "panel_vorlagen_verwalten": "Recettes par catégorie",
   "hint_vorlagen_verwalten_panel": "Tous les modèles groupés par catégorie. Un double-clic ouvre un modèle pour modification ; les changements de matériaux peuvent ensuite être appliqués aux projets existants issus de ce modèle.",
   "empty_vorlagen_sub": "Les modèles enregistrent les listes de matériaux typiques pour des constructions récurrentes (p. ex. une arme donnée) et peuvent être appliqués automatiquement lors de la création d'un projet. Utilisez \"Importer des modèles de projet\" pour en importer plusieurs à la fois, ou \"+ Nouveau modèle\" pour en ajouter un manuellement.",
   "empty_vorlagen_title": "Aucun modèle de projet pour l'instant",
@@ -5815,7 +5902,7 @@ const I18N = {
   "text_vorlage_uebernehmen_summary": "Le modèle « {name} » est utilisé par {shared} projets partagés et {private} projets privés (les vôtres). Les changements suivants peuvent être appliqués :",
   "btn_nur_vorlage": "Enregistrer uniquement le modèle",
   "btn_uebernehmen": "Appliquer",
-  "panel_rezepte_import": "Importer des modèles de projet",
+  "panel_rezepte_import": "Importer des recettes",
   "hint_rezepte_import": "Format par ligne : Catégorie;Nom;Matériau1,Matériau2:15,Matériau3:15:800 (quantité ou quantité:qualité minimale facultatives). L'export brut de scmdb.net est aussi reconnu. Remplace toute la liste ; l'état précédent est sauvegardé, les modèles de même nom gardent leur ID.",
   "btn_rezepte_importieren": "Importer",
   "msg_templates_imported": "{count} modèles importés.",
@@ -5840,8 +5927,8 @@ const I18N = {
   "btn_datei_auswaehlen": "Sélectionner un fichier …",
   "msg_file_loaded": "Fichier « {name} » chargé — veuillez vérifier puis cliquer sur « Importer ».",
   "val_file_read_error": "Impossible de lire le fichier.",
-  "panel_wikelo_verwalten": "Gérer les échanges Wikelo",
-  "panel_wikelo_import": "Importer les échanges Wikelo",
+  "panel_wikelo_verwalten": "Offres de Wikelo par catégorie",
+  "panel_wikelo_import": "Importer les offres de Wikelo",
   "panel_lagerort_import": "Importer des lieux",
   "hint_lagerort_import": "Complète la liste des emplacements (les existants ne sont pas remplacés, les combinaisons système+code déjà présentes sont ignorées). Format par ligne : Système;Code;Nom — les lignes commençant par # sont ignorées.",
   "btn_lagerorte_importieren": "Ajouter",
@@ -6014,6 +6101,24 @@ const I18N = {
   "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
   "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
   "capture_assign_toggle": "Proposer les projets correspondants après l'ajout",
+  "panel_org_settings": "Paramètres de l'organisation",
+  "panel_vorlagen": "Modèles de projet (recettes & Wikelo)",
+  "tpl_tab_browse": "Parcourir & modifier",
+  "tpl_tab_import": "Importer",
+  "tpl_tab_sources": "Sources & comparaison",
+  "tpl_browse_by_category": "Parcourir par catégorie (recettes et Wikelo séparément)",
+  "label_tpl_import_kind": "Que faut-il importer ?",
+  "option_tpl_kind_rezepte": "Recettes (modèles de projet)",
+  "option_tpl_kind_wikelo": "Offres de Wikelo",
+  "panel_tpl_sources": "Sources & comparaison",
+  "hint_tpl_sources": "Les données de recettes actuelles proviennent de scmdb.net. Les deux scripts s'exécutent localement (Python 3) et produisent un fichier prêt à importer, sans perdre les qualités minimales existantes.",
+  "tpl_step_1": "Télécharger les deux scripts dans un même dossier. Une fois : pip install playwright et playwright install chromium.",
+  "tpl_step_2": "Sauvegarder l'état actuel : Données & sauvegarde → « Tout exporter (JSON) » (sans utilisateurs) dans le même dossier.",
+  "tpl_step_3": "python scrape_scmdb_rezepte.py — télécharge toutes les recettes de scmdb.net (résultat : scmdb-rezepte_AAAA-MM-JJ.txt).",
+  "tpl_step_4": "python vorlagen_abgleich.py scmdb-rezepte_AAAA-MM-JJ.txt --basis <export>.json — complète les quantités manquantes et met à jour celles qui diffèrent ; rapport en CSV.",
+  "tpl_step_5": "Vérifier le rapport, puis importer le fichier projekt-vorlagen-import_abgleich_….txt sous « Importer ». Les modèles de même nom gardent leur ID.",
+  "btn_abgleich_skript_herunterladen": "⇩ Télécharger le script de comparaison",
+  "hint_tpl_sources_options": "Options : --nur-ergaenzen (ne jamais modifier les quantités existantes), --neue-rezepte (ajouter aussi les recettes présentes uniquement sur scmdb).",
   "admin_group_konto": "👤 Mon compte",
   "admin_group_organisation": "🏢 Organisation",
   "admin_group_benutzer": "👥 Utilisateurs",
@@ -14559,6 +14664,21 @@ function parseScmdbRawFormat(rawText){
 // Lädt eine lokal ausgewählte Datei in das Textfeld, ohne automatisch zu
 // importieren — der Besitzer kann den Inhalt so vor dem eigentlichen
 // Import noch einsehen/anpassen.
+function downloadTextFile(content, filename, mime){
+  const blob = new Blob([content], {type: mime || 'text/plain;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+// Ab v0.142: zweites Script fuer den Abgleich mit dem aktuellen Bestand
+document.getElementById('btnDownloadAbgleichScript').addEventListener('click', ()=>{
+  downloadTextFile(SCMDB_ABGLEICH_SCRIPT, 'vorlagen_abgleich.py', 'text/x-python;charset=utf-8;');
+});
 document.getElementById('btnDownloadScmdbScript').addEventListener('click', ()=>{
   const blob = new Blob([SCMDB_SCRAPER_SCRIPT], {type:'text/x-python;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
@@ -20772,6 +20892,15 @@ function isAdminGroupAvailable(g){
 }
 function updateAdminSubnav(){
   if(!currentUser) return;
+  // Ab v0.142: Zusammengefuehrte Bereiche (data-combined) sind sichtbar,
+  // sobald mindestens einer ihrer Abschnitte fuer die Rolle sichtbar ist --
+  // die Rollenregeln der einzelnen Abschnitte (frueher eigene Bereiche)
+  // bleiben dadurch unveraendert massgeblich.
+  document.querySelectorAll('.admin-group [data-combined]').forEach(panel=>{
+    const any = Array.from(panel.querySelectorAll('.admin-subpanel')).some(sec=>sec.style.display !== 'none');
+    const want = any ? '' : 'none';
+    if(panel.style.display !== want) panel.style.display = want;
+  });
   const available = ADMIN_GROUPS.filter(isAdminGroupAvailable);
   document.querySelectorAll('#adminSubnav .admin-subnav-btn').forEach(btn=>{
     btn.style.display = available.includes(btn.dataset.group) ? '' : 'none';
@@ -20835,8 +20964,33 @@ const adminSubnavObserver = new MutationObserver(()=>{
   clearTimeout(adminSubnavTimer);
   adminSubnavTimer = setTimeout(updateAdminSubnav, 30);
 });
-document.querySelectorAll('.admin-group .panel').forEach(p=>{
+document.querySelectorAll('.admin-group .panel, .admin-group .admin-subpanel').forEach(p=>{
   adminSubnavObserver.observe(p, { attributes: true, attributeFilter: ['style'] });
+});
+
+// Ab v0.142: Unterreiter innerhalb eines Bereichs (z. B. Vorlagen)
+document.querySelectorAll('.admin-innertabs').forEach(bar=>{
+  const panel = bar.parentElement;
+  bar.querySelectorAll('.admin-innertab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      bar.querySelectorAll('.admin-innertab').forEach(b=>b.classList.toggle('active', b === btn));
+      panel.querySelectorAll(':scope > .admin-innerpane').forEach(pane=>{
+        pane.style.display = pane.id === btn.dataset.pane ? '' : 'none';
+      });
+    });
+  });
+});
+// Die Kategorie-Listen wurden bisher nur beim Anmelden aufgebaut -- zu
+// einem Zeitpunkt, an dem die Vorlagen teils noch nicht geladen waren
+// ("Noch keine Projekt-Vorlagen vorhanden"). Ab v0.142 beim Aufklappen
+// jeweils frisch aufbauen.
+document.getElementById('tplBrowseByCategory').addEventListener('toggle', (e)=>{
+  if(e.target.open){ renderTemplateManagePanel('rezepte'); renderTemplateManagePanel('wikelo'); }
+});
+document.getElementById('tplImportKind').addEventListener('change', (e)=>{
+  document.querySelectorAll('#tplPaneImport [data-import-kind]').forEach(w=>{
+    w.style.display = w.dataset.importKind === e.target.value ? '' : 'none';
+  });
 });
 
 // Abzeichen je Bereich: fuer wen bzw. welche Organisation er gilt.
@@ -20964,6 +21118,21 @@ DATENQUELLE
 -----------
 https://scmdb.net/?page=fab
 
+DRITTE FASSUNG (1. November 2026)
+---------------------------------
+Unveraenderte Erkennung (per Testlauf vom 12. August 2026 bestaetigt),
+ergaenzt um:
+- Ergebnisdatei mit Datum im Namen ("scmdb-rezepte_JJJJ-MM-TT.txt"),
+  damit aeltere Staende erhalten bleiben und der Abgleich
+  (vorlagen_abgleich.py) gezielt einen Stand verwenden kann.
+- Bereinigung von Namen: geschuetzte Leerzeichen (NBSP), die scmdb.net
+  teilweise verwendet, werden durch normale Leerzeichen ersetzt,
+  mehrfache Leerzeichen zusammengefasst. (Im Stand vom 12. August
+  verhinderten NBSP z. B. bei "Oracle Helmet" einen Namensabgleich.)
+- Plausibilitaetspruefung: deutlich weniger Rezepte als erwartet
+  (unter MIN_EXPECTED_RECIPES) fuehrt zu einer Warnung -- typischer
+  Hinweis darauf, dass sich der Seitenaufbau geaendert hat.
+
 VERSIONSHINWEIS (zweite Fassung, 9. August 2026)
 --------------------------------------------------
 Die ursprüngliche Fassung dieses Skripts ging von einer separaten
@@ -20996,14 +21165,14 @@ oder "Name (×X)" (stückweise gezählte Materialien, z. B. Sammelobjekte/
 Loot) — beide Formen werden erkannt und korrekt der passenden Einheit
 zugeordnet.
 
-WICHTIGER HINWEIS
+WICHTIGER HINWEIS (ehrlich, nicht schöngeredet)
 ------------------------------------------------
-scmdb.net konnte zum Zeitpunkt der Erstellung dieses Skripts nicht
-live aufgerufen werden — diese zweite Fassung basiert auf einem
-echten HTML-Ausschnitt (drei Beispiel-Karten) aus einem tatsächlichen
-Testlauf, nicht auf einer vollständigen Analyse der ganzen Seite. Drei
-Dinge sind dadurch NICHT sicher bekannt und zeigen sich erst beim
-nächsten Testlauf:
+Ich (Claude) konnte scmdb.net weiterhin nicht selbst live aufrufen —
+diese zweite Fassung basiert auf einem echten HTML-Ausschnitt (drei
+Beispiel-Karten), den du mir aus einem tatsächlichen Testlauf
+geschickt hast, nicht auf eigener Beobachtung der ganzen Seite. Drei
+Dinge, die ich dadurch NICHT sicher weiß und die sich beim nächsten
+Testlauf zeigen werden:
 
 1. **Qualität/Grade**: Keine der drei Beispiel-Karten zeigte eine
    Qualitätsstufe — möglicherweise, weil es sich um einfache
@@ -21035,8 +21204,9 @@ AUFRUF
     python scrape_scmdb_rezepte.py --limit 5     # nur die ersten 5 (zum Testen)
     python scrape_scmdb_rezepte.py --headed       # Browser sichtbar (zum Debuggen)
 
-Ergebnis: "scmdb-rezepte-import.txt" im selben Ordner — direkt in das
-Textfeld beim Rezepte-Import kopierbar (oder als Datei auswählen).
+Ergebnis: "scmdb-rezepte_JJJJ-MM-TT.txt" im selben Ordner. Diese Datei
+NICHT direkt importieren (der Import ersetzt die komplette Rezeptliste),
+sondern mit vorlagen_abgleich.py gegen den aktuellen Bestand abgleichen.
 """
 
 import argparse
@@ -21058,7 +21228,9 @@ except ImportError:
 # ----------------------------------------------------------------------
 FAB_LIST_URL = "https://scmdb.net/?page=fab"
 
-OUTPUT_FILE = Path(__file__).parent / "scmdb-rezepte-import.txt"
+OUTPUT_FILE = Path(__file__).parent / f"scmdb-rezepte_{time.strftime('%Y-%m-%d')}.txt"
+# Unterhalb dieser Anzahl wird gewarnt (Stand 12.08.2026: 1597 Rezepte).
+MIN_EXPECTED_RECIPES = 1000
 LOG_FILE = Path(__file__).parent / "crawl_scmdb.log"
 DEBUG_HTML_FILE = Path(__file__).parent / "scmdb_debug.html"
 
@@ -21072,9 +21244,9 @@ SLOT_MAT_SELECTOR = ".fab-card-slot-mat"
 # Noch UNBESTÄTIGTE Vermutung für eine moegliche Qualitaets-/Grade-
 # Angabe innerhalb eines Slots -- keine der drei Beispiel-Karten zeigte
 # ein solches Element, daher rein vorsorglich. Liefert das Skript im
-# Log "0 Materialien mit erkannter Mindestqualitaet", obwohl auf der
-# Seite tatsaechlich welche sichtbar sind, muesste dieser Selektor
-# entsprechend angepasst werden.
+# Log "0 Materialien mit erkannter Mindestqualitaet", obwohl du auf der
+# Seite welche siehst, bitte kurz melden, dann korrigiere ich den
+# Selektor gezielt.
 SLOT_QUALITY_SELECTOR = ".fab-card-slot-quality, .fab-card-slot-grade"
 
 # Erkennt "Materialname (12 SCU)" ODER "Materialname (×4)" und trennt
@@ -21104,6 +21276,11 @@ KEYWORD_CATEGORY_MAP = [
 MAX_SCROLL_ATTEMPTS = 30
 SCROLL_WAIT_MS = 400
 SCROLL_STABLE_ROUNDS = 3  # so oft in Folge unveraendert, bevor abgebrochen wird
+
+
+def clean_name(text):
+    """Geschuetzte Leerzeichen (NBSP) und mehrfache Leerzeichen bereinigen."""
+    return re.sub(r"\\s+", " ", (text or "").replace("\\u00a0", " ")).strip()
 
 
 def log(msg):
@@ -21139,8 +21316,8 @@ def parse_material_text(raw):
         return None, None, None
     match = MATERIAL_PATTERN.match(text)
     if not match:
-        return text, None, None
-    name = match.group(1).strip()
+        return clean_name(text), None, None
+    name = clean_name(match.group(1))
     qty_stueck = match.group(2)
     qty_scu = match.group(3)
     if qty_stueck is not None:
@@ -21209,6 +21386,7 @@ def fetch_all_fabs(page):
             if not name:  # Rückfallebene, falls obiger Trick nichts liefert
                 name = (name_el.inner_text() or "").strip()
 
+        name = clean_name(name)
         if not name:
             continue
 
@@ -21292,12 +21470,314 @@ def main():
         log("Keine Rezepte gefunden — Abbruch. Bitte scmdb_debug.html prüfen (wurde automatisch gespeichert).")
         sys.exit(1)
 
+    if not args.limit and len(recipes) < MIN_EXPECTED_RECIPES:
+        log(f"WARNUNG: Nur {len(recipes)} Rezepte gefunden (erwartet mindestens {MIN_EXPECTED_RECIPES}). "
+            "Moeglicherweise hat sich der Seitenaufbau von scmdb.net geaendert -- Ergebnis vor dem Abgleich pruefen.")
+
     if args.limit:
         recipes = recipes[: args.limit]
         log(f"--limit gesetzt, übernehme nur die ersten {len(recipes)} Rezepte.")
 
     write_import_file(recipes)
     log("Fertig.")
+
+
+if __name__ == "__main__":
+    main()
+`;
+// Ab v0.142: Abgleich-Script (siehe Vorlagen → Quellen & Abgleich)
+const SCMDB_ABGLEICH_SCRIPT = `#!/usr/bin/env python3
+"""
+Star Citizen Materialbestand — Abgleich der Rezept-Vorlagen mit scmdb.net
+=========================================================================
+Gleicht den aktuellen Vorlagen-Bestand mit einem neuen Ergebnis von
+scrape_scmdb_rezepte.py ab und erzeugt eine fertige Importdatei mit ALLEN
+Rezepten (der Rezepte-Import der Anwendung ersetzt die komplette Liste)
+sowie einen Bericht ueber jede Aenderung.
+
+Nur Python-Standardbibliothek, keine Installation noetig.
+
+AUFRUF
+------
+    python vorlagen_abgleich.py scmdb-rezepte_2026-11-01.txt
+
+Optionen:
+    --basis DATEI       Aktueller Bestand. Entweder die Importdatei
+                        (Kategorie;Name;Material:Menge[:Qualitaet],...)
+                        oder ein Organisations-Export der Anwendung (.json,
+                        enthaelt "projectTemplates").
+                        Standard: neueste "projekt-vorlagen-import_*.txt"
+                        in diesem Ordner.
+    --nur-ergaenzen     Nur fehlende Mengen eintragen, vorhandene Mengen
+                        NICHT aendern (auch wenn scmdb abweicht).
+    --neue-rezepte      Rezepte, die es nur bei scmdb gibt, zusaetzlich
+                        aufnehmen (Standard: nur im Bericht auflisten).
+
+REGELN (Standard)
+-----------------
+- Fehlende Menge im Bestand, Menge bei scmdb vorhanden  -> ergaenzt
+- Menge im Bestand weicht von scmdb ab                   -> aktualisiert
+  (mit --nur-ergaenzen: unveraendert, nur im Bericht)
+- Mindestqualitaet, Kategorie, Name und Material-Reihenfolge bleiben wie
+  im Bestand.
+- Materialien, die nur im Bestand ODER nur bei scmdb vorkommen, werden
+  NICHT automatisch hinzugefuegt/entfernt, sondern im Bericht gemeldet.
+- Fuehrt scmdb dasselbe Material in einem Rezept mehrfach auf (z. B.
+  zwei Slots), werden die Mengen addiert (im Bericht vermerkt).
+- Namen werden tolerant verglichen (Gross-/Kleinschreibung, geschuetzte
+  Leerzeichen, typografische Anfuehrungszeichen, Warnsymbol).
+- Materialnamen werden wie in der Anwendung (ab v0.140) auf Kurznamen
+  gebracht, z. B. "Saldynium (Ore)" -> "Saldynium".
+
+ERGEBNIS (im selben Ordner)
+---------------------------
+    projekt-vorlagen-import_abgleich_JJJJ-MM-TT.txt   -> in der Anwendung importieren
+    abgleich-bericht_JJJJ-MM-TT.csv                    -> jede Aenderung/Auffaelligkeit
+"""
+
+import argparse
+import csv
+import json
+import re
+import sys
+import time
+from pathlib import Path
+
+HERE = Path(__file__).parent
+
+
+def norm(text):
+    text = (text or "").replace(" ", " ").replace("⚠", "")
+    for a, b in (("“", '"'), ("”", '"'), ("„", '"'), ("’", "'"), ("‘", "'")):
+        text = text.replace(a, b)
+    return re.sub(r"\\s+", " ", text).strip().lower()
+
+
+def clean(text):
+    return re.sub(r"\\s+", " ", (text or "").replace(" ", " ")).strip()
+
+
+# Ab Anwendung v0.140: einheitliche Kurznamen fuer Hand-/ROC-Mining-
+# Materialien (wie canonicalMaterialName() in der Anwendung).
+SUFFIX_RE = re.compile(r"^(.*\\S)\\s*\\((?:Hand Mining|ROC / ATLS GEO|ROC/ATLS GEO|Ore)\\)$", re.I)
+
+
+def canon_material(name):
+    name = clean(name)
+    m = SUFFIX_RE.match(name)
+    return m.group(1).strip() if m else name
+
+
+def fmt(x):
+    if x is None:
+        return None
+    x = round(float(x), 6)
+    return str(int(x)) if x == int(x) else repr(x)
+
+
+def parse_material(raw):
+    """Wie parseSimpleTemplateFormat() in der Anwendung."""
+    t = raw.strip()
+    if not t:
+        return None
+    seg = t.split(":")
+    if len(seg) >= 3:
+        try:
+            return {"name": canon_material(":".join(seg[:-2])), "menge": float(seg[-2]), "mindestqualitaet": float(seg[-1])}
+        except ValueError:
+            pass
+    if len(seg) >= 2:
+        try:
+            return {"name": canon_material(":".join(seg[:-1])), "menge": float(seg[-1]), "mindestqualitaet": None}
+        except ValueError:
+            pass
+    return {"name": canon_material(t), "menge": None, "mindestqualitaet": None}
+
+
+def read_import_file(path):
+    templates = []
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split(";")
+        if len(parts) < 3:
+            continue
+        mats = [m for m in (parse_material(r) for r in ";".join(parts[2:]).split(",")) if m]
+        if parts[0].strip() and parts[1].strip() and mats:
+            templates.append({"category": parts[0].strip(), "name": parts[1].strip(), "materials": mats})
+    return templates
+
+
+def read_basis(path):
+    if path.suffix.lower() == ".json":
+        data = json.loads(path.read_text(encoding="utf-8"))
+        tpls = data.get("projectTemplates")
+        if isinstance(tpls, dict):
+            tpls = tpls.get("templates", [])
+        if not isinstance(tpls, list):
+            sys.exit("Die JSON-Datei enthaelt keine Rezept-Vorlagen (projectTemplates).")
+        return [{"category": t["category"], "name": t["name"],
+                 "materials": [{"name": canon_material(m["name"]), "menge": m.get("menge"), "mindestqualitaet": m.get("mindestqualitaet")}
+                               for m in t.get("materials", [])]} for t in tpls]
+    return read_import_file(path)
+
+
+def read_scmdb(path):
+    """Liefert {normalisierter Name: (Originalname, Kategorie, {Material: Menge}, {doppelte Materialien})}."""
+    out = {}
+    for t in read_import_file(path):
+        mats, dups = {}, set()
+        for m in t["materials"]:
+            if m["menge"] is None:
+                mats.setdefault(m["name"], None)
+                continue
+            if m["name"] in mats and mats[m["name"]] is not None:
+                mats[m["name"]] = round(mats[m["name"]] + m["menge"], 6)
+                dups.add(m["name"])
+            else:
+                mats[m["name"]] = m["menge"]
+        out[norm(t["name"])] = (t["name"], t["category"], mats, dups)
+    return out
+
+
+def find_material(name, mats):
+    if name in mats:
+        return name
+    base = norm(name.split(" (")[0])
+    cands = [k for k in mats if norm(k.split(" (")[0]) == base]
+    return cands[0] if len(cands) == 1 else None
+
+
+def default_basis():
+    files = sorted(HERE.glob("projekt-vorlagen-import_*.txt"), key=lambda p: p.stat().st_mtime)
+    files = [f for f in files if "_abgleich_" not in f.name] or files
+    if not files:
+        sys.exit("Keine Basisdatei gefunden. Bitte mit --basis angeben.")
+    return files[-1]
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Abgleich der Rezept-Vorlagen mit scmdb.net")
+    ap.add_argument("scmdb", help="Neues Ergebnis von scrape_scmdb_rezepte.py")
+    ap.add_argument("--basis", help="Aktueller Bestand (.txt Importdatei oder .json Export)")
+    ap.add_argument("--nur-ergaenzen", action="store_true")
+    ap.add_argument("--neue-rezepte", action="store_true")
+    args = ap.parse_args()
+
+    scmdb_path = Path(args.scmdb)
+    if not scmdb_path.is_absolute():
+        scmdb_path = (Path.cwd() / scmdb_path) if (Path.cwd() / scmdb_path).exists() else HERE / scmdb_path
+    basis_path = Path(args.basis) if args.basis else default_basis()
+    if not scmdb_path.exists():
+        sys.exit(f"Datei nicht gefunden: {scmdb_path}")
+    if not basis_path.exists():
+        sys.exit(f"Datei nicht gefunden: {basis_path}")
+
+    basis = read_basis(basis_path)
+    scmdb = read_scmdb(scmdb_path)
+    print(f"Basis:  {basis_path.name} ({len(basis)} Rezepte)")
+    print(f"scmdb:  {scmdb_path.name} ({len(scmdb)} Rezepte)")
+
+    report = []
+    stats = {"ergaenzt": 0, "aktualisiert": 0, "abweichend_belassen": 0, "noch_ohne_menge": 0,
+             "nicht_bei_scmdb": 0, "neu_aufgenommen": 0}
+    seen = set()
+
+    for t in basis:
+        key = norm(t["name"])
+        t["name"] = clean(t["name"].replace("⚠", ""))
+        hit = scmdb.get(key)
+        if not hit:
+            stats["nicht_bei_scmdb"] += 1
+            missing = [m["name"] for m in t["materials"] if m["menge"] is None]
+            report.append([t["category"], t["name"], "", "", "", "Rezept nicht bei scmdb"
+                           + (f" – noch ohne Menge: {', '.join(missing)}" if missing else "")])
+            stats["noch_ohne_menge"] += len(missing)
+            continue
+        seen.add(key)
+        _, _, smats, dups = hit
+        used = set()
+        for m in t["materials"]:
+            sk = find_material(m["name"], smats)
+            if sk is None or smats.get(sk) is None:
+                if m["menge"] is None:
+                    stats["noch_ohne_menge"] += 1
+                report.append([t["category"], t["name"], m["name"], fmt(m["menge"]) or "", "",
+                               "Material bei scmdb nicht gefunden" + (" – bleibt ohne Menge" if m["menge"] is None else "")])
+                continue
+            used.add(sk)
+            new = smats[sk]
+            note = " (Summe mehrerer scmdb-Angaben)" if sk in dups else ""
+            if sk != m["name"]:
+                note += f" (bei scmdb als „{sk}“)"
+            if m["menge"] is None:
+                m["menge"] = new
+                stats["ergaenzt"] += 1
+                report.append([t["category"], t["name"], m["name"], "", fmt(new), "ergänzt" + note])
+            elif abs(float(m["menge"]) - new) > 1e-9:
+                if args.nur_ergaenzen:
+                    stats["abweichend_belassen"] += 1
+                    report.append([t["category"], t["name"], m["name"], fmt(m["menge"]), fmt(new),
+                                   "abweichend – belassen (--nur-ergaenzen)" + note])
+                else:
+                    report.append([t["category"], t["name"], m["name"], fmt(m["menge"]), fmt(new), "aktualisiert" + note])
+                    m["menge"] = new
+                    stats["aktualisiert"] += 1
+        for sk in smats:
+            if sk not in used:
+                report.append([t["category"], t["name"], sk, "", fmt(smats[sk]) or "",
+                               "nur bei scmdb – nicht übernommen (bitte prüfen)"])
+
+    new_only = [v for k, v in scmdb.items() if k not in seen and k not in {norm(t["name"]) for t in basis}]
+    for name, cat, smats, _ in new_only:
+        if args.neue_rezepte:
+            basis.append({"category": cat, "name": name,
+                          "materials": [{"name": k, "menge": v, "mindestqualitaet": None} for k, v in smats.items()]})
+            stats["neu_aufgenommen"] += 1
+            report.append([cat, name, "", "", "", "neues Rezept aufgenommen (--neue-rezepte)"])
+        else:
+            report.append([cat, name, "", "", "", "neues Rezept nur bei scmdb – nicht übernommen"])
+
+    stamp = time.strftime("%Y-%m-%d")
+    out_txt = HERE / f"projekt-vorlagen-import_abgleich_{stamp}.txt"
+    out_csv = HERE / f"abgleich-bericht_{stamp}.csv"
+    lines = [f"# Stand: {stamp} | Basis {basis_path.name}, abgeglichen mit {scmdb_path.name} | {len(basis)} Rezepte"]
+    problems = []
+    for t in basis:
+        parts = []
+        for m in t["materials"]:
+            if "," in m["name"] or ";" in m["name"]:
+                problems.append(f"{t['name']}: Materialname enthält , oder ; – {m['name']}")
+            s = m["name"]
+            if m["menge"] is not None:
+                s += ":" + fmt(m["menge"])
+                if m.get("mindestqualitaet") is not None:
+                    s += ":" + fmt(m["mindestqualitaet"])
+            parts.append(s)
+        if ";" in t["name"] or ";" in t["category"]:
+            problems.append(f"Semikolon in Name/Kategorie: {t['name']}")
+        lines.append(f"{t['category']};{t['name']};{','.join(parts)}")
+    out_txt.write_text("\\n".join(lines) + "\\n", encoding="utf-8")
+    with open(out_csv, "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.writer(f, delimiter=";")
+        w.writerow(["Kategorie", "Rezept", "Material", "Menge bisher", "Menge scmdb", "Ergebnis"])
+        w.writerows(report)
+
+    print()
+    print(f"Ergänzt:                 {stats['ergaenzt']}")
+    print(f"Aktualisiert:            {stats['aktualisiert']}")
+    if args.nur_ergaenzen:
+        print(f"Abweichend, belassen:    {stats['abweichend_belassen']}")
+    print(f"Noch ohne Menge:         {stats['noch_ohne_menge']}")
+    print(f"Rezepte nicht bei scmdb: {stats['nicht_bei_scmdb']}")
+    print(f"Neue Rezepte bei scmdb:  {len(new_only)}" + (" (aufgenommen)" if args.neue_rezepte else " (nur im Bericht)"))
+    if problems:
+        print("\\nACHTUNG – Formatprobleme:")
+        for p in problems:
+            print("  " + p)
+    print(f"\\nImportdatei: {out_txt.name}")
+    print(f"Bericht:     {out_csv.name}")
 
 
 if __name__ == "__main__":
