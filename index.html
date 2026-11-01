@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.138 -->
+<!-- Version: 0.139 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -560,6 +560,21 @@ label.capture-assign-toggle-label span{flex:1 1 auto;min-width:0;}
 .ca-dont-ask{display:flex;align-items:flex-start;gap:8px;margin-top:14px;font-size:12.5px;color:var(--ink-soft);cursor:pointer;}
 .ca-dont-ask input{flex-shrink:0;margin-top:2px;}
 .ca-buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+
+/* Ab 1. November 2026 (v0.139): Vollstaendige Sicherung */
+.fb-info{margin-top:10px;padding:8px 12px;border:1px solid var(--panel-border);border-radius:var(--radius);font-family:'Share Tech Mono', monospace;font-size:12px;color:var(--ink-soft);line-height:1.6;}
+.fb-info.fb-overdue{border-color:var(--accent);background:rgba(255,166,48,0.08);color:var(--ink);}
+.fb-check{display:flex;align-items:flex-start;gap:8px;font-weight:normal;cursor:pointer;margin-top:14px;font-size:13px;}
+.fb-check input{margin-top:2px;flex-shrink:0;}
+.fb-pw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:10px;max-width:640px;}
+.fb-warn{margin-top:8px;border-left:2px solid var(--accent);padding-left:10px;}
+.fb-danger{margin-top:8px;border-left:3px solid #FF3B5C;padding-left:10px;}
+.fb-restore{margin-top:20px;padding-top:16px;border-top:1px solid var(--panel-border);}
+.fb-h3{font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px 0;color:#FF3B5C;}
+.fb-restore > .btn-ghost{margin-top:10px;}
+.fb-summary{display:flex;flex-direction:column;gap:4px;max-width:560px;padding:10px 12px;border:1px solid var(--panel-border);border-radius:var(--radius);background:rgba(0,10,16,0.5);font-size:13px;}
+.fb-sum-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.fb-sum-row span{color:var(--ink-soft);}
 
 .recent-chips{
   display:flex;
@@ -2098,6 +2113,55 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <button class="btn-primary" id="btnConfirmOrgImport" style="background:var(--low);margin-top:10px;" disabled data-i18n="btn_wiederherstellen">Wiederherstellen</button>
         <button class="btn-ghost" id="btnCancelOrgImport" data-i18n="btn_cancel">Abbrechen</button>
       </div>
+    </div>
+  </details>
+
+  <!-- Ab 1. November 2026 (v0.139): Vollstaendige Sicherung der gesamten Anwendung, nur owner -->
+  <details class="panel admin-collapsible" data-default-open="false" id="fullBackupPanel" style="display:none;">
+    <summary><h2>🗄 <span data-i18n="panel_full_backup">Vollständige Sicherung (alle Organisationen)</span></h2></summary>
+    <div class="user-note" data-i18n="hint_full_backup">Sichert die gesamte Anwendung in einer Datei: alle Organisationen, Benutzer und Zugangsdaten, geteilte und private Bestände, Projekte, Sammelobjekte, Bedarfe, Kataloge, Vorlagen, Einstellungen, Protokolle und Papierkorb — jeden gespeicherten Datensatz.</div>
+    <div id="fullBackupLastInfo" class="fb-info"></div>
+
+    <label class="fb-check"><input type="checkbox" id="fullBackupEncrypt" checked><span data-i18n="label_full_backup_encrypt">Datei mit Sicherungs-Passwort verschlüsseln (empfohlen)</span></label>
+    <div id="fullBackupPwFields" class="fb-pw-grid">
+      <div class="field">
+        <label for="fullBackupPw" data-i18n="label_full_backup_pw">Sicherungs-Passwort (mind. 8 Zeichen)</label>
+        <input type="password" id="fullBackupPw" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="fullBackupPw2" data-i18n="label_full_backup_pw2">Sicherungs-Passwort wiederholen</label>
+        <input type="password" id="fullBackupPw2" autocomplete="new-password">
+      </div>
+    </div>
+    <div id="fullBackupPwHint" class="user-note fb-warn" data-i18n="hint_full_backup_pw">⚠ Ohne dieses Passwort lässt sich die Sicherung nicht mehr öffnen oder wiederherstellen — es gibt keine Möglichkeit, es zurückzusetzen. Bitte sicher notieren.</div>
+    <div id="fullBackupPlainHint" class="user-note fb-danger" style="display:none;" data-i18n="hint_full_backup_plain">⚠ Unverschlüsselt enthält die Datei alle Benutzer samt Passwörtern im Klartext. Nur sicher aufbewahren und nicht weitergeben.</div>
+    <div style="margin-top:12px;">
+      <button class="btn-primary" id="btnFullBackupExport" data-i18n="btn_full_backup_export">Vollständige Sicherung herunterladen</button>
+    </div>
+    <div class="status-msg" id="fullBackupStatus"></div>
+
+    <div class="fb-restore">
+      <h3 class="fb-h3" data-i18n="label_full_restore">Gesamte Anwendung wiederherstellen</h3>
+      <div class="user-note fb-danger" data-i18n="hint_full_restore">⚠ Setzt die GESAMTE Anwendung — alle Organisationen, Benutzer, Bestände und Einstellungen — auf den Stand der Sicherungsdatei zurück. Alles, was seitdem hinzugekommen oder geändert wurde, geht verloren. Vor dem Überschreiben wird automatisch eine Sicherung des aktuellen Stands heruntergeladen.</div>
+      <button type="button" class="btn-ghost" id="btnFullRestoreSelect" data-i18n="btn_full_restore_select">Vollsicherungs-Datei auswählen …</button>
+      <input type="file" id="fullRestoreFileInput" accept=".json,application/json" style="display:none;">
+      <div id="fullRestoreDecrypt" style="display:none;margin-top:12px;">
+        <div class="field" style="max-width:420px;">
+          <label for="fullRestorePw" data-i18n="label_full_restore_pw">Sicherungs-Passwort dieser Datei</label>
+          <input type="password" id="fullRestorePw" autocomplete="off">
+        </div>
+        <button type="button" class="btn-ghost" id="btnFullRestoreDecrypt" style="margin-top:8px;" data-i18n="btn_full_restore_decrypt">Datei öffnen</button>
+      </div>
+      <div id="fullRestorePreview" style="display:none;margin-top:14px;">
+        <div id="fullRestoreSummary" class="fb-summary"></div>
+        <div class="field" style="max-width:420px;margin-top:12px;">
+          <label for="fullRestoreConfirm" id="fullRestoreConfirmLabel"></label>
+          <input type="text" id="fullRestoreConfirm" autocomplete="off" spellcheck="false">
+        </div>
+        <button class="btn-primary" id="btnFullRestoreRun" style="background:#FF3B5C;margin-top:10px;" disabled data-i18n="btn_full_restore_run">Gesamte Anwendung wiederherstellen</button>
+        <button class="btn-ghost" id="btnFullRestoreCancel" data-i18n="btn_cancel">Abbrechen</button>
+      </div>
+      <div class="status-msg" id="fullRestoreStatus"></div>
     </div>
   </details>
 
@@ -3956,6 +4020,51 @@ const I18N = {
   "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
   "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
   "capture_assign_toggle": "Nach dem Eintragen passende Projekte vorschlagen",
+  "panel_full_backup": "Vollständige Sicherung (alle Organisationen)",
+  "hint_full_backup": "Sichert die gesamte Anwendung in einer Datei: alle Organisationen, Benutzer und Zugangsdaten, geteilte und private Bestände, Projekte, Sammelobjekte, Bedarfe, Kataloge, Vorlagen, Einstellungen, Protokolle und Papierkorb — jeden gespeicherten Datensatz.",
+  "label_full_backup_encrypt": "Datei mit Sicherungs-Passwort verschlüsseln (empfohlen)",
+  "label_full_backup_pw": "Sicherungs-Passwort (mind. 8 Zeichen)",
+  "label_full_backup_pw2": "Sicherungs-Passwort wiederholen",
+  "hint_full_backup_pw": "⚠ Ohne dieses Passwort lässt sich die Sicherung nicht mehr öffnen oder wiederherstellen — es gibt keine Möglichkeit, es zurückzusetzen. Bitte sicher notieren.",
+  "hint_full_backup_plain": "⚠ Unverschlüsselt enthält die Datei alle Benutzer samt Passwörtern im Klartext. Nur sicher aufbewahren und nicht weitergeben.",
+  "btn_full_backup_export": "Vollständige Sicherung herunterladen",
+  "label_full_restore": "Gesamte Anwendung wiederherstellen",
+  "hint_full_restore": "⚠ Setzt die GESAMTE Anwendung — alle Organisationen, Benutzer, Bestände und Einstellungen — auf den Stand der Sicherungsdatei zurück. Alles, was seitdem hinzugekommen oder geändert wurde, geht verloren. Vor dem Überschreiben wird automatisch eine Sicherung des aktuellen Stands heruntergeladen.",
+  "btn_full_restore_select": "Vollsicherungs-Datei auswählen …",
+  "label_full_restore_pw": "Sicherungs-Passwort dieser Datei",
+  "btn_full_restore_decrypt": "Datei öffnen",
+  "btn_full_restore_run": "Gesamte Anwendung wiederherstellen",
+  "val_full_backup_pw_short": "Das Sicherungs-Passwort muss mindestens 8 Zeichen lang sein.",
+  "val_full_backup_pw_mismatch": "Die beiden Passwörter stimmen nicht überein.",
+  "msg_full_backup_running": "Sicherung wird erstellt …",
+  "msg_full_backup_done": "Vollständige Sicherung mit {count} Datensätzen heruntergeladen.",
+  "msg_full_backup_failed": "Sicherung fehlgeschlagen – die Daten konnten nicht vollständig gelesen werden. Es wurde keine Datei erstellt.",
+  "label_full_backup_last": "Letzte Vollsicherung: {date} ({user})",
+  "label_full_backup_never": "Noch keine vollständige Sicherung erstellt.",
+  "label_full_restore_last": "Zuletzt wiederhergestellt: {date} aus Sicherung vom {from} ({user})",
+  "label_full_backup_reminder_never": "Noch keine vollständige Sicherung der Anwendung erstellt — jetzt sichern.",
+  "label_full_backup_reminder_overdue": "Letzte vollständige Sicherung liegt {days} Tage zurück — Zeit für eine neue.",
+  "val_full_restore_invalid": "Diese Datei ist keine gültige Vollsicherung.",
+  "msg_full_restore_need_pw": "Die Datei ist verschlüsselt — bitte das Sicherungs-Passwort eingeben.",
+  "val_full_restore_pw_wrong": "Passwort falsch oder Datei beschädigt.",
+  "val_full_restore_checksum": "Prüfsumme stimmt nicht — die Datei ist beschädigt und wird nicht verwendet.",
+  "label_full_restore_created": "Erstellt",
+  "label_full_restore_version": "App-Version",
+  "label_full_restore_records": "Datensätze in der Sicherung",
+  "label_full_restore_current": "aktuell {count}",
+  "label_full_restore_orgs": "Organisationen",
+  "label_full_restore_users": "Benutzer",
+  "label_full_restore_delete": "Datensätze, die entfernt werden (seit der Sicherung neu)",
+  "label_full_restore_checksum": "Prüfsumme",
+  "label_full_restore_checksum_ok": "in Ordnung",
+  "label_full_restore_confirm": "Zur Bestätigung „{word}“ eingeben:",
+  "full_restore_confirm_word": "WIEDERHERSTELLEN",
+  "tooltip_full_restore_confirm": "Erneut klicken: gesamte Anwendung jetzt wiederherstellen",
+  "msg_full_restore_prebackup": "Aktueller Stand wird gesichert …",
+  "msg_full_restore_prebackup_failed": "Der aktuelle Stand konnte nicht gesichert werden — es wurde nichts verändert.",
+  "msg_full_restore_progress": "Wiederherstellung läuft … {done} / {total}",
+  "msg_full_restore_failed": "Wiederherstellung abgebrochen — Fehler beim Schreiben. Die Datei „…VOR-WIEDERHERSTELLUNG…“ enthält den vorherigen Stand.",
+  "msg_full_restore_done": "Wiederherstellung abgeschlossen. Die Seite wird neu geladen …",
   "label_bulk_projekt_alle": "Projekt für alle passenden Zeilen (optional)",
   "btn_bulk_suggest_projects": "Passende Projekte vorschlagen",
   "bulk_suggest_done": "{count} Zeile(n) vorbelegt.",
@@ -4823,6 +4932,51 @@ const I18N = {
   "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
   "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
   "capture_assign_toggle": "Suggest matching projects after adding",
+  "panel_full_backup": "Full backup (all organizations)",
+  "hint_full_backup": "Backs up the entire application into one file: all organizations, users and credentials, shared and private stock, projects, collectibles, needs, catalogs, templates, settings, logs and trash — every stored record.",
+  "label_full_backup_encrypt": "Encrypt file with a backup password (recommended)",
+  "label_full_backup_pw": "Backup password (min. 8 characters)",
+  "label_full_backup_pw2": "Repeat backup password",
+  "hint_full_backup_pw": "⚠ Without this password the backup can no longer be opened or restored — it cannot be reset. Please write it down safely.",
+  "hint_full_backup_plain": "⚠ Unencrypted, the file contains all users including passwords in plain text. Keep it safe and do not share it.",
+  "btn_full_backup_export": "Download full backup",
+  "label_full_restore": "Restore entire application",
+  "hint_full_restore": "⚠ Resets the ENTIRE application — all organizations, users, stock and settings — to the state of the backup file. Everything added or changed since then is lost. A backup of the current state is downloaded automatically before anything is overwritten.",
+  "btn_full_restore_select": "Select full backup file …",
+  "label_full_restore_pw": "Backup password of this file",
+  "btn_full_restore_decrypt": "Open file",
+  "btn_full_restore_run": "Restore entire application",
+  "val_full_backup_pw_short": "The backup password must be at least 8 characters long.",
+  "val_full_backup_pw_mismatch": "The two passwords do not match.",
+  "msg_full_backup_running": "Creating backup …",
+  "msg_full_backup_done": "Full backup with {count} records downloaded.",
+  "msg_full_backup_failed": "Backup failed – the data could not be read completely. No file was created.",
+  "label_full_backup_last": "Last full backup: {date} ({user})",
+  "label_full_backup_never": "No full backup created yet.",
+  "label_full_restore_last": "Last restored: {date} from backup of {from} ({user})",
+  "label_full_backup_reminder_never": "No full backup of the application yet — back up now.",
+  "label_full_backup_reminder_overdue": "Last full backup was {days} days ago — time for a new one.",
+  "val_full_restore_invalid": "This file is not a valid full backup.",
+  "msg_full_restore_need_pw": "The file is encrypted — please enter the backup password.",
+  "val_full_restore_pw_wrong": "Wrong password or damaged file.",
+  "val_full_restore_checksum": "Checksum mismatch — the file is damaged and will not be used.",
+  "label_full_restore_created": "Created",
+  "label_full_restore_version": "App version",
+  "label_full_restore_records": "Records in backup",
+  "label_full_restore_current": "currently {count}",
+  "label_full_restore_orgs": "Organizations",
+  "label_full_restore_users": "Users",
+  "label_full_restore_delete": "Records to be removed (new since the backup)",
+  "label_full_restore_checksum": "Checksum",
+  "label_full_restore_checksum_ok": "OK",
+  "label_full_restore_confirm": "Type \"{word}\" to confirm:",
+  "full_restore_confirm_word": "RESTORE",
+  "tooltip_full_restore_confirm": "Click again: restore the entire application now",
+  "msg_full_restore_prebackup": "Backing up current state …",
+  "msg_full_restore_prebackup_failed": "The current state could not be backed up — nothing was changed.",
+  "msg_full_restore_progress": "Restoring … {done} / {total}",
+  "msg_full_restore_failed": "Restore aborted — write error. The file \"…VOR-WIEDERHERSTELLUNG…\" contains the previous state.",
+  "msg_full_restore_done": "Restore complete. Reloading the page …",
   "label_bulk_projekt_alle": "Project for all matching rows (optional)",
   "btn_bulk_suggest_projects": "Suggest matching projects",
   "bulk_suggest_done": "{count} row(s) prefilled.",
@@ -5690,6 +5844,51 @@ const I18N = {
   "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
   "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
   "capture_assign_toggle": "Proposer les projets correspondants après l'ajout",
+  "panel_full_backup": "Sauvegarde complète (toutes les organisations)",
+  "hint_full_backup": "Sauvegarde toute l'application dans un seul fichier : organisations, utilisateurs et accès, stocks partagés et privés, projets, objets de collection, besoins, catalogues, modèles, paramètres, journaux et corbeille — chaque enregistrement.",
+  "label_full_backup_encrypt": "Chiffrer le fichier avec un mot de passe de sauvegarde (recommandé)",
+  "label_full_backup_pw": "Mot de passe de sauvegarde (8 caractères min.)",
+  "label_full_backup_pw2": "Répéter le mot de passe de sauvegarde",
+  "hint_full_backup_pw": "⚠ Sans ce mot de passe, la sauvegarde ne peut plus être ouverte ni restaurée — il ne peut pas être réinitialisé. Notez-le en lieu sûr.",
+  "hint_full_backup_plain": "⚠ Non chiffré, le fichier contient tous les utilisateurs avec leurs mots de passe en clair. À conserver en sécurité, ne pas partager.",
+  "btn_full_backup_export": "Télécharger la sauvegarde complète",
+  "label_full_restore": "Restaurer toute l'application",
+  "hint_full_restore": "⚠ Rétablit TOUTE l'application — organisations, utilisateurs, stocks et paramètres — à l'état du fichier de sauvegarde. Tout ce qui a été ajouté ou modifié depuis est perdu. Une sauvegarde de l'état actuel est téléchargée automatiquement avant tout écrasement.",
+  "btn_full_restore_select": "Choisir un fichier de sauvegarde complète …",
+  "label_full_restore_pw": "Mot de passe de sauvegarde de ce fichier",
+  "btn_full_restore_decrypt": "Ouvrir le fichier",
+  "btn_full_restore_run": "Restaurer toute l'application",
+  "val_full_backup_pw_short": "Le mot de passe de sauvegarde doit comporter au moins 8 caractères.",
+  "val_full_backup_pw_mismatch": "Les deux mots de passe ne correspondent pas.",
+  "msg_full_backup_running": "Création de la sauvegarde …",
+  "msg_full_backup_done": "Sauvegarde complète de {count} enregistrements téléchargée.",
+  "msg_full_backup_failed": "Échec de la sauvegarde – les données n'ont pas pu être lues entièrement. Aucun fichier créé.",
+  "label_full_backup_last": "Dernière sauvegarde complète : {date} ({user})",
+  "label_full_backup_never": "Aucune sauvegarde complète pour l'instant.",
+  "label_full_restore_last": "Dernière restauration : {date} depuis la sauvegarde du {from} ({user})",
+  "label_full_backup_reminder_never": "Aucune sauvegarde complète de l'application — sauvegardez maintenant.",
+  "label_full_backup_reminder_overdue": "La dernière sauvegarde complète date de {days} jours — il est temps d'en faire une nouvelle.",
+  "val_full_restore_invalid": "Ce fichier n'est pas une sauvegarde complète valide.",
+  "msg_full_restore_need_pw": "Le fichier est chiffré — veuillez saisir le mot de passe de sauvegarde.",
+  "val_full_restore_pw_wrong": "Mot de passe incorrect ou fichier endommagé.",
+  "val_full_restore_checksum": "Somme de contrôle incorrecte — le fichier est endommagé et ne sera pas utilisé.",
+  "label_full_restore_created": "Créée",
+  "label_full_restore_version": "Version de l'app",
+  "label_full_restore_records": "Enregistrements dans la sauvegarde",
+  "label_full_restore_current": "actuellement {count}",
+  "label_full_restore_orgs": "Organisations",
+  "label_full_restore_users": "Utilisateurs",
+  "label_full_restore_delete": "Enregistrements supprimés (nouveaux depuis la sauvegarde)",
+  "label_full_restore_checksum": "Somme de contrôle",
+  "label_full_restore_checksum_ok": "correcte",
+  "label_full_restore_confirm": "Saisissez « {word} » pour confirmer :",
+  "full_restore_confirm_word": "RESTAURER",
+  "tooltip_full_restore_confirm": "Cliquer à nouveau : restaurer toute l'application maintenant",
+  "msg_full_restore_prebackup": "Sauvegarde de l'état actuel …",
+  "msg_full_restore_prebackup_failed": "L'état actuel n'a pas pu être sauvegardé — rien n'a été modifié.",
+  "msg_full_restore_progress": "Restauration … {done} / {total}",
+  "msg_full_restore_failed": "Restauration interrompue — erreur d'écriture. Le fichier « …VOR-WIEDERHERSTELLUNG… » contient l'état précédent.",
+  "msg_full_restore_done": "Restauration terminée. Rechargement de la page …",
   "label_bulk_projekt_alle": "Projet pour toutes les lignes correspondantes (facultatif)",
   "btn_bulk_suggest_projects": "Proposer les projets correspondants",
   "bulk_suggest_done": "{count} ligne(s) préremplie(s).",
@@ -6874,6 +7073,7 @@ async function saveUserEdit(idx){
     document.getElementById('logPanel').style.display = isAdminOrAbove ? '' : 'none';
     document.getElementById('orgManagementPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('orgResetPanel').style.display = newRole==='owner' ? '' : 'none';
+    updateFullBackupVisibility(newRole);
     document.getElementById('templateManagePanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('templateImportPanel').style.display = newRole==='owner' ? '' : 'none';
     if(newRole==='owner'){ renderTemplateManagePanel('rezepte'); renderTemplateManagePanel('wikelo'); }
@@ -9041,6 +9241,7 @@ function completeLogin(user){
   if(isOrgAdminOrAbove) loadOrgInfoEditor();
   renderOrgInfoDisplay();
   document.getElementById('orgExportPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
+  updateFullBackupVisibility(user.role); // ab v0.139, nur owner
   // Die Wiederherstellung (im Unterschied zum reinen Export) ist deutlich
   // risikoreicher -- ersetzt bestehende Daten vollstaendig und
   // unwiderruflich. Ab 12. August 2026 zunaechst bewusst nur fuer owner
@@ -16609,8 +16810,23 @@ async function renderDashboard(){
       const hasEarlierParts = nurKritisch.length > 0 || projectsWithGaps.length > 0;
       parts.push(`<div style="${hasEarlierParts ? 'margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,59,92,0.2);' : ''}font-family:'Share Tech Mono', monospace;font-size:12.5px;color:var(--ink-soft);cursor:pointer;" data-goto-flagged="1" title="${t('tooltip_flagged_for_review')}">${t('label_markierte_eintraege_summary').replace('{count}', flaggedCount)}</div>`);
     }
+    // Ab v0.139: Erinnerung an die vollstaendige Sicherung (nur owner),
+    // wenn die letzte Vollsicherung einen Monat oder laenger zurueckliegt.
+    if(currentUser && currentUser.role === 'owner' && fullBackupMeta){
+      const fbDays = fullBackupDaysSince();
+      if(fbDays == null || fbDays >= FULL_BACKUP_REMINDER_DAYS){
+        const txt = fbDays == null ? t('label_full_backup_reminder_never') : t('label_full_backup_reminder_overdue').replace('{days}', fbDays);
+        parts.push(`<div style="${parts.length>0 ? 'margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,59,92,0.2);' : ''}font-family:'Share Tech Mono', monospace;font-size:12.5px;color:var(--ink);cursor:pointer;" data-goto-fullbackup="1">🗄 ${escapeHtml(txt)}</div>`);
+      }
+    }
     if(parts.length > 0){
       criticalBanner.innerHTML = parts.join('');
+      const gotoFb = criticalBanner.querySelector('[data-goto-fullbackup]');
+      if(gotoFb) gotoFb.addEventListener('click', ()=>{
+        switchTab('verwaltung');
+        const panel = document.getElementById('fullBackupPanel');
+        if(panel){ panel.open = true; setTimeout(()=>panel.scrollIntoView({behavior:'smooth', block:'start'}), 50); }
+      });
       criticalBanner.style.display = '';
       const gotoEl = criticalBanner.querySelector('[data-goto-reminder]');
       if(gotoEl) gotoEl.addEventListener('click', ()=>{
@@ -19639,6 +19855,372 @@ function updateFilterOptions(){
 // Erster Klick versetzt den Button 3 Sekunden lang in einen "Bestätigen?"-Zustand,
 // zweiter Klick innerhalb dieser Zeit führt die Aktion aus. Ohne zweiten Klick
 // springt der Button automatisch in seinen Ausgangszustand zurück.
+// ============================================================
+// Vollstaendige Sicherung und Wiederherstellung der GESAMTEN Anwendung
+// (ab 1. November 2026, v0.139, ausschliesslich Rolle owner)
+// ------------------------------------------------------------
+// Statt einzelne Bereiche zusammenzusuchen, wird JEDER geteilte Datensatz
+// der Datenbank (app_storage, owner_id = SHARED_OWNER) seitenweise gelesen
+// und unveraendert gesichert -- alle Organisationen, Benutzer,
+// Zugangsdaten, Bestaende (geteilt und privat), Projekte, Kataloge,
+// Vorlagen, Einstellungen, Protokolle, Papierkorb, Reset-Sicherungen und
+// persoenliche Einstellungen. Dadurch kann bei kuenftigen Erweiterungen
+// nichts "vergessen" werden. Nicht enthalten: rein geraetebezogene
+// Einstellungen (aktuell nur die Sprachwahl).
+// Verschluesselung (Standard): PBKDF2-SHA-256 (310.000 Runden) -> AES-GCM
+// 256 Bit, beides ueber die im Browser eingebaute WebCrypto-Schnittstelle.
+// Eine SHA-256-Pruefsumme ueber alle Datensaetze erkennt beschaedigte
+// Dateien.
+// ============================================================
+const FULL_BACKUP_FORMAT = 'materialbestand-vollsicherung';
+const FULL_BACKUP_META_KEY = 'full-backup-meta';
+const FULL_BACKUP_REMINDER_DAYS = 30;
+const FULL_BACKUP_PBKDF2_ITERATIONS = 310000;
+let fullBackupMeta = null;
+let fullRestoreState = null;
+
+function getAppVersion(){
+  for(const n of document.childNodes){
+    if(n.nodeType === 8){
+      const m = /Version:\s*([\d.]+)/.exec(n.nodeValue || '');
+      if(m) return m[1];
+    }
+  }
+  return '';
+}
+function fbB64FromBytes(bytes){
+  let bin = '';
+  const CH = 0x8000;
+  for(let i=0;i<bytes.length;i+=CH) bin += String.fromCharCode.apply(null, bytes.subarray(i, i+CH));
+  return btoa(bin);
+}
+function fbBytesFromB64(b64){
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function fbSha256Hex(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function fbDeriveKey(password, salt, iterations){
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations, hash:'SHA-256' }, base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+
+// Liest ALLE geteilten Datensaetze seitenweise (PostgREST liefert je
+// Anfrage nur eine begrenzte Anzahl Zeilen). Wirft bei jedem Lesefehler --
+// eine unvollstaendige Sicherung darf nie still entstehen.
+async function fetchAllSharedRecords(){
+  const PAGE = 500;
+  const out = [];
+  let from = 0;
+  for(;;){
+    const res = await supabaseClient
+      .from('app_storage')
+      .select('key,value')
+      .eq('owner_id', SHARED_OWNER)
+      .order('key', { ascending: true })
+      .range(from, from + PAGE - 1);
+    if(res.error) throw new Error(res.error.message || 'read failed');
+    const rows = res.data || [];
+    rows.forEach(r=>out.push({ key: r.key, value: r.value }));
+    if(rows.length < PAGE) break;
+    from += PAGE;
+  }
+  return out;
+}
+
+async function buildFullBackupFile(records, password, note){
+  const createdAt = new Date().toISOString();
+  const body = { records, checksum: await fbSha256Hex(JSON.stringify(records)) };
+  const head = {
+    format: FULL_BACKUP_FORMAT,
+    formatVersion: 1,
+    createdAt,
+    appVersion: getAppVersion(),
+    createdBy: currentUser ? currentUser.username : '',
+    note: note || '',
+    recordCount: records.length
+  };
+  if(!password){
+    return { ...head, encrypted: false, payload: body };
+  }
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await fbDeriveKey(password, salt, FULL_BACKUP_PBKDF2_ITERATIONS);
+  const cipher = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(body)));
+  return {
+    ...head,
+    encrypted: true,
+    kdf: { name:'PBKDF2', hash:'SHA-256', iterations: FULL_BACKUP_PBKDF2_ITERATIONS, salt: fbB64FromBytes(salt) },
+    cipher: { name:'AES-GCM', iv: fbB64FromBytes(iv) },
+    payload: fbB64FromBytes(new Uint8Array(cipher))
+  };
+}
+
+function downloadFullBackupFile(fileObj, suffix){
+  const blob = new Blob([JSON.stringify(fileObj, null, 1)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const d = new Date();
+  const pad = n=>String(n).padStart(2,'0');
+  const stamp = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `materialbestand-vollsicherung_${suffix ? suffix + '_' : ''}${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+async function loadFullBackupMeta(){
+  try{
+    const res = await window.storage.get(FULL_BACKUP_META_KEY, true);
+    fullBackupMeta = res && res.value ? JSON.parse(res.value) : {};
+  }catch(e){ fullBackupMeta = {}; }
+  renderFullBackupInfo();
+  scheduleRenderDashboard();
+}
+async function saveFullBackupMeta(){
+  try{ await window.storage.set(FULL_BACKUP_META_KEY, JSON.stringify(fullBackupMeta || {}), true); }catch(e){}
+}
+function fbFormatDate(iso){
+  try{ return new Date(iso).toLocaleString(currentLang === 'en' ? 'en-GB' : (currentLang === 'fr' ? 'fr-FR' : 'de-DE')); }catch(e){ return iso; }
+}
+function fullBackupDaysSince(){
+  if(!fullBackupMeta || !fullBackupMeta.lastBackupAt) return null;
+  return Math.floor((Date.now() - new Date(fullBackupMeta.lastBackupAt).getTime()) / 86400000);
+}
+function renderFullBackupInfo(){
+  const el = document.getElementById('fullBackupLastInfo');
+  if(!el) return;
+  const m = fullBackupMeta || {};
+  const lines = [];
+  if(m.lastBackupAt){
+    lines.push(t('label_full_backup_last').replace('{date}', fbFormatDate(m.lastBackupAt)).replace('{user}', m.lastBackupBy || '–'));
+  } else {
+    lines.push(t('label_full_backup_never'));
+  }
+  if(m.lastRestoreAt){
+    lines.push(t('label_full_restore_last').replace('{date}', fbFormatDate(m.lastRestoreAt)).replace('{from}', m.lastRestoreFrom ? fbFormatDate(m.lastRestoreFrom) : '–').replace('{user}', m.lastRestoreBy || '–'));
+  }
+  el.innerHTML = lines.map(l=>`<div>${escapeHtml(l)}</div>`).join('');
+  const days = fullBackupDaysSince();
+  el.classList.toggle('fb-overdue', days == null || days >= FULL_BACKUP_REMINDER_DAYS);
+}
+function updateFullBackupVisibility(role){
+  const panel = document.getElementById('fullBackupPanel');
+  if(!panel) return;
+  const isOwner = role === 'owner';
+  panel.style.display = isOwner ? '' : 'none';
+  if(isOwner) loadFullBackupMeta();
+}
+
+function updateFullBackupEncryptUI(){
+  const enc = document.getElementById('fullBackupEncrypt').checked;
+  document.getElementById('fullBackupPwFields').style.display = enc ? '' : 'none';
+  document.getElementById('fullBackupPwHint').style.display = enc ? '' : 'none';
+  document.getElementById('fullBackupPlainHint').style.display = enc ? 'none' : '';
+}
+document.getElementById('fullBackupEncrypt').addEventListener('change', updateFullBackupEncryptUI);
+
+document.getElementById('btnFullBackupExport').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('fullBackupStatus');
+  if(!currentUser || currentUser.role !== 'owner') return;
+  const enc = document.getElementById('fullBackupEncrypt').checked;
+  const pw = document.getElementById('fullBackupPw').value;
+  const pw2 = document.getElementById('fullBackupPw2').value;
+  if(enc){
+    if(pw.length < 8){ setStatusMsg(statusEl, t('val_full_backup_pw_short'), true); return; }
+    if(pw !== pw2){ setStatusMsg(statusEl, t('val_full_backup_pw_mismatch'), true); return; }
+  }
+  const btn = document.getElementById('btnFullBackupExport');
+  btn.disabled = true;
+  setStatusMsg(statusEl, t('msg_full_backup_running'), false);
+  try{
+    const records = await fetchAllSharedRecords();
+    const fileObj = await buildFullBackupFile(records, enc ? pw : null);
+    downloadFullBackupFile(fileObj, '');
+    fullBackupMeta = { ...(fullBackupMeta || {}), lastBackupAt: fileObj.createdAt, lastBackupBy: currentUser.username, lastBackupRecords: records.length, lastBackupEncrypted: enc };
+    await saveFullBackupMeta();
+    await logAction('Vollständige Sicherung erstellt', `${records.length} Datensätze, ${enc ? 'verschlüsselt' : 'unverschlüsselt'}`);
+    document.getElementById('fullBackupPw').value = '';
+    document.getElementById('fullBackupPw2').value = '';
+    renderFullBackupInfo();
+    scheduleRenderDashboard();
+    setStatusMsg(statusEl, t('msg_full_backup_done').replace('{count}', records.length), false);
+  }catch(e){
+    setStatusMsg(statusEl, t('msg_full_backup_failed'), true);
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+// ---------------- Wiederherstellung ----------------
+function resetFullRestoreUI(){
+  fullRestoreState = null;
+  document.getElementById('fullRestoreDecrypt').style.display = 'none';
+  document.getElementById('fullRestorePreview').style.display = 'none';
+  document.getElementById('fullRestorePw').value = '';
+  document.getElementById('fullRestoreConfirm').value = '';
+  document.getElementById('btnFullRestoreRun').disabled = true;
+  document.getElementById('fullRestoreFileInput').value = '';
+}
+document.getElementById('btnFullRestoreSelect').addEventListener('click', ()=>{
+  document.getElementById('fullRestoreFileInput').click();
+});
+document.getElementById('btnFullRestoreCancel').addEventListener('click', ()=>{
+  resetFullRestoreUI();
+  setStatusMsg(document.getElementById('fullRestoreStatus'), '', false);
+});
+document.getElementById('fullRestoreFileInput').addEventListener('change', async (ev)=>{
+  const statusEl = document.getElementById('fullRestoreStatus');
+  const file = ev.target.files && ev.target.files[0];
+  const fileInput = ev.target;
+  if(!file) return;
+  resetFullRestoreUI();
+  let obj;
+  try{ obj = JSON.parse(await file.text()); }catch(e){ obj = null; }
+  fileInput.value = '';
+  if(!obj || obj.format !== FULL_BACKUP_FORMAT || !obj.payload){
+    setStatusMsg(statusEl, t('val_full_restore_invalid'), true);
+    return;
+  }
+  fullRestoreState = { file: obj, fileName: file.name };
+  if(obj.encrypted){
+    document.getElementById('fullRestoreDecrypt').style.display = '';
+    setStatusMsg(statusEl, t('msg_full_restore_need_pw'), false);
+    document.getElementById('fullRestorePw').focus();
+  } else {
+    await openFullRestorePayload(obj.payload, null);
+  }
+});
+document.getElementById('btnFullRestoreDecrypt').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('fullRestoreStatus');
+  if(!fullRestoreState) return;
+  const obj = fullRestoreState.file;
+  const pw = document.getElementById('fullRestorePw').value;
+  try{
+    const key = await fbDeriveKey(pw, fbBytesFromB64(obj.kdf.salt), obj.kdf.iterations);
+    const plain = await crypto.subtle.decrypt({ name:'AES-GCM', iv: fbBytesFromB64(obj.cipher.iv) }, key, fbBytesFromB64(obj.payload));
+    const body = JSON.parse(new TextDecoder().decode(plain));
+    await openFullRestorePayload(body, pw);
+  }catch(e){
+    setStatusMsg(statusEl, t('val_full_restore_pw_wrong'), true);
+  }
+});
+document.getElementById('fullRestorePw').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('btnFullRestoreDecrypt').click(); }
+});
+
+function fbCountJsonArray(records, key){
+  const r = records.find(x=>x.key === key);
+  if(!r) return 0;
+  try{ const v = JSON.parse(r.value); return Array.isArray(v) ? v.length : 0; }catch(e){ return 0; }
+}
+async function openFullRestorePayload(body, password){
+  const statusEl = document.getElementById('fullRestoreStatus');
+  if(!body || !Array.isArray(body.records)){
+    setStatusMsg(statusEl, t('val_full_restore_invalid'), true);
+    return;
+  }
+  const sum = await fbSha256Hex(JSON.stringify(body.records));
+  if(sum !== body.checksum){
+    setStatusMsg(statusEl, t('val_full_restore_checksum'), true);
+    return;
+  }
+  fullRestoreState.records = body.records;
+  fullRestoreState.password = password;
+  // Vergleich mit dem aktuellen Stand fuer die Vorschau
+  let current = null;
+  try{ current = await fetchAllSharedRecords(); }catch(e){ current = null; }
+  const backupKeys = new Set(body.records.map(r=>r.key));
+  const toDelete = current ? current.filter(r=>!backupKeys.has(r.key) && r.key !== FULL_BACKUP_META_KEY).length : null;
+  const f = fullRestoreState.file;
+  const rows = [
+    [t('label_full_restore_created'), fbFormatDate(f.createdAt) + (f.createdBy ? ' · ' + f.createdBy : '')],
+    [t('label_full_restore_version'), f.appVersion || '–'],
+    [t('label_full_restore_records'), String(body.records.length) + (current ? ' (' + t('label_full_restore_current').replace('{count}', current.length) + ')' : '')],
+    [t('label_full_restore_orgs'), String(fbCountJsonArray(body.records, ORGANIZATIONS_KEY))],
+    [t('label_full_restore_users'), String(fbCountJsonArray(body.records, USERS_KEY))],
+    [t('label_full_restore_delete'), toDelete == null ? '–' : String(toDelete)],
+    [t('label_full_restore_checksum'), '✓ ' + t('label_full_restore_checksum_ok')]
+  ];
+  document.getElementById('fullRestoreSummary').innerHTML = rows.map(([k,v])=>`<div class="fb-sum-row"><span>${escapeHtml(k)}</span><strong>${escapeHtml(v)}</strong></div>`).join('');
+  document.getElementById('fullRestoreConfirmLabel').textContent = t('label_full_restore_confirm').replace('{word}', t('full_restore_confirm_word'));
+  document.getElementById('fullRestoreDecrypt').style.display = 'none';
+  document.getElementById('fullRestorePreview').style.display = '';
+  document.getElementById('fullRestoreConfirm').value = '';
+  document.getElementById('btnFullRestoreRun').disabled = true;
+  setStatusMsg(statusEl, '', false);
+}
+document.getElementById('fullRestoreConfirm').addEventListener('input', ()=>{
+  const ok = document.getElementById('fullRestoreConfirm').value.trim().toUpperCase() === t('full_restore_confirm_word').toUpperCase();
+  document.getElementById('btnFullRestoreRun').disabled = !ok || !fullRestoreState || !fullRestoreState.records;
+});
+document.getElementById('btnFullRestoreRun').addEventListener('click', (e)=>{
+  if(!fullRestoreState || !fullRestoreState.records) return;
+  armConfirm(e.currentTarget, performFullRestore, t('tooltip_full_restore_confirm'));
+});
+
+async function performFullRestore(){
+  const statusEl = document.getElementById('fullRestoreStatus');
+  const btn = document.getElementById('btnFullRestoreRun');
+  if(!currentUser || currentUser.role !== 'owner' || !fullRestoreState || !fullRestoreState.records) return;
+  btn.disabled = true;
+  const st = fullRestoreState;
+  const restoreFrom = st.file.createdAt;
+
+  // 1) Aktuellen Stand sichern und herunterladen -- ohne erfolgreiche
+  //    Sicherung wird NICHTS ueberschrieben.
+  let current;
+  try{
+    setStatusMsg(statusEl, t('msg_full_restore_prebackup'), false);
+    current = await fetchAllSharedRecords();
+    const pre = await buildFullBackupFile(current, st.password, 'Automatische Sicherung vor Wiederherstellung');
+    downloadFullBackupFile(pre, 'VOR-WIEDERHERSTELLUNG');
+  }catch(e){
+    setStatusMsg(statusEl, t('msg_full_restore_prebackup_failed'), true);
+    btn.disabled = false;
+    return;
+  }
+  await new Promise(r=>setTimeout(r, 800));
+
+  // 2) Datensaetze der Sicherung schreiben (gebuendelt), danach Datensaetze
+  //    entfernen, die es zum Sicherungszeitpunkt noch nicht gab. Die
+  //    Merkdaten zur Vollsicherung selbst bleiben unberuehrt.
+  const records = st.records.filter(r=>r.key !== FULL_BACKUP_META_KEY);
+  const backupKeys = new Set(records.map(r=>r.key));
+  const toDelete = current.map(r=>r.key).filter(k=>!backupKeys.has(k) && k !== FULL_BACKUP_META_KEY);
+  try{
+    const CH = 100;
+    for(let i=0;i<records.length;i+=CH){
+      const now = new Date().toISOString();
+      const chunk = records.slice(i, i+CH).map(r=>({ key: r.key, value: r.value, shared: true, owner_id: SHARED_OWNER, updated_at: now }));
+      const res = await supabaseClient.from('app_storage').upsert(chunk, { onConflict: 'key,owner_id' });
+      if(res.error) throw new Error(res.error.message || 'write failed');
+      setStatusMsg(statusEl, t('msg_full_restore_progress').replace('{done}', Math.min(i+CH, records.length)).replace('{total}', records.length), false);
+    }
+    for(let i=0;i<toDelete.length;i+=CH){
+      const res = await supabaseClient.from('app_storage').delete().eq('owner_id', SHARED_OWNER).in('key', toDelete.slice(i, i+CH));
+      if(res.error) throw new Error(res.error.message || 'delete failed');
+    }
+  }catch(e){
+    setStatusMsg(statusEl, t('msg_full_restore_failed'), true);
+    btn.disabled = false;
+    return;
+  }
+
+  fullBackupMeta = { ...(fullBackupMeta || {}), lastRestoreAt: new Date().toISOString(), lastRestoreFrom: restoreFrom, lastRestoreBy: currentUser.username };
+  await saveFullBackupMeta();
+  await logAction('Vollständige Wiederherstellung', `Sicherung vom ${restoreFrom}, ${records.length} Datensätze geschrieben, ${toDelete.length} entfernt`);
+  setStatusMsg(statusEl, t('msg_full_restore_done'), false);
+  // Der gesamte Datenstand (inkl. Benutzer) hat sich geaendert -- neu laden.
+  setTimeout(()=>{ location.reload(); }, 3000);
+}
+
 function armConfirm(btn, onConfirm, confirmTitle){
   if(btn.dataset.confirming === '1'){
     clearTimeout(btn._confirmTimeout);
