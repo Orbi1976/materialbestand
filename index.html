@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.140 -->
+<!-- Version: 0.141 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -575,6 +575,18 @@ label.capture-assign-toggle-label span{flex:1 1 auto;min-width:0;}
 .fb-summary{display:flex;flex-direction:column;gap:4px;max-width:560px;padding:10px 12px;border:1px solid var(--panel-border);border-radius:var(--radius);background:rgba(0,10,16,0.5);font-size:13px;}
 .fb-sum-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
 .fb-sum-row span{color:var(--ink-soft);}
+
+/* Ab 1. November 2026 (v0.141): Unternavigation der Verwaltung */
+.admin-subnav-wrap{margin:0 0 16px;}
+.admin-subnav{display:flex;flex-wrap:wrap;gap:6px;padding:6px;border:1px solid var(--panel-border);border-radius:var(--radius);background:rgba(0,10,16,0.45);}
+.admin-subnav-btn{font-family:'Rajdhani', sans-serif;font-weight:600;font-size:14px;letter-spacing:0.3px;padding:7px 14px;border:1px solid transparent;border-radius:var(--radius);background:transparent;color:var(--ink-soft);cursor:pointer;white-space:nowrap;}
+.admin-subnav-btn:hover{color:var(--ink);border-color:var(--panel-border);}
+.admin-subnav-btn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,216,255,0.08);box-shadow:0 0 8px var(--cyan-glow);}
+.admin-subnav-select{display:none;width:100%;font-family:'Rajdhani', sans-serif;font-weight:600;font-size:15px;padding:10px;border:1px solid var(--cyan);border-radius:var(--radius);background:rgba(0,10,16,0.8);color:var(--ink);}
+@media (max-width: 760px){ .admin-subnav{display:none;} .admin-subnav-select{display:block;} }
+.scope-badge{display:inline-block;margin-left:10px;padding:2px 8px;border:1px solid var(--panel-border);border-radius:20px;font-family:'Share Tech Mono', monospace;font-size:10.5px;font-weight:400;letter-spacing:0.3px;text-transform:none;color:var(--ink-soft);vertical-align:middle;white-space:nowrap;}
+.danger-zone{margin-top:22px;padding:12px 12px 2px;border:1px dashed #FF3B5C;border-radius:var(--radius);}
+.danger-zone-title{font-family:'Orbitron', sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#FF3B5C;margin:0 0 10px 4px;}
 
 .recent-chips{
   display:flex;
@@ -1932,7 +1944,23 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <button class="tab-btn" id="tabBtn-verwaltung" data-tab="verwaltung" style="display:none;" data-i18n="tab_verwaltung">Verwaltung</button>
   </nav>
 
-  <details class="panel admin-collapsible" data-default-open="true" id="pwPanel" style="display:none;">
+  <div class="tab-content" data-tab="verwaltung" style="display:none;">
+  <!-- Ab v0.141: Unternavigation der Verwaltung (sieben Gruppen) -->
+  <div class="admin-subnav-wrap" id="adminSubnavWrap">
+    <nav class="admin-subnav" id="adminSubnav">
+      <button type="button" class="admin-subnav-btn" data-group="konto" data-i18n="admin_group_konto">👤 Mein Konto</button>
+      <button type="button" class="admin-subnav-btn" data-group="organisation" data-i18n="admin_group_organisation">🏢 Organisation</button>
+      <button type="button" class="admin-subnav-btn" data-group="benutzer" data-i18n="admin_group_benutzer">👥 Benutzer</button>
+      <button type="button" class="admin-subnav-btn" data-group="daten" data-i18n="admin_group_daten">💾 Daten &amp; Sicherung</button>
+      <button type="button" class="admin-subnav-btn" data-group="vorlagen" data-i18n="admin_group_vorlagen">📋 Vorlagen</button>
+      <button type="button" class="admin-subnav-btn" data-group="kataloge" data-i18n="admin_group_kataloge">📦 Kataloge</button>
+      <button type="button" class="admin-subnav-btn" data-group="wartung" data-i18n="admin_group_wartung">🛠 Wartung</button>
+    </nav>
+    <select id="adminSubnavSelect" class="admin-subnav-select" aria-label="Bereich"></select>
+  </div>
+
+  <div class="admin-group" data-group="konto">
+  <details class="panel admin-collapsible" data-default-open="true" id="pwPanel" data-scope="self" open>
     <summary><h2 data-i18n="panel_change_password">Passwort ändern</h2></summary>
     <div class="form-grid" style="grid-template-columns:repeat(3,1fr);">
       <div class="field">
@@ -1955,8 +1983,23 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="pwStatus"></div>
   </details>
 
-  <div class="tab-content" data-tab="verwaltung" style="display:none;">
-  <details class="panel admin-collapsible" data-default-open="false" id="orgBrandingPanel" style="display:none;">
+  <details class="panel admin-collapsible" data-default-open="true" id="personalSettingsPanel" data-scope="self" open>
+    <summary><h2 data-i18n="panel_personal_settings">Persönliche Einstellungen</h2></summary>
+    <div class="field" style="max-width:320px;">
+      <label for="personalLanguageSelect" data-i18n="label_sprache">Sprache</label>
+      <select id="personalLanguageSelect"><option value="de">Deutsch</option><option value="en">English</option><option value="fr">Français</option></select>
+    </div>
+    <label class="fb-check"><input type="checkbox" class="capture-assign-toggle" id="personal-capture-assign" checked><span data-i18n="capture_assign_toggle">Nach dem Eintragen passende Projekte vorschlagen</span></label>
+    <div class="user-note" style="margin-top:4px;" data-i18n="hint_personal_capture_assign">Zeigt nach dem Speichern neuer Einträge passende offene Projekte zur Zuordnung an. Dieselbe Einstellung steht auch direkt in den Erfassungsformularen.</div>
+    <div style="margin-top:14px;"><button type="button" class="btn-ghost" id="btnResetTabOrder" data-i18n="btn_reset_tab_order">Reiter-Reihenfolge zurücksetzen</button></div>
+    <div class="user-note" style="margin-top:4px;" data-i18n="hint_reset_tab_order">Die Reiter lassen sich per Ziehen umsortieren; dies stellt die ursprüngliche Reihenfolge wieder her.</div>
+    <div class="status-msg" id="personalSettingsStatus"></div>
+  </details>
+
+  </div>
+
+  <div class="admin-group" data-group="organisation">
+  <details class="panel admin-collapsible" data-default-open="false" id="orgBrandingPanel" data-scope="org" style="display:none;">
     <summary><h2 data-i18n="panel_org_branding">Organisation anpassen</h2></summary>
     <div class="field">
       <label for="orgMottoInput" data-i18n="label_org_motto">Motto / Untertitel (optional)</label>
@@ -1991,7 +2034,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="orgBrandingStatus"></div>
   </details>
 
-  <details class="panel admin-collapsible" data-default-open="false" id="orgInfoPanel" style="display:none;">
+  <details class="panel admin-collapsible" data-default-open="false" id="orgInfoPanel" data-scope="org" style="display:none;">
     <summary><h2 data-i18n="panel_org_info">Organisations-Information</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_org_info">Optionaler Hinweistext, der allen Mitgliedern dieser Organisation ganz oben im Dashboard angezeigt wird — z. B. aktuelle Ankündigungen oder Regeln. Leer lassen bzw. über "Nachricht entfernen" löschen, um nichts anzuzeigen.</span></div>
     <div class="field">
@@ -2016,20 +2059,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="orgInfoStatus"></div>
   </details>
 
-  <details class="panel admin-collapsible" data-default-open="false" id="defaultPasswordPanel" style="display:none;">
-    <summary><h2 data-i18n="panel_default_password">Standard-Passwort für Erst-Login</h2></summary>
-    <div class="user-note" data-i18n="hint_default_password_setting">Gilt für alle Benutzer dieser Organisation, die noch kein eigenes Passwort gesetzt haben — wird beim allerersten Login zwingend durch ein persönliches Passwort ersetzt. Eine Änderung hier betrifft nur zukünftige Erst-Logins, nicht bereits individuell gesetzte Passwörter.</div>
-    <div class="field" style="margin-top:12px;">
-      <label for="defaultPasswordInput" data-i18n="label_default_password">Standard-Passwort</label>
-      <input type="text" id="defaultPasswordInput" maxlength="60" autocomplete="off">
-    </div>
-    <div style="margin-top:12px;">
-      <button class="btn-primary" id="btnSaveDefaultPassword" data-i18n="btn_save">Speichern</button>
-    </div>
-    <div class="status-msg" id="defaultPasswordStatus"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="discordPanel" style="display:none;">
+  <details class="panel admin-collapsible" data-default-open="false" id="discordPanel" data-scope="org" style="display:none;">
     <summary><h2 data-i18n="panel_discord">Discord-Benachrichtigungen</h2></summary>
     <div class="user-note" data-i18n="hint_discord">Sendet bei ausgewählten Ereignissen automatisch eine kurze Nachricht an einen Discord-Kanal eurer Wahl — praktisch als eigener, separat stummschaltbarer Kanal, damit andere Kanäle nicht überflutet werden. Die Webhook-URL wird wie ein Passwort behandelt: Wer sie kennt, kann in diesem Kanal posten.</div>
     <div class="field" style="margin-top:12px;">
@@ -2080,7 +2110,62 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="discordStatus"></div>
   </details>
 
-  <details class="panel admin-collapsible" data-default-open="false" id="orgExportPanel" style="display:none;">
+  </div>
+
+  <div class="admin-group" data-group="benutzer">
+  <details class="panel admin-collapsible" data-default-open="true" id="adminPanel" data-scope="org-or-all" style="display:none;">
+    <summary><h2 data-i18n="panel_benutzerverwaltung">Benutzerverwaltung</h2></summary>
+    <div class="form-grid-flex">
+      <div class="field">
+        <label for="newUserName" data-i18n="label_benutzername">Benutzername</label>
+        <input type="text" id="newUserName" placeholder="z. B. Neuermensch99">
+      </div>
+      <div class="field">
+        <label for="newUserEmail" data-i18n="label_email_optional">E-Mail-Adresse (optional)</label>
+        <input type="email" id="newUserEmail" placeholder="für Passwort-vergessen-Funktion" data-i18n-placeholder="placeholder_pw_vergessen_hint">
+      </div>
+      <div class="field">
+        <label for="newUserRole" data-i18n="label_rolle">Rolle</label>
+        <select id="newUserRole"></select>
+      </div>
+      <div class="field" id="newUserOrgWrap" style="display:none;">
+        <label for="newUserOrg" data-i18n="label_organisation">Organisation</label>
+        <select id="newUserOrg"></select>
+      </div>
+      <div class="field">
+        <button class="btn-primary" id="btnAddUser" data-i18n="btn_anlegen">Anlegen</button>
+      </div>
+    </div>
+    <div class="status-msg" id="userFormStatus"></div>
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:12px;">
+      <label for="userListSort" style="font-size:12px;color:var(--ink-soft);" data-i18n="label_sortieren_nach">Sortieren nach</label>
+      <select id="userListSort" style="max-width:180px;">
+        <option value="name" data-i18n="option_sort_name">Name</option>
+        <option value="organisation" data-i18n="option_sort_organisation">Organisation</option>
+        <option value="rolle" data-i18n="option_sort_rolle">Rolle</option>
+      </select>
+    </div>
+    <div class="user-list" id="userListContainer" style="margin-top:8px;"></div>
+    <div class="user-note" data-i18n="hint_default_password">Neue Benutzer erhalten automatisch das von der Organisation festgelegte Standard-Passwort (siehe „Standard-Passwort für Erst-Login“ direkt darunter), das sie nach der Anmeldung durch ein persönliches Passwort ersetzen müssen.</div>
+  </details>
+
+  <details class="panel admin-collapsible" data-default-open="false" id="defaultPasswordPanel" data-scope="org" style="display:none;">
+    <summary><h2 data-i18n="panel_default_password">Standard-Passwort für Erst-Login</h2></summary>
+    <div class="user-note" data-i18n="hint_default_password_setting">Gilt für alle Benutzer dieser Organisation, die noch kein eigenes Passwort gesetzt haben — wird beim allerersten Login zwingend durch ein persönliches Passwort ersetzt. Eine Änderung hier betrifft nur zukünftige Erst-Logins, nicht bereits individuell gesetzte Passwörter.</div>
+    <div class="field" style="margin-top:12px;">
+      <label for="defaultPasswordInput" data-i18n="label_default_password">Standard-Passwort</label>
+      <input type="text" id="defaultPasswordInput" maxlength="60" autocomplete="off">
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn-primary" id="btnSaveDefaultPassword" data-i18n="btn_save">Speichern</button>
+    </div>
+    <div class="status-msg" id="defaultPasswordStatus"></div>
+  </details>
+
+  </div>
+
+  <div class="admin-group" data-group="daten">
+  <details class="panel admin-collapsible" data-default-open="false" id="orgExportPanel" data-scope="org" style="display:none;">
     <summary><h2 data-i18n="panel_org_export">Datensicherung</h2></summary>
     <div class="user-note" data-i18n="hint_org_export">Lädt eine einzelne Datei mit allen geteilten Daten der aktuellen Organisation herunter (Bestand, Bedarf, Projekte, Sammelobjekte, Kataloge) — unabhängig von Supabase, z. B. zur eigenen Sicherung.</div>
     <div id="exportReminderHint" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(255,166,48,0.08);border:1px solid var(--accent);border-radius:var(--radius);font-family:'Share Tech Mono', monospace;font-size:12px;color:var(--ink);"></div>
@@ -2117,7 +2202,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </details>
 
   <!-- Ab 1. November 2026 (v0.139): Vollstaendige Sicherung der gesamten Anwendung, nur owner -->
-  <details class="panel admin-collapsible" data-default-open="false" id="fullBackupPanel" style="display:none;">
+  <details class="panel admin-collapsible" data-default-open="false" id="fullBackupPanel" data-scope="all" style="display:none;">
     <summary><h2>🗄 <span data-i18n="panel_full_backup">Vollständige Sicherung (alle Organisationen)</span></h2></summary>
     <div class="user-note" data-i18n="hint_full_backup">Sichert die gesamte Anwendung in einer Datei: alle Organisationen, Benutzer und Zugangsdaten, geteilte und private Bestände, Projekte, Sammelobjekte, Bedarfe, Kataloge, Vorlagen, Einstellungen, Protokolle und Papierkorb — jeden gespeicherten Datensatz.</div>
     <div id="fullBackupLastInfo" class="fb-info"></div>
@@ -2165,109 +2250,33 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     </div>
   </details>
 
-  <details class="panel admin-collapsible" data-default-open="false" id="orgResetPanel" style="display:none;border:1px solid #FF3B5C;">
-    <summary><h2 style="color:#FF3B5C;">⚠ <span data-i18n="panel_org_reset">Organisations-Inhalte zurücksetzen</span></h2></summary>
-    <div class="user-note" style="border-left:3px solid #FF3B5C;padding-left:10px;" data-i18n="hint_org_reset">Setzt die gewählte Organisation auf einen leeren Inhaltsstand zurück — für einen Neustart mit denselben Mitgliedern und Einstellungen, aber ohne alte Bestände.</div>
-    <div class="field" style="margin-top:14px;max-width:420px;">
-      <label for="orgResetSelect" data-i18n="label_org_reset_organisation">Organisation</label>
-      <select id="orgResetSelect"></select>
+  </div>
+
+  <div class="admin-group" data-group="vorlagen">
+  <details class="panel admin-collapsible" data-default-open="true" id="unifiedTemplateManagePanel" data-scope="all" style="display:none;">
+    <summary><h2 data-i18n="panel_vorlagen_einzeln_verwalten">Einzelne Vorlagen verwalten</h2></summary>
+    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten">Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen. Durchsucht Rezepte und Wikelo-Handelsangebote gemeinsam.</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+      <input type="text" id="tpl-unified-search" placeholder="Suche nach Name oder Kategorie…" data-i18n-placeholder="placeholder_vorlage_suchen_beide" style="flex:1;min-width:200px;">
+      <button type="button" class="btn-primary" id="tpl-unified-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
+      <button type="button" class="btn-ghost" id="btnShowDuplicateTemplates" data-i18n="btn_duplikate_anzeigen">Mögliche Duplikate anzeigen</button>
     </div>
-    <div style="margin-top:14px;">
-      <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--low);margin-bottom:6px;" data-i18n="label_org_reset_bleibt">Bleibt erhalten</div>
-      <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.7;">
-        <li data-i18n="label_org_reset_bleibt_1">Benutzer &amp; Rollen</li>
-        <li data-i18n="label_org_reset_bleibt_2">Zugangsdaten &amp; Standard-Passwort</li>
-        <li data-i18n="label_org_reset_bleibt_3">Organisations-Individualisierung &amp; Discord-Einstellungen</li>
-      </ul>
-    </div>
-    <div style="margin-top:16px;">
-      <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#FF3B5C;margin-bottom:6px;" data-i18n="label_org_reset_geloescht">Wird gelöscht (abwählen zum Behalten)</div>
-      <div class="user-note" style="margin:0 0 4px 0;" data-i18n="hint_org_reset_granular">Nur tatsächlich in der gewählten Organisation vorhandene Kategorien werden angezeigt. Standardmäßig ist alles angehakt (= wird bei diesem Reset entfernt) — einzelne Kategorien lassen sich gezielt abwählen, um sie zu behalten.</div>
-      <div id="orgResetGranularOptions"></div>
-    </div>
-    <div class="field" style="margin-top:16px;max-width:420px;">
-      <label for="orgResetConfirmName"><span data-i18n="label_org_reset_bestaetigung">Zur Bestätigung Namen der oben gewählten Organisation eingeben:</span></label>
-      <input type="text" id="orgResetConfirmName" autocomplete="off" spellcheck="false">
-    </div>
-    <button class="btn-primary" id="btnOrgReset" style="background:#FF3B5C;margin-top:14px;" disabled data-i18n="btn_org_reset">Inhalte unwiderruflich zurücksetzen</button>
-    <div class="status-msg" id="orgResetStatus"></div>
+    <div id="tpl-unified-list" style="max-height:320px;overflow-y:auto;"></div>
   </details>
 
-  <!-- ===== DATENKONSISTENZ (ab 11. Oktober 2026) ===== -->
-  <details class="panel admin-collapsible" data-default-open="false" id="consistencyPanel" style="display:none;">
-    <summary><h2 data-i18n="panel_consistency">Datenkonsistenz prüfen</h2></summary>
-    <div class="user-note" style="margin:0 0 12px 0;" data-i18n="hint_consistency">Sucht in der gerade geöffneten Organisation nach Altlasten früherer Fehler: Zuordnungen zu nicht mehr existierenden Projekten, private Daten nicht mehr vorhandener Personen und Einträge ohne Katalogbezug. „Prüfen“ ändert nichts — behoben wird erst nach ausdrücklicher Auswahl und Bestätigung.</div>
-    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-      <button class="btn-ghost" id="btnConsistencyCheck" data-i18n="btn_consistency_check">Prüfen</button>
-      <button class="btn-ghost danger" id="btnConsistencyRepair" style="display:none;" data-i18n="btn_consistency_repair">Ausgewählte Probleme beheben</button>
-      <div class="status-msg" id="consistencyStatus" style="margin:0;"></div>
-    </div>
-    <div id="consistencyReport" style="margin-top:10px;"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="true" id="adminPanel" style="display:none;">
-    <summary><h2 data-i18n="panel_benutzerverwaltung">Benutzerverwaltung</h2></summary>
-    <div class="form-grid-flex">
-      <div class="field">
-        <label for="newUserName" data-i18n="label_benutzername">Benutzername</label>
-        <input type="text" id="newUserName" placeholder="z. B. Neuermensch99">
-      </div>
-      <div class="field">
-        <label for="newUserEmail" data-i18n="label_email_optional">E-Mail-Adresse (optional)</label>
-        <input type="email" id="newUserEmail" placeholder="für Passwort-vergessen-Funktion" data-i18n-placeholder="placeholder_pw_vergessen_hint">
-      </div>
-      <div class="field">
-        <label for="newUserRole" data-i18n="label_rolle">Rolle</label>
-        <select id="newUserRole"></select>
-      </div>
-      <div class="field" id="newUserOrgWrap" style="display:none;">
-        <label for="newUserOrg" data-i18n="label_organisation">Organisation</label>
-        <select id="newUserOrg"></select>
-      </div>
-      <div class="field">
-        <button class="btn-primary" id="btnAddUser" data-i18n="btn_anlegen">Anlegen</button>
-      </div>
-    </div>
-    <div class="status-msg" id="userFormStatus"></div>
-    <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:12px;">
-      <label for="userListSort" style="font-size:12px;color:var(--ink-soft);" data-i18n="label_sortieren_nach">Sortieren nach</label>
-      <select id="userListSort" style="max-width:180px;">
-        <option value="name" data-i18n="option_sort_name">Name</option>
-        <option value="organisation" data-i18n="option_sort_organisation">Organisation</option>
-        <option value="rolle" data-i18n="option_sort_rolle">Rolle</option>
-      </select>
-    </div>
-    <div class="user-list" id="userListContainer" style="margin-top:8px;"></div>
-    <div class="user-note" data-i18n="hint_default_password">Neue Benutzer erhalten automatisch das von der Organisation festgelegte Standard-Passwort (siehe Einstellung weiter unten), das sie nach der Anmeldung durch ein persönliches Passwort ersetzen müssen.</div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="orgManagementPanel" style="display:none;">
-    <summary><h2 data-i18n="panel_organisationsverwaltung">Organisationen verwalten</h2></summary>
-    <div class="form-grid" style="grid-template-columns:2fr auto;">
-      <div class="field">
-        <label for="newOrgName" data-i18n="label_organisationsname">Name der Organisation</label>
-        <input type="text" id="newOrgName" placeholder="z. B. Meine Gilde">
-      </div>
-      <div class="field">
-        <button class="btn-primary" id="btnAddOrg" data-i18n="btn_anlegen">Anlegen</button>
-      </div>
-    </div>
-    <div class="field" style="margin-top:10px;">
-      <label for="newOrgWebhook" data-i18n="label_discord_webhook_optional">Discord-Webhook-URL (optional, lässt sich auch später ergänzen)</label>
-      <input type="password" id="newOrgWebhook" placeholder="https://discord.com/api/webhooks/…" autocomplete="off">
-    </div>
-    <div class="status-msg" id="orgFormStatus"></div>
-    <div class="user-list" id="orgListContainer" style="margin-top:12px;"></div>
-    <div class="user-note" data-i18n="hint_org_no_delete">Organisationen können umbenannt, aber aus Sicherheitsgründen nicht gelöscht werden.</div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="templateManagePanel" style="display:none;">
+  <details class="panel admin-collapsible" data-default-open="false" id="templateManagePanel" data-scope="all" style="display:none;">
     <summary><h2 data-i18n="panel_vorlagen_verwalten">Projekt-Vorlagen verwalten</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
     <div id="tplManagePanelList"></div>
   </details>
 
-  <details class="panel admin-collapsible" data-default-open="false" id="templateImportPanel" style="display:none;">
+  <details class="panel admin-collapsible" data-default-open="false" id="templateManagePanelWikeloWrap" data-scope="all" style="display:none;">
+    <summary><h2 data-i18n="panel_wikelo_verwalten">Wikelo-Handelsangebote verwalten</h2></summary>
+    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
+    <div id="tplManagePanelListWikelo"></div>
+  </details>
+
+  <details class="panel admin-collapsible" data-default-open="false" id="templateImportPanel" data-scope="all" style="display:none;">
     <summary><h2 data-i18n="panel_rezepte_import">Projekt-Vorlagen importieren</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_rezepte_import">Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Format pro Zeile: Kategorie;Name;Material1,Material2,Material3 — optional lässt sich je Material eine vorgeschlagene Menge anhängen, z. B. "Material:15". Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
     <div style="margin-bottom:10px;">
@@ -2283,23 +2292,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="templateImportStatus"></div>
   </details>
 
-  <details class="panel admin-collapsible" data-default-open="false" id="scmdbImportPanel" style="display:none;">
-    <summary><h2 data-i18n="panel_scmdb_import">Alternative Quelle: scmdb.net</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_scmdb_import">Unabhängiges Gegenstück zur obigen Rezepte-Liste — praktisch, um fehlende oder abweichende Rezepte aufzuspüren. Ablauf: Skript herunterladen, lokal ausführen (siehe Kommentar am Dateianfang für Voraussetzungen), die dabei erzeugte Datei hier einfügen oder auswählen. Der Import läuft anschließend über dasselbe Textfeld wie oben — dieser Bereich stellt lediglich Quelle und Skript bequem bereit.</span></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
-      <a href="https://scmdb.net/?page=fab" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n="btn_scmdb_quelle_oeffnen">↗ scmdb.net öffnen (Quelle)</a>
-      <button type="button" class="btn-ghost" id="btnDownloadScmdbScript" data-i18n="btn_scmdb_skript_herunterladen">⇩ Scraping-Skript herunterladen</button>
-    </div>
-    <div class="user-note" style="font-size:11px;" data-i18n="hint_scmdb_script_requirements">Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.</div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="templateManagePanelWikeloWrap" style="display:none;">
-    <summary><h2 data-i18n="panel_wikelo_verwalten">Wikelo-Handelsangebote verwalten</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten_panel">Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.</div>
-    <div id="tplManagePanelListWikelo"></div>
-  </details>
-
-  <details class="panel admin-collapsible" data-default-open="false" id="wikeloImportPanel" style="display:none;">
+  <details class="panel admin-collapsible" data-default-open="false" id="wikeloImportPanel" data-scope="all" style="display:none;">
     <summary><h2 data-i18n="panel_wikelo_import">Wikelo-Handelsangebote importieren</h2></summary>
     <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_wikelo_import">Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — optional lässt sich je Gegenstand eine vorgeschlagene Menge anhängen, z. B. "Gegenstand:15". Ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
     <div style="margin-bottom:10px;">
@@ -2315,33 +2308,20 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="wikeloImportStatus"></div>
   </details>
 
-  <details class="panel admin-collapsible" data-default-open="true" id="unifiedTemplateManagePanel" style="display:none;">
-    <summary><h2 data-i18n="panel_vorlagen_einzeln_verwalten">Einzelne Vorlagen verwalten</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_vorlagen_verwalten">Für kleinere Änderungen oder einzelne Ergänzungen — ohne dafür gleich die komplette Liste neu importieren zu müssen. Durchsucht Rezepte und Wikelo-Handelsangebote gemeinsam.</div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
-      <input type="text" id="tpl-unified-search" placeholder="Suche nach Name oder Kategorie…" data-i18n-placeholder="placeholder_vorlage_suchen_beide" style="flex:1;min-width:200px;">
-      <button type="button" class="btn-primary" id="tpl-unified-btnNew" data-i18n="btn_neue_vorlage">+ Neue Vorlage</button>
-      <button type="button" class="btn-ghost" id="btnShowDuplicateTemplates" data-i18n="btn_duplikate_anzeigen">Mögliche Duplikate anzeigen</button>
+  <details class="panel admin-collapsible" data-default-open="false" id="scmdbImportPanel" data-scope="all" style="display:none;">
+    <summary><h2 data-i18n="panel_scmdb_import">Alternative Quelle: scmdb.net</h2></summary>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_scmdb_import">Unabhängiges Gegenstück zur obigen Rezepte-Liste — praktisch, um fehlende oder abweichende Rezepte aufzuspüren. Ablauf: Skript herunterladen, lokal ausführen (siehe Kommentar am Dateianfang für Voraussetzungen), die dabei erzeugte Datei hier einfügen oder auswählen. Der Import läuft anschließend über dasselbe Textfeld wie oben — dieser Bereich stellt lediglich Quelle und Skript bequem bereit.</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
+      <a href="https://scmdb.net/?page=fab" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n="btn_scmdb_quelle_oeffnen">↗ scmdb.net öffnen (Quelle)</a>
+      <button type="button" class="btn-ghost" id="btnDownloadScmdbScript" data-i18n="btn_scmdb_skript_herunterladen">⇩ Scraping-Skript herunterladen</button>
     </div>
-    <div id="tpl-unified-list" style="max-height:320px;overflow-y:auto;"></div>
+    <div class="user-note" style="font-size:11px;" data-i18n="hint_scmdb_script_requirements">Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.</div>
   </details>
 
-  <details class="panel admin-collapsible" data-default-open="false" id="locationImportPanel" style="display:none;">
-    <summary><h2 data-i18n="panel_lagerort_import">Lagerorte importieren</h2></summary>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_lagerort_import">Fügt neue Lagerorte zur bestehenden Liste hinzu — anders als bei Rezepten/Wikelo wird die bestehende Liste dabei NICHT ersetzt, sondern nur ergänzt (bereits vorhandene System+Code-Kombinationen werden übersprungen, nicht überschrieben). Format pro Zeile: System;Code;Name — Zeilen, die mit # beginnen, werden als Kommentar ignoriert. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
-    <div style="margin-bottom:10px;">
-      <button type="button" class="btn-ghost" id="btnSelectLocationFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
-      <input type="file" id="locationFileInput" accept=".txt,.csv" style="display:none;">
-    </div>
-    <textarea id="locationImportText" rows="8" placeholder="Stanton;ARC-L1;Wide Forest Station" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
-    <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-      <button class="btn-primary" id="btnImportLocations" data-i18n="btn_lagerorte_importieren">Hinzufügen</button>
-      <span id="locationCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
-    </div>
-    <div class="status-msg" id="locationImportStatus"></div>
-  </details>
+  </div>
 
-  <details class="panel admin-collapsible" data-default-open="true" id="catalogPanel" style="display:none;">
+  <div class="admin-group" data-group="kataloge">
+  <details class="panel admin-collapsible" data-default-open="true" id="catalogPanel" data-scope="all" style="display:none;">
     <summary><h2 data-i18n="panel_materialverwaltung">Materialien &amp; Lagerorte verwalten</h2></summary>
 
     <h3 data-i18n="heading_material_hinzufuegen" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px 0;color:var(--steel);">Material hinzufügen</h3>
@@ -2427,8 +2407,58 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="user-list" id="collectibleCatalogListContainer" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
   </details>
 
+  <details class="panel admin-collapsible" data-default-open="false" id="locationImportPanel" data-scope="all" style="display:none;">
+    <summary><h2 data-i18n="panel_lagerort_import">Lagerorte importieren</h2></summary>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_lagerort_import">Fügt neue Lagerorte zur bestehenden Liste hinzu — anders als bei Rezepten/Wikelo wird die bestehende Liste dabei NICHT ersetzt, sondern nur ergänzt (bereits vorhandene System+Code-Kombinationen werden übersprungen, nicht überschrieben). Format pro Zeile: System;Code;Name — Zeilen, die mit # beginnen, werden als Kommentar ignoriert. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).</span></div>
+    <div style="margin-bottom:10px;">
+      <button type="button" class="btn-ghost" id="btnSelectLocationFile" data-i18n="btn_datei_auswaehlen">Datei auswählen …</button>
+      <input type="file" id="locationFileInput" accept=".txt,.csv" style="display:none;">
+    </div>
+    <textarea id="locationImportText" rows="8" placeholder="Stanton;ARC-L1;Wide Forest Station" style="width:100%;font-family:'Share Tech Mono', monospace;font-size:12.5px;padding:10px;background:rgba(0,10,16,0.6);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;"></textarea>
+    <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button class="btn-primary" id="btnImportLocations" data-i18n="btn_lagerorte_importieren">Hinzufügen</button>
+      <span id="locationCountDisplay" style="font-size:12px;color:var(--ink-soft);"></span>
+    </div>
+    <div class="status-msg" id="locationImportStatus"></div>
+  </details>
+
+  </div>
+
+  <div class="admin-group" data-group="wartung">
+  <details class="panel admin-collapsible" data-default-open="false" id="orgManagementPanel" data-scope="all" style="display:none;">
+    <summary><h2 data-i18n="panel_organisationsverwaltung">Organisationen verwalten</h2></summary>
+    <div class="form-grid" style="grid-template-columns:2fr auto;">
+      <div class="field">
+        <label for="newOrgName" data-i18n="label_organisationsname">Name der Organisation</label>
+        <input type="text" id="newOrgName" placeholder="z. B. Meine Gilde">
+      </div>
+      <div class="field">
+        <button class="btn-primary" id="btnAddOrg" data-i18n="btn_anlegen">Anlegen</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:10px;">
+      <label for="newOrgWebhook" data-i18n="label_discord_webhook_optional">Discord-Webhook-URL (optional, lässt sich auch später ergänzen)</label>
+      <input type="password" id="newOrgWebhook" placeholder="https://discord.com/api/webhooks/…" autocomplete="off">
+    </div>
+    <div class="status-msg" id="orgFormStatus"></div>
+    <div class="user-list" id="orgListContainer" style="margin-top:12px;"></div>
+    <div class="user-note" data-i18n="hint_org_no_delete">Organisationen können umbenannt, aber aus Sicherheitsgründen nicht gelöscht werden.</div>
+  </details>
+
+  <!-- ===== DATENKONSISTENZ (ab 11. Oktober 2026) ===== -->
+  <details class="panel admin-collapsible" data-default-open="false" id="consistencyPanel" data-scope="org" style="display:none;">
+    <summary><h2 data-i18n="panel_consistency">Datenkonsistenz prüfen</h2></summary>
+    <div class="user-note" style="margin:0 0 12px 0;" data-i18n="hint_consistency">Sucht in der gerade geöffneten Organisation nach Altlasten früherer Fehler: Zuordnungen zu nicht mehr existierenden Projekten, private Daten nicht mehr vorhandener Personen und Einträge ohne Katalogbezug. „Prüfen“ ändert nichts — behoben wird erst nach ausdrücklicher Auswahl und Bestätigung.</div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <button class="btn-ghost" id="btnConsistencyCheck" data-i18n="btn_consistency_check">Prüfen</button>
+      <button class="btn-ghost danger" id="btnConsistencyRepair" style="display:none;" data-i18n="btn_consistency_repair">Ausgewählte Probleme beheben</button>
+      <div class="status-msg" id="consistencyStatus" style="margin:0;"></div>
+    </div>
+    <div id="consistencyReport" style="margin-top:10px;"></div>
+  </details>
+
   <!-- Ab 1. November 2026 (v0.140): einmalige Bereinigung der Materialnamen, nur owner -->
-  <details class="panel admin-collapsible" data-default-open="false" id="materialCleanupPanel" style="display:none;">
+  <details class="panel admin-collapsible" data-default-open="false" id="materialCleanupPanel" data-scope="all" style="display:none;">
     <summary><h2>🧹 <span data-i18n="panel_material_cleanup">Materialnamen vereinheitlichen</span></h2></summary>
     <div class="user-note" data-i18n="hint_material_cleanup">Vereinheitlicht die Namen von Hand- und ROC-Mining-Materialien auf die Kurznamen der Vorlagen (z. B. „Dolivine (Hand Mining)“ → „Dolivine“), führt doppelte Katalogeinträge zusammen und ordnet Carinite, Carinite (Pure), Jaclium und Saldynium den Non-Ship Mineables zu (Einheit Stück). Betrifft alle Organisationen: Katalog, geteilter und privater Bestand, Bedarfe, Projekte, Vorlagen, Papierkorb und Reset-Sicherungen.</div>
     <div class="user-note fb-warn" data-i18n="hint_material_cleanup_backup">Empfehlung: vorher eine vollständige Sicherung erstellen (Panel „Vollständige Sicherung“).</div>
@@ -2443,7 +2473,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="status-msg" id="materialCleanupStatus"></div>
   </details>
 
-  <div class="panel" id="logPanel" style="display:none;">
+  <div class="panel" id="logPanel" data-scope="org" style="display:none;">
     <h2 data-i18n="panel_protokoll">Änderungsprotokoll</h2>
     <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_changelog_admin_only">Nur für Administratoren sichtbar. Protokolliert wird, wer wann welche Änderung vorgenommen hat.</div>
     <button class="btn-ghost" id="btnToggleLog" data-i18n="btn_show_log">Protokoll anzeigen</button>
@@ -2452,6 +2482,40 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     </div>
     <div id="logContainer" style="display:none;margin-top:14px;max-height:420px;overflow-y:auto;"></div>
   </div>
+
+  <div class="danger-zone" id="adminDangerZone">
+    <div class="danger-zone-title">⚠ <span data-i18n="label_danger_zone">Gefahrenbereich</span></div>
+  <details class="panel admin-collapsible" data-default-open="false" id="orgResetPanel" data-scope="org-select" style="display:none;border:1px solid #FF3B5C;">
+    <summary><h2 style="color:#FF3B5C;">⚠ <span data-i18n="panel_org_reset">Organisations-Inhalte zurücksetzen</span></h2></summary>
+    <div class="user-note" style="border-left:3px solid #FF3B5C;padding-left:10px;" data-i18n="hint_org_reset">Setzt die gewählte Organisation auf einen leeren Inhaltsstand zurück — für einen Neustart mit denselben Mitgliedern und Einstellungen, aber ohne alte Bestände.</div>
+    <div class="field" style="margin-top:14px;max-width:420px;">
+      <label for="orgResetSelect" data-i18n="label_org_reset_organisation">Organisation</label>
+      <select id="orgResetSelect"></select>
+    </div>
+    <div style="margin-top:14px;">
+      <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--low);margin-bottom:6px;" data-i18n="label_org_reset_bleibt">Bleibt erhalten</div>
+      <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-soft);line-height:1.7;">
+        <li data-i18n="label_org_reset_bleibt_1">Benutzer &amp; Rollen</li>
+        <li data-i18n="label_org_reset_bleibt_2">Zugangsdaten &amp; Standard-Passwort</li>
+        <li data-i18n="label_org_reset_bleibt_3">Organisations-Individualisierung &amp; Discord-Einstellungen</li>
+      </ul>
+    </div>
+    <div style="margin-top:16px;">
+      <div style="font-family:'Orbitron', sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#FF3B5C;margin-bottom:6px;" data-i18n="label_org_reset_geloescht">Wird gelöscht (abwählen zum Behalten)</div>
+      <div class="user-note" style="margin:0 0 4px 0;" data-i18n="hint_org_reset_granular">Nur tatsächlich in der gewählten Organisation vorhandene Kategorien werden angezeigt. Standardmäßig ist alles angehakt (= wird bei diesem Reset entfernt) — einzelne Kategorien lassen sich gezielt abwählen, um sie zu behalten.</div>
+      <div id="orgResetGranularOptions"></div>
+    </div>
+    <div class="field" style="margin-top:16px;max-width:420px;">
+      <label for="orgResetConfirmName"><span data-i18n="label_org_reset_bestaetigung">Zur Bestätigung Namen der oben gewählten Organisation eingeben:</span></label>
+      <input type="text" id="orgResetConfirmName" autocomplete="off" spellcheck="false">
+    </div>
+    <button class="btn-primary" id="btnOrgReset" style="background:#FF3B5C;margin-top:14px;" disabled data-i18n="btn_org_reset">Inhalte unwiderruflich zurücksetzen</button>
+    <div class="status-msg" id="orgResetStatus"></div>
+  </details>
+  </div>
+
+  </div>
+
   </div>
 
   <div class="tab-content" data-tab="uebersicht">
@@ -3595,7 +3659,7 @@ const I18N = {
   "msg_collectible_catalog_added": "„{name}“ zum Sammelobjekte-Katalog hinzugefügt.",
   "heading_lagerort_hinzufuegen": "Lagerort hinzufügen",
   "placeholder_bestehend_oder_neu": "bestehend wählen oder neu eingeben",
-  "hint_default_password": "Neue Benutzer erhalten automatisch das von der Organisation festgelegte Standard-Passwort (siehe Einstellung weiter unten), das sie nach der Anmeldung durch ein persönliches Passwort ersetzen müssen.",
+  "hint_default_password": "Neue Benutzer erhalten das Standard-Passwort der Organisation (siehe „Standard-Passwort für Erst-Login“ direkt darunter) und müssen es beim ersten Login ersetzen.",
   "hint_auto_category": "Neue Kategorien bzw. Systeme entstehen automatisch, sobald du einen noch nicht existierenden Namen einträgst.",
   "hint_changelog_admin_only": "Nur für Administratoren sichtbar. Protokolliert wird, wer wann welche Änderung vorgenommen hat.",
   "empty_history_data_title": "Noch nicht genug Daten",
@@ -3620,7 +3684,7 @@ const I18N = {
   "label_last_active": "Zuletzt aktiv",
   "label_never_active": "noch nie angemeldet",
   "label_datensicherung_wiederherstellen": "Aus Datensicherung wiederherstellen",
-  "hint_org_import": "Stellt Daten aus einer zuvor per \"Alles exportieren\" erzeugten Datei wieder her — betrifft ausschließlich die aktuell ausgewählte Organisation. Ersetzt die jeweils ausgewählten Bereiche vollständig (keine Zusammenführung mit dem aktuellen Stand).",
+  "hint_org_import": "Stellt Daten aus einer per „Alles exportieren“ erzeugten Datei wieder her. Die ausgewählten Bereiche werden vollständig ersetzt.",
   "btn_datensicherung_datei_waehlen": "Datensicherungs-Datei auswählen …",
   "hint_import_ueberschreibt": "⚠ Die ausgewählten Bereiche werden vollständig ersetzt — nicht rückgängig zu machen (außer durch einen erneuten Export vorher).",
   "btn_wiederherstellen": "Wiederherstellen",
@@ -3651,7 +3715,7 @@ const I18N = {
   "label_org_reset_bleibt_1": "Benutzer & Rollen",
   "label_org_reset_bleibt_2": "Zugangsdaten & Standard-Passwort",
   "label_kategorie_unbekannt": "Unbekannt / Sonstige",
-  "hint_org_reset_granular": "Nur tatsächlich in der gewählten Organisation vorhandene Kategorien werden angezeigt. Standardmäßig ist alles angehakt (= wird bei diesem Reset entfernt) — einzelne Kategorien lassen sich gezielt abwählen, um sie zu behalten.",
+  "hint_org_reset_granular": "Angezeigt werden nur vorhandene Kategorien. Alles Angehakte wird entfernt — zum Behalten abwählen.",
   "label_org_reset_material_kategorien": "Materialien",
   "label_org_reset_sammelobjekt_kategorien": "Sammelobjekte",
   "hint_org_reset_keine_daten": "Diese Organisation enthält aktuell keine Bestände, Bedarfe, Sammelobjekte oder Projekte, die zurückgesetzt werden könnten.",
@@ -3672,7 +3736,7 @@ const I18N = {
   "msg_trash_restore_catalog_missing": "Wiederherstellen nicht möglich: Material, Sammelobjekt oder Lagerort wurde inzwischen aus dem Katalog gelöscht.",
   "label_import_zuordnungen_bereinigt": "{n} Zuordnung(en) zu nicht vorhandenen Projekten gelöst",
   "panel_consistency": "Datenkonsistenz prüfen",
-  "hint_consistency": "Sucht in der gerade geöffneten Organisation nach Altlasten früherer Fehler: Zuordnungen zu nicht mehr existierenden Projekten, private Daten nicht mehr vorhandener Personen und Einträge ohne Katalogbezug. „Prüfen“ ändert nichts — behoben wird erst nach ausdrücklicher Auswahl und Bestätigung.",
+  "hint_consistency": "Sucht nach Altlasten früherer Fehler (verwaiste Projekt-Zuordnungen, Daten gelöschter Personen, Einträge ohne Katalogbezug). „Prüfen“ ändert nichts; behoben wird erst nach Auswahl und Bestätigung.",
   "btn_consistency_check": "Prüfen",
   "btn_consistency_repair": "Ausgewählte Probleme beheben",
   "msg_consistency_checking": "Prüfe …",
@@ -3799,7 +3863,7 @@ const I18N = {
   "empty_private_projects_title": "Noch keine privaten Projekte",
   "empty_private_projects_sub": "Leg dein erstes Vorhaben an, um den Fortschritt anhand deines Privatbestands zu verfolgen.",
   "panel_scmdb_import": "Alternative Quelle: scmdb.net",
-  "hint_scmdb_import": "Unabhängiges Gegenstück zur obigen Rezepte-Liste — praktisch, um fehlende oder abweichende Rezepte aufzuspüren. Ablauf: Skript herunterladen, lokal ausführen (siehe Kommentar am Dateianfang für Voraussetzungen), die dabei erzeugte Datei hier einfügen oder auswählen. Der Import läuft anschließend über dasselbe Textfeld wie oben — dieser Bereich stellt lediglich Quelle und Skript bequem bereit.",
+  "hint_scmdb_import": "Script herunterladen, lokal ausführen und die erzeugte Datei oben bei „Projekt-Vorlagen importieren“ einfügen. Für den Abgleich mit dem aktuellen Bestand siehe die Abgleich-Scripts im Projektordner.",
   "btn_scmdb_quelle_oeffnen": "↗ scmdb.net öffnen (Quelle)",
   "btn_scmdb_skript_herunterladen": "⇩ Scraping-Skript herunterladen",
   "hint_scmdb_script_requirements": "Voraussetzung zum Ausführen: Python 3 sowie <code>pip install playwright</code> und <code>playwright install chromium</code> (einmalig). Details stehen als Kommentar am Anfang der heruntergeladenen Datei.",
@@ -3828,7 +3892,7 @@ const I18N = {
   "option_vorlagen_art_wikelo": "Wikelo-Handelsangebot",
   "placeholder_vorlage_suchen_beide": "Suche nach Name oder Kategorie (Rezepte + Wikelo)…",
   "panel_vorlagen_verwalten": "Projekt-Vorlagen verwalten",
-  "hint_vorlagen_verwalten_panel": "Vollständige, nach Kategorie gruppierte Übersicht aller Projekt-Vorlagen — zum Durchstöbern, nicht nur per Suche. Ein Doppelklick auf eine Vorlage öffnet sie zum Bearbeiten. Werden dabei Materialien hinzugefügt, entfernt oder in ihrer Menge geändert, wird anschließend angeboten, dieselbe Änderung auch in bereits bestehende, aus dieser Vorlage angelegte Projekte zu übernehmen — inklusive automatischer Aktualisierung der jeweiligen Fortschrittsanzeige.",
+  "hint_vorlagen_verwalten_panel": "Alle Vorlagen nach Kategorie gruppiert. Doppelklick öffnet eine Vorlage zum Bearbeiten; Änderungen an Materialien lassen sich anschließend in bestehende Projekte aus dieser Vorlage übernehmen.",
   "empty_vorlagen_sub": "Vorlagen speichern typische Materiallisten für wiederkehrende Bauvorhaben (z. B. eine bestimmte Waffe) und lassen sich beim Anlegen eines Projekts automatisch übernehmen. Über \"Projekt-Vorlagen importieren\" lässt sich eine größere Sammlung auf einmal einspielen, oder über \"+ Neue Vorlage\" einzeln von Hand.",
   "empty_vorlagen_title": "Noch keine Projekt-Vorlagen vorhanden",
   "hint_doppelklick_bearbeiten": "Doppelklick zum Bearbeiten",
@@ -3838,7 +3902,7 @@ const I18N = {
   "btn_nur_vorlage": "Nur Vorlage speichern",
   "btn_uebernehmen": "Übernehmen",
   "panel_rezepte_import": "Projekt-Vorlagen importieren",
-  "hint_rezepte_import": "Fügt eine Liste vorgefertigter Projekt-Vorlagen ein, die beim Anlegen eines Projekts (geteilt oder privat) durchsuchbar zur Auswahl stehen. Zwei Formate werden automatisch erkannt: entweder das einfache Format Kategorie;Name;Material1,Material2,Material3 (jedes Material darf optional eine vorgeschlagene Menge tragen, z. B. \"Material:15\", sowie zusätzlich eine Mindestqualität, z. B. \"Material:15:800\"), oder der rohe, unveränderte Export der scmdb.net-Tabelle (Farbvarianten werden dabei automatisch zu einer Basis-Vorlage zusammengefasst). Ein erneuter Import ersetzt die komplette bisherige Liste. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
+  "hint_rezepte_import": "Format je Zeile: Kategorie;Name;Material1,Material2:15,Material3:15:800 (optional Menge bzw. Menge:Mindestqualität). Auch der rohe scmdb.net-Export wird erkannt. Ersetzt die komplette Rezeptliste; der vorherige Stand wird gesichert, gleichnamige Vorlagen behalten ihre ID.",
   "btn_rezepte_importieren": "Importieren",
   "msg_templates_imported": "{count} Vorlagen importiert.",
   "msg_templates_current_count": "Aktuell {count} Vorlagen gespeichert.",
@@ -3865,11 +3929,11 @@ const I18N = {
   "panel_wikelo_verwalten": "Wikelo-Handelsangebote verwalten",
   "panel_wikelo_import": "Wikelo-Handelsangebote importieren",
   "panel_lagerort_import": "Lagerorte importieren",
-  "hint_lagerort_import": "Fügt neue Lagerorte zur bestehenden Liste hinzu — anders als bei Rezepten/Wikelo wird die bestehende Liste dabei NICHT ersetzt, sondern nur ergänzt (bereits vorhandene System+Code-Kombinationen werden übersprungen, nicht überschrieben). Format pro Zeile: System;Code;Name — Zeilen, die mit # beginnen, werden als Kommentar ignoriert. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
+  "hint_lagerort_import": "Ergänzt die Lagerort-Liste (bestehende werden nicht ersetzt, vorhandene System+Code-Kombinationen übersprungen). Format je Zeile: System;Code;Name — Zeilen mit # werden ignoriert.",
   "btn_lagerorte_importieren": "Hinzufügen",
   "val_location_import_empty": "Keine gültigen Zeilen im Format System;Code;Name gefunden.",
   "msg_locations_imported": "{added} neu hinzugefügt, {skipped} bereits vorhanden (übersprungen).",
-  "hint_wikelo_import": "Separate Liste der Handelsangebote des Banu-Händlers Wikelo — unabhängig von den übrigen Projekt-Vorlagen importierbar, erscheint aber gemeinsam mit ihnen in der durchsuchbaren Auswahl beim Anlegen eines Projekts. Format pro Zeile: Kategorie;Name;Gegenstand1,Gegenstand2,Gegenstand3 — optional lässt sich je Gegenstand eine vorgeschlagene Menge anhängen, z. B. \"Gegenstand:15\". Ein erneuter Import ersetzt nur die Wikelo-Liste, die übrigen Vorlagen bleiben unberührt. Gilt organisationsübergreifend für alle Organisationen (reine Spieldaten, nicht organisationsspezifisch).",
+  "hint_wikelo_import": "Format je Zeile: Kategorie;Name;Gegenstand1,Gegenstand2:15 (optional Menge). Ersetzt nur die Wikelo-Liste; der vorherige Stand wird gesichert, gleichnamige Angebote behalten ihre ID.",
   "msg_wikelo_imported": "{count} Wikelo-Angebote importiert.",
   "msg_wikelo_current_count": "Aktuell {count} Wikelo-Angebote gespeichert.",
   "val_wikelo_import_empty": "Bitte mindestens eine Zeile im Format Kategorie;Name;Gegenstand1,Gegenstand2 einfügen.",
@@ -3896,7 +3960,7 @@ const I18N = {
   "val_no_permission_role": "Du darfst diese Rolle nicht vergeben.",
   "val_nur_owner": "Strukturelle Änderungen am Katalog (Materialien, Lagerorte) sind nur der Rolle Besitzer vorbehalten.",
   "panel_discord": "Discord-Benachrichtigungen",
-  "hint_discord": "Sendet bei ausgewählten Ereignissen automatisch eine kurze Nachricht an einen Discord-Kanal eurer Wahl — praktisch als eigener, separat stummschaltbarer Kanal, damit andere Kanäle nicht überflutet werden. Die Webhook-URL wird wie ein Passwort behandelt: Wer sie kennt, kann in diesem Kanal posten.",
+  "hint_discord": "Sendet bei ausgewählten Ereignissen eine kurze Nachricht in einen Discord-Kanal. Die Webhook-URL wie ein Passwort behandeln: Wer sie kennt, kann in den Kanal posten.",
   "label_discord_webhook_optional": "Discord-Webhook-URL (optional, lässt sich auch später ergänzen)",
   "label_discord_webhook": "Discord-Webhook-URL",
   "label_discord_events": "Benachrichtigen bei",
@@ -3921,12 +3985,12 @@ const I18N = {
   "label_discord_aktiv": "aktiviert",
   "label_discord_deaktiviert": "deaktiviert",
   "panel_default_password": "Standard-Passwort für Erst-Login",
-  "hint_default_password_setting": "Gilt für alle Benutzer dieser Organisation, die noch kein eigenes Passwort gesetzt haben — wird beim allerersten Login zwingend durch ein persönliches Passwort ersetzt. Eine Änderung hier betrifft nur zukünftige Erst-Logins, nicht bereits individuell gesetzte Passwörter.",
+  "hint_default_password_setting": "Gilt für Benutzer ohne eigenes Passwort und muss beim ersten Login ersetzt werden. Bereits gesetzte Passwörter bleiben unverändert.",
   "label_default_password": "Standard-Passwort",
   "val_default_password_required": "Bitte ein Standard-Passwort angeben.",
   "msg_default_password_saved": "Standard-Passwort gespeichert.",
   "panel_org_info": "Organisations-Information",
-  "hint_org_info": "Optionaler Hinweistext, der allen Mitgliedern dieser Organisation ganz oben im Dashboard angezeigt wird — z. B. aktuelle Ankündigungen oder Regeln. Leer lassen bzw. über \"Nachricht entfernen\" löschen, um nichts anzuzeigen.",
+  "hint_org_info": "Optionaler Hinweistext, der allen Mitgliedern oben in der Übersicht angezeigt wird, z. B. Ankündigungen oder Regeln. Leer lassen, um nichts anzuzeigen.",
   "label_org_info_titel": "Titel",
   "label_org_info_inhalt": "Inhalt",
   "tooltip_fett": "Fett",
@@ -4036,8 +4100,31 @@ const I18N = {
   "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
   "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
   "capture_assign_toggle": "Nach dem Eintragen passende Projekte vorschlagen",
+  "admin_group_konto": "👤 Mein Konto",
+  "admin_group_organisation": "🏢 Organisation",
+  "admin_group_benutzer": "👥 Benutzer",
+  "admin_group_daten": "💾 Daten & Sicherung",
+  "admin_group_vorlagen": "📋 Vorlagen",
+  "admin_group_kataloge": "📦 Kataloge",
+  "admin_group_wartung": "🛠 Wartung",
+  "tab_mein_konto": "Mein Konto",
+  "scope_self": "nur für mich",
+  "scope_all": "alle Organisationen",
+  "scope_org": "diese Organisation",
+  "scope_org_select": "Organisation wählbar",
+  "scope_tooltip_self": "Gilt nur für deinen eigenen Zugang.",
+  "scope_tooltip_all": "Gilt für alle Organisationen gleichzeitig.",
+  "scope_tooltip_org": "Gilt nur für die aktuell aktive Organisation.",
+  "scope_tooltip_org_select": "Gilt für die im Bereich ausgewählte Organisation.",
+  "panel_personal_settings": "Persönliche Einstellungen",
+  "label_sprache": "Sprache",
+  "hint_personal_capture_assign": "Zeigt nach dem Speichern neuer Einträge passende offene Projekte zur Zuordnung an. Dieselbe Einstellung steht auch direkt in den Erfassungsformularen.",
+  "btn_reset_tab_order": "Reiter-Reihenfolge zurücksetzen",
+  "hint_reset_tab_order": "Die Reiter lassen sich per Ziehen umsortieren; dies stellt die ursprüngliche Reihenfolge wieder her.",
+  "msg_tab_order_reset": "Reiter-Reihenfolge zurückgesetzt.",
+  "label_danger_zone": "Gefahrenbereich",
   "panel_material_cleanup": "Materialnamen vereinheitlichen",
-  "hint_material_cleanup": "Vereinheitlicht die Namen von Hand- und ROC-Mining-Materialien auf die Kurznamen der Vorlagen (z. B. „Dolivine (Hand Mining)“ → „Dolivine“), führt doppelte Katalogeinträge zusammen und ordnet Carinite, Carinite (Pure), Jaclium und Saldynium den Non-Ship Mineables zu (Einheit Stück). Betrifft alle Organisationen: Katalog, geteilter und privater Bestand, Bedarfe, Projekte, Vorlagen, Papierkorb und Reset-Sicherungen.",
+  "hint_material_cleanup": "Einmalige Bereinigung: Kurznamen für Hand-/ROC-Mining-Materialien („Dolivine (Hand Mining)“ → „Dolivine“), doppelte Katalogeinträge zusammenführen, Carinite, Carinite (Pure), Jaclium und Saldynium als Non-Ship Mineables (Stück). Wirkt auf Katalog, Bestand, Bedarfe, Projekte, Vorlagen, Papierkorb und Reset-Sicherungen.",
   "hint_material_cleanup_backup": "Empfehlung: vorher eine vollständige Sicherung erstellen (Panel „Vollständige Sicherung“).",
   "btn_material_cleanup_preview": "Vorschau erstellen",
   "btn_material_cleanup_run": "Bereinigung ausführen",
@@ -4059,7 +4146,7 @@ const I18N = {
   "msg_material_cleanup_failed": "Fehler beim Schreiben – Bereinigung abgebrochen. Bitte ggf. die vorherige Vollsicherung wiederherstellen.",
   "msg_material_cleanup_done": "Bereinigung abgeschlossen. Die Seite wird neu geladen …",
   "panel_full_backup": "Vollständige Sicherung (alle Organisationen)",
-  "hint_full_backup": "Sichert die gesamte Anwendung in einer Datei: alle Organisationen, Benutzer und Zugangsdaten, geteilte und private Bestände, Projekte, Sammelobjekte, Bedarfe, Kataloge, Vorlagen, Einstellungen, Protokolle und Papierkorb — jeden gespeicherten Datensatz.",
+  "hint_full_backup": "Sichert jeden gespeicherten Datensatz der gesamten Anwendung in eine Datei: alle Organisationen, Benutzer, Bestände, Projekte, Vorlagen, Kataloge, Einstellungen und Protokolle.",
   "label_full_backup_encrypt": "Datei mit Sicherungs-Passwort verschlüsseln (empfohlen)",
   "label_full_backup_pw": "Sicherungs-Passwort (mind. 8 Zeichen)",
   "label_full_backup_pw2": "Sicherungs-Passwort wiederholen",
@@ -4529,7 +4616,7 @@ const I18N = {
   "msg_collectible_catalog_added": "\"{name}\" added to the collectibles catalog.",
   "heading_lagerort_hinzufuegen": "Add location",
   "placeholder_bestehend_oder_neu": "select existing or enter new",
-  "hint_default_password": "New users automatically receive the organization's configured default password (see setting further below), which they must replace with a personal password after logging in.",
+  "hint_default_password": "New users receive the organization's default password (see \"Default password for first login\" directly below) and must replace it on first login.",
   "hint_auto_category": "New categories or systems are created automatically as soon as you enter a name that doesn't exist yet.",
   "hint_changelog_admin_only": "Visible to administrators only. Logs who made which change and when.",
   "empty_history_data_title": "Not enough data yet",
@@ -4554,7 +4641,7 @@ const I18N = {
   "label_last_active": "Last active",
   "label_never_active": "never logged in",
   "label_datensicherung_wiederherstellen": "Restore from data backup",
-  "hint_org_import": "Restores data from a file previously created via \"Export everything\" — affects only the currently selected organization. Fully replaces the selected sections (no merging with the current state).",
+  "hint_org_import": "Restores data from a file created with \"Export everything\". The selected areas are replaced completely.",
   "btn_datensicherung_datei_waehlen": "Select backup file …",
   "hint_import_ueberschreibt": "⚠ The selected sections will be fully replaced — cannot be undone (except by an export taken beforehand).",
   "btn_wiederherstellen": "Restore",
@@ -4585,7 +4672,7 @@ const I18N = {
   "label_org_reset_bleibt_1": "Users & roles",
   "label_org_reset_bleibt_2": "Credentials & default password",
   "label_kategorie_unbekannt": "Unknown / Other",
-  "hint_org_reset_granular": "Only categories actually present in the selected organization are shown. Everything is checked by default (= will be removed by this reset) — individual categories can be unchecked to keep them.",
+  "hint_org_reset_granular": "Only existing categories are shown. Everything ticked is removed — untick to keep.",
   "label_org_reset_material_kategorien": "Materials",
   "label_org_reset_sammelobjekt_kategorien": "Collectibles",
   "hint_org_reset_keine_daten": "This organization currently has no stock, needs, collectibles, or projects that could be reset.",
@@ -4606,7 +4693,7 @@ const I18N = {
   "msg_trash_restore_catalog_missing": "Cannot restore: the material, collectible or location has since been removed from the catalog.",
   "label_import_zuordnungen_bereinigt": "{n} assignment(s) to non-existent projects released",
   "panel_consistency": "Check data consistency",
-  "hint_consistency": "Searches the currently open organization for leftovers of earlier bugs: assignments to projects that no longer exist, private data of people who no longer exist, and entries without a catalog match. \"Check\" changes nothing — fixes are only applied after explicit selection and confirmation.",
+  "hint_consistency": "Looks for leftovers of earlier errors (orphaned project assignments, data of deleted people, entries without catalog reference). \"Check\" changes nothing; fixes are applied only after selection and confirmation.",
   "btn_consistency_check": "Check",
   "btn_consistency_repair": "Fix selected issues",
   "msg_consistency_checking": "Checking …",
@@ -4733,7 +4820,7 @@ const I18N = {
   "empty_private_projects_title": "No private projects yet",
   "empty_private_projects_sub": "Add your first plan to track progress based on your private stock.",
   "panel_scmdb_import": "Alternative source: scmdb.net",
-  "hint_scmdb_import": "Independent counterpart to the recipe list above — handy for spotting missing or differing recipes. Workflow: download the script, run it locally (see the comment at the top of the file for requirements), then paste or select the resulting file here. The import itself runs through the same text field as above — this section just provides the source and script conveniently.",
+  "hint_scmdb_import": "Download the script, run it locally and paste the resulting file above under \"Import project templates\". For comparing with the current templates, see the comparison scripts in the project folder.",
   "btn_scmdb_quelle_oeffnen": "↗ Open scmdb.net (source)",
   "btn_scmdb_skript_herunterladen": "⇩ Download scraping script",
   "hint_scmdb_script_requirements": "Requirements to run it: Python 3, plus <code>pip install playwright</code> and <code>playwright install chromium</code> (one-time setup). Details are in the comment at the top of the downloaded file.",
@@ -4762,7 +4849,7 @@ const I18N = {
   "option_vorlagen_art_wikelo": "Wikelo trade offer",
   "placeholder_vorlage_suchen_beide": "Search by name or category (recipes + Wikelo)…",
   "panel_vorlagen_verwalten": "Manage project templates",
-  "hint_vorlagen_verwalten_panel": "Complete, category-grouped overview of all project templates — for browsing, not just searching. Double-click a template to edit it. If materials are added, removed, or changed in quantity, you'll then be offered to apply the same change to existing projects created from this template — including automatic updates to their progress display.",
+  "hint_vorlagen_verwalten_panel": "All templates grouped by category. Double-click opens a template for editing; material changes can then be applied to existing projects created from it.",
   "empty_vorlagen_sub": "Templates store typical material lists for recurring builds (e.g. a specific weapon) and can be applied automatically when creating a project. Use \"Import project templates\" to bring in a larger collection at once, or \"+ New template\" to add one by hand.",
   "empty_vorlagen_title": "No project templates yet",
   "hint_doppelklick_bearbeiten": "Double-click to edit",
@@ -4772,7 +4859,7 @@ const I18N = {
   "btn_nur_vorlage": "Save template only",
   "btn_uebernehmen": "Apply",
   "panel_rezepte_import": "Import project templates",
-  "hint_rezepte_import": "Adds a list of ready-made project templates that become searchable when creating a project (shared or private). Two formats are detected automatically: either the simple format Category;Name;Material1,Material2,Material3 (each material may optionally carry a suggested quantity, e.g. \"Material:15\", plus an optional minimum quality, e.g. \"Material:15:800\"), or the raw, unmodified export of the scmdb.net table (colour variants are automatically merged into a single base template). A new import replaces the entire existing list. Applies across all organizations (pure game data, not organization-specific).",
+  "hint_rezepte_import": "Format per line: Category;Name;Material1,Material2:15,Material3:15:800 (optional quantity or quantity:minimum quality). The raw scmdb.net export is recognized too. Replaces the complete recipe list; the previous state is backed up, templates with the same name keep their ID.",
   "btn_rezepte_importieren": "Import",
   "msg_templates_imported": "{count} templates imported.",
   "msg_templates_current_count": "Currently {count} templates saved.",
@@ -4799,11 +4886,11 @@ const I18N = {
   "panel_wikelo_verwalten": "Manage Wikelo trades",
   "panel_wikelo_import": "Import Wikelo trades",
   "panel_lagerort_import": "Import locations",
-  "hint_lagerort_import": "Adds new locations to the existing list — unlike recipes/Wikelo, the existing list is NOT replaced, only extended (existing system+code combinations are skipped, not overwritten). Format per line: System;Code;Name — lines starting with # are treated as comments and ignored. Applies across all organizations (pure game data, not organization-specific).",
+  "hint_lagerort_import": "Adds to the location list (existing ones are not replaced, existing system+code combinations are skipped). Format per line: System;Code;Name — lines starting with # are ignored.",
   "btn_lagerorte_importieren": "Add",
   "val_location_import_empty": "No valid lines found in the System;Code;Name format.",
   "msg_locations_imported": "{added} newly added, {skipped} already existed (skipped).",
-  "hint_wikelo_import": "Separate list of trade offers from the Banu trader Wikelo — importable independently from the other project templates, but appears together with them in the searchable selection when creating a project. Format per line: Category;Name;Item1,Item2,Item3 — each item may optionally carry a suggested quantity, e.g. \"Item:15\". A new import replaces only the Wikelo list, the other templates remain untouched. Applies across all organizations (pure game data, not organization-specific).",
+  "hint_wikelo_import": "Format per line: Category;Name;Item1,Item2:15 (optional quantity). Replaces only the Wikelo list; the previous state is backed up, offers with the same name keep their ID.",
   "msg_wikelo_imported": "{count} Wikelo trades imported.",
   "msg_wikelo_current_count": "Currently {count} Wikelo trades saved.",
   "val_wikelo_import_empty": "Please enter at least one line in the format Category;Name;Item1,Item2.",
@@ -4830,7 +4917,7 @@ const I18N = {
   "val_no_permission_role": "You are not allowed to assign this role.",
   "val_nur_owner": "Structural catalog changes (materials, locations) are reserved for the Owner role.",
   "panel_discord": "Discord notifications",
-  "hint_discord": "Automatically sends a short message to a Discord channel of your choice for selected events — handy as its own channel that can be muted separately, so other channels aren't flooded. The webhook URL is treated like a password: anyone who knows it can post in that channel.",
+  "hint_discord": "Sends a short message to a Discord channel for selected events. Treat the webhook URL like a password: anyone who knows it can post to the channel.",
   "label_discord_webhook_optional": "Discord webhook URL (optional, can also be added later)",
   "label_discord_webhook": "Discord webhook URL",
   "label_discord_events": "Notify on",
@@ -4855,12 +4942,12 @@ const I18N = {
   "label_discord_aktiv": "enabled",
   "label_discord_deaktiviert": "disabled",
   "panel_default_password": "Default password for first login",
-  "hint_default_password_setting": "Applies to all users of this organization who have not yet set their own password — must be replaced with a personal password on the very first login. A change here only affects future first logins, not already individually set passwords.",
+  "hint_default_password_setting": "Applies to users without their own password and must be replaced on first login. Passwords already set remain unchanged.",
   "label_default_password": "Default password",
   "val_default_password_required": "Please enter a default password.",
   "msg_default_password_saved": "Default password saved.",
   "panel_org_info": "Organization info",
-  "hint_org_info": "Optional message shown to all members of this organization at the very top of the dashboard — e.g. current announcements or rules. Leave empty or use \"Remove message\" to show nothing.",
+  "hint_org_info": "Optional notice shown to all members at the top of the overview, e.g. announcements or rules. Leave empty to show nothing.",
   "label_org_info_titel": "Title",
   "label_org_info_inhalt": "Content",
   "tooltip_fett": "Bold",
@@ -4970,8 +5057,31 @@ const I18N = {
   "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
   "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
   "capture_assign_toggle": "Suggest matching projects after adding",
+  "admin_group_konto": "👤 My account",
+  "admin_group_organisation": "🏢 Organization",
+  "admin_group_benutzer": "👥 Users",
+  "admin_group_daten": "💾 Data & backup",
+  "admin_group_vorlagen": "📋 Templates",
+  "admin_group_kataloge": "📦 Catalogs",
+  "admin_group_wartung": "🛠 Maintenance",
+  "tab_mein_konto": "My account",
+  "scope_self": "just me",
+  "scope_all": "all organizations",
+  "scope_org": "this organization",
+  "scope_org_select": "organization selectable",
+  "scope_tooltip_self": "Applies only to your own account.",
+  "scope_tooltip_all": "Applies to all organizations at once.",
+  "scope_tooltip_org": "Applies only to the currently active organization.",
+  "scope_tooltip_org_select": "Applies to the organization selected in this section.",
+  "panel_personal_settings": "Personal settings",
+  "label_sprache": "Language",
+  "hint_personal_capture_assign": "After saving new entries, shows matching open projects for assignment. The same setting is also available directly in the entry forms.",
+  "btn_reset_tab_order": "Reset tab order",
+  "hint_reset_tab_order": "Tabs can be rearranged by dragging; this restores the original order.",
+  "msg_tab_order_reset": "Tab order reset.",
+  "label_danger_zone": "Danger zone",
   "panel_material_cleanup": "Unify material names",
-  "hint_material_cleanup": "Unifies the names of hand and ROC mining materials to the short names used in templates (e.g. \"Dolivine (Hand Mining)\" → \"Dolivine\"), merges duplicate catalog entries and assigns Carinite, Carinite (Pure), Jaclium and Saldynium to Non-Ship Mineables (unit: pieces). Affects all organizations: catalog, shared and private stock, needs, projects, templates, trash and reset backups.",
+  "hint_material_cleanup": "One-time cleanup: short names for hand/ROC mining materials (\"Dolivine (Hand Mining)\" → \"Dolivine\"), merge duplicate catalog entries, Carinite, Carinite (Pure), Jaclium and Saldynium as Non-Ship Mineables (pieces). Affects catalog, stock, needs, projects, templates, trash and reset backups.",
   "hint_material_cleanup_backup": "Recommended: create a full backup first (\"Full backup\" panel).",
   "btn_material_cleanup_preview": "Create preview",
   "btn_material_cleanup_run": "Run cleanup",
@@ -4993,7 +5103,7 @@ const I18N = {
   "msg_material_cleanup_failed": "Write error – cleanup aborted. Restore the previous full backup if necessary.",
   "msg_material_cleanup_done": "Cleanup complete. Reloading the page …",
   "panel_full_backup": "Full backup (all organizations)",
-  "hint_full_backup": "Backs up the entire application into one file: all organizations, users and credentials, shared and private stock, projects, collectibles, needs, catalogs, templates, settings, logs and trash — every stored record.",
+  "hint_full_backup": "Backs up every stored record of the entire application into one file: all organizations, users, stock, projects, templates, catalogs, settings and logs.",
   "label_full_backup_encrypt": "Encrypt file with a backup password (recommended)",
   "label_full_backup_pw": "Backup password (min. 8 characters)",
   "label_full_backup_pw2": "Repeat backup password",
@@ -5463,7 +5573,7 @@ const I18N = {
   "msg_collectible_catalog_added": "« {name} » ajouté au catalogue des objets de collection.",
   "heading_lagerort_hinzufuegen": "Ajouter un emplacement",
   "placeholder_bestehend_oder_neu": "sélectionner existant ou en saisir un nouveau",
-  "hint_default_password": "Les nouveaux utilisateurs reçoivent automatiquement le mot de passe par défaut défini par l'organisation (voir paramètre plus bas), qu'ils doivent remplacer par un mot de passe personnel après connexion.",
+  "hint_default_password": "Les nouveaux utilisateurs reçoivent le mot de passe par défaut de l'organisation (voir « Mot de passe par défaut » juste en dessous) et doivent le remplacer à la première connexion.",
   "hint_auto_category": "De nouvelles catégories ou systèmes sont créés automatiquement dès que vous saisissez un nom qui n'existe pas encore.",
   "hint_changelog_admin_only": "Visible uniquement par les administrateurs. Enregistre qui a effectué quelle modification et quand.",
   "empty_history_data_title": "Pas encore assez de données",
@@ -5488,7 +5598,7 @@ const I18N = {
   "label_last_active": "Dernière activité",
   "label_never_active": "jamais connecté",
   "label_datensicherung_wiederherstellen": "Restaurer depuis une sauvegarde",
-  "hint_org_import": "Restaure les données à partir d'un fichier créé précédemment via « Tout exporter » — n'affecte que l'organisation actuellement sélectionnée. Remplace entièrement les sections sélectionnées (pas de fusion avec l'état actuel).",
+  "hint_org_import": "Restaure les données d'un fichier créé avec « Tout exporter ». Les domaines sélectionnés sont entièrement remplacés.",
   "btn_datensicherung_datei_waehlen": "Sélectionner le fichier de sauvegarde …",
   "hint_import_ueberschreibt": "⚠ Les sections sélectionnées seront entièrement remplacées — irréversible (sauf via un export effectué au préalable).",
   "btn_wiederherstellen": "Restaurer",
@@ -5519,7 +5629,7 @@ const I18N = {
   "label_org_reset_bleibt_1": "Utilisateurs et rôles",
   "label_org_reset_bleibt_2": "Identifiants et mot de passe par défaut",
   "label_kategorie_unbekannt": "Inconnu / Autre",
-  "hint_org_reset_granular": "Seules les catégories réellement présentes dans l'organisation sélectionnée sont affichées. Tout est coché par défaut (= sera supprimé lors de cette réinitialisation) — les catégories individuelles peuvent être décochées pour être conservées.",
+  "hint_org_reset_granular": "Seules les catégories existantes sont affichées. Tout ce qui est coché est supprimé — décocher pour conserver.",
   "label_org_reset_material_kategorien": "Matériaux",
   "label_org_reset_sammelobjekt_kategorien": "Objets de collection",
   "hint_org_reset_keine_daten": "Cette organisation ne contient actuellement aucun stock, besoin, objet de collection ou projet pouvant être réinitialisé.",
@@ -5540,7 +5650,7 @@ const I18N = {
   "msg_trash_restore_catalog_missing": "Restauration impossible : le matériau, l'objet de collection ou le lieu a été supprimé du catalogue entre-temps.",
   "label_import_zuordnungen_bereinigt": "{n} affectation(s) à des projets inexistants levée(s)",
   "panel_consistency": "Vérifier la cohérence des données",
-  "hint_consistency": "Recherche dans l'organisation ouverte les résidus d'anciennes erreurs : affectations à des projets qui n'existent plus, données privées de personnes qui n'existent plus et entrées sans correspondance au catalogue. « Vérifier » ne modifie rien — la correction n'a lieu qu'après sélection et confirmation explicites.",
+  "hint_consistency": "Recherche les restes d'erreurs antérieures (attributions de projet orphelines, données de personnes supprimées, entrées sans référence au catalogue). « Vérifier » ne modifie rien ; la correction n'a lieu qu'après sélection et confirmation.",
   "btn_consistency_check": "Vérifier",
   "btn_consistency_repair": "Corriger les problèmes sélectionnés",
   "msg_consistency_checking": "Vérification …",
@@ -5667,7 +5777,7 @@ const I18N = {
   "empty_private_projects_title": "Aucun projet privé pour le moment",
   "empty_private_projects_sub": "Ajoutez votre premier projet pour suivre la progression selon votre stock privé.",
   "panel_scmdb_import": "Source alternative : scmdb.net",
-  "hint_scmdb_import": "Pendant indépendant de la liste de recettes ci-dessus — pratique pour repérer des recettes manquantes ou divergentes. Procédure : téléchargez le script, exécutez-le localement (voir le commentaire en haut du fichier pour les prérequis), puis collez ou sélectionnez ici le fichier obtenu. L'importation elle-même passe par le même champ de texte que ci-dessus — cette section ne fait que fournir la source et le script commodément.",
+  "hint_scmdb_import": "Télécharger le script, l'exécuter localement et coller le fichier obtenu ci-dessus sous « Importer des modèles de projet ». Pour la comparaison avec les modèles actuels, voir les scripts de comparaison dans le dossier du projet.",
   "btn_scmdb_quelle_oeffnen": "↗ Ouvrir scmdb.net (source)",
   "btn_scmdb_skript_herunterladen": "⇩ Télécharger le script de scraping",
   "hint_scmdb_script_requirements": "Prérequis pour l'exécution : Python 3, ainsi que <code>pip install playwright</code> et <code>playwright install chromium</code> (une seule fois). Les détails figurent en commentaire en haut du fichier téléchargé.",
@@ -5696,7 +5806,7 @@ const I18N = {
   "option_vorlagen_art_wikelo": "Offre commerciale Wikelo",
   "placeholder_vorlage_suchen_beide": "Rechercher par nom ou catégorie (recettes + Wikelo)…",
   "panel_vorlagen_verwalten": "Gérer les modèles de projet",
-  "hint_vorlagen_verwalten_panel": "Vue d'ensemble complète, regroupée par catégorie, de tous les modèles de projet — pour parcourir, pas seulement pour rechercher. Un double-clic sur un modèle l'ouvre pour modification. Si des matériaux sont ajoutés, supprimés ou modifiés en quantité, il sera ensuite proposé d'appliquer le même changement aux projets existants créés à partir de ce modèle — y compris la mise à jour automatique de leur barre de progression.",
+  "hint_vorlagen_verwalten_panel": "Tous les modèles groupés par catégorie. Un double-clic ouvre un modèle pour modification ; les changements de matériaux peuvent ensuite être appliqués aux projets existants issus de ce modèle.",
   "empty_vorlagen_sub": "Les modèles enregistrent les listes de matériaux typiques pour des constructions récurrentes (p. ex. une arme donnée) et peuvent être appliqués automatiquement lors de la création d'un projet. Utilisez \"Importer des modèles de projet\" pour en importer plusieurs à la fois, ou \"+ Nouveau modèle\" pour en ajouter un manuellement.",
   "empty_vorlagen_title": "Aucun modèle de projet pour l'instant",
   "hint_doppelklick_bearbeiten": "Double-cliquer pour modifier",
@@ -5706,7 +5816,7 @@ const I18N = {
   "btn_nur_vorlage": "Enregistrer uniquement le modèle",
   "btn_uebernehmen": "Appliquer",
   "panel_rezepte_import": "Importer des modèles de projet",
-  "hint_rezepte_import": "Ajoute une liste de modèles de projet prêts à l'emploi, consultables lors de la création d'un projet (partagé ou privé). Deux formats sont détectés automatiquement : soit le format simple Catégorie;Nom;Matériau1,Matériau2,Matériau3 (chaque matériau peut porter une quantité suggérée facultative, ex. « Matériau:15 », ainsi qu'une qualité minimale facultative, ex. « Matériau:15:800 »), soit l'export brut et non modifié de la table scmdb.net (les variantes de couleur sont automatiquement fusionnées en un seul modèle de base). Une nouvelle importation remplace la liste existante. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
+  "hint_rezepte_import": "Format par ligne : Catégorie;Nom;Matériau1,Matériau2:15,Matériau3:15:800 (quantité ou quantité:qualité minimale facultatives). L'export brut de scmdb.net est aussi reconnu. Remplace toute la liste ; l'état précédent est sauvegardé, les modèles de même nom gardent leur ID.",
   "btn_rezepte_importieren": "Importer",
   "msg_templates_imported": "{count} modèles importés.",
   "msg_templates_current_count": "Actuellement {count} modèles enregistrés.",
@@ -5733,11 +5843,11 @@ const I18N = {
   "panel_wikelo_verwalten": "Gérer les échanges Wikelo",
   "panel_wikelo_import": "Importer les échanges Wikelo",
   "panel_lagerort_import": "Importer des lieux",
-  "hint_lagerort_import": "Ajoute de nouveaux lieux à la liste existante — contrairement aux recettes/Wikelo, la liste existante n'est PAS remplacée, seulement complétée (les combinaisons système+code déjà existantes sont ignorées, pas écrasées). Format par ligne : Système;Code;Nom — les lignes commençant par # sont traitées comme des commentaires et ignorées. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
+  "hint_lagerort_import": "Complète la liste des emplacements (les existants ne sont pas remplacés, les combinaisons système+code déjà présentes sont ignorées). Format par ligne : Système;Code;Nom — les lignes commençant par # sont ignorées.",
   "btn_lagerorte_importieren": "Ajouter",
   "val_location_import_empty": "Aucune ligne valide trouvée au format Système;Code;Nom.",
   "msg_locations_imported": "{added} nouveaux ajoutés, {skipped} déjà existants (ignorés).",
-  "hint_wikelo_import": "Liste séparée des offres d’échange du marchand Banu Wikelo — importable indépendamment des autres modèles de projet, mais apparaît avec eux dans la sélection consultable lors de la création d’un projet. Format par ligne : Catégorie;Nom;Objet1,Objet2,Objet3 — chaque objet peut porter une quantité suggérée facultative, ex. « Objet:15 ». Une nouvelle importation ne remplace que la liste Wikelo, les autres modèles restent inchangés. S'applique à toutes les organisations (données de jeu pures, non spécifiques à une organisation).",
+  "hint_wikelo_import": "Format par ligne : Catégorie;Nom;Objet1,Objet2:15 (quantité facultative). Remplace seulement la liste Wikelo ; l'état précédent est sauvegardé, les offres de même nom gardent leur ID.",
   "msg_wikelo_imported": "{count} échanges Wikelo importés.",
   "msg_wikelo_current_count": "Actuellement {count} échanges Wikelo enregistrés.",
   "val_wikelo_import_empty": "Veuillez saisir au moins une ligne au format Catégorie;Nom;Objet1,Objet2.",
@@ -5764,7 +5874,7 @@ const I18N = {
   "val_no_permission_role": "Vous n'êtes pas autorisé à attribuer ce rôle.",
   "val_nur_owner": "Les modifications structurelles du catalogue (matériaux, emplacements) sont réservées au rôle Propriétaire.",
   "panel_discord": "Notifications Discord",
-  "hint_discord": "Envoie automatiquement un court message à un canal Discord de votre choix lors d'événements sélectionnés — pratique comme canal séparé, désactivable individuellement, pour ne pas inonder les autres canaux. L'URL du webhook est traitée comme un mot de passe : quiconque la connaît peut publier dans ce canal.",
+  "hint_discord": "Envoie un court message dans un canal Discord lors d'événements choisis. Traiter l'URL du webhook comme un mot de passe : quiconque la connaît peut publier dans le canal.",
   "label_discord_webhook_optional": "URL du webhook Discord (facultatif, peut aussi être ajoutée plus tard)",
   "label_discord_webhook": "URL du webhook Discord",
   "label_discord_events": "Notifier lors de",
@@ -5789,12 +5899,12 @@ const I18N = {
   "label_discord_aktiv": "activé",
   "label_discord_deaktiviert": "désactivé",
   "panel_default_password": "Mot de passe par défaut pour la première connexion",
-  "hint_default_password_setting": "S'applique à tous les utilisateurs de cette organisation qui n'ont pas encore défini leur propre mot de passe — doit être remplacé par un mot de passe personnel dès la toute première connexion. Une modification ici n'affecte que les futures premières connexions, pas les mots de passe déjà définis individuellement.",
+  "hint_default_password_setting": "S'applique aux utilisateurs sans mot de passe propre et doit être remplacé à la première connexion. Les mots de passe déjà définis restent inchangés.",
   "label_default_password": "Mot de passe par défaut",
   "val_default_password_required": "Veuillez indiquer un mot de passe par défaut.",
   "msg_default_password_saved": "Mot de passe par défaut enregistré.",
   "panel_org_info": "Information de l'organisation",
-  "hint_org_info": "Message optionnel affiché à tous les membres de cette organisation tout en haut du tableau de bord — p. ex. annonces ou règles actuelles. Laissez vide ou utilisez « Supprimer le message » pour ne rien afficher.",
+  "hint_org_info": "Texte facultatif affiché à tous les membres en haut de l'aperçu, p. ex. annonces ou règles. Laisser vide pour ne rien afficher.",
   "label_org_info_titel": "Titre",
   "label_org_info_inhalt": "Contenu",
   "tooltip_fett": "Gras",
@@ -5904,8 +6014,31 @@ const I18N = {
   "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
   "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
   "capture_assign_toggle": "Proposer les projets correspondants après l'ajout",
+  "admin_group_konto": "👤 Mon compte",
+  "admin_group_organisation": "🏢 Organisation",
+  "admin_group_benutzer": "👥 Utilisateurs",
+  "admin_group_daten": "💾 Données & sauvegarde",
+  "admin_group_vorlagen": "📋 Modèles",
+  "admin_group_kataloge": "📦 Catalogues",
+  "admin_group_wartung": "🛠 Maintenance",
+  "tab_mein_konto": "Mon compte",
+  "scope_self": "moi uniquement",
+  "scope_all": "toutes les organisations",
+  "scope_org": "cette organisation",
+  "scope_org_select": "organisation au choix",
+  "scope_tooltip_self": "Ne concerne que ton propre accès.",
+  "scope_tooltip_all": "Concerne toutes les organisations à la fois.",
+  "scope_tooltip_org": "Ne concerne que l'organisation active.",
+  "scope_tooltip_org_select": "Concerne l'organisation choisie dans cette section.",
+  "panel_personal_settings": "Paramètres personnels",
+  "label_sprache": "Langue",
+  "hint_personal_capture_assign": "Après l'enregistrement de nouvelles entrées, propose les projets ouverts correspondants. Le même réglage figure aussi dans les formulaires de saisie.",
+  "btn_reset_tab_order": "Réinitialiser l'ordre des onglets",
+  "hint_reset_tab_order": "Les onglets peuvent être déplacés par glisser ; ceci rétablit l'ordre d'origine.",
+  "msg_tab_order_reset": "Ordre des onglets réinitialisé.",
+  "label_danger_zone": "Zone dangereuse",
   "panel_material_cleanup": "Uniformiser les noms de matériaux",
-  "hint_material_cleanup": "Uniformise les noms des matériaux de minage manuel et ROC sur les noms courts des modèles (p. ex. « Dolivine (Hand Mining) » → « Dolivine »), fusionne les doublons du catalogue et classe Carinite, Carinite (Pure), Jaclium et Saldynium dans Non-Ship Mineables (unité : pièces). Concerne toutes les organisations : catalogue, stocks partagés et privés, besoins, projets, modèles, corbeille et sauvegardes de réinitialisation.",
+  "hint_material_cleanup": "Nettoyage unique : noms courts pour les matériaux de minage manuel/ROC (« Dolivine (Hand Mining) » → « Dolivine »), fusion des doublons du catalogue, Carinite, Carinite (Pure), Jaclium et Saldynium en Non-Ship Mineables (pièces). Concerne catalogue, stocks, besoins, projets, modèles, corbeille et sauvegardes.",
   "hint_material_cleanup_backup": "Recommandé : créer d'abord une sauvegarde complète (panneau « Sauvegarde complète »).",
   "btn_material_cleanup_preview": "Créer un aperçu",
   "btn_material_cleanup_run": "Lancer le nettoyage",
@@ -5927,7 +6060,7 @@ const I18N = {
   "msg_material_cleanup_failed": "Erreur d'écriture – nettoyage interrompu. Restaurez si nécessaire la sauvegarde complète précédente.",
   "msg_material_cleanup_done": "Nettoyage terminé. Rechargement de la page …",
   "panel_full_backup": "Sauvegarde complète (toutes les organisations)",
-  "hint_full_backup": "Sauvegarde toute l'application dans un seul fichier : organisations, utilisateurs et accès, stocks partagés et privés, projets, objets de collection, besoins, catalogues, modèles, paramètres, journaux et corbeille — chaque enregistrement.",
+  "hint_full_backup": "Sauvegarde chaque enregistrement de toute l'application dans un fichier : organisations, utilisateurs, stocks, projets, modèles, catalogues, paramètres et journaux.",
   "label_full_backup_encrypt": "Chiffrer le fichier avec un mot de passe de sauvegarde (recommandé)",
   "label_full_backup_pw": "Mot de passe de sauvegarde (8 caractères min.)",
   "label_full_backup_pw2": "Répéter le mot de passe de sauvegarde",
@@ -6174,6 +6307,10 @@ function applyI18n(){
   document.querySelectorAll('.flag-btn').forEach(btn=>{
     btn.classList.toggle('active', btn.dataset.lang === currentLang);
   });
+  // Ab v0.141: Sprachauswahl in "Mein Konto" und Reiter-Beschriftung
+  // ("Verwaltung" bzw. "Mein Konto") nach jedem Sprachwechsel nachziehen.
+  if(typeof syncPersonalLanguageSelect === 'function') syncPersonalLanguageSelect();
+  if(currentUser && typeof updateAdminSubnav === 'function') updateAdminSubnav();
 }
 
 async function changeLanguage(lang){
@@ -7168,8 +7305,9 @@ async function saveUserEdit(idx){
     document.getElementById('locationImportPanel').style.display = newRole==='owner' ? '' : 'none';
     if(isAdminOrAbove) applyAdminPanelState();
     document.getElementById('orgSwitcherWrap').style.display = newRole==='owner' ? '' : 'none';
-    document.getElementById('tabBtn-verwaltung').style.display = isAdminOrAbove ? '' : 'none';
-    if(!isAdminOrAbove && document.getElementById('tabBtn-verwaltung').classList.contains('active')) switchTab('uebersicht');
+    // Ab v0.141: Verwaltung fuer alle Rollen (mindestens "Mein Konto").
+    document.getElementById('tabBtn-verwaltung').style.display = '';
+    updateAdminSubnav();
     document.getElementById('entryFormPanel').style.display = newRole==='viewer' ? 'none' : '';
     document.getElementById('needFormGrid').style.display = newRole==='viewer' ? 'none' : '';
     document.getElementById('projectAddSection').style.display = isAdminOrAbove ? '' : 'none';
@@ -9110,7 +9248,8 @@ function switchTab(tabName){
   // Reiter-Wechsel weiterhin sichtbar stehen, was irritierend wirken
   // konnte. Wird jetzt bei jedem Reiter-Wechsel konsequent mit
   // ausgeblendet. Siehe Nutzerwunsch vom 8. August 2026.
-  document.getElementById('pwPanel').style.display = 'none';
+  // Ab v0.141 liegt "Passwort ändern" in "Mein Konto" und bleibt dort sichtbar.
+  if(tabName === 'verwaltung') updateAdminSubnav();
   // WICHTIG: Der Reiter-Wechsel selbst blendete bislang lediglich den
   // bereits vorhandenen (moeglicherweise laengst veralteten) DOM-Inhalt
   // ein/aus, ohne ihn neu zu rendern. Aenderungen an anderer Stelle (z.B.
@@ -9307,6 +9446,8 @@ function completeLogin(user){
   document.getElementById('btnHelp').style.display = '';
   loadTabOrderPref();
   loadCaptureAssignPref();
+  loadAdminSubnavPref(); // ab v0.141
+  syncPersonalLanguageSelect();
   // Zeitpunkt der letzten Anmeldung merken (für die Benutzerverwaltung) —
   // bewusst nicht abgewartet, damit das Speichern den eigentlichen Login
   // nicht künstlich verzögert.
@@ -9361,7 +9502,7 @@ function completeLogin(user){
   document.getElementById('needFormGrid').style.display = user.role==='viewer' ? 'none' : '';
   document.getElementById('projectAddSection').style.display = isAdminOrAbove ? '' : 'none';
   document.getElementById('collectibleAddSection').style.display = user.role==='viewer' ? 'none' : '';
-  document.getElementById('tabBtn-verwaltung').style.display = isAdminOrAbove ? '' : 'none';
+  document.getElementById('tabBtn-verwaltung').style.display = ''; // ab v0.141 fuer alle Rollen (Mein Konto)
   document.getElementById('orgManagementPanel').style.display = user.role==='owner' ? '' : 'none';
   renderOrgResetSection();
   document.getElementById('templateManagePanel').style.display = user.role==='owner' ? '' : 'none';
@@ -9427,6 +9568,7 @@ async function switchOrganization(newOrgId){
   renderOrgInfoDisplay();
   renderExportReminder();
   renderExportOrgSelect();
+  updateAdminScopeBadges(); // ab v0.141
   renderOrgResetSection();
   // WICHTIG: currentOrgDiscordSettings (und currentOrgDefaultPassword)
   // haengen ueber orgKey() an currentOrgId und MUESSEN beim Wechsel neu
@@ -9615,7 +9757,6 @@ document.getElementById('btnCloseWatermark').addEventListener('click', ()=>{
 function doLogout(){
   currentUser = null;
   clearRememberedLogin();
-  document.getElementById('pwPanel').style.display = 'none';
   document.getElementById('pw-current').value = '';
   document.getElementById('pw-new').value = '';
   document.getElementById('pw-confirm').value = '';
@@ -9666,7 +9807,7 @@ async function savePassword(){
   document.getElementById('pw-new').value = '';
   document.getElementById('pw-confirm').value = '';
   setStatusMsg(statusEl, ok ? t('msg_password_updated') : t('msg_save_failed'), !ok);
-  if(ok) setTimeout(()=>{ document.getElementById('pwPanel').style.display = 'none'; statusEl.textContent=''; }, 1500);
+  if(ok) setTimeout(()=>{ statusEl.textContent=''; }, 2500);
 }
 
 (async function initLogin(){
@@ -9758,8 +9899,8 @@ function addPasswordToggle(inputId){
 ['pw-current','pw-new','pw-confirm','forgot-pw-new','forgot-pw-confirm','forced-pw-new','forced-pw-confirm'].forEach(addPasswordToggle);
 
 document.getElementById('btnLogout').addEventListener('click', doLogout);
-document.getElementById('btnChangePw').addEventListener('click', togglePwPanel);
-document.getElementById('btnCancelPw').addEventListener('click', togglePwPanel);
+document.getElementById('btnChangePw').addEventListener('click', openPasswordInAccount);
+document.getElementById('btnCancelPw').addEventListener('click', clearPasswordFields);
 document.getElementById('btnSavePw').addEventListener('click', savePassword);
 document.getElementById('btnAddUser').addEventListener('click', addUser);
 document.getElementById('userListSort').addEventListener('change', renderUserList);
@@ -16919,6 +17060,7 @@ async function renderDashboard(){
       const gotoFb = criticalBanner.querySelector('[data-goto-fullbackup]');
       if(gotoFb) gotoFb.addEventListener('click', ()=>{
         switchTab('verwaltung');
+        setAdminGroup('daten'); // ab v0.141: Gruppe "Daten & Sicherung"
         const panel = document.getElementById('fullBackupPanel');
         if(panel){ panel.open = true; setTimeout(()=>panel.scrollIntoView({behavior:'smooth', block:'start'}), 50); }
       });
@@ -20605,6 +20747,159 @@ function carryOverTemplateIds(parsed, oldList){
     else if(!tpl.id){ tpl.id = templateUid(); }
   });
   return kept;
+}
+
+// ============================================================
+// Verwaltung: Unternavigation in sieben Gruppen (ab 1. November 2026,
+// v0.141, Schritt 1 der Neuordnung). Die Bereiche selbst sind unveraendert,
+// sie wurden nur in Gruppen einsortiert. Eine Gruppe erscheint nur, wenn
+// mindestens einer ihrer Bereiche fuer die angemeldete Rolle sichtbar ist
+// (die bestehenden Rollenregeln je Bereich bleiben massgeblich). "Mein
+// Konto" gibt es fuer alle Rollen -- der Reiter "Verwaltung" ist deshalb
+// fuer jede Rolle sichtbar und heisst "Mein Konto", wenn es die einzige
+// Gruppe ist. Die zuletzt gewaehlte Gruppe wird je Benutzer gemerkt.
+// ============================================================
+const ADMIN_GROUPS = ['konto', 'organisation', 'benutzer', 'daten', 'vorlagen', 'kataloge', 'wartung'];
+const ADMIN_SUBNAV_KEY = 'admin-subnav-group';
+let currentAdminGroup = 'konto';
+
+function adminGroupEl(g){ return document.querySelector(`.admin-group[data-group="${g}"]`); }
+function isAdminGroupAvailable(g){
+  if(g === 'konto') return !!currentUser;
+  const el = adminGroupEl(g);
+  if(!el) return false;
+  return Array.from(el.querySelectorAll(':scope .panel')).some(p=>p.style.display !== 'none');
+}
+function updateAdminSubnav(){
+  if(!currentUser) return;
+  const available = ADMIN_GROUPS.filter(isAdminGroupAvailable);
+  document.querySelectorAll('#adminSubnav .admin-subnav-btn').forEach(btn=>{
+    btn.style.display = available.includes(btn.dataset.group) ? '' : 'none';
+  });
+  const sel = document.getElementById('adminSubnavSelect');
+  if(sel){
+    sel.innerHTML = available.map(g=>`<option value="${g}">${escapeHtml(t('admin_group_' + g))}</option>`).join('');
+  }
+  // Nur eine Gruppe (Rollen ohne Verwaltungsrechte): Reiter heisst "Mein Konto",
+  // die Unternavigation selbst entfaellt.
+  const onlyKonto = available.length <= 1;
+  const tabBtn = document.getElementById('tabBtn-verwaltung');
+  if(tabBtn){
+    tabBtn.style.display = '';
+    tabBtn.textContent = onlyKonto ? t('tab_mein_konto') : t('tab_verwaltung');
+  }
+  const nav = document.getElementById('adminSubnavWrap');
+  if(nav) nav.style.display = onlyKonto ? 'none' : '';
+  const danger = document.getElementById('adminDangerZone');
+  if(danger) danger.style.display = Array.from(danger.querySelectorAll('.panel')).some(p=>p.style.display !== 'none') ? '' : 'none';
+  if(!available.includes(currentAdminGroup)) currentAdminGroup = available[0] || 'konto';
+  showAdminGroup(currentAdminGroup);
+  updateAdminScopeBadges();
+}
+function showAdminGroup(g){
+  currentAdminGroup = g;
+  ADMIN_GROUPS.forEach(x=>{
+    const el = adminGroupEl(x);
+    if(el) el.style.display = x === g ? '' : 'none';
+  });
+  document.querySelectorAll('#adminSubnav .admin-subnav-btn').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.group === g);
+  });
+  const sel = document.getElementById('adminSubnavSelect');
+  if(sel && sel.value !== g) sel.value = g;
+}
+async function setAdminGroup(g){
+  if(!isAdminGroupAvailable(g)) return;
+  showAdminGroup(g);
+  try{ await window.storage.set(userKey(ADMIN_SUBNAV_KEY), g, true); }catch(e){}
+}
+async function loadAdminSubnavPref(){
+  currentAdminGroup = 'konto';
+  if(currentUser){
+    try{
+      const res = await window.storage.get(userKey(ADMIN_SUBNAV_KEY), true);
+      if(res && res.value && ADMIN_GROUPS.includes(res.value)) currentAdminGroup = res.value;
+    }catch(e){}
+  }
+  updateAdminSubnav();
+}
+document.querySelectorAll('#adminSubnav .admin-subnav-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>setAdminGroup(btn.dataset.group));
+});
+document.getElementById('adminSubnavSelect').addEventListener('change', (e)=>setAdminGroup(e.target.value));
+
+// Bereiche werden je nach Rolle per style.display ein-/ausgeblendet --
+// jede solche Aenderung aktualisiert die verfuegbaren Gruppen automatisch.
+let adminSubnavTimer = null;
+const adminSubnavObserver = new MutationObserver(()=>{
+  clearTimeout(adminSubnavTimer);
+  adminSubnavTimer = setTimeout(updateAdminSubnav, 30);
+});
+document.querySelectorAll('.admin-group .panel').forEach(p=>{
+  adminSubnavObserver.observe(p, { attributes: true, attributeFilter: ['style'] });
+});
+
+// Abzeichen je Bereich: fuer wen bzw. welche Organisation er gilt.
+function updateAdminScopeBadges(){
+  const org = (typeof ORGANIZATIONS !== 'undefined' ? ORGANIZATIONS : []).find(o=>o.id === currentOrgId);
+  const orgName = org ? org.name : '';
+  document.querySelectorAll('.admin-group [data-scope]').forEach(panel=>{
+    let scope = panel.dataset.scope;
+    if(scope === 'org-or-all') scope = (currentUser && currentUser.role === 'owner') ? 'all' : 'org';
+    let text;
+    if(scope === 'self') text = '👤 ' + t('scope_self');
+    else if(scope === 'all') text = '🌐 ' + t('scope_all');
+    else if(scope === 'org-select') text = '🏢 ' + t('scope_org_select');
+    else text = '🏢 ' + (orgName || t('scope_org'));
+    const h2 = panel.querySelector(':scope > summary h2, :scope > h2');
+    if(!h2) return;
+    let badge = h2.querySelector('.scope-badge');
+    if(!badge){
+      badge = document.createElement('span');
+      badge.className = 'scope-badge';
+      h2.appendChild(badge);
+    }
+    badge.textContent = text;
+    badge.title = t('scope_tooltip_' + scope.replace('-', '_'));
+  });
+}
+
+// Persoenliche Einstellungen (Mein Konto)
+function syncPersonalLanguageSelect(){
+  const sel = document.getElementById('personalLanguageSelect');
+  if(sel) sel.value = currentLang;
+}
+document.getElementById('personalLanguageSelect').addEventListener('change', async (e)=>{
+  await changeLanguage(e.target.value);
+  syncPersonalLanguageSelect();
+  updateAdminSubnav();
+});
+const DEFAULT_TAB_ORDER = ['uebersicht', 'bestand', 'bedarfe', 'projekte', 'sammelobjekte', 'privatbestand', 'verwaltung'];
+document.getElementById('btnResetTabOrder').addEventListener('click', async ()=>{
+  const tabbar = document.getElementById('tabbar');
+  DEFAULT_TAB_ORDER.forEach(name=>{
+    const btn = document.getElementById('tabBtn-' + name);
+    if(btn) tabbar.appendChild(btn);
+  });
+  await saveTabOrder();
+  setStatusMsg(document.getElementById('personalSettingsStatus'), t('msg_tab_order_reset'), false);
+  setTimeout(()=>{ document.getElementById('personalSettingsStatus').textContent = ''; }, 3000);
+});
+
+// "Passwort aendern" in der Kopfzeile oeffnet jetzt "Mein Konto".
+function openPasswordInAccount(){
+  switchTab('verwaltung');
+  setAdminGroup('konto');
+  const panel = document.getElementById('pwPanel');
+  if(panel){
+    panel.open = true;
+    setTimeout(()=>{ panel.scrollIntoView({ behavior:'smooth', block:'start' }); const f = document.getElementById('pw-current'); if(f) f.focus(); }, 50);
+  }
+}
+function clearPasswordFields(){
+  ['pw-current','pw-new','pw-confirm'].forEach(id=>{ const el = document.getElementById(id); if(el) el.value = ''; });
+  const st = document.getElementById('pwStatus');
+  if(st) st.textContent = '';
 }
 
 function armConfirm(btn, onConfirm, confirmTitle){
