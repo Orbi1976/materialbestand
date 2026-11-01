@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.142 -->
+<!-- Version: 0.143 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -920,6 +920,16 @@ button{
   border-radius:3px;
   box-shadow:0 0 8px rgba(255,59,92,0.35);
 }
+/* Ab v0.143: Text-Knoepfe im scharfen Zustand gut lesbar (weisse Schrift
+   auf Rot), damit die Aufforderung zum zweiten Klick nicht uebersehen wird. */
+.btn-confirming.btn-primary, .btn-confirming.btn-ghost{
+  background:#FF3B5C !important;
+  color:#fff !important;
+  border-color:#FF3B5C;
+  box-shadow:0 0 14px rgba(255,59,92,0.55);
+  animation:confirmPulse 1s ease-in-out infinite;
+}
+@keyframes confirmPulse{ 0%,100%{filter:brightness(1);} 50%{filter:brightness(1.25);} }
 
 .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
 .filters input, .filters select{
@@ -4151,6 +4161,7 @@ const I18N = {
   "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
   "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
   "capture_assign_toggle": "Nach dem Eintragen passende Projekte vorschlagen",
+  "label_click_again_to_run": "Zum Ausführen erneut klicken",
   "panel_org_settings": "Organisationseinstellungen",
   "panel_vorlagen": "Projekt-Vorlagen (Rezepte & Wikelo)",
   "tpl_tab_browse": "Durchsuchen & bearbeiten",
@@ -5126,6 +5137,7 @@ const I18N = {
   "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
   "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
   "capture_assign_toggle": "Suggest matching projects after adding",
+  "label_click_again_to_run": "Click again to run",
   "panel_org_settings": "Organization settings",
   "panel_vorlagen": "Project templates (recipes & Wikelo)",
   "tpl_tab_browse": "Browse & edit",
@@ -6101,6 +6113,7 @@ const I18N = {
   "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
   "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
   "capture_assign_toggle": "Proposer les projets correspondants après l'ajout",
+  "label_click_again_to_run": "Cliquer à nouveau pour exécuter",
   "panel_org_settings": "Paramètres de l'organisation",
   "panel_vorlagen": "Modèles de projet (recettes & Wikelo)",
   "tpl_tab_browse": "Parcourir & modifier",
@@ -10144,7 +10157,19 @@ function getCollectibleCategory(objektName){
   return c ? c.category : t('label_kategorie_unbekannt');
 }
 
+// Ab v0.143 (Nutzerwunsch): feste Regel -- diese Hand-/ROC-Mining-
+// Materialien werden IMMER in Stueck gefuehrt, unabhaengig vom Katalog.
+// So kann ein veralteter Katalog (z. B. aus einer noch offenen alten
+// Sitzung) die Einheit nicht mehr verfaelschen. Verglichen wird ueber den
+// Kurznamen (canonicalMaterialName), "Dolivine (Hand Mining)" zaehlt also mit.
+const FIXED_PIECE_MATERIALS = ['Aphorite', 'Dolivine', 'Hadanite', 'Janalite', 'Carinite', 'Carinite (Pure)', 'Jaclium', 'Sadaryx', 'Saldynium', 'Beradom', 'Glacosite', 'Feynmaline'];
+const FIXED_PIECE_MATERIALS_LC = new Set([...FIXED_PIECE_MATERIALS.map(n=>n.toLowerCase()), 'beradon', 'carinitepure']);
+function isFixedPieceMaterial(name){
+  if(typeof name !== 'string' || !name) return false;
+  return FIXED_PIECE_MATERIALS_LC.has(canonicalMaterialName(name).toLowerCase());
+}
 function getDefaultEinheitForMaterial(materialName){
+  if(isFixedPieceMaterial(materialName)) return 'Stück';
   const m = MATERIALS.find(x=>x.name===materialName);
   if(m) return m.category==='Ship Mineables' ? 'SCU' : 'Stück';
   const c = COLLECTIBLES.find(x=>x.name===materialName);
@@ -11158,11 +11183,45 @@ async function loadMaterials(){
   }catch(e){
     // Kein gespeicherter Bestand vorhanden — Ausgangsliste bleibt aktiv.
   }
+  materialsBaseline = JSON.parse(JSON.stringify(MATERIALS));
   materialsLoaded = true;
+}
+// Ab v0.143: Der Katalog wird nicht mehr blind als komplette Liste aus dem
+// Speicher dieses Browsers geschrieben. Stattdessen wird der aktuelle
+// Stand frisch aus der Datenbank gelesen und nur die in DIESER Sitzung
+// tatsaechlich vorgenommenen Aenderungen (hinzugefuegt, geloescht,
+// geaendert -- ermittelt gegenueber dem Stand beim Laden) eingetragen.
+// Eine noch offene, veraltete Sitzung kann dadurch z. B. die
+// Materialnamen-Bereinigung nicht mehr rueckgaengig machen. Kann der
+// aktuelle Stand nicht gelesen werden, wird nicht gespeichert.
+let materialsBaseline = null;
+function mergeMaterialChanges(fresh, baseline, local){
+  const keyOf = m=>m && m.name;
+  const base = new Map(baseline.map(m=>[keyOf(m), m]));
+  const localNames = new Set(local.map(keyOf));
+  const removed = new Set([...base.keys()].filter(n=>!localNames.has(n)));
+  const out = fresh.filter(m=>!removed.has(keyOf(m)));
+  const pos = new Map(out.map((m,i)=>[keyOf(m), i]));
+  local.forEach(m=>{
+    const n = keyOf(m);
+    const b = base.get(n);
+    if(b && JSON.stringify(b) === JSON.stringify(m)) return; // unveraendert -> Datenbankstand gilt
+    if(pos.has(n)) out[pos.get(n)] = m;
+    else { pos.set(n, out.length); out.push(m); }
+  });
+  return out;
 }
 async function saveMaterials(){
   try{
-    await window.storage.setOrThrow(MATERIALS_KEY, JSON.stringify(MATERIALS), true);
+    let toSave = MATERIALS;
+    const res = await window.storage.getStrict(MATERIALS_KEY, true);
+    if(res && res.value && materialsBaseline){
+      const fresh = JSON.parse(res.value);
+      if(Array.isArray(fresh)) toSave = mergeMaterialChanges(fresh, materialsBaseline, MATERIALS);
+    }
+    await window.storage.setOrThrow(MATERIALS_KEY, JSON.stringify(toSave), true);
+    MATERIALS = toSave;
+    materialsBaseline = JSON.parse(JSON.stringify(toSave));
     return true;
   }catch(e){
     return false;
@@ -20605,7 +20664,7 @@ function isRenamedMaterialName(name){
 
 // Baut den bereinigten Katalog. Liefert { list, changes[] }.
 function buildCleanMaterialCatalog(list){
-  const nonShipTargets = new Set(FORCED_NON_SHIP_MATERIALS);
+  const nonShipTargets = new Set([...FORCED_NON_SHIP_MATERIALS, ...FIXED_PIECE_MATERIALS]);
   list.forEach(m=>{ if(m && isRenamedMaterialName(m.name)) nonShipTargets.add(canonicalMaterialName(m.name)); });
   list.forEach(m=>{ if(m && m.category === 'Non-Ship Mineables') nonShipTargets.add(canonicalMaterialName(m.name)); });
   const out = [];
@@ -21069,7 +21128,12 @@ function armConfirm(btn, onConfirm, confirmTitle){
   btn.dataset.confirming = '1';
   btn.dataset.origHtml = btn.innerHTML;
   btn.dataset.origTitle = btn.title || '';
-  btn.innerHTML = '✓';
+  // Ab v0.143: Knoepfe mit Text zeigen nach dem ersten Klick deutlich
+  // "✓ Zum Ausfuehren erneut klicken" (und bleiben 6 statt 3 Sekunden
+  // scharf); reine Symbol-Knoepfe (z. B. Papierkorb) behalten das
+  // platzsparende "✓".
+  const isTextButton = !btn.classList.contains('btn-icon') && (btn.textContent || '').trim().length > 2;
+  btn.innerHTML = isTextButton ? '✓ ' + escapeHtml(t('label_click_again_to_run')) : '✓';
   // confirmTitle erlaubt einen individuellen Hinweistext waehrend der
   // "scharf gestellten" Phase (z.B. mit Angabe, wie viele Eintraege von
   // der Aktion mit betroffen sind) -- faellt ohne Angabe auf den
@@ -21083,7 +21147,7 @@ function armConfirm(btn, onConfirm, confirmTitle){
       btn.title = btn.dataset.origTitle;
       btn.classList.remove('btn-confirming');
     }
-  }, 3000);
+  }, isTextButton ? 6000 : 3000);
 }
 
 // Verzögert wiederholte Aufrufe (z. B. bei jedem Tastendruck in einem
