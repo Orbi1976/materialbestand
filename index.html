@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.139 -->
+<!-- Version: 0.140 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -2427,6 +2427,22 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="user-list" id="collectibleCatalogListContainer" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
   </details>
 
+  <!-- Ab 1. November 2026 (v0.140): einmalige Bereinigung der Materialnamen, nur owner -->
+  <details class="panel admin-collapsible" data-default-open="false" id="materialCleanupPanel" style="display:none;">
+    <summary><h2>🧹 <span data-i18n="panel_material_cleanup">Materialnamen vereinheitlichen</span></h2></summary>
+    <div class="user-note" data-i18n="hint_material_cleanup">Vereinheitlicht die Namen von Hand- und ROC-Mining-Materialien auf die Kurznamen der Vorlagen (z. B. „Dolivine (Hand Mining)“ → „Dolivine“), führt doppelte Katalogeinträge zusammen und ordnet Carinite, Carinite (Pure), Jaclium und Saldynium den Non-Ship Mineables zu (Einheit Stück). Betrifft alle Organisationen: Katalog, geteilter und privater Bestand, Bedarfe, Projekte, Vorlagen, Papierkorb und Reset-Sicherungen.</div>
+    <div class="user-note fb-warn" data-i18n="hint_material_cleanup_backup">Empfehlung: vorher eine vollständige Sicherung erstellen (Panel „Vollständige Sicherung“).</div>
+    <div id="materialCleanupInfo" class="fb-info"></div>
+    <div style="margin-top:12px;">
+      <button class="btn-ghost" id="btnMaterialCleanupPreview" data-i18n="btn_material_cleanup_preview">Vorschau erstellen</button>
+    </div>
+    <div id="materialCleanupPreview" style="display:none;margin-top:12px;">
+      <div id="materialCleanupSummary" class="fb-summary"></div>
+      <button class="btn-primary" id="btnMaterialCleanupRun" style="margin-top:12px;" data-i18n="btn_material_cleanup_run">Bereinigung ausführen</button>
+    </div>
+    <div class="status-msg" id="materialCleanupStatus"></div>
+  </details>
+
   <div class="panel" id="logPanel" style="display:none;">
     <h2 data-i18n="panel_protokoll">Änderungsprotokoll</h2>
     <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_changelog_admin_only">Nur für Administratoren sichtbar. Protokolliert wird, wer wann welche Änderung vorgenommen hat.</div>
@@ -4020,6 +4036,28 @@ const I18N = {
   "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
   "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
   "capture_assign_toggle": "Nach dem Eintragen passende Projekte vorschlagen",
+  "panel_material_cleanup": "Materialnamen vereinheitlichen",
+  "hint_material_cleanup": "Vereinheitlicht die Namen von Hand- und ROC-Mining-Materialien auf die Kurznamen der Vorlagen (z. B. „Dolivine (Hand Mining)“ → „Dolivine“), führt doppelte Katalogeinträge zusammen und ordnet Carinite, Carinite (Pure), Jaclium und Saldynium den Non-Ship Mineables zu (Einheit Stück). Betrifft alle Organisationen: Katalog, geteilter und privater Bestand, Bedarfe, Projekte, Vorlagen, Papierkorb und Reset-Sicherungen.",
+  "hint_material_cleanup_backup": "Empfehlung: vorher eine vollständige Sicherung erstellen (Panel „Vollständige Sicherung“).",
+  "btn_material_cleanup_preview": "Vorschau erstellen",
+  "btn_material_cleanup_run": "Bereinigung ausführen",
+  "label_material_cleanup_done": "Zuletzt ausgeführt: {date} ({user})",
+  "label_material_cleanup_never": "Noch nicht ausgeführt.",
+  "msg_material_cleanup_reading": "Daten werden gelesen …",
+  "msg_material_cleanup_read_failed": "Die Daten konnten nicht vollständig gelesen werden – es wurde nichts verändert.",
+  "msg_material_cleanup_nothing": "Alles bereits einheitlich – nichts zu ändern.",
+  "label_mc_catalog": "Katalog-Änderungen",
+  "label_mc_entries": "Bestandseinträge umbenannt (geteilt und privat)",
+  "label_mc_needs": "Bedarfe umbenannt",
+  "label_mc_projects": "Projekt-Ressourcen umbenannt",
+  "label_mc_templates": "Vorlagen-Materialien umbenannt",
+  "label_mc_other": "Papierkorb / Reset-Sicherungen umbenannt",
+  "label_mc_unit": "Einheit SCU → Stück",
+  "label_mc_merged": "Doppelte Materialien in Projekten/Vorlagen zusammengeführt",
+  "label_mc_records": "Betroffene Datensätze",
+  "tooltip_material_cleanup_confirm": "Erneut klicken: Bereinigung jetzt ausführen",
+  "msg_material_cleanup_failed": "Fehler beim Schreiben – Bereinigung abgebrochen. Bitte ggf. die vorherige Vollsicherung wiederherstellen.",
+  "msg_material_cleanup_done": "Bereinigung abgeschlossen. Die Seite wird neu geladen …",
   "panel_full_backup": "Vollständige Sicherung (alle Organisationen)",
   "hint_full_backup": "Sichert die gesamte Anwendung in einer Datei: alle Organisationen, Benutzer und Zugangsdaten, geteilte und private Bestände, Projekte, Sammelobjekte, Bedarfe, Kataloge, Vorlagen, Einstellungen, Protokolle und Papierkorb — jeden gespeicherten Datensatz.",
   "label_full_backup_encrypt": "Datei mit Sicherungs-Passwort verschlüsseln (empfohlen)",
@@ -4932,6 +4970,28 @@ const I18N = {
   "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
   "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
   "capture_assign_toggle": "Suggest matching projects after adding",
+  "panel_material_cleanup": "Unify material names",
+  "hint_material_cleanup": "Unifies the names of hand and ROC mining materials to the short names used in templates (e.g. \"Dolivine (Hand Mining)\" → \"Dolivine\"), merges duplicate catalog entries and assigns Carinite, Carinite (Pure), Jaclium and Saldynium to Non-Ship Mineables (unit: pieces). Affects all organizations: catalog, shared and private stock, needs, projects, templates, trash and reset backups.",
+  "hint_material_cleanup_backup": "Recommended: create a full backup first (\"Full backup\" panel).",
+  "btn_material_cleanup_preview": "Create preview",
+  "btn_material_cleanup_run": "Run cleanup",
+  "label_material_cleanup_done": "Last run: {date} ({user})",
+  "label_material_cleanup_never": "Not run yet.",
+  "msg_material_cleanup_reading": "Reading data …",
+  "msg_material_cleanup_read_failed": "The data could not be read completely – nothing was changed.",
+  "msg_material_cleanup_nothing": "Everything is already consistent – nothing to change.",
+  "label_mc_catalog": "Catalog changes",
+  "label_mc_entries": "Stock entries renamed (shared and private)",
+  "label_mc_needs": "Needs renamed",
+  "label_mc_projects": "Project resources renamed",
+  "label_mc_templates": "Template materials renamed",
+  "label_mc_other": "Trash / reset backups renamed",
+  "label_mc_unit": "Unit SCU → pieces",
+  "label_mc_merged": "Duplicate materials merged in projects/templates",
+  "label_mc_records": "Affected records",
+  "tooltip_material_cleanup_confirm": "Click again: run cleanup now",
+  "msg_material_cleanup_failed": "Write error – cleanup aborted. Restore the previous full backup if necessary.",
+  "msg_material_cleanup_done": "Cleanup complete. Reloading the page …",
   "panel_full_backup": "Full backup (all organizations)",
   "hint_full_backup": "Backs up the entire application into one file: all organizations, users and credentials, shared and private stock, projects, collectibles, needs, catalogs, templates, settings, logs and trash — every stored record.",
   "label_full_backup_encrypt": "Encrypt file with a backup password (recommended)",
@@ -5844,6 +5904,28 @@ const I18N = {
   "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
   "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
   "capture_assign_toggle": "Proposer les projets correspondants après l'ajout",
+  "panel_material_cleanup": "Uniformiser les noms de matériaux",
+  "hint_material_cleanup": "Uniformise les noms des matériaux de minage manuel et ROC sur les noms courts des modèles (p. ex. « Dolivine (Hand Mining) » → « Dolivine »), fusionne les doublons du catalogue et classe Carinite, Carinite (Pure), Jaclium et Saldynium dans Non-Ship Mineables (unité : pièces). Concerne toutes les organisations : catalogue, stocks partagés et privés, besoins, projets, modèles, corbeille et sauvegardes de réinitialisation.",
+  "hint_material_cleanup_backup": "Recommandé : créer d'abord une sauvegarde complète (panneau « Sauvegarde complète »).",
+  "btn_material_cleanup_preview": "Créer un aperçu",
+  "btn_material_cleanup_run": "Lancer le nettoyage",
+  "label_material_cleanup_done": "Dernière exécution : {date} ({user})",
+  "label_material_cleanup_never": "Pas encore exécuté.",
+  "msg_material_cleanup_reading": "Lecture des données …",
+  "msg_material_cleanup_read_failed": "Les données n'ont pas pu être lues entièrement – rien n'a été modifié.",
+  "msg_material_cleanup_nothing": "Tout est déjà uniforme – rien à modifier.",
+  "label_mc_catalog": "Modifications du catalogue",
+  "label_mc_entries": "Entrées de stock renommées (partagées et privées)",
+  "label_mc_needs": "Besoins renommés",
+  "label_mc_projects": "Ressources de projet renommées",
+  "label_mc_templates": "Matériaux de modèles renommés",
+  "label_mc_other": "Corbeille / sauvegardes renommées",
+  "label_mc_unit": "Unité SCU → pièces",
+  "label_mc_merged": "Doublons fusionnés dans projets/modèles",
+  "label_mc_records": "Enregistrements concernés",
+  "tooltip_material_cleanup_confirm": "Cliquer à nouveau : lancer le nettoyage",
+  "msg_material_cleanup_failed": "Erreur d'écriture – nettoyage interrompu. Restaurez si nécessaire la sauvegarde complète précédente.",
+  "msg_material_cleanup_done": "Nettoyage terminé. Rechargement de la page …",
   "panel_full_backup": "Sauvegarde complète (toutes les organisations)",
   "hint_full_backup": "Sauvegarde toute l'application dans un seul fichier : organisations, utilisateurs et accès, stocks partagés et privés, projets, objets de collection, besoins, catalogues, modèles, paramètres, journaux et corbeille — chaque enregistrement.",
   "label_full_backup_encrypt": "Chiffrer le fichier avec un mot de passe de sauvegarde (recommandé)",
@@ -7074,6 +7156,7 @@ async function saveUserEdit(idx){
     document.getElementById('orgManagementPanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('orgResetPanel').style.display = newRole==='owner' ? '' : 'none';
     updateFullBackupVisibility(newRole);
+    updateMaterialCleanupVisibility(newRole);
     document.getElementById('templateManagePanel').style.display = newRole==='owner' ? '' : 'none';
     document.getElementById('templateImportPanel').style.display = newRole==='owner' ? '' : 'none';
     if(newRole==='owner'){ renderTemplateManagePanel('rezepte'); renderTemplateManagePanel('wikelo'); }
@@ -9242,6 +9325,7 @@ function completeLogin(user){
   renderOrgInfoDisplay();
   document.getElementById('orgExportPanel').style.display = isOrgAdminOrAbove ? '' : 'none';
   updateFullBackupVisibility(user.role); // ab v0.139, nur owner
+  updateMaterialCleanupVisibility(user.role); // ab v0.140, nur owner
   // Die Wiederherstellung (im Unterschied zum reinen Export) ist deutlich
   // risikoreicher -- ersetzt bestehende Daten vollstaendig und
   // unwiderruflich. Ab 12. August 2026 zunaechst bewusst nur fuer owner
@@ -9743,19 +9827,23 @@ let MATERIALS = [
   {category:'Ship Mineables', name:'Silicon'},
   {category:'Ship Mineables', name:'Quartz'},
   {category:'Ship Mineables', name:'Corundum'},
-  {category:'Ship Mineables', name:'Carinite'},
-  {category:'Ship Mineables', name:'Saldynium'},
-  {category:'Ship Mineables', name:'Jaclium'},
-  {category:'Ship Mineables', name:'Carinite (Pure)'},
   {category:'Ship Mineables', name:'Tin'},
   {category:'Ship Mineables', name:'Pressurized Ice'},
-  {category:'Non-Ship Mineables', name:'Beradom (ROC / ATLS GEO)'},
-  {category:'Non-Ship Mineables', name:'Feynmaline (ROC / ATLS GEO)'},
-  {category:'Non-Ship Mineables', name:'Glacosite (ROC / ATLS GEO)'},
-  {category:'Non-Ship Mineables', name:'Hadanite (Hand Mining)'},
-  {category:'Non-Ship Mineables', name:'Aphorite (Hand Mining)'},
-  {category:'Non-Ship Mineables', name:'Dolivine (Hand Mining)'},
-  {category:'Non-Ship Mineables', name:'Janalite (Hand Mining)'}
+  // Ab v0.140: Kurznamen wie in den Vorlagen/scmdb.net (vorher z. B.
+  // "Dolivine (Hand Mining)"); Carinite, Carinite (Pure), Jaclium und
+  // Saldynium als Non-Ship Mineables (Einheit Stueck); Sadaryx ergaenzt.
+  {category:'Non-Ship Mineables', name:'Beradom'},
+  {category:'Non-Ship Mineables', name:'Feynmaline'},
+  {category:'Non-Ship Mineables', name:'Glacosite'},
+  {category:'Non-Ship Mineables', name:'Hadanite'},
+  {category:'Non-Ship Mineables', name:'Aphorite'},
+  {category:'Non-Ship Mineables', name:'Dolivine'},
+  {category:'Non-Ship Mineables', name:'Janalite'},
+  {category:'Non-Ship Mineables', name:'Sadaryx'},
+  {category:'Non-Ship Mineables', name:'Carinite'},
+  {category:'Non-Ship Mineables', name:'Carinite (Pure)'},
+  {category:'Non-Ship Mineables', name:'Jaclium'},
+  {category:'Non-Ship Mineables', name:'Saldynium'}
 ];
 
 // restrictCategories (optional): Array von Kategorie-Namen — wenn gesetzt,
@@ -14233,11 +14321,16 @@ function allProjectTemplates(){
 // Material-Dropdowns beim Anwenden einer Vorlage korrekt vorausgewählt
 // sind, statt leer zu bleiben, nur weil das Material dort noch nicht
 // existierte.
+// Ab v0.140: Fehlende Materialien landen in "Sonstiges" statt in der
+// Kategorie der Vorlage (bisher entstanden so z. B. "Dolivine" unter
+// "Schiffsgeschuetze"). Namen mit Zusatz wie "(Hand Mining)" werden auf
+// den Kurznamen abgebildet, damit keine Doppelungen entstehen.
 async function ensureMaterialsExist(names, fallbackCategory){
   let added = false;
-  names.forEach(name=>{
+  names.forEach(rawName=>{
+    const name = canonicalMaterialName(rawName);
     if(!MATERIALS.some(m=>m.name===name)){
-      MATERIALS.push({category: fallbackCategory || 'Sonstiges', name, minStock: null});
+      MATERIALS.push({category: 'Sonstiges', name, minStock: null});
       added = true;
     }
   });
@@ -14438,11 +14531,12 @@ document.getElementById('btnTemplateImportConfirm').addEventListener('click', as
     const statusEl = document.getElementById('templateImportStatus');
     setStatusMsg(statusEl, t('msg_saving'), false);
     await backupProjectTemplatesBeforeImport();
+    const keptIds = carryOverTemplateIds(parsed, projectTemplates); // ab v0.140
     projectTemplates = parsed;
     projectTemplatesImportedAt = new Date().toISOString();
     projectTemplatesVersionLabel = versionLabel;
     await saveProjectTemplates();
-    await logAction('Projekt-Vorlagen importiert', `${parsed.length} Vorlagen${versionLabel ? ' ('+versionLabel+')' : ''} (globale Liste, vorherige Version gesichert)`);
+    await logAction('Projekt-Vorlagen importiert', `${parsed.length} Vorlagen${versionLabel ? ' ('+versionLabel+')' : ''} (globale Liste, vorherige Version gesichert, ${keptIds} bisherige IDs übernommen)`);
 
     setStatusMsg(statusEl, t('msg_templates_imported').replace('{count}', parsed.length), false);
     renderTemplateCount();
@@ -14454,11 +14548,12 @@ document.getElementById('btnTemplateImportConfirm').addEventListener('click', as
     const statusEl = document.getElementById('wikeloImportStatus');
     setStatusMsg(statusEl, t('msg_saving'), false);
     await backupWikeloTemplatesBeforeImport();
+    const keptWikeloIds = carryOverTemplateIds(parsed, wikeloTemplates); // ab v0.140
     wikeloTemplates = parsed;
     wikeloTemplatesImportedAt = new Date().toISOString();
     wikeloTemplatesVersionLabel = versionLabel;
     await saveWikeloTemplates();
-    await logAction('Wikelo-Handelsangebote importiert', `${parsed.length} Angebote${versionLabel ? ' ('+versionLabel+')' : ''} (globale Liste, vorherige Version gesichert)`);
+    await logAction('Wikelo-Handelsangebote importiert', `${parsed.length} Angebote${versionLabel ? ' ('+versionLabel+')' : ''} (globale Liste, vorherige Version gesichert, ${keptWikeloIds} bisherige IDs übernommen)`);
 
     setStatusMsg(statusEl, t('msg_wikelo_imported').replace('{count}', parsed.length), false);
     renderWikeloCount();
@@ -20219,6 +20314,297 @@ async function performFullRestore(){
   setStatusMsg(statusEl, t('msg_full_restore_done'), false);
   // Der gesamte Datenstand (inkl. Benutzer) hat sich geaendert -- neu laden.
   setTimeout(()=>{ location.reload(); }, 3000);
+}
+
+// ============================================================
+// Einheitliche Materialnamen (ab 1. November 2026, v0.140)
+// ------------------------------------------------------------
+// Vorlagen (und scmdb.net) verwenden Kurznamen wie "Dolivine", Katalog
+// und Bestand bisher "Dolivine (Hand Mining)" bzw. "Beradom (ROC / ATLS
+// GEO)". Dadurch zaehlte erfasster Bestand nicht fuer Projekte aus
+// Vorlagen, und beim Anwenden von Vorlagen entstanden doppelte
+// Katalogeintraege in fachfremden Kategorien. Nutzerentscheidung:
+// einheitlich Kurznamen. Zusaetzlich sind Carinite, Carinite (Pure),
+// Jaclium und Saldynium Non-Ship Mineables (Einheit Stueck).
+// ============================================================
+const MATERIAL_NAME_SUFFIX_RE = /^(.*\S)\s*\((?:Hand Mining|ROC \/ ATLS GEO|ROC\/ATLS GEO|Ore)\)$/i;
+const FORCED_NON_SHIP_MATERIALS = ['Carinite', 'Carinite (Pure)', 'Jaclium', 'Saldynium'];
+const MATERIAL_CLEANUP_META_KEY = 'material-cleanup-meta';
+
+function canonicalMaterialName(name){
+  if(typeof name !== 'string') return name;
+  const clean = name.replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+  const m = MATERIAL_NAME_SUFFIX_RE.exec(clean);
+  return m ? m[1].trim() : clean;
+}
+function isRenamedMaterialName(name){
+  return typeof name === 'string' && canonicalMaterialName(name) !== name;
+}
+
+// Baut den bereinigten Katalog. Liefert { list, changes[] }.
+function buildCleanMaterialCatalog(list){
+  const nonShipTargets = new Set(FORCED_NON_SHIP_MATERIALS);
+  list.forEach(m=>{ if(m && isRenamedMaterialName(m.name)) nonShipTargets.add(canonicalMaterialName(m.name)); });
+  list.forEach(m=>{ if(m && m.category === 'Non-Ship Mineables') nonShipTargets.add(canonicalMaterialName(m.name)); });
+  const out = [];
+  const byName = new Map();
+  const changes = [];
+  list.forEach(m=>{
+    if(!m || typeof m.name !== 'string') return;
+    const name = canonicalMaterialName(m.name);
+    const category = nonShipTargets.has(name) ? 'Non-Ship Mineables' : m.category;
+    const existing = byName.get(name);
+    if(existing){
+      if(existing.minStock == null && m.minStock != null) existing.minStock = m.minStock;
+      changes.push({ type: 'merge', from: `${m.name} [${m.category}]`, to: name });
+      return;
+    }
+    const entry = { ...m, name, category };
+    if(name !== m.name) changes.push({ type: 'rename', from: m.name, to: name });
+    if(category !== m.category) changes.push({ type: 'category', from: `${name}: ${m.category}`, to: category });
+    byName.set(name, entry);
+    out.push(entry);
+  });
+  return { list: out, changes, nonShipTargets };
+}
+
+// Ersetzt Materialnamen rekursiv in allen Feldern "material" (Bestand,
+// Bedarfe, Projekt-Ressourcen, Papierkorb, Reset-Sicherungen) und setzt
+// bei Materialien der Zielliste die Einheit SCU -> Stueck.
+function cleanupMaterialFields(node, nonShip, stats){
+  if(Array.isArray(node)){
+    for(let i=0;i<node.length;i++){
+      // Projekt-Ressourcen aelterer Projekte koennen reine Strings sein
+      if(typeof node[i] === 'string' && stats.stringArrayContext){
+        const c = canonicalMaterialName(node[i]);
+        if(c !== node[i]){ node[i] = c; stats.renamed++; }
+      } else {
+        cleanupMaterialFields(node[i], nonShip, stats);
+      }
+    }
+    return;
+  }
+  if(!node || typeof node !== 'object') return;
+  if(typeof node.material === 'string'){
+    const c = canonicalMaterialName(node.material);
+    if(c !== node.material){ node.material = c; stats.renamed++; }
+    if(nonShip.has(node.material) && node.einheit === 'SCU'){ node.einheit = 'Stück'; stats.unit++; }
+  }
+  for(const k of Object.keys(node)){
+    const v = node[k];
+    if(v && typeof v === 'object'){
+      const prev = stats.stringArrayContext;
+      stats.stringArrayContext = (k === 'resources');
+      cleanupMaterialFields(v, nonShip, stats);
+      stats.stringArrayContext = prev;
+    }
+  }
+}
+function dedupeResourceList(arr, nameField, stats){
+  const seen = new Map();
+  const out = [];
+  arr.forEach(r=>{
+    const name = typeof r === 'string' ? r : (r && r[nameField]);
+    if(name == null){ out.push(r); return; }
+    if(seen.has(name)){
+      const first = seen.get(name);
+      if(typeof first === 'object' && typeof r === 'object'){
+        const qa = first.menge, qb = r.menge;
+        if(qa != null && qb != null) first.menge = Math.round((qa + qb) * 1000) / 1000;
+        else if(qa == null && qb != null) first.menge = qb;
+      }
+      stats.merged++;
+      return;
+    }
+    seen.set(name, r);
+    out.push(r);
+  });
+  return out;
+}
+
+// Berechnet alle Aenderungen ueber saemtliche geteilten Datensaetze.
+function computeMaterialCleanup(records){
+  const byKey = new Map(records.map(r=>[r.key, r.value]));
+  const result = { updates: [], catalogChanges: [], stats: { entries:0, needs:0, projects:0, templates:0, other:0, unit:0, merged:0 } };
+  const parse = v=>{ try{ return typeof v === 'string' ? JSON.parse(v) : v; }catch(e){ return undefined; } };
+  const catRaw = parse(byKey.get(MATERIALS_KEY));
+  const catList = Array.isArray(catRaw) ? catRaw : MATERIALS;
+  const cat = buildCleanMaterialCatalog(catList);
+  result.catalogChanges = cat.changes;
+  if(cat.changes.length) result.updates.push({ key: MATERIALS_KEY, value: JSON.stringify(cat.list) });
+  const nonShip = cat.nonShipTargets;
+
+  const family = key=>{
+    const base = key.split('__')[0];
+    if(['entries','private-entries'].includes(base)) return 'entries';
+    if(base === 'needs') return 'needs';
+    if(['projects','private-projects'].includes(base)) return 'projects';
+    if(['trash-entries','private-reset-backups'].includes(base)) return 'other';
+    if(['project-templates','wikelo-templates'].includes(key)) return 'templates';
+    return null;
+  };
+  for(const [key, value] of byKey){
+    const fam = family(key);
+    if(!fam) continue;
+    const data = parse(value);
+    if(data === undefined || data === null) continue;
+    const before = JSON.stringify(data);
+    const stats = { renamed:0, unit:0, merged:0, stringArrayContext:false };
+    if(fam === 'templates'){
+      const list = Array.isArray(data) ? data : (data.templates || []);
+      list.forEach(tpl=>{
+        if(!Array.isArray(tpl.materials)) return;
+        tpl.materials.forEach(m=>{
+          if(m && typeof m === 'object' && typeof m.name === 'string'){
+            const c = canonicalMaterialName(m.name);
+            if(c !== m.name){ m.name = c; stats.renamed++; }
+          } 
+        });
+        tpl.materials = tpl.materials.map(m=> typeof m === 'string' ? canonicalMaterialName(m) : m);
+        tpl.materials = dedupeResourceList(tpl.materials, 'name', stats);
+      });
+    } else {
+      cleanupMaterialFields(data, nonShip, stats);
+      if(fam === 'projects' && Array.isArray(data)){
+        data.forEach(p=>{ if(Array.isArray(p.resources)) p.resources = dedupeResourceList(p.resources, 'material', stats); });
+      }
+    }
+    const after = JSON.stringify(data);
+    if(after !== before){
+      result.updates.push({ key, value: after });
+      result.stats[fam] += stats.renamed;
+      result.stats.unit += stats.unit;
+      result.stats.merged += stats.merged;
+    }
+  }
+  return result;
+}
+
+let materialCleanupPlan = null;
+
+async function loadMaterialCleanupInfo(){
+  const el = document.getElementById('materialCleanupInfo');
+  if(!el) return;
+  try{
+    const res = await window.storage.get(MATERIAL_CLEANUP_META_KEY, true);
+    const meta = res && res.value ? JSON.parse(res.value) : null;
+    el.textContent = meta && meta.doneAt
+      ? t('label_material_cleanup_done').replace('{date}', fbFormatDate(meta.doneAt)).replace('{user}', meta.doneBy || '–')
+      : t('label_material_cleanup_never');
+  }catch(e){ el.textContent = ''; }
+}
+function updateMaterialCleanupVisibility(role){
+  const panel = document.getElementById('materialCleanupPanel');
+  if(!panel) return;
+  panel.style.display = role === 'owner' ? '' : 'none';
+  if(role === 'owner') loadMaterialCleanupInfo();
+}
+
+document.getElementById('btnMaterialCleanupPreview').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('materialCleanupStatus');
+  if(!currentUser || currentUser.role !== 'owner') return;
+  setStatusMsg(statusEl, t('msg_material_cleanup_reading'), false);
+  document.getElementById('materialCleanupPreview').style.display = 'none';
+  try{
+    const records = await fetchAllSharedRecords();
+    materialCleanupPlan = computeMaterialCleanup(records);
+  }catch(e){
+    materialCleanupPlan = null;
+    setStatusMsg(statusEl, t('msg_material_cleanup_read_failed'), true);
+    return;
+  }
+  const p = materialCleanupPlan;
+  if(p.updates.length === 0){
+    setStatusMsg(statusEl, t('msg_material_cleanup_nothing'), false);
+    return;
+  }
+  const s = p.stats;
+  const rows = [
+    [t('label_mc_catalog'), String(p.catalogChanges.length)],
+    [t('label_mc_entries'), String(s.entries)],
+    [t('label_mc_needs'), String(s.needs)],
+    [t('label_mc_projects'), String(s.projects)],
+    [t('label_mc_templates'), String(s.templates)],
+    [t('label_mc_other'), String(s.other)],
+    [t('label_mc_unit'), String(s.unit)],
+    [t('label_mc_merged'), String(s.merged)],
+    [t('label_mc_records'), String(p.updates.length)]
+  ];
+  const typeLabel = { rename: '→', merge: '⇒', category: '⇢' };
+  const details = p.catalogChanges.map(c=>`<div style="font-family:'Share Tech Mono', monospace;font-size:12px;color:var(--ink-soft);">${escapeHtml(c.from)} ${typeLabel[c.type]} ${escapeHtml(c.to)}</div>`).join('');
+  document.getElementById('materialCleanupSummary').innerHTML =
+    rows.map(([k,v])=>`<div class="fb-sum-row"><span>${escapeHtml(k)}</span><strong>${escapeHtml(v)}</strong></div>`).join('')
+    + (details ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--panel-border);">${details}</div>` : '');
+  document.getElementById('materialCleanupPreview').style.display = '';
+  setStatusMsg(statusEl, '', false);
+});
+
+document.getElementById('btnMaterialCleanupRun').addEventListener('click', (e)=>{
+  if(!materialCleanupPlan) return;
+  armConfirm(e.currentTarget, performMaterialCleanup, t('tooltip_material_cleanup_confirm'));
+});
+
+async function performMaterialCleanup(){
+  const statusEl = document.getElementById('materialCleanupStatus');
+  const btn = document.getElementById('btnMaterialCleanupRun');
+  if(!currentUser || currentUser.role !== 'owner' || !materialCleanupPlan) return;
+  btn.disabled = true;
+  // Unmittelbar vor dem Schreiben frisch lesen und neu berechnen, damit
+  // zwischenzeitliche Aenderungen anderer Mitglieder nicht verloren gehen.
+  let plan;
+  try{
+    plan = computeMaterialCleanup(await fetchAllSharedRecords());
+  }catch(e){
+    setStatusMsg(statusEl, t('msg_material_cleanup_read_failed'), true);
+    btn.disabled = false;
+    return;
+  }
+  try{
+    const CH = 100;
+    for(let i=0;i<plan.updates.length;i+=CH){
+      const now = new Date().toISOString();
+      const chunk = plan.updates.slice(i, i+CH).map(u=>({ key: u.key, value: u.value, shared: true, owner_id: SHARED_OWNER, updated_at: now }));
+      const res = await supabaseClient.from('app_storage').upsert(chunk, { onConflict: 'key,owner_id' });
+      if(res.error) throw new Error(res.error.message || 'write failed');
+    }
+  }catch(e){
+    setStatusMsg(statusEl, t('msg_material_cleanup_failed'), true);
+    btn.disabled = false;
+    return;
+  }
+  try{ await window.storage.set(MATERIAL_CLEANUP_META_KEY, JSON.stringify({ doneAt: new Date().toISOString(), doneBy: currentUser.username }), true); }catch(e){}
+  const s = plan.stats;
+  await logAction('Materialnamen vereinheitlicht', `Katalog: ${plan.catalogChanges.length} Änderungen, Bestand: ${s.entries}, Bedarfe: ${s.needs}, Projekte: ${s.projects}, Vorlagen: ${s.templates}, Sonstige: ${s.other}, Einheit SCU→Stück: ${s.unit}, zusammengeführt: ${s.merged}`);
+  setStatusMsg(statusEl, t('msg_material_cleanup_done'), false);
+  materialCleanupPlan = null;
+  setTimeout(()=>{ location.reload(); }, 2500);
+}
+
+// Normalisierter Vergleich von Vorlagennamen (Gross-/Kleinschreibung,
+// geschuetzte Leerzeichen, Warnsymbol, typografische Anfuehrungszeichen).
+function normTemplateName(n){
+  return String(n || '').replace(/ /g, ' ').replace(/⚠/g, '')
+    .replace(/[“”„]/g, '"').replace(/[‘’]/g, "'")
+    .replace(/\s+/g, ' ').trim().toLowerCase();
+}
+// Ab v0.140: Beim Import behalten Vorlagen mit gleichem Namen ihre
+// bisherige ID -- sonst verloeren Projekte (templateId) bei jedem Import
+// ihre Verknuepfung. Liefert die Anzahl uebernommener IDs.
+function carryOverTemplateIds(parsed, oldList){
+  const pool = new Map();
+  (oldList || []).forEach(o=>{
+    if(!o || !o.id) return;
+    const k = normTemplateName(o.name);
+    if(!pool.has(k)) pool.set(k, []);
+    pool.get(k).push(o.id);
+  });
+  let kept = 0;
+  parsed.forEach(tpl=>{
+    const ids = pool.get(normTemplateName(tpl.name));
+    if(ids && ids.length){ tpl.id = ids.shift(); kept++; }
+    else if(!tpl.id){ tpl.id = templateUid(); }
+  });
+  return kept;
 }
 
 function armConfirm(btn, onConfirm, confirmTitle){
