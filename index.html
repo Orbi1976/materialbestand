@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.145 -->
+<!-- Version: 0.146 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -616,7 +616,7 @@ a.btn-ghost{display:inline-flex;align-items:center;text-decoration:none;font-fam
 .filters label.flag-filter.is-active .flag-x{display:inline;}
 .bulk-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;margin:14px 0 10px;padding:8px 12px;background:rgba(0,216,255,0.05);border:1px solid var(--panel-border);border-left:3px solid var(--cyan);border-radius:var(--radius);}
 .bulk-count{font-family:'Share Tech Mono', monospace;font-size:13px;color:var(--ink);}
-.bulk-actions{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto;}
+.bulk-actions{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto;justify-content:flex-end;}
 .bulk-clear{opacity:0.85;}
 .btn-ghost.bulk-danger{color:#FF3B5C;border-color:rgba(255,59,92,0.55);}
 .btn-ghost.bulk-danger:hover{background:rgba(255,59,92,0.10);}
@@ -1114,6 +1114,7 @@ tbody tr:hover{background:rgba(0,216,255,0.05);}
 .sum-total{color:var(--cyan);}
 
 .actions-cell{display:flex;gap:4px;}
+.actions-cell .btn-icon{white-space:nowrap;}
 .edit-input{width:100%;padding:6px 7px;font-size:13px;border:1px solid var(--cyan);border-radius:2px;background:rgba(0,10,16,0.7);color:var(--ink);font-family:'Rajdhani', sans-serif;font-weight:600;}
 
 .status-msg{
@@ -2772,9 +2773,11 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div id="bulkActionsBar" class="bulk-bar" style="display:none;">
       <span id="bulkActionsCount" class="bulk-count"></span>
       <div class="bulk-actions">
+        <button class="btn-ghost btn-compact" id="btnBulkMoveEntriesToPrivate">⇤ <span data-i18n="btn_bulk_move_to_private">In privaten Bestand verschieben</span></button>
+        <button class="btn-ghost btn-compact" id="btnBulkUnlinkEntries" data-i18n-title="tooltip_bulk_unlink_shared" title="">🔓 <span data-i18n="btn_bulk_unlink">Projekt-Zuordnung lösen</span></button>
         <button class="btn-ghost btn-compact bulk-danger" id="btnBulkDeleteEntries" title="Löschen" data-i18n-title="btn_delete">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+        <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="entries" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
       </div>
-      <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="entries" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
     </div>
     <div id="tableContainer"></div>
   </div>
@@ -3009,8 +3012,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="privBestandBulkActionsCount" class="bulk-count"></span>
       <div class="bulk-actions">
         <button class="btn-ghost btn-compact" id="btnBulkTransferPrivEntries">⇥ <span data-i18n="btn_transfer_selected">Ausgewählte in geteilten Bestand übertragen</span></button>
+        <button class="btn-ghost btn-compact" id="btnBulkReleasePrivEntries">🔓 <span data-i18n="btn_bulk_unlink">Projekt-Zuordnung lösen</span></button>
+        <button class="btn-ghost btn-compact bulk-danger" id="btnBulkDeletePrivEntries" title="Löschen" data-i18n-title="btn_delete">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+        <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="privEntries" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
       </div>
-      <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="privEntries" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
     </div>
     <div id="privateTableContainer"></div>
   </div>
@@ -3027,9 +3032,11 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div id="privProjectBulkActionsBar" class="bulk-bar" style="display:none;">
       <span id="privProjectBulkActionsCount" class="bulk-count"></span>
       <div class="bulk-actions">
+        <button class="btn-ghost btn-compact" id="btnBulkCompletePrivProjects">✓ <span data-i18n="btn_bulk_complete">Abschließen</span></button>
+        <button class="btn-ghost btn-compact" id="btnBulkReopenPrivProjects">↺ <span data-i18n="btn_bulk_reopen">Wiedereröffnen</span></button>
         <button class="btn-ghost btn-compact bulk-danger" id="btnBulkDeletePrivProjects" title="Löschen" data-i18n-title="btn_delete">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+        <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="privProjects" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
       </div>
-      <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="privProjects" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
     </div>
     <div id="privProjectTableContainer" style="margin-top:14px;"></div>
   </div>
@@ -3046,9 +3053,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div id="privCollectibleBulkActionsBar" class="bulk-bar" style="display:none;">
       <span id="privCollectibleBulkActionsCount" class="bulk-count"></span>
       <div class="bulk-actions">
+        <button class="btn-ghost btn-compact" id="btnBulkTransferPrivCollectibles">⇥ <span data-i18n="btn_bulk_transfer_to_shared">In geteilten Bestand übertragen</span></button>
         <button class="btn-ghost btn-compact bulk-danger" id="btnBulkDeletePrivCollectibles" title="Löschen" data-i18n-title="btn_delete">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+        <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="privCollectibles" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
       </div>
-      <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="privCollectibles" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
     </div>
     <div id="privateCollectibleTableContainer" style="margin-top:14px;"></div>
 
@@ -3145,8 +3153,8 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
       <span id="needBulkActionsCount" class="bulk-count"></span>
       <div class="bulk-actions">
         <button class="btn-ghost btn-compact bulk-danger" id="btnBulkDeleteNeeds" title="Löschen" data-i18n-title="btn_delete">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+        <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="needs" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
       </div>
-      <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="needs" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
     </div>
     <div id="needTableContainer" style="margin-top:14px;"></div>
   </div>
@@ -3207,9 +3215,11 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div id="projectBulkActionsBar" class="bulk-bar" style="display:none;">
       <span id="projectBulkActionsCount" class="bulk-count"></span>
       <div class="bulk-actions">
+        <button class="btn-ghost btn-compact" id="btnBulkCompleteProjects">✓ <span data-i18n="btn_bulk_complete">Abschließen</span></button>
+        <button class="btn-ghost btn-compact" id="btnBulkReopenProjects">↺ <span data-i18n="btn_bulk_reopen">Wiedereröffnen</span></button>
         <button class="btn-ghost btn-compact bulk-danger" id="btnBulkDeleteProjects" title="Löschen" data-i18n-title="btn_delete">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+        <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="projects" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
       </div>
-      <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="projects" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
     </div>
     <div id="projectTableContainer" style="margin-top:14px;"></div>
   </div>
@@ -3261,9 +3271,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div id="collectibleBulkActionsBar" class="bulk-bar" style="display:none;">
       <span id="collectibleBulkActionsCount" class="bulk-count"></span>
       <div class="bulk-actions">
+        <button class="btn-ghost btn-compact" id="btnBulkMoveCollectiblesToPrivate">⇤ <span data-i18n="btn_bulk_move_to_private">In privaten Bestand verschieben</span></button>
         <button class="btn-ghost btn-compact bulk-danger" id="btnBulkDeleteCollectibles" title="Löschen" data-i18n-title="btn_delete">🗑 <span data-i18n="btn_delete_selected">Ausgewählte löschen</span></button>
+        <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="collectibles" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
       </div>
-      <button type="button" class="btn-ghost btn-compact bulk-clear" data-bulk-clear="collectibles" data-i18n="btn_auswahl_aufheben">Auswahl aufheben</button>
     </div>
     <div id="collectibleTableContainer" style="margin-top:14px;"></div>
 
@@ -4226,6 +4237,19 @@ const I18N = {
   "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
   "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
   "capture_assign_toggle": "Nach dem Eintragen passende Projekte vorschlagen",
+  "btn_bulk_move_to_private": "In privaten Bestand verschieben",
+  "btn_bulk_unlink": "Projekt-Zuordnung lösen",
+  "btn_bulk_transfer_to_shared": "In geteilten Bestand übertragen",
+  "btn_bulk_complete": "Abschließen",
+  "btn_bulk_reopen": "Wiedereröffnen",
+  "tooltip_bulk_unlink_shared": "Löst die Projekt-Zuordnung der ausgewählten Einträge; sie werden wie beim einzelnen Lösen als „vor Zuweisung prüfen“ markiert.",
+  "tooltip_unlink_row_shared": "Projekt-Zuordnung lösen — der Eintrag wird als „vor Zuweisung prüfen“ markiert",
+  "tooltip_transfer_coll_to_private": "In privaten Bestand des Besitzers verschieben — erweitert passenden Eintrag oder legt neuen an",
+  "msg_bulk_moved_private": "{count} Position(en) in den privaten Bestand verschoben.",
+  "msg_bulk_unlinked": "Projekt-Zuordnung bei {count} Position(en) gelöst.",
+  "msg_bulk_completed": "{count} Projekt(e) abgeschlossen.",
+  "msg_bulk_reopened": "{count} Projekt(e) wiedereröffnet.",
+  "msg_bulk_skipped": " {count} übersprungen (nicht zutreffend oder keine Berechtigung).",
   "noun_eintraege": "Einträgen",
   "noun_bedarfe": "Bedarfen",
   "noun_projekte": "Projekten",
@@ -5226,6 +5250,19 @@ const I18N = {
   "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
   "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
   "capture_assign_toggle": "Suggest matching projects after adding",
+  "btn_bulk_move_to_private": "Move to private stock",
+  "btn_bulk_unlink": "Remove project assignment",
+  "btn_bulk_transfer_to_shared": "Transfer to shared stock",
+  "btn_bulk_complete": "Complete",
+  "btn_bulk_reopen": "Reopen",
+  "tooltip_bulk_unlink_shared": "Removes the project assignment of the selected entries; like a single unlink, they are flagged for review.",
+  "tooltip_unlink_row_shared": "Remove project assignment — the entry will be flagged for review",
+  "tooltip_transfer_coll_to_private": "Move to the owner's private stock — extends a matching entry or creates a new one",
+  "msg_bulk_moved_private": "{count} item(s) moved to private stock.",
+  "msg_bulk_unlinked": "Project assignment removed for {count} item(s).",
+  "msg_bulk_completed": "{count} project(s) completed.",
+  "msg_bulk_reopened": "{count} project(s) reopened.",
+  "msg_bulk_skipped": " {count} skipped (not applicable or no permission).",
   "noun_eintraege": "entries",
   "noun_bedarfe": "needs",
   "noun_projekte": "projects",
@@ -6226,6 +6263,19 @@ const I18N = {
   "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
   "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
   "capture_assign_toggle": "Proposer les projets correspondants après l'ajout",
+  "btn_bulk_move_to_private": "Déplacer vers le stock privé",
+  "btn_bulk_unlink": "Retirer l'affectation au projet",
+  "btn_bulk_transfer_to_shared": "Transférer vers le stock partagé",
+  "btn_bulk_complete": "Terminer",
+  "btn_bulk_reopen": "Rouvrir",
+  "tooltip_bulk_unlink_shared": "Retire l'affectation au projet des entrées sélectionnées ; comme pour un retrait individuel, elles sont marquées « à vérifier ».",
+  "tooltip_unlink_row_shared": "Retirer l'affectation au projet — l'entrée sera marquée « à vérifier »",
+  "tooltip_transfer_coll_to_private": "Déplacer vers le stock privé du propriétaire — complète une entrée existante ou en crée une nouvelle",
+  "msg_bulk_moved_private": "{count} position(s) déplacée(s) vers le stock privé.",
+  "msg_bulk_unlinked": "Affectation au projet retirée pour {count} position(s).",
+  "msg_bulk_completed": "{count} projet(s) terminé(s).",
+  "msg_bulk_reopened": "{count} projet(s) rouvert(s).",
+  "msg_bulk_skipped": " {count} ignorée(s) (non applicable ou sans autorisation).",
   "noun_eintraege": "entrées",
   "noun_bedarfe": "besoins",
   "noun_projekte": "projets",
@@ -10615,7 +10665,7 @@ function renderCollectibles(){
 
   let html = `<table style="table-layout:fixed;"><thead><tr>
     <th style="width:3%;white-space:normal;"><input type="checkbox" id="selectAllCollectibles"></th>
-    <th style="width:14%;white-space:normal;">${t('col_kategorie')}</th><th style="width:19%;white-space:normal;">${t('label_objekt')}</th><th style="width:10%;white-space:normal;">${t('label_qualitaet_stufe')}</th><th style="width:14%;white-space:normal;">${t('col_lagerort')}</th><th style="width:7%;white-space:normal;">${t('label_anzahl')}</th><th style="width:10%;white-space:normal;">${t('col_besitzer')}</th><th style="width:14%;white-space:normal;">${t('col_projekt')}</th><th style="width:9%;white-space:normal;"></th>
+    <th style="width:14%;white-space:normal;">${t('col_kategorie')}</th><th style="width:14%;white-space:normal;">${t('label_objekt')}</th><th style="width:10%;white-space:normal;">${t('label_qualitaet_stufe')}</th><th style="width:11%;white-space:normal;">${t('col_lagerort')}</th><th style="width:7%;white-space:normal;">${t('label_anzahl')}</th><th style="width:10%;white-space:normal;">${t('col_besitzer')}</th><th style="width:14%;white-space:normal;">${t('col_projekt')}</th><th style="width:17%;white-space:normal;"></th>
   </tr></thead><tbody>`;
 
   sorted.forEach(c=>{
@@ -10648,7 +10698,10 @@ function renderCollectibles(){
         <td data-label="${t('col_projekt')}">${c.projekt ? `<span class="badge project-reserved">📌 ${escapeHtml(c.projekt)}${c.projektTyp==='private' ? ' ('+t('label_privat')+')' : ''}</span>` : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td class="actions-cell">
           ${canManage ? `<button class="btn-icon" data-action="edit-collectible" data-id="${c.id}" title="${t('btn_edit')}">✎</button>
-          <button class="btn-icon danger" data-action="delete-collectible" data-id="${c.id}" title="${t('btn_delete')}">🗑</button>` : ''}
+          <button class="btn-icon" data-action="transfer-coll-to-private" data-id="${c.id}" title="${t('tooltip_transfer_coll_to_private')}">⇤</button>` : ''}
+          ${roleAtLeast(currentUser.role, 'admin') ? `<button class="btn-icon" data-action="assign-coll-to-person" data-id="${c.id}" title="${t('tooltip_assign_to_person')}">👤➜</button>` : ''}
+          ${canManage && c.projekt ? `<button class="btn-icon" data-action="unlink-coll-row" data-id="${c.id}" title="${t('tooltip_unlink_row_shared')}">🔓</button>` : ''}
+          ${canManage ? `<button class="btn-icon danger" data-action="delete-collectible" data-id="${c.id}" title="${t('btn_delete')}">🗑</button>` : ''}
         </td>
       </tr>`;
     }
@@ -10661,6 +10714,48 @@ function renderCollectibles(){
   });
   container.querySelectorAll('[data-action="cancel-collectible"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ editingCollectibleId = null; renderCollectibles(); });
+  });
+  container.querySelectorAll('[data-action="transfer-coll-to-private"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const c = collectibles.find(co=>co.id===btn.dataset.id);
+      if(!c) return;
+      openPartialAssignModal({
+        title: t('modal_partial_assign_title'),
+        text: t('text_partial_transfer_to_private').replace('{material}', c.objekt + (c.tier ? ' ('+c.tier+')' : '')).replace('{lagerort}', c.standort || '–'),
+        fullAmount: c.anzahl,
+        einheit: t('unit_stueck'),
+        onConfirm: async (amount)=>{ await transferCollectibleToPrivate(c.id, amount); }
+      });
+    });
+  });
+  container.querySelectorAll('[data-action="assign-coll-to-person"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const c = collectibles.find(co=>co.id===btn.dataset.id);
+      if(!c) return;
+      const recipients = USERS.filter(u=>u.organizationId===currentUser.organizationId && u.username!==currentUser.username).map(u=>u.username);
+      if(recipients.length === 0){ setStatus(t('val_keine_empfaenger'), true); return; }
+      openPartialAssignModal({
+        title: t('modal_partial_assign_title'),
+        text: t('text_assign_to_person').replace('{material}', c.objekt + (c.tier ? ' ('+c.tier+')' : '')).replace('{lagerort}', c.standort || '–'),
+        fullAmount: c.anzahl,
+        einheit: t('unit_stueck'),
+        recipients,
+        onConfirm: async (amount, recipient)=>{ await assignCollectibleToPerson(c.id, amount, recipient); }
+      });
+    });
+  });
+  container.querySelectorAll('[data-action="unlink-coll-row"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      armConfirm(btn, async ()=>{
+        const c = collectibles.find(co=>co.id===btn.dataset.id);
+        if(!c || !c.projekt || currentUser.role==='viewer') return;
+        const oldProjekt = c.projekt;
+        const ok = await unlinkEntryFromProject(c.id, 'collectible');
+        if(!ok) return;
+        await logAction('Projekt-Zuordnung gelöst', `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''} — ${c.anzahl}x (war: ${oldProjekt})`);
+        renderCollectibles(); renderCollectibleSummary(); updateProjectAvailability(); renderProjects(); scheduleRenderDashboard();
+      });
+    });
   });
   container.querySelectorAll('[data-action="delete-collectible"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -10953,6 +11048,86 @@ document.getElementById('btnAddPrivateCollectible').addEventListener('click', as
   });
 });
 
+// Ab v0.146: geteiltes Sammelobjekt (ganz oder teilweise) in den
+// privaten Bestand des Besitzers verschieben -- Gegenstueck zu
+// transferPrivateCollectible() und analog zu transferEntryToPrivate()
+// bei Materialien (Ziel ist der im Eintrag hinterlegte Besitzer, nicht
+// zwingend die ausfuehrende Person; eine Zuordnung zu einem GETEILTEN
+// Projekt bleibt erhalten).
+function collAmount(amount, full){
+  if(amount==null || !(amount>0) || amount>=full) return full;
+  return Math.max(1, Math.round(amount));
+}
+async function transferCollectibleToPrivate(id, amount){
+  const c = collectibles.find(co=>co.id===id);
+  if(!c) return;
+  const owner = c.besitzer || currentUser.username;
+  const full = c.anzahl;
+  const moveAmount = collAmount(amount, full);
+  const remainder = Math.round((full - moveAmount) * 1000) / 1000;
+  const match = privateCollectibles.find(pc =>
+    pc.owner === owner && pc.objekt === c.objekt && (pc.tier||'') === (c.tier||'') &&
+    (pc.standort||'') === (c.standort||'') && (pc.projekt||'') === (c.projekt||'') &&
+    (!c.projekt || (pc.projektTyp||'shared') === 'shared')
+  );
+  const onBehalf = owner !== currentUser.username ? ` (ausgelöst von ${currentUser.username})` : '';
+  let logDetail;
+  if(match){
+    match.anzahl = Math.round((match.anzahl + moveAmount) * 100) / 100;
+    logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, +${moveAmount}x (neuer Bestand: ${match.anzahl}x)${onBehalf}`;
+  } else {
+    privateCollectibles.push({
+      id: privateCollectibleUid(),
+      kategorie: c.kategorie, objekt: c.objekt, tier: c.tier,
+      anzahl: moveAmount, standort: c.standort,
+      projekt: c.projekt || '', projektTyp: c.projekt ? 'shared' : null,
+      owner
+    });
+    logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, ${moveAmount}x (neuer privater Eintrag)${onBehalf}`;
+  }
+  await savePrivateCollectibles();
+  if(remainder > 0){
+    c.anzahl = remainder;
+    logDetail += ` — Rest ${remainder}x bleibt geteilt`;
+  } else {
+    collectibles = collectibles.filter(co=>co.id!==id);
+  }
+  await saveCollectibles();
+  await logAction('Sammelobjekt in Privatbestand verschoben', logDetail);
+  renderCollectibles(); renderCollectibleSummary(); renderPrivateCollectibles();
+  updateProjectAvailability(); renderProjects(); updatePrivateProjectAvailability(); renderPrivateProjects();
+  scheduleRenderDashboard();
+  setStatus(match ? t('msg_stock_extended_private') : t('msg_transferred_to_private'));
+}
+
+// Ab v0.146: geteiltes Sammelobjekt einer Person zuweisen (nur ab admin)
+// -- analog zu assignEntryToPerson(): landet im privaten Bestand des
+// Empfaengers mit Hinweis "Zugewiesen", Standort bleibt unveraendert.
+async function assignCollectibleToPerson(id, amount, recipient){
+  const c = collectibles.find(co=>co.id===id);
+  if(!c || !recipient || !roleAtLeast(currentUser.role, 'admin')) return;
+  const full = c.anzahl;
+  const assignAmount = collAmount(amount, full);
+  const remainder = Math.round((full - assignAmount) * 1000) / 1000;
+  privateCollectibles.push({
+    id: privateCollectibleUid(),
+    kategorie: c.kategorie, objekt: c.objekt, tier: c.tier,
+    anzahl: assignAmount, standort: c.standort,
+    projekt: '', projektTyp: null, owner: recipient,
+    assignedBy: currentUser.username, assignedAt: new Date().toISOString()
+  });
+  await savePrivateCollectibles();
+  let logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, ${assignAmount}x an ${recipient} zugewiesen`;
+  if(remainder > 0){ c.anzahl = remainder; logDetail += ` — Rest ${remainder}x bleibt geteilt`; }
+  else { collectibles = collectibles.filter(co=>co.id!==id); logDetail += ' (vollständig)'; }
+  await saveCollectibles();
+  await logAction('Person zugewiesen', logDetail);
+  await sendDiscordNotification('zuweisung', `🎁 **Sammelobjekt zugewiesen**: ${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, ${assignAmount}x an ${recipient} — von ${currentUser.username}`);
+  renderCollectibles(); renderCollectibleSummary(); renderPrivateCollectibles();
+  updateProjectAvailability(); renderProjects(); scheduleRenderDashboard();
+  setStatus(t('msg_assigned_to_person').replace('{person}', recipient));
+}
+
 async function transferPrivateCollectible(id){
   const c = privateCollectibles.find(pc=>pc.id===id);
   if(!c) return;
@@ -11093,7 +11268,7 @@ function renderPrivateCollectibles(){
       html += `<tr>
         <td><input type="checkbox" class="priv-collectible-select-cb" data-id="${c.id}" ${selectedPrivCollectibleIds.has(c.id)?'checked':''}></td>
         <td data-label="${t('col_kategorie')}">${escapeHtml(c.kategorie)}</td>
-        <td data-label="${t('col_objekt')}">${escapeHtml(c.objekt)}</td>
+        <td data-label="${t('col_objekt')}">${escapeHtml(c.objekt)}${c.assignedBy ? ` <span class="badge" style="background:rgba(0,229,255,0.15);color:var(--cyan);border:1px solid var(--cyan);font-size:10px;cursor:help;" title="${escapeHtml(t('tooltip_assigned_by').replace('{person}', c.assignedBy).replace('{date}', new Date(c.assignedAt).toLocaleDateString()))}">🎁 ${t('label_zugewiesen')}</span>` : ''}</td>
         <td data-label="${t('col_qualitaet_stufe2')}">${c.tier ? escapeHtml(c.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td data-label="${t('col_lagerort')}"><span style="display:inline-flex;align-items:center;">${c.standort ? locationDot(c.standort)+escapeHtml(c.standort) : '<span style="color:var(--ink-soft);">—</span>'}</span></td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${c.anzahl}</td>
@@ -17049,6 +17224,145 @@ btnBulkDeletePrivProjects.addEventListener('click', ()=>{
   }, confirmTitle);
 });
 
+// ============================================================
+// Ab v0.146: zusaetzliche Sammel-Aktionen (einheitliche Bedienung,
+// Schritt 2). Jede Aktion prueft je Position erneut die Berechtigung
+// und ueberspringt unpassende Positionen (z. B. ohne Projekt-Zuordnung
+// beim Loesen); Transfers erfolgen immer mit der vollen Menge.
+// ============================================================
+function bulkResultMsg(key, done, skipped){
+  let m = t(key).replace('{count}', done);
+  if(skipped > 0) m += t('msg_bulk_skipped').replace('{count}', skipped);
+  return m;
+}
+function setCollStatus(msg){
+  const el = document.getElementById('collectibleStatus');
+  if(el){ setStatusMsg(el, msg, false); setTimeout(()=>{ el.textContent=''; }, 4000); }
+}
+function setPrivCollStatus(msg){
+  const el = document.getElementById('privateCollectibleStatus');
+  if(el){ setStatusMsg(el, msg, false); setTimeout(()=>{ el.textContent=''; }, 4000); }
+}
+
+// Bestand (geteilt): in privaten Bestand verschieben
+const btnBulkMoveEntriesToPrivate = document.getElementById('btnBulkMoveEntriesToPrivate');
+btnBulkMoveEntriesToPrivate.addEventListener('click', ()=>{
+  armConfirm(btnBulkMoveEntriesToPrivate, async ()=>{
+    const ids = [...selectedEntryIds];
+    const ok = entries.filter(e=>selectedEntryIds.has(e.id) && canManageEntry(e)).map(e=>e.id);
+    for(const id of ok) await transferEntryToPrivate(id, null);
+    selectedEntryIds.clear();
+    render(); updateBulkActionsBar();
+    setStatus(bulkResultMsg('msg_bulk_moved_private', ok.length, ids.length - ok.length));
+  });
+});
+
+// Bestand (geteilt): Projekt-Zuordnung loesen (markiert wie die
+// bisherige Einzel-Loesung als "vor Zuweisung pruefen")
+const btnBulkUnlinkEntries = document.getElementById('btnBulkUnlinkEntries');
+btnBulkUnlinkEntries.addEventListener('click', ()=>{
+  armConfirm(btnBulkUnlinkEntries, async ()=>{
+    const sel = entries.filter(e=>selectedEntryIds.has(e.id));
+    const ok = sel.filter(e=>e.projekt && canManageEntry(e));
+    const logs = ok.map(e=>`${e.material}, ${e.menge} ${e.einheit} @ ${e.lagerort} (war: ${e.projekt})`);
+    ok.forEach(e=>{ e.projekt = ''; e.flaggedForReview = true; });
+    if(ok.length) await save();
+    for(const l of logs) await logAction('Projekt-Zuordnung gelöst', l + ' — Sammel-Aktion');
+    selectedEntryIds.clear();
+    render(); updateBulkActionsBar(); updateProjectAvailability(); renderProjects(); renderNeeds(); scheduleRenderDashboard();
+    setStatus(bulkResultMsg('msg_bulk_unlinked', ok.length, sel.length - ok.length));
+  });
+});
+
+// Privatbestand: Projekt-Zuordnung loesen (bleibt im privaten Bestand)
+const btnBulkReleasePrivEntries = document.getElementById('btnBulkReleasePrivEntries');
+btnBulkReleasePrivEntries.addEventListener('click', ()=>{
+  armConfirm(btnBulkReleasePrivEntries, async ()=>{
+    const sel = privateEntries.filter(e=>selectedPrivateEntryIds.has(e.id) && e.owner===currentUser.username);
+    const ok = sel.filter(e=>e.projekt);
+    const logs = ok.map(e=>`${e.material} — zurück in privaten Bestand (war: ${e.projekt})`);
+    ok.forEach(e=>{ e.projekt = ''; e.projektTyp = null; });
+    if(ok.length) await savePrivateEntries();
+    for(const l of logs) await logAction('Projekt-Zuordnung aufgehoben', l + ' — Sammel-Aktion');
+    selectedPrivateEntryIds.clear();
+    renderPrivate(); updateProjectAvailability(); renderProjects(); updatePrivateProjectAvailability(); renderPrivateProjects();
+    setPrivateStatus(bulkResultMsg('msg_bulk_unlinked', ok.length, sel.length - ok.length));
+  });
+});
+
+// Privatbestand: loeschen
+const btnBulkDeletePrivEntries = document.getElementById('btnBulkDeletePrivEntries');
+btnBulkDeletePrivEntries.addEventListener('click', ()=>{
+  armConfirm(btnBulkDeletePrivEntries, async ()=>{
+    const toDelete = privateEntries.filter(e=>selectedPrivateEntryIds.has(e.id) && e.owner===currentUser.username);
+    const delIds = new Set(toDelete.map(e=>e.id));
+    privateEntries = privateEntries.filter(e=>!delIds.has(e.id));
+    await savePrivateEntries();
+    for(const e of toDelete) await logAction('Privatbestand gelöscht', `${e.material}, ${e.menge} ${e.einheit} @ ${e.lagerort} (Sammel-Löschung)`);
+    selectedPrivateEntryIds.clear();
+    renderPrivate(); updateProjectAvailability(); renderProjects(); updatePrivateProjectAvailability(); renderPrivateProjects();
+    setPrivateStatus(t('msg_bulk_deleted').replace('{count}', toDelete.length));
+  });
+});
+
+// Sammelobjekte (geteilt): in privaten Bestand verschieben
+const btnBulkMoveCollectiblesToPrivate = document.getElementById('btnBulkMoveCollectiblesToPrivate');
+btnBulkMoveCollectiblesToPrivate.addEventListener('click', ()=>{
+  armConfirm(btnBulkMoveCollectiblesToPrivate, async ()=>{
+    if(currentUser.role==='viewer') return;
+    const ids = collectibles.filter(c=>selectedCollectibleIds.has(c.id)).map(c=>c.id);
+    for(const id of ids) await transferCollectibleToPrivate(id, null);
+    selectedCollectibleIds.clear();
+    renderCollectibles(); updateCollectibleBulkActionsBar();
+    setCollStatus(bulkResultMsg('msg_bulk_moved_private', ids.length, 0));
+  });
+});
+
+// Sammelobjekte (privat): in geteilten Bestand uebertragen
+const btnBulkTransferPrivCollectibles = document.getElementById('btnBulkTransferPrivCollectibles');
+btnBulkTransferPrivCollectibles.addEventListener('click', ()=>{
+  armConfirm(btnBulkTransferPrivCollectibles, async ()=>{
+    if(currentUser.role==='viewer') return;
+    const ids = privateCollectibles.filter(c=>selectedPrivCollectibleIds.has(c.id) && c.owner===currentUser.username).map(c=>c.id);
+    for(const id of ids) await transferPrivateCollectible(id);
+    selectedPrivCollectibleIds.clear();
+    renderPrivateCollectibles(); updatePrivCollectibleBulkActionsBar();
+    setPrivCollStatus(t('msg_bulk_transferred').replace('{count}', ids.length));
+  });
+});
+
+// Projekte (geteilt/privat): abschliessen / wiedereroeffnen
+function wireBulkProjectStatus(btnId, typ, mode){
+  const btn = document.getElementById(btnId);
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    armConfirm(btn, async ()=>{
+      const isPrivate = typ === 'private';
+      if(!isPrivate && !roleAtLeast(currentUser.role, 'admin')) return;
+      const set = isPrivate ? selectedPrivProjectIds : selectedProjectIds;
+      const list = isPrivate ? privateProjects.filter(p=>p.owner===currentUser.username) : projects;
+      const sel = list.filter(p=>set.has(p.id));
+      const ok = sel.filter(p=> mode==='complete' ? p.status!=='completed' : p.status==='completed');
+      for(const p of ok){
+        if(mode==='complete') await completeProject(p.id, typ); else await reopenProject(p.id, typ);
+      }
+      set.clear();
+      if(isPrivate){
+        renderPrivateProjects(); renderPrivate(); renderPrivateCollectibles(); updatePrivateProjectAvailability(); updatePrivProjectBulkActionsBar();
+      } else {
+        renderProjects(); render(); renderCollectibles(); updateProjectAvailability(); scheduleRenderDashboard(); updateProjectBulkActionsBar();
+      }
+      const msg = bulkResultMsg(mode==='complete' ? 'msg_bulk_completed' : 'msg_bulk_reopened', ok.length, sel.length - ok.length);
+      const el = document.getElementById(isPrivate ? 'privProjectStatus' : 'projectStatus');
+      if(el){ setStatusMsg(el, msg, false); setTimeout(()=>{ el.textContent=''; }, 4000); }
+    }, mode==='complete' ? t('tooltip_projekt_abschliessen_bestaetigen') : undefined);
+  });
+}
+wireBulkProjectStatus('btnBulkCompleteProjects', 'shared', 'complete');
+wireBulkProjectStatus('btnBulkReopenProjects', 'shared', 'reopen');
+wireBulkProjectStatus('btnBulkCompletePrivProjects', 'private', 'complete');
+wireBulkProjectStatus('btnBulkReopenPrivProjects', 'private', 'reopen');
+
 async function load(){
   // Alle unabhängigen Speicher-Abfragen parallel statt nacheinander laden —
   // das reduziert die Wartezeit von "Summe aller Abfragen" auf "langsamste Abfrage".
@@ -22925,6 +23239,7 @@ function render(){
           ${canManage ? `<button class="btn-icon" data-action="edit" data-id="${e.id}" title="${t('btn_edit')}">✎</button>
           <button class="btn-icon" data-action="transfer-to-private" data-id="${e.id}" title="${t('tooltip_transfer_to_private')}">⇤</button>` : ''}
           ${roleAtLeast(currentUser.role, 'admin') ? `<button class="btn-icon" data-action="assign-to-person" data-id="${e.id}" title="${t('tooltip_assign_to_person')}">👤➜</button>` : ''}
+          ${canManage && e.projekt ? `<button class="btn-icon" data-action="unlink-entry-row" data-id="${e.id}" title="${t('tooltip_unlink_row_shared')}">🔓</button>` : ''}
           ${canManage ? `<button class="btn-icon danger" data-action="delete" data-id="${e.id}" title="${t('btn_delete')}">🗑</button>` : ''}
         </td>
       </tr>`;
@@ -22950,6 +23265,20 @@ function render(){
         fullAmount: e.menge,
         einheit: e.einheit,
         onConfirm: async (amount)=>{ await transferEntryToPrivate(e.id, amount); }
+      });
+    });
+  });
+  container.querySelectorAll('[data-action="unlink-entry-row"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      armConfirm(btn, async ()=>{
+        const e = entries.find(en=>en.id===btn.dataset.id);
+        if(!e || !e.projekt || !canManageEntry(e)) return;
+        const oldProjekt = e.projekt;
+        const ok = await unlinkEntryFromProject(e.id, 'entry');
+        if(!ok) return;
+        await logAction('Projekt-Zuordnung gelöst', `${e.material}, ${e.menge} ${e.einheit} @ ${e.lagerort} (war: ${oldProjekt})`);
+        render(); updateProjectAvailability(); renderProjects(); renderNeeds(); scheduleRenderDashboard();
+        setStatus(t('msg_bulk_unlinked').replace('{count}', 1));
       });
     });
   });
