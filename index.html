@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.148 -->
+<!-- Version: 0.149 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -612,6 +612,27 @@ a.btn-ghost{display:inline-flex;align-items:center;text-decoration:none;font-fam
 .catalog-edit-field{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);}
 .catalog-edit-field input,.catalog-edit-field select{padding:4px 8px;font-size:12.5px;}
 .catalog-edit-note{font-size:11px;color:var(--ink-soft);font-style:italic;}
+.legend-bar{display:flex;justify-content:flex-end;margin:0 0 10px;}
+.lg-section{margin:0 0 16px;}
+.lg-section h3{font-family:'Orbitron', sans-serif;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--steel);margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);}
+.lg-row{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:6px 14px;align-items:center;padding:5px 0;border-bottom:1px dashed rgba(0,210,255,0.08);}
+.lg-sym{display:flex;flex-wrap:wrap;align-items:center;gap:5px;}
+.lg-text{font-size:13px;color:var(--ink);line-height:1.4;}
+.lg-icon{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:24px;padding:0 5px;border:1px solid var(--panel-border);border-radius:var(--radius);color:var(--ink-soft);font-size:13px;white-space:nowrap;}
+.lg-icon.danger{color:var(--low);border-color:rgba(255,59,92,0.4);}
+.lg-dot{display:inline-block;width:9px;height:9px;border-radius:50%;}
+.lg-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border:1px solid var(--med);border-radius:14px;background:var(--med-bg);color:var(--med);font-size:11px;font-weight:700;white-space:nowrap;}
+.lg-hint{display:inline-block;padding:2px 8px;border-left:3px solid var(--med);background:var(--med-bg);font-size:11px;white-space:nowrap;}
+.lg-bulk{display:inline-block;padding:2px 8px;border:1px solid var(--panel-border);border-left:3px solid var(--cyan);background:rgba(0,216,255,0.05);font-size:11px;font-family:'Share Tech Mono', monospace;white-space:nowrap;}
+.lg-alert{display:inline-block;padding:2px 8px;border:1px solid rgba(255,59,92,0.5);background:var(--low-bg);color:var(--low);font-size:11px;white-space:nowrap;}
+.lg-note{font-size:12px;color:var(--ink-soft);margin:0 0 14px;}
+#helpMenu{display:none;position:fixed;bottom:80px;right:24px;z-index:56;background:#0D141C;border:1px solid var(--panel-border);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,0.5), 0 0 12px var(--cyan-glow);padding:6px;flex-direction:column;gap:4px;min-width:220px;}
+#helpMenu button{text-align:left;}
+body.device-mobile #helpMenu{bottom:66px;right:16px;}
+body.device-mobile #legendModal{align-items:flex-end !important;padding:0 !important;}
+body.device-mobile #legendModal .ocr-modal-content{max-width:100% !important;width:100%;border-radius:12px 12px 0 0;}
+body.device-mobile .lg-row{grid-template-columns:minmax(56px,38%) 1fr;gap:6px 10px;}
+body.device-mobile .lg-text{font-size:12.5px;}
 .filter-hint{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0 4px;padding:8px 12px;background:var(--med-bg);border:1px solid rgba(255,201,60,0.45);border-left:3px solid var(--med);border-radius:var(--radius);font-size:12.5px;color:var(--ink);}
 .filter-hint .fh-text b{color:var(--med);}
 .filter-hint .fh-reset{margin-left:auto;}
@@ -1624,6 +1645,21 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 </div>
 
+<div id="helpMenu" role="menu">
+  <button type="button" class="btn-ghost" id="btnHelpMenuHelp" data-i18n="lg_menu_help">📖 Hilfe &amp; Handbuch</button>
+  <button type="button" class="btn-ghost" id="btnHelpMenuLegend" data-i18n="lg_menu_legend">ⓘ Symbole dieser Seite</button>
+</div>
+
+<div id="legendModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:96;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;padding:20px;">
+  <div class="ocr-modal-content" style="max-width:760px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;">
+      <h2 style="margin:0;" id="legendTitle">Symbole &amp; Farben</h2>
+      <button class="btn-icon" id="btnCloseLegend" title="Schließen">✕</button>
+    </div>
+    <div id="legendBody" style="max-height:72vh;overflow-y:auto;padding-right:6px;"></div>
+  </div>
+</div>
+
 <div id="onboardingTourModal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:250;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
   <div style="background:#0D141C;border:1px solid var(--cyan);border-radius:var(--radius);padding:30px 32px;max-width:440px;box-shadow:0 0 40px var(--cyan-glow);">
     <div id="tourStepDots" style="display:flex;gap:6px;justify-content:center;margin-bottom:18px;"></div>
@@ -2001,6 +2037,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </nav>
 
   <div class="tab-content" data-tab="verwaltung" style="display:none;">
+  <div class="legend-bar"><button type="button" class="btn-ghost btn-compact legend-open" data-legend-tab="verwaltung" data-i18n="lg_btn">ⓘ Symbole</button></div>
   <!-- Ab v0.141: Unternavigation der Verwaltung (sieben Gruppen) -->
   <div class="admin-subnav-wrap" id="adminSubnavWrap">
     <nav class="admin-subnav" id="adminSubnav">
@@ -2609,6 +2646,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="uebersicht">
+  <div class="legend-bar"><button type="button" class="btn-ghost btn-compact legend-open" data-legend-tab="uebersicht" data-i18n="lg_btn">ⓘ Symbole</button></div>
   <div class="panel" id="orgInfoDisplayPanel" style="display:none;">
     <h2 id="orgInfoDisplayTitle" style="margin:0;"></h2>
     <div id="orgInfoDisplayBody" style="margin-top:10px;line-height:1.6;"></div>
@@ -2652,6 +2690,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="bestand">
+  <div class="legend-bar"><button type="button" class="btn-ghost btn-compact legend-open" data-legend-tab="bestand" data-i18n="lg_btn">ⓘ Symbole</button></div>
 
   <!-- ===== NEUANLAGE ===== -->
 
@@ -2812,6 +2851,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="privatbestand" style="display:none;">
+  <div class="legend-bar"><button type="button" class="btn-ghost btn-compact legend-open" data-legend-tab="privatbestand" data-i18n="lg_btn">ⓘ Symbole</button></div>
   <div id="privFlaggedHint" class="filter-hint" style="display:none;margin:0 0 16px;"></div>
 
   <!-- ===== NEUANLAGE ===== -->
@@ -3118,6 +3158,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="bedarfe" style="display:none;">
+  <div class="legend-bar"><button type="button" class="btn-ghost btn-compact legend-open" data-legend-tab="bedarfe" data-i18n="lg_btn">ⓘ Symbole</button></div>
   <div class="panel">
     <h2 data-i18n="panel_gesamtbedarf">Gesamtbedarf</h2>
     <div class="user-note" style="margin:0 0 14px 0;" data-i18n="hint_gesamtbedarf">Fasst den eigenständigen Bedarf unten sowie alle offenen Ressourcen-Lücken geteilter Projekte je Material zu einer Summe zusammen — private Projekte bleiben dabei bewusst außen vor. Beantwortet die Frage "was brauchen wir insgesamt?", z. B. vor einer gemeinsamen Abbau-Session.</div>
@@ -3184,6 +3225,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="projekte" style="display:none;">
+  <div class="legend-bar"><button type="button" class="btn-ghost btn-compact legend-open" data-legend-tab="projekte" data-i18n="lg_btn">ⓘ Symbole</button></div>
   <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
       <h2 style="margin:0;" data-i18n="panel_projekte">Projekte</h2>
@@ -3249,6 +3291,7 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
   </div>
 
   <div class="tab-content" data-tab="sammelobjekte" style="display:none;">
+  <div class="legend-bar"><button type="button" class="btn-ghost btn-compact legend-open" data-legend-tab="sammelobjekte" data-i18n="lg_btn">ⓘ Symbole</button></div>
   <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
       <h2 style="margin:0;" data-i18n="panel_sammelobjekte">Sammelobjekte &amp; Artefakte</h2>
@@ -4260,6 +4303,86 @@ const I18N = {
   "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
   "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
   "capture_assign_toggle": "Nach dem Eintragen passende Projekte vorschlagen",
+  "lg_btn": "ⓘ Symbole",
+  "lg_title": "Symbole & Farben",
+  "lg_role_note": "Angezeigt werden nur Symbole, die für deine Rolle ({role}) vorkommen.",
+  "lg_menu_help": "📖 Hilfe & Handbuch",
+  "lg_menu_legend": "ⓘ Symbole dieser Seite",
+  "lg_tab_uebersicht": "Übersicht",
+  "lg_tab_bestand": "Bestand",
+  "lg_tab_privatbestand": "Privat Bestände",
+  "lg_tab_bedarfe": "Bedarf",
+  "lg_tab_projekte": "Projekte",
+  "lg_tab_sammelobjekte": "Sammelobjekte",
+  "lg_tab_verwaltung": "Verwaltung",
+  "lg_sec_table": "Tabelle",
+  "lg_sec_summary": "Zusammenfassung",
+  "lg_sec_overview_overlay": "Gesamtbestand-Übersicht",
+  "lg_sec_trash": "Papierkorb",
+  "lg_sec_priv_projects": "Projekte (Privat)",
+  "lg_sec_priv_collectibles": "Sammelobjekte (Privat)",
+  "lg_sec_priv_reset": "Private Daten zurücksetzen",
+  "lg_sec_dashboard": "Warnkasten & Kennzahlen",
+  "lg_sec_scope": "Geltungsbereich der Bereiche",
+  "lg_sec_users": "Benutzer & Organisationen",
+  "lg_sec_catalog": "Kataloge & Vorlagen",
+  "lg_sec_general": "Allgemein (alle Seiten)",
+  "lg_edit": "Bearbeiten",
+  "lg_edit_own": "Bearbeiten – eigene Einträge, ab Admin alle",
+  "lg_delete_trash": "Löschen (Zwei-Klick) – 48 Stunden im Papierkorb wiederherstellbar",
+  "lg_delete_privtrash": "Löschen (Zwei-Klick) – 48 Stunden im privaten Papierkorb wiederherstellbar",
+  "lg_delete": "Löschen (Zwei-Klick)",
+  "lg_to_private": "In den privaten Bestand verschieben (ganz oder teilweise) – landet beim Verantwortlichen bzw. Besitzer",
+  "lg_to_shared": "In den geteilten Bestand übertragen",
+  "lg_assign": "Einer Person zuweisen – erscheint in deren Privatbestand mit „🎁 Zugewiesen“",
+  "lg_unlink_shared": "Projekt-Zuordnung lösen – der Eintrag wird als „vor Zuweisung prüfen“ markiert",
+  "lg_unlink_private": "Projekt-Zuordnung aufheben (zurück in den privaten oder in den geteilten Bestand) – markiert als „vor Zuweisung prüfen“",
+  "lg_unlink_hover": "In der Bestands-Aufschlüsselung eines Projekts: Zuordnung dieses einen Eintrags lösen",
+  "lg_restore": "Wiederherstellen",
+  "lg_save_cancel": "Beim Bearbeiten: speichern bzw. abbrechen",
+  "lg_usage": "Wo wird das gebraucht? – aktive Projekte und Rezepte, die dieses Material/Objekt benötigen",
+  "lg_goto": "Zur passend gefilterten Tabelle springen",
+  "lg_avg_quality": "Ø Qualität (mengengewichtet) – Klick zeigt die Aufschlüsselung nach exakten Werten",
+  "lg_total_hover": "Gepunktet unterstrichen: Mouse-over zeigt, wer wie viel wo beiträgt",
+  "lg_dist_bar": "Qualitätsverteilung – Anteil der Menge je Qualitätsstufe",
+  "lg_reapply": "Erneut anlegen – Projekt als Vorlage für ein neues verwenden",
+  "lg_complete": "Projekt abschließen (Zwei-Klick) – Überschuss geht in den freien Bestand zurück",
+  "lg_reopen": "Abgeschlossenes Projekt wiedereröffnen",
+  "lg_escalate": "Priorität des eigenen Bedarfs erhöhen",
+  "lg_need_from_project": "Fehlmenge als Bedarf melden bzw. verknüpften Bedarf aktualisieren",
+  "lg_transfer_now": "Jetzt übertragen – eigene private Zusage in den geteilten Bestand übernehmen",
+  "lg_change_pw": "Passwort der Person ändern",
+  "lg_reset_pw": "Auf das Standardpasswort zurücksetzen",
+  "lg_catalog_edit": "Katalog-Eintrag bearbeiten (ohne Umbenennen)",
+  "lg_reserved": "Reserviert für dieses Projekt",
+  "lg_flagged": "Zuordnung wurde gelöst – vor erneuter Zuweisung prüfen (z. B. Verlust)",
+  "lg_flag_clear": "Prüfung erledigt – Markierung entfernen",
+  "lg_assigned": "Von einer Person mit Admin-Rechten zugewiesen (Mouse-over: von wem, wann)",
+  "lg_quality": "Qualitätsstufen: ≤ 500 Gering · 501–700 Mittelmaß · 701–800 Gehobenes Mittel · ≥ 801 Optimal",
+  "lg_qty_gauge": "Mengenbalken – Menge im Verhältnis zur größten Position, Farbe = Qualitätsstufe",
+  "lg_progress": "Fortschritt je Ressource: rot unter 50 %, gelb ab 50 %, grün bei 100 %",
+  "lg_completed": "Projekt abgeschlossen (ausgegraut; Anzeige über „Abgeschlossene anzeigen“)",
+  "lg_goal": "Alle Ressourcen gedeckt – Projekt kann abgeschlossen werden",
+  "lg_pledged": "Privat zugesagt, aber noch nicht in den geteilten Bestand übertragen",
+  "lg_from_template": "Projekt wurde aus einer Vorlage erstellt",
+  "lg_note": "Notiz zum Projekt",
+  "lg_priority": "Prioritäten: Kritisch · Hoch · Mittel · Niedrig („Kritisch“ erscheint zusätzlich in der Übersicht)",
+  "lg_competing": "Mehrere Bedarfe für dasselbe Material – Mouse-over zeigt welche",
+  "lg_priv_hint": "Hinweis oben im Reiter: eigene markierte Einträge – Klick aktiviert den Prüf-Filter",
+  "lg_dash_alert": "Roter Warnkasten: kritische Bedarfe, Projekte mit offenen Lücken, zu prüfende Einträge – Klick springt jeweils dorthin",
+  "lg_dash_flagged": "Zu prüfende Einträge, getrennt nach Material und Sammelobjekten – jeder Teil öffnet den passenden Reiter mit Prüf-Filter",
+  "lg_backup_reminder": "Erinnerung an die vollständige Sicherung (fällig nach einem Monat)",
+  "lg_scope_self": "Gilt nur für deinen eigenen Zugang",
+  "lg_scope_org": "Gilt für die angezeigte Organisation",
+  "lg_scope_all": "Gilt für alle Organisationen gleichzeitig",
+  "lg_scope_select": "Organisation wird im Bereich ausgewählt",
+  "lg_flag_chip": "Prüf-Filter aktiv – zeigt nur markierte Einträge; ✕ schaltet ihn ab",
+  "lg_filter_hint": "Hinweiszeile: Filter blenden Einträge aus – „Alle Filter zurücksetzen“ zeigt wieder alles",
+  "lg_bulk_bar": "Auswahlleiste: erscheint bei markierten Zeilen, mit Sammel-Aktionen und „Auswahl aufheben“",
+  "lg_two_click": "Zwei-Klick-Bestätigung: Aktion erst nach erneutem Klick ausführen",
+  "lg_dots": "Farbpunkte: vor Personen (feste Farbe je Person) und Lagerorten (Farbe des Systems: Stanton, Pyro, Nyx)",
+  "lg_tab_dot": "Rote Markierung am Reiter: Bestand unter Sollbestand, offene kritische/hohe Bedarfe bzw. private Einträge, die auf Übertragung warten",
+  "lg_conn_dot": "Roter Punkt in der Kopfzeile: Verbindungsproblem beim Speichern",
   "label_priv_flagged_prefix": "Privat:",
   "label_flagged_entries": "{count} Materialeintrag/-einträge",
   "label_flagged_collectibles": "{count} Sammelobjekt(e)",
@@ -5283,6 +5406,86 @@ const I18N = {
   "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
   "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
   "capture_assign_toggle": "Suggest matching projects after adding",
+  "lg_btn": "ⓘ Symbols",
+  "lg_title": "Symbols & colours",
+  "lg_role_note": "Only symbols available to your role ({role}) are shown.",
+  "lg_menu_help": "📖 Help & manual",
+  "lg_menu_legend": "ⓘ Symbols on this page",
+  "lg_tab_uebersicht": "Overview",
+  "lg_tab_bestand": "Stock",
+  "lg_tab_privatbestand": "Private stock",
+  "lg_tab_bedarfe": "Needs",
+  "lg_tab_projekte": "Projects",
+  "lg_tab_sammelobjekte": "Collectibles",
+  "lg_tab_verwaltung": "Administration",
+  "lg_sec_table": "Table",
+  "lg_sec_summary": "Summary",
+  "lg_sec_overview_overlay": "Total stock overview",
+  "lg_sec_trash": "Trash",
+  "lg_sec_priv_projects": "Projects (private)",
+  "lg_sec_priv_collectibles": "Collectibles (private)",
+  "lg_sec_priv_reset": "Reset private data",
+  "lg_sec_dashboard": "Alert box & key figures",
+  "lg_sec_scope": "Scope of each section",
+  "lg_sec_users": "Users & organisations",
+  "lg_sec_catalog": "Catalogues & templates",
+  "lg_sec_general": "General (all pages)",
+  "lg_edit": "Edit",
+  "lg_edit_own": "Edit – own entries, all from admin upwards",
+  "lg_delete_trash": "Delete (two clicks) – restorable from the trash for 48 hours",
+  "lg_delete_privtrash": "Delete (two clicks) – restorable from the private trash for 48 hours",
+  "lg_delete": "Delete (two clicks)",
+  "lg_to_private": "Move to private stock (all or part) – goes to the responsible person/owner",
+  "lg_to_shared": "Transfer to shared stock",
+  "lg_assign": "Assign to a person – appears in their private stock marked “🎁 Assigned”",
+  "lg_unlink_shared": "Remove project assignment – the entry is flagged for review",
+  "lg_unlink_private": "Remove project assignment (back to private or to shared stock) – flagged for review",
+  "lg_unlink_hover": "In a project's stock breakdown: remove the assignment of this single entry",
+  "lg_restore": "Restore",
+  "lg_save_cancel": "While editing: save or cancel",
+  "lg_usage": "Where is it needed? – active projects and recipes requiring this material/item",
+  "lg_goto": "Jump to the correspondingly filtered table",
+  "lg_avg_quality": "Avg. quality (quantity-weighted) – click for breakdown by exact value",
+  "lg_total_hover": "Dotted underline: hover shows who contributes how much where",
+  "lg_dist_bar": "Quality distribution – share of quantity per quality tier",
+  "lg_reapply": "Create again – use project as template for a new one",
+  "lg_complete": "Complete project (two clicks) – surplus returns to free stock",
+  "lg_reopen": "Reopen a completed project",
+  "lg_escalate": "Raise the priority of your own need",
+  "lg_need_from_project": "Report missing quantity as a need or update the linked need",
+  "lg_transfer_now": "Transfer now – move your own private pledge to shared stock",
+  "lg_change_pw": "Change the person's password",
+  "lg_reset_pw": "Reset to the default password",
+  "lg_catalog_edit": "Edit catalogue entry (without renaming)",
+  "lg_reserved": "Reserved for this project",
+  "lg_flagged": "Assignment was removed – check before reassigning (e.g. loss)",
+  "lg_flag_clear": "Check done – remove the flag",
+  "lg_assigned": "Assigned by an admin (hover: by whom, when)",
+  "lg_quality": "Quality tiers: ≤ 500 low · 501–700 average · 701–800 upper average · ≥ 801 optimal",
+  "lg_qty_gauge": "Quantity bar – amount relative to the largest item, colour = quality tier",
+  "lg_progress": "Progress per resource: red below 50 %, yellow from 50 %, green at 100 %",
+  "lg_completed": "Project completed (greyed out; shown via “Show completed”)",
+  "lg_goal": "All resources covered – project can be completed",
+  "lg_pledged": "Pledged privately but not yet transferred to shared stock",
+  "lg_from_template": "Project created from a template",
+  "lg_note": "Project note",
+  "lg_priority": "Priorities: critical · high · medium · low (“critical” also appears on the overview)",
+  "lg_competing": "Several needs for the same material – hover shows which",
+  "lg_priv_hint": "Notice at the top of the tab: your flagged entries – click activates the check filter",
+  "lg_dash_alert": "Red alert box: critical needs, projects with gaps, entries to check – click jumps there",
+  "lg_dash_flagged": "Entries to check, split into materials and collectibles – each opens the matching tab with the check filter",
+  "lg_backup_reminder": "Reminder for the full backup (due after one month)",
+  "lg_scope_self": "Applies only to your own account",
+  "lg_scope_org": "Applies to the shown organisation",
+  "lg_scope_all": "Applies to all organisations at once",
+  "lg_scope_select": "Organisation is selected within the section",
+  "lg_flag_chip": "Check filter active – shows only flagged entries; ✕ turns it off",
+  "lg_filter_hint": "Notice line: filters hide entries – “Reset all filters” shows everything again",
+  "lg_bulk_bar": "Selection bar: appears when rows are ticked, with bulk actions and “Clear selection”",
+  "lg_two_click": "Two-click confirmation: action runs only after clicking again",
+  "lg_dots": "Coloured dots: before people (fixed colour per person) and locations (system colour: Stanton, Pyro, Nyx)",
+  "lg_tab_dot": "Red marker on a tab: stock below target, open critical/high needs or private entries awaiting transfer",
+  "lg_conn_dot": "Red dot in the header: connection problem while saving",
   "label_priv_flagged_prefix": "Private:",
   "label_flagged_entries": "{count} material entr(y/ies)",
   "label_flagged_collectibles": "{count} collectible(s)",
@@ -6306,6 +6509,86 @@ const I18N = {
   "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
   "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
   "capture_assign_toggle": "Proposer les projets correspondants après l'ajout",
+  "lg_btn": "ⓘ Symboles",
+  "lg_title": "Symboles et couleurs",
+  "lg_role_note": "Seuls les symboles disponibles pour votre rôle ({role}) sont affichés.",
+  "lg_menu_help": "📖 Aide et manuel",
+  "lg_menu_legend": "ⓘ Symboles de cette page",
+  "lg_tab_uebersicht": "Aperçu",
+  "lg_tab_bestand": "Stock",
+  "lg_tab_privatbestand": "Stocks privés",
+  "lg_tab_bedarfe": "Besoins",
+  "lg_tab_projekte": "Projets",
+  "lg_tab_sammelobjekte": "Objets de collection",
+  "lg_tab_verwaltung": "Administration",
+  "lg_sec_table": "Tableau",
+  "lg_sec_summary": "Résumé",
+  "lg_sec_overview_overlay": "Vue du stock total",
+  "lg_sec_trash": "Corbeille",
+  "lg_sec_priv_projects": "Projets (privés)",
+  "lg_sec_priv_collectibles": "Objets de collection (privés)",
+  "lg_sec_priv_reset": "Réinitialiser les données privées",
+  "lg_sec_dashboard": "Encadré d'alerte et indicateurs",
+  "lg_sec_scope": "Portée des sections",
+  "lg_sec_users": "Utilisateurs et organisations",
+  "lg_sec_catalog": "Catalogues et modèles",
+  "lg_sec_general": "Général (toutes les pages)",
+  "lg_edit": "Modifier",
+  "lg_edit_own": "Modifier – ses propres entrées, toutes à partir d'admin",
+  "lg_delete_trash": "Supprimer (deux clics) – restaurable 48 heures depuis la corbeille",
+  "lg_delete_privtrash": "Supprimer (deux clics) – restaurable 48 heures depuis la corbeille privée",
+  "lg_delete": "Supprimer (deux clics)",
+  "lg_to_private": "Déplacer vers le stock privé (tout ou partie) – va au responsable/propriétaire",
+  "lg_to_shared": "Transférer vers le stock partagé",
+  "lg_assign": "Attribuer à une personne – apparaît dans son stock privé avec « 🎁 Attribué »",
+  "lg_unlink_shared": "Retirer l'affectation au projet – l'entrée est marquée « à vérifier »",
+  "lg_unlink_private": "Retirer l'affectation (retour au stock privé ou partagé) – marquée « à vérifier »",
+  "lg_unlink_hover": "Dans le détail du stock d'un projet : retirer l'affectation de cette entrée",
+  "lg_restore": "Restaurer",
+  "lg_save_cancel": "En modification : enregistrer ou annuler",
+  "lg_usage": "Où est-ce nécessaire ? – projets actifs et recettes qui l'utilisent",
+  "lg_goto": "Aller au tableau filtré correspondant",
+  "lg_avg_quality": "Qualité moy. (pondérée) – clic pour le détail par valeur exacte",
+  "lg_total_hover": "Souligné en pointillés : survol pour voir qui contribue combien et où",
+  "lg_dist_bar": "Répartition de qualité – part de la quantité par niveau",
+  "lg_reapply": "Recréer – utiliser le projet comme modèle",
+  "lg_complete": "Terminer le projet (deux clics) – le surplus retourne au stock libre",
+  "lg_reopen": "Rouvrir un projet terminé",
+  "lg_escalate": "Augmenter la priorité de son propre besoin",
+  "lg_need_from_project": "Déclarer la quantité manquante comme besoin ou mettre à jour le besoin lié",
+  "lg_transfer_now": "Transférer maintenant – verser sa promesse privée au stock partagé",
+  "lg_change_pw": "Modifier le mot de passe de la personne",
+  "lg_reset_pw": "Réinitialiser au mot de passe par défaut",
+  "lg_catalog_edit": "Modifier l'entrée du catalogue (sans renommer)",
+  "lg_reserved": "Réservé pour ce projet",
+  "lg_flagged": "Affectation retirée – vérifier avant réaffectation (p. ex. perte)",
+  "lg_flag_clear": "Vérification faite – retirer la marque",
+  "lg_assigned": "Attribué par un admin (survol : par qui, quand)",
+  "lg_quality": "Niveaux de qualité : ≤ 500 faible · 501–700 moyen · 701–800 moyen supérieur · ≥ 801 optimal",
+  "lg_qty_gauge": "Barre de quantité – par rapport au plus grand poste, couleur = qualité",
+  "lg_progress": "Progression par ressource : rouge < 50 %, jaune dès 50 %, vert à 100 %",
+  "lg_completed": "Projet terminé (grisé ; visible via « Afficher les terminés »)",
+  "lg_goal": "Toutes les ressources couvertes – le projet peut être terminé",
+  "lg_pledged": "Promis en privé mais pas encore transféré au stock partagé",
+  "lg_from_template": "Projet créé à partir d'un modèle",
+  "lg_note": "Note du projet",
+  "lg_priority": "Priorités : critique · haute · moyenne · basse (« critique » apparaît aussi dans l'aperçu)",
+  "lg_competing": "Plusieurs besoins pour le même matériau – survol pour les voir",
+  "lg_priv_hint": "Avis en haut de l'onglet : vos entrées marquées – clic active le filtre",
+  "lg_dash_alert": "Encadré rouge : besoins critiques, projets incomplets, entrées à vérifier – clic pour y aller",
+  "lg_dash_flagged": "Entrées à vérifier, matériaux et objets séparés – chacun ouvre l'onglet avec le filtre",
+  "lg_backup_reminder": "Rappel de sauvegarde complète (après un mois)",
+  "lg_scope_self": "S'applique uniquement à votre compte",
+  "lg_scope_org": "S'applique à l'organisation affichée",
+  "lg_scope_all": "S'applique à toutes les organisations",
+  "lg_scope_select": "L'organisation est choisie dans la section",
+  "lg_flag_chip": "Filtre actif – n'affiche que les entrées marquées ; ✕ le désactive",
+  "lg_filter_hint": "Ligne d'avis : des filtres masquent des entrées – « Réinitialiser » réaffiche tout",
+  "lg_bulk_bar": "Barre de sélection : apparaît avec des lignes cochées, actions groupées et « Annuler la sélection »",
+  "lg_two_click": "Confirmation en deux clics : l'action s'exécute après un second clic",
+  "lg_dots": "Points de couleur : devant les personnes (couleur fixe) et les emplacements (couleur du système : Stanton, Pyro, Nyx)",
+  "lg_tab_dot": "Marqueur rouge sur un onglet : stock sous la cible, besoins critiques/hauts ouverts ou entrées privées en attente",
+  "lg_conn_dot": "Point rouge dans l'en-tête : problème de connexion à l'enregistrement",
   "label_priv_flagged_prefix": "Privé :",
   "label_flagged_entries": "{count} entrée(s) de matériau",
   "label_flagged_collectibles": "{count} objet(s) de collection",
@@ -7973,7 +8256,7 @@ function openHelpModal(){
 function closeHelpModal(){
   document.getElementById('helpModal').style.display = 'none';
 }
-document.getElementById('btnHelp').addEventListener('click', openHelpModal);
+document.getElementById('btnHelp').addEventListener('click', (ev)=>{ ev.stopPropagation(); toggleHelpMenu(); });
 document.getElementById('btnCloseHelp').addEventListener('click', closeHelpModal);
 
 // ============================================================
@@ -21988,6 +22271,226 @@ function updatePrivFlaggedHint(){
     });
   });
 }
+
+// ============================================================
+// Legende "Symbole & Farben" (ab v0.149). Zentrale Liste aller Symbole,
+// Abzeichen und Farben je Reiter; angezeigt wird nur, was fuer die Rolle
+// der angemeldeten Person tatsaechlich vorkommt (min = Mindestrolle).
+// Erreichbar ueber den Knopf "ⓘ Symbole" in jedem Reiter sowie ueber das
+// Menue des "?"-Knopfs. Neue Symbole werden nur hier eingetragen.
+// ============================================================
+const lgI = (sym, cls) => `<span class="lg-icon${cls ? ' '+cls : ''}">${sym}</span>`;
+const LG_SAMPLES = {
+  reserved: ()=>`<span class="badge project-reserved">📌 ${t('col_projekt')}</span>`,
+  reservedCount: ()=>`<span class="badge project-reserved">📌 3</span>`,
+  flagged: ()=>`<span class="badge" style="background:rgba(255,166,48,0.15);color:var(--accent);border:1px solid var(--accent);font-size:10px;">⚠ ${t('label_pruefen_vor_zuweisung')}</span>`,
+  assigned: ()=>`<span class="badge" style="background:rgba(0,229,255,0.15);color:var(--cyan);border:1px solid var(--cyan);font-size:10px;">🎁 ${t('label_zugewiesen')}</span>`,
+  quality: ()=>`<span class="badge low">450</span><span class="badge orange">650</span><span class="badge med">750</span><span class="badge high">850</span>`,
+  gauge: ()=>`<div class="gauge" style="width:70px;"><div class="gauge-fill" style="width:65%;background:var(--high);"></div></div>`,
+  progress: ()=>['#FF3B5C','#FFC93C','#2CFFA0'].map((c,i)=>`<div class="gauge" style="width:34px;"><div class="gauge-fill" style="width:${[30,70,100][i]}%;background:${c};"></div></div>`).join(''),
+  distBar: ()=>`<div style="display:flex;width:80px;height:7px;border-radius:2px;overflow:hidden;"><span style="flex:2;background:var(--low);"></span><span style="flex:1;background:var(--orange);"></span><span style="flex:1;background:var(--med);"></span><span style="flex:3;background:var(--high);"></span></div>`,
+  avgQ: ()=>`<span class="badge high" style="cursor:pointer;">812</span>`,
+  dotted: ()=>`<span style="border-bottom:1px dotted var(--ink-soft);font-family:'Share Tech Mono', monospace;">42</span>`,
+  completed: ()=>`<span class="badge" style="background:rgba(44,255,160,0.15);color:#2CFFA0;border:1px solid #2CFFA0;">✓ ${t('label_abgeschlossen')}</span>`,
+  goal: ()=>`<span style="padding:2px 8px;background:rgba(44,255,160,0.08);border-left:2px solid #2CFFA0;font-size:11px;">🎉 ${t('hint_ziel_erreicht')}</span>`,
+  pledged: ()=>`<span style="color:var(--med);font-size:11px;">⏳</span>`,
+  transferNow: ()=>`<span class="btn-ghost" style="font-size:10px;padding:2px 8px;display:inline-block;">${t('btn_jetzt_uebertragen')}</span>`,
+  needFromProject: ()=>`<span class="btn-ghost" style="font-size:10px;padding:2px 8px;display:inline-block;">${t('btn_bedarf_aktualisieren')}</span>`,
+  fromTemplate: ()=>`<span style="font-size:10.5px;color:var(--ink-soft);">${t('label_aus_vorlage')}</span>`,
+  priorities: ()=>['Kritisch','Hoch','Mittel','Niedrig'].map(p=>`<span class="badge ${PRIORITY_CLASS[p]}">${escapeHtml(prioLabel(p))}</span>`).join(''),
+  competing: ()=>`<span style="color:var(--low);font-size:11px;border-bottom:1px dotted var(--low);">⚠</span>`,
+  escalate: ()=>`<span class="btn-ghost" style="font-size:10px;padding:2px 8px;display:inline-block;">⬆</span>`,
+  privHint: ()=>`<span class="lg-hint">⚠ ${t('label_priv_flagged_prefix')} 2 …</span>`,
+  dashAlert: ()=>`<span class="lg-alert">⚠ …</span>`,
+  dashFlagged: ()=>`<span class="flagged-goto">2 …</span> · <span class="flagged-goto">1 …</span>`,
+  backup: ()=>`<span class="lg-alert" style="color:var(--med);border-color:var(--med);background:var(--med-bg);">💾</span>`,
+  scopeSelf: ()=>`<span class="scope-badge" style="margin:0;">👤 ${t('scope_self')}</span>`,
+  scopeOrg: ()=>`<span class="scope-badge" style="margin:0;">🏢 ${t('scope_org')}</span>`,
+  scopeAll: ()=>`<span class="scope-badge" style="margin:0;">🌐 ${t('scope_all')}</span>`,
+  scopeSelect: ()=>`<span class="scope-badge" style="margin:0;">🏢 ${t('scope_org_select')}</span>`,
+  flagChip: ()=>`<span class="lg-chip">⚠ … ✕</span>`,
+  filterHint: ()=>`<span class="lg-hint">ℹ 3 / 42</span>`,
+  bulkBar: ()=>`<span class="lg-bulk">2 ✓ …</span>`,
+  twoClick: ()=>`<span class="btn-ghost btn-confirming" style="font-size:10px;padding:2px 8px;display:inline-block;animation:none;">✓ …</span>`,
+  dots: ()=>`${userDot(currentUser ? currentUser.username : 'x')}<span class="lg-dot" style="background:#00D8FF;"></span><span class="lg-dot" style="background:#FF6A3D;"></span><span class="lg-dot" style="background:#B26EFF;"></span>`,
+  tabDot: ()=>`<span class="tab-badge" style="position:static;">3</span>`,
+  connDot: ()=>`<span class="lg-dot" style="background:var(--low);"></span>`
+};
+const S = LG_SAMPLES;
+const LEGEND_DEF = {
+  uebersicht: [
+    { sec:'lg_sec_dashboard', items:[
+      { s:S.dashAlert, k:'lg_dash_alert' },
+      { s:S.dashFlagged, k:'lg_dash_flagged' },
+      { s:S.backup, k:'lg_backup_reminder', min:'owner' },
+      { s:S.priorities, k:'lg_priority' } ] } ],
+  bestand: [
+    { sec:'lg_sec_table', items:[
+      { s:()=>lgI('✎'), k:'lg_edit_own', min:'editor' },
+      { s:()=>lgI('⇤'), k:'lg_to_private', min:'editor' },
+      { s:()=>lgI('👤➜'), k:'lg_assign', min:'admin' },
+      { s:()=>lgI('🔓'), k:'lg_unlink_shared', min:'editor' },
+      { s:()=>lgI('🗑','danger'), k:'lg_delete_trash', min:'editor' },
+      { s:()=>lgI('✓')+lgI('✕','danger'), k:'lg_save_cancel', min:'editor' },
+      { s:S.reserved, k:'lg_reserved' },
+      { s:S.flagged, k:'lg_flagged' },
+      { s:()=>lgI('✓'), k:'lg_flag_clear', min:'editor' },
+      { s:S.quality, k:'lg_quality' },
+      { s:S.gauge, k:'lg_qty_gauge' } ] },
+    { sec:'lg_sec_summary', items:[
+      { s:()=>lgI('🔍'), k:'lg_usage' },
+      { s:S.avgQ, k:'lg_avg_quality' },
+      { s:S.distBar, k:'lg_dist_bar' },
+      { s:S.reservedCount, k:'lg_reserved' },
+      { s:S.dotted, k:'lg_total_hover' } ] },
+    { sec:'lg_sec_overview_overlay', items:[ { s:()=>lgI('→'), k:'lg_goto' } ] },
+    { sec:'lg_sec_trash', items:[ { s:()=>lgI('↺'), k:'lg_restore' } ] } ],
+  privatbestand: [
+    { sec:'lg_sec_table', items:[
+      { s:()=>lgI('✎'), k:'lg_edit' },
+      { s:()=>lgI('⇥'), k:'lg_to_shared' },
+      { s:()=>lgI('🔓'), k:'lg_unlink_private' },
+      { s:()=>lgI('🗑','danger'), k:'lg_delete_privtrash' },
+      { s:()=>lgI('✓')+lgI('✕','danger'), k:'lg_save_cancel' },
+      { s:S.assigned, k:'lg_assigned' },
+      { s:S.reserved, k:'lg_reserved' },
+      { s:S.flagged, k:'lg_flagged' },
+      { s:()=>lgI('✓'), k:'lg_flag_clear' },
+      { s:S.privHint, k:'lg_priv_hint' },
+      { s:S.quality, k:'lg_quality' },
+      { s:S.gauge, k:'lg_qty_gauge' } ] },
+    { sec:'lg_sec_priv_projects', items:[
+      { s:()=>lgI('✎'), k:'lg_edit' },
+      { s:()=>lgI('🔁'), k:'lg_reapply' },
+      { s:()=>lgI('✓'), k:'lg_complete' },
+      { s:()=>lgI('↺'), k:'lg_reopen' },
+      { s:()=>lgI('🗑','danger'), k:'lg_delete_privtrash' },
+      { s:S.completed, k:'lg_completed' },
+      { s:S.progress, k:'lg_progress' },
+      { s:S.goal, k:'lg_goal' },
+      { s:S.fromTemplate, k:'lg_from_template' },
+      { s:()=>'📝', k:'lg_note' } ] },
+    { sec:'lg_sec_priv_collectibles', items:[
+      { s:()=>lgI('✎'), k:'lg_edit' },
+      { s:()=>lgI('⇥'), k:'lg_to_shared' },
+      { s:()=>lgI('🔓'), k:'lg_unlink_private' },
+      { s:()=>lgI('🗑','danger'), k:'lg_delete_privtrash' },
+      { s:S.assigned, k:'lg_assigned' },
+      { s:S.flagged, k:'lg_flagged' },
+      { s:()=>lgI('✓'), k:'lg_flag_clear' } ] },
+    { sec:'lg_sec_summary', items:[
+      { s:()=>lgI('🔍'), k:'lg_usage' },
+      { s:S.avgQ, k:'lg_avg_quality' },
+      { s:S.distBar, k:'lg_dist_bar' },
+      { s:S.dotted, k:'lg_total_hover' } ] },
+    { sec:'lg_sec_trash', items:[ { s:()=>lgI('↺'), k:'lg_restore' } ] },
+    { sec:'lg_sec_priv_reset', items:[ { s:()=>lgI('↺'), k:'lg_restore' } ] } ],
+  bedarfe: [
+    { sec:'lg_sec_table', items:[
+      { s:()=>lgI('✎'), k:'lg_edit_own', min:'editor' },
+      { s:S.escalate, k:'lg_escalate', min:'editor' },
+      { s:()=>lgI('🗑','danger'), k:'lg_delete_trash', min:'editor' },
+      { s:()=>lgI('✓')+lgI('✕','danger'), k:'lg_save_cancel', min:'editor' },
+      { s:S.priorities, k:'lg_priority' },
+      { s:S.competing, k:'lg_competing' } ] } ],
+  projekte: [
+    { sec:'lg_sec_table', items:[
+      { s:()=>lgI('✎'), k:'lg_edit', min:'admin' },
+      { s:()=>lgI('🔁'), k:'lg_reapply', min:'admin' },
+      { s:()=>lgI('✓'), k:'lg_complete', min:'admin' },
+      { s:()=>lgI('↺'), k:'lg_reopen', min:'admin' },
+      { s:()=>lgI('🗑','danger'), k:'lg_delete_trash', min:'admin' },
+      { s:()=>lgI('✓')+lgI('✕','danger'), k:'lg_save_cancel', min:'admin' },
+      { s:S.completed, k:'lg_completed' },
+      { s:S.progress, k:'lg_progress' },
+      { s:S.goal, k:'lg_goal' },
+      { s:S.pledged, k:'lg_pledged' },
+      { s:S.transferNow, k:'lg_transfer_now' },
+      { s:S.needFromProject, k:'lg_need_from_project', min:'editor' },
+      { s:()=>lgI('✕','danger'), k:'lg_unlink_hover', min:'editor' },
+      { s:S.priorities, k:'lg_priority' },
+      { s:S.fromTemplate, k:'lg_from_template' },
+      { s:()=>'📝', k:'lg_note' } ] } ],
+  sammelobjekte: [
+    { sec:'lg_sec_table', items:[
+      { s:()=>lgI('✎'), k:'lg_edit', min:'editor' },
+      { s:()=>lgI('⇤'), k:'lg_to_private', min:'editor' },
+      { s:()=>lgI('👤➜'), k:'lg_assign', min:'admin' },
+      { s:()=>lgI('🔓'), k:'lg_unlink_shared', min:'editor' },
+      { s:()=>lgI('🗑','danger'), k:'lg_delete_trash', min:'editor' },
+      { s:()=>lgI('✓')+lgI('✕','danger'), k:'lg_save_cancel', min:'editor' },
+      { s:S.reserved, k:'lg_reserved' },
+      { s:S.flagged, k:'lg_flagged' },
+      { s:()=>lgI('✓'), k:'lg_flag_clear', min:'editor' } ] },
+    { sec:'lg_sec_summary', items:[
+      { s:()=>lgI('🔍'), k:'lg_usage' },
+      { s:S.reservedCount, k:'lg_reserved' } ] } ],
+  verwaltung: [
+    { sec:'lg_sec_scope', items:[
+      { s:S.scopeSelf, k:'lg_scope_self' },
+      { s:S.scopeOrg, k:'lg_scope_org', min:'admin' },
+      { s:S.scopeAll, k:'lg_scope_all', min:'owner' },
+      { s:S.scopeSelect, k:'lg_scope_select', min:'owner' } ] },
+    { sec:'lg_sec_users', min:'admin', items:[
+      { s:()=>lgI('✎'), k:'lg_edit' },
+      { s:()=>lgI('🔑'), k:'lg_change_pw' },
+      { s:()=>lgI('🔄'), k:'lg_reset_pw' },
+      { s:()=>lgI('🗑','danger'), k:'lg_delete' },
+      { s:()=>lgI('✓')+lgI('✕','danger'), k:'lg_save_cancel' } ] },
+    { sec:'lg_sec_catalog', min:'owner', items:[
+      { s:()=>lgI('✎'), k:'lg_catalog_edit' },
+      { s:()=>lgI('🗑','danger'), k:'lg_delete' },
+      { s:()=>lgI('✓')+lgI('✕','danger'), k:'lg_save_cancel' } ] } ]
+};
+const LEGEND_GENERAL = { sec:'lg_sec_general', items:[
+  { s:S.flagChip, k:'lg_flag_chip' },
+  { s:S.filterHint, k:'lg_filter_hint' },
+  { s:S.bulkBar, k:'lg_bulk_bar', min:'editor' },
+  { s:S.twoClick, k:'lg_two_click' },
+  { s:S.dots, k:'lg_dots' },
+  { s:S.tabDot, k:'lg_tab_dot' },
+  { s:S.connDot, k:'lg_conn_dot' } ] };
+function legendSectionsFor(tab, role){
+  const ok = x => !x.min || roleAtLeast(role, x.min);
+  // Im Privatbereich gibt es Sammel-Aktionen fuer alle Rollen
+  const general = { ...LEGEND_GENERAL, items: LEGEND_GENERAL.items.map(i=> (i.k==='lg_bulk_bar' && tab==='privatbestand') ? { ...i, min:null } : i) };
+  return [...(LEGEND_DEF[tab] || []), general]
+    .filter(ok)
+    .map(sec=>({ ...sec, items: sec.items.filter(ok) }))
+    .filter(sec=>sec.items.length);
+}
+function currentTabName(){
+  const a = document.querySelector('.tab-btn.active');
+  return a ? a.dataset.tab : 'uebersicht';
+}
+function openLegend(tab){
+  if(!currentUser) return;
+  tab = tab || currentTabName();
+  const role = currentUser.role;
+  document.getElementById('legendTitle').textContent = `${t('lg_title')} — ${t('lg_tab_'+tab)}`;
+  let html = `<div class="lg-note">${escapeHtml(t('lg_role_note').replace('{role}', roleLabel(role)))}</div>`;
+  legendSectionsFor(tab, role).forEach(sec=>{
+    html += `<div class="lg-section"><h3>${t(sec.sec)}</h3>`;
+    sec.items.forEach(it=>{ html += `<div class="lg-row"><div class="lg-sym">${it.s()}</div><div class="lg-text">${escapeHtml(t(it.k))}</div></div>`; });
+    html += `</div>`;
+  });
+  document.getElementById('legendBody').innerHTML = html;
+  document.getElementById('legendModal').style.display = 'flex';
+  closeHelpMenu();
+}
+function closeLegend(){ document.getElementById('legendModal').style.display = 'none'; }
+function toggleHelpMenu(){
+  const m = document.getElementById('helpMenu');
+  m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+}
+function closeHelpMenu(){ const m = document.getElementById('helpMenu'); if(m) m.style.display = 'none'; }
+document.getElementById('btnHelpMenuHelp').addEventListener('click', ()=>{ closeHelpMenu(); openHelpModal(); });
+document.getElementById('btnHelpMenuLegend').addEventListener('click', ()=>{ openLegend(); });
+document.getElementById('btnCloseLegend').addEventListener('click', closeLegend);
+document.getElementById('legendModal').addEventListener('click', ev=>{ if(ev.target.id === 'legendModal') closeLegend(); });
+document.querySelectorAll('.legend-open').forEach(btn=>btn.addEventListener('click', ()=>openLegend(btn.dataset.legendTab)));
+document.addEventListener('click', ev=>{ const m = document.getElementById('helpMenu'); if(m && m.style.display==='flex' && !m.contains(ev.target) && ev.target.id!=='btnHelp') closeHelpMenu(); });
+document.addEventListener('keydown', ev=>{ if(ev.key==='Escape'){ closeLegend(); closeHelpMenu(); } });
 
 function armConfirm(btn, onConfirm, confirmTitle){
   if(btn.dataset.confirming === '1'){
