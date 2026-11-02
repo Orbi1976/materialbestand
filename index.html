@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 0.146 -->
+<!-- Version: 0.148 -->
 <!--
   Ursprung/Herkunftsnachweis: Neorob1976 · 69126
   Diese Anwendung wurde für eine bestimmte Organisation entwickelt.
@@ -606,6 +606,12 @@ a.btn-ghost{display:inline-flex;align-items:center;text-decoration:none;font-fam
 .tpl-steps li{margin-bottom:4px;}
 
 /* Ab 2. November 2026 (v0.144): einheitliche Sammelaktionsleiste */
+.flagged-goto{color:var(--med);text-decoration:underline dotted;cursor:pointer;}
+.flagged-goto:hover{color:var(--ink);}
+.catalog-edit-row{background:rgba(0,216,255,0.05);}
+.catalog-edit-field{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);}
+.catalog-edit-field input,.catalog-edit-field select{padding:4px 8px;font-size:12.5px;}
+.catalog-edit-note{font-size:11px;color:var(--ink-soft);font-style:italic;}
 .filter-hint{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0 4px;padding:8px 12px;background:var(--med-bg);border:1px solid rgba(255,201,60,0.45);border-left:3px solid var(--med);border-radius:var(--radius);font-size:12.5px;color:var(--ink);}
 .filter-hint .fh-text b{color:var(--med);}
 .filter-hint .fh-reset{margin-left:auto;}
@@ -2799,13 +2805,14 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
   <div class="panel">
     <h2 data-i18n="panel_papierkorb">Papierkorb</h2>
-    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_papierkorb">Gelöschte Bestandseinträge, Bedarfe, Projekte und Sammelobjekte der letzten 24 Stunden können hier wiederhergestellt werden.</span></div>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_papierkorb">Gelöschte Bestandseinträge, Bedarfe, Projekte und Sammelobjekte der letzten 48 Stunden können hier wiederhergestellt werden.</span></div>
     <button class="btn-ghost" id="btnToggleTrash" data-i18n="btn_show_trash">Papierkorb anzeigen</button>
     <div id="trashContainer" style="display:none;margin-top:14px;"></div>
   </div>
   </div>
 
   <div class="tab-content" data-tab="privatbestand" style="display:none;">
+  <div id="privFlaggedHint" class="filter-hint" style="display:none;margin:0 0 16px;"></div>
 
   <!-- ===== NEUANLAGE ===== -->
 
@@ -3007,6 +3014,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
         <option value="frei" data-i18n="filter_reservierung_frei">Nur frei verfügbar</option>
         <option value="reserviert" data-i18n="filter_reservierung_reserviert">Nur reserviert (Projekte)</option>
       </select>
+      <label class="flag-filter" style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);white-space:nowrap;cursor:pointer;">
+        <input type="checkbox" id="priv-filterFlagged">
+        <span data-i18n="filter_nur_markierte">⚠ Nur zu prüfende anzeigen</span><span class="flag-x" data-i18n-title="btn_filter_aus" title="Filter ausschalten">✕</span>
+      </label>
     </div>
     <div id="privBestandBulkActionsBar" class="bulk-bar" style="display:none;">
       <span id="privBestandBulkActionsCount" class="bulk-count"></span>
@@ -3049,6 +3060,10 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
     <div class="filters">
       <input type="text" id="priv-coll-search" placeholder="Suche nach Objekt, Kategorie, Lagerort …" data-i18n-placeholder="placeholder_search_collectibles">
       <select id="priv-coll-filterKategorie"><option value="" data-i18n="filter_alle_kategorien">Alle Kategorien</option></select>
+      <label class="flag-filter" style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);white-space:nowrap;cursor:pointer;">
+        <input type="checkbox" id="priv-coll-filterFlagged">
+        <span data-i18n="filter_nur_markierte">⚠ Nur zu prüfende anzeigen</span><span class="flag-x" data-i18n-title="btn_filter_aus" title="Filter ausschalten">✕</span>
+      </label>
     </div>
     <div id="privCollectibleBulkActionsBar" class="bulk-bar" style="display:none;">
       <span id="privCollectibleBulkActionsCount" class="bulk-count"></span>
@@ -3062,6 +3077,14 @@ body.device-mobile .ocr-desktop-path-hint{display:none;}
 
     <h3 data-i18n="panel_zusammenfassung_objekt_privat" style="font-family:'Orbitron', sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px 0;color:var(--steel);">Zusammenfassung nach Objekt (Privat)</h3>
     <div id="privateCollectibleSummaryContainer"></div>
+  </div>
+
+  <!-- ===== PRIVATER PAPIERKORB (ab v0.147) ===== -->
+  <div class="panel" id="privTrashPanel">
+    <h2 data-i18n="panel_priv_papierkorb">Papierkorb (Privat)</h2>
+    <div class="user-note" style="margin:0 0 14px 0;"><span data-i18n="hint_priv_papierkorb">Deine gelöschten privaten Bestandseinträge, Sammelobjekte und Projekte der letzten 48 Stunden können hier wiederhergestellt werden. Nur für dich sichtbar.</span></div>
+    <button class="btn-ghost" id="btnTogglePrivTrash" data-i18n="btn_show_trash">Papierkorb anzeigen</button>
+    <div id="privTrashContainer" style="display:none;margin-top:14px;"></div>
   </div>
 
   <!-- ===== PRIVATE DATEN ZURUECKSETZEN (ab 11. Oktober 2026; ab 12. Oktober 2026 unterhalb der Tabellen Privatbestand und Sammelobjekte) ===== -->
@@ -3608,7 +3631,7 @@ const I18N = {
   "empty_stock_overview_title": "Kein freier Bestand vorhanden",
   "panel_bestand_table": "Bestand",
   "panel_papierkorb": "Papierkorb",
-  "hint_papierkorb": "Gelöschte Bestandseinträge, Bedarfe, Projekte und Sammelobjekte der letzten 24 Stunden können hier wiederhergestellt werden.",
+  "hint_papierkorb": "Gelöschte Bestandseinträge, Bedarfe, Projekte und Sammelobjekte der letzten 48 Stunden können hier wiederhergestellt werden.",
   "btn_show_trash": "Papierkorb anzeigen",
   "col_sollbestand": "Sollbestand",
   "col_geschaetzter_wert": "Geschätzter Wert",
@@ -3747,7 +3770,7 @@ const I18N = {
   "label_typ_sammelobjekt": "Sammelobjekt",
   "label_typ_bestand": "Bestand",
   "col_beschreibung": "Beschreibung",
-  "empty_trash_sub": "Gelöschte Einträge der letzten 24 Stunden erscheinen hier.",
+  "empty_trash_sub": "Gelöschte Einträge der letzten 48 Stunden erscheinen hier.",
   "placeholder_log_suche": "Suche nach Benutzer, Aktion, Details …",
   "empty_log_search_title": "Keine Treffer für diese Suche",
   "empty_log_title": "Noch keine Einträge",
@@ -4237,6 +4260,16 @@ const I18N = {
   "text_ueberschuss_warnung": "Für „{material}“ im gewählten Projekt werden noch {remaining} {einheit} benötigt — eingegeben wurden {entered} {einheit}. Wie möchtest du fortfahren?",
   "btn_ueberschuss_kappen": "Nur {remaining} {einheit} zuweisen (Rest bleibt frei verfügbar)",
   "capture_assign_toggle": "Nach dem Eintragen passende Projekte vorschlagen",
+  "label_priv_flagged_prefix": "Privat:",
+  "label_flagged_entries": "{count} Materialeintrag/-einträge",
+  "label_flagged_collectibles": "{count} Sammelobjekt(e)",
+  "label_flagged_suffix": "vor Zuweisung zu prüfen",
+  "panel_priv_papierkorb": "Papierkorb (Privat)",
+  "hint_priv_papierkorb": "Deine gelöschten privaten Bestandseinträge, Sammelobjekte und Projekte der letzten 48 Stunden können hier wiederhergestellt werden. Nur für dich sichtbar.",
+  "hint_catalog_loc_identity": "Code und Name sind die Kennung des Lagerorts und können nicht geändert werden.",
+  "val_catalog_edit_invalid": "Bitte gültige Werte eingeben.",
+  "msg_catalog_edit_saved": "„{name}“ gespeichert.",
+  "msg_catalog_edit_missing": "Der Eintrag existiert in der Datenbank nicht mehr – bitte Seite neu laden.",
   "btn_bulk_move_to_private": "In privaten Bestand verschieben",
   "btn_bulk_unlink": "Projekt-Zuordnung lösen",
   "btn_bulk_transfer_to_shared": "In geteilten Bestand übertragen",
@@ -4621,7 +4654,7 @@ const I18N = {
   "empty_stock_overview_title": "No free stock available",
   "panel_bestand_table": "Inventory",
   "panel_papierkorb": "Recycle bin",
-  "hint_papierkorb": "Deleted stock entries, needs, projects, and collectibles from the last 24 hours can be restored here.",
+  "hint_papierkorb": "Deleted stock entries, needs, projects, and collectibles from the last 48 hours can be restored here.",
   "btn_show_trash": "Show recycle bin",
   "col_sollbestand": "Target stock",
   "col_geschaetzter_wert": "Est. value",
@@ -4760,7 +4793,7 @@ const I18N = {
   "label_typ_sammelobjekt": "Collectible",
   "label_typ_bestand": "Stock",
   "col_beschreibung": "Description",
-  "empty_trash_sub": "Deleted entries from the last 24 hours appear here.",
+  "empty_trash_sub": "Deleted entries from the last 48 hours appear here.",
   "placeholder_log_suche": "Search by user, action, details …",
   "empty_log_search_title": "No matches for this search",
   "empty_log_title": "No entries yet",
@@ -5250,6 +5283,16 @@ const I18N = {
   "text_ueberschuss_warnung": "The selected project still needs {remaining} {einheit} of \"{material}\" — {entered} {einheit} were entered. How would you like to proceed?",
   "btn_ueberschuss_kappen": "Assign only {remaining} {einheit} (rest stays freely available)",
   "capture_assign_toggle": "Suggest matching projects after adding",
+  "label_priv_flagged_prefix": "Private:",
+  "label_flagged_entries": "{count} material entr(y/ies)",
+  "label_flagged_collectibles": "{count} collectible(s)",
+  "label_flagged_suffix": "to check before assigning",
+  "panel_priv_papierkorb": "Trash (private)",
+  "hint_priv_papierkorb": "Your deleted private stock entries, collectibles and projects from the last 48 hours can be restored here. Visible only to you.",
+  "hint_catalog_loc_identity": "Code and name identify the location and cannot be changed.",
+  "val_catalog_edit_invalid": "Please enter valid values.",
+  "msg_catalog_edit_saved": "“{name}” saved.",
+  "msg_catalog_edit_missing": "This entry no longer exists in the database – please reload the page.",
   "btn_bulk_move_to_private": "Move to private stock",
   "btn_bulk_unlink": "Remove project assignment",
   "btn_bulk_transfer_to_shared": "Transfer to shared stock",
@@ -5634,7 +5677,7 @@ const I18N = {
   "empty_stock_overview_title": "Aucun stock libre disponible",
   "panel_bestand_table": "Stock",
   "panel_papierkorb": "Corbeille",
-  "hint_papierkorb": "Les entrées de stock, besoins, projets et objets de collection supprimés au cours des dernières 24 heures peuvent être restaurés ici.",
+  "hint_papierkorb": "Les entrées de stock, besoins, projets et objets de collection supprimés au cours des dernières 48 heures peuvent être restaurés ici.",
   "btn_show_trash": "Afficher la corbeille",
   "col_sollbestand": "Stock cible",
   "col_geschaetzter_wert": "Valeur estimée",
@@ -5773,7 +5816,7 @@ const I18N = {
   "label_typ_sammelobjekt": "Objet de collection",
   "label_typ_bestand": "Stock",
   "col_beschreibung": "Description",
-  "empty_trash_sub": "Les entrées supprimées au cours des dernières 24 heures apparaissent ici.",
+  "empty_trash_sub": "Les entrées supprimées au cours des dernières 48 heures apparaissent ici.",
   "placeholder_log_suche": "Rechercher par utilisateur, action, détails …",
   "empty_log_search_title": "Aucun résultat pour cette recherche",
   "empty_log_title": "Aucune entrée pour l'instant",
@@ -6263,6 +6306,16 @@ const I18N = {
   "text_ueberschuss_warnung": "Le projet sélectionné a encore besoin de {remaining} {einheit} de « {material} » — {entered} {einheit} ont été saisis. Comment souhaitez-vous procéder ?",
   "btn_ueberschuss_kappen": "N'attribuer que {remaining} {einheit} (le reste reste disponible)",
   "capture_assign_toggle": "Proposer les projets correspondants après l'ajout",
+  "label_priv_flagged_prefix": "Privé :",
+  "label_flagged_entries": "{count} entrée(s) de matériau",
+  "label_flagged_collectibles": "{count} objet(s) de collection",
+  "label_flagged_suffix": "à vérifier avant attribution",
+  "panel_priv_papierkorb": "Corbeille (privée)",
+  "hint_priv_papierkorb": "Vos entrées de stock, objets de collection et projets privés supprimés au cours des dernières 48 heures peuvent être restaurés ici. Visible uniquement par vous.",
+  "hint_catalog_loc_identity": "Le code et le nom identifient l'emplacement et ne peuvent pas être modifiés.",
+  "val_catalog_edit_invalid": "Veuillez saisir des valeurs valides.",
+  "msg_catalog_edit_saved": "« {name} » enregistré.",
+  "msg_catalog_edit_missing": "Cette entrée n'existe plus dans la base de données – veuillez recharger la page.",
   "btn_bulk_move_to_private": "Déplacer vers le stock privé",
   "btn_bulk_unlink": "Retirer l'affectation au projet",
   "btn_bulk_transfer_to_shared": "Transférer vers le stock partagé",
@@ -7556,6 +7609,7 @@ async function saveUserEdit(idx){
         return changed;
       });
       await moveUserResetBackups(targetOrgId, oldUsername, newUsername);
+      try{ await moveUserPrivTrash(targetOrgId, oldUsername, newUsername); }catch(e){}
     }catch(e){
       setStatusMsg(statusEl, t('msg_load_incomplete_abort'), true);
       return;
@@ -10941,6 +10995,7 @@ async function loadPrivateCollectibles(){
   }
 }
 async function savePrivateCollectibles(){
+  dropFlagsOnAssigned(privateCollectibles);
   try{
     await window.storage.setOrThrow(orgKey(PRIVATE_COLLECTIBLES_KEY), JSON.stringify(privateCollectibles), true);
     return true;
@@ -11074,6 +11129,7 @@ async function transferCollectibleToPrivate(id, amount){
   let logDetail;
   if(match){
     match.anzahl = Math.round((match.anzahl + moveAmount) * 100) / 100;
+    if(c.flaggedForReview && !match.projekt) match.flaggedForReview = true;
     logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, +${moveAmount}x (neuer Bestand: ${match.anzahl}x)${onBehalf}`;
   } else {
     privateCollectibles.push({
@@ -11081,7 +11137,8 @@ async function transferCollectibleToPrivate(id, amount){
       kategorie: c.kategorie, objekt: c.objekt, tier: c.tier,
       anzahl: moveAmount, standort: c.standort,
       projekt: c.projekt || '', projektTyp: c.projekt ? 'shared' : null,
-      owner
+      owner,
+      ...(c.flaggedForReview && !c.projekt ? { flaggedForReview: true } : {})
     });
     logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, ${moveAmount}x (neuer privater Eintrag)${onBehalf}`;
   }
@@ -11161,13 +11218,15 @@ async function transferPrivateCollectible(id){
   let logDetail;
   if(match){
     match.anzahl = Math.round((match.anzahl + c.anzahl) * 100) / 100;
+    if(c.flaggedForReview && !match.projekt) match.flaggedForReview = true;
     logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, +${c.anzahl}x (neuer Bestand: ${match.anzahl}x)${effektivesProjekt ? ' [Projekt: '+effektivesProjekt+']' : ''}`;
   } else {
     collectibles.push({
       id: collectibleUid(),
       kategorie: c.kategorie, objekt: c.objekt, tier: c.tier,
       anzahl: c.anzahl, standort: c.standort, besitzer: currentUser.username,
-      projekt: effektivesProjekt
+      projekt: effektivesProjekt,
+      ...(c.flaggedForReview && !effektivesProjekt ? { flaggedForReview: true } : {})
     });
     logDetail = `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''}, ${c.anzahl}x (neuer Eintrag)${effektivesProjekt ? ' [Projekt: '+effektivesProjekt+']' : ''}`;
   }
@@ -11201,10 +11260,12 @@ async function transferPrivateCollectible(id){
 function getFilteredPrivateCollectibles(){
   const q = document.getElementById('priv-coll-search').value.toLowerCase();
   const kategorie = document.getElementById('priv-coll-filterKategorie').value;
+  const nurMarkiert = !!(document.getElementById('priv-coll-filterFlagged') || {}).checked;
   return myPrivateCollectibles().filter(c=>{
     const matchesSearch = !q || [c.objekt, c.kategorie, c.standort].join(' ').toLowerCase().includes(q);
     const matchesKategorie = !kategorie || c.kategorie === kategorie;
-    return matchesSearch && matchesKategorie;
+    const matchesFlagged = !nurMarkiert || !!c.flaggedForReview;
+    return matchesSearch && matchesKategorie && matchesFlagged;
   });
 }
 
@@ -11227,6 +11288,7 @@ function renderPrivateCollectibles(){
   updatePrivateCollectibleFilterOptions();
 
   updateFilterHint('privCollectibles', getFilteredPrivateCollectibles().length, mine.length);
+  updatePrivFlaggedHint();
   if(mine.length === 0){
     container.innerHTML = `<div class="empty"><div class="big">${t('empty_private_collectibles_title')}</div>${t('empty_collectibles_sub')}</div>`;
     renderPrivateCollectibleSummary();
@@ -11268,7 +11330,7 @@ function renderPrivateCollectibles(){
       html += `<tr>
         <td><input type="checkbox" class="priv-collectible-select-cb" data-id="${c.id}" ${selectedPrivCollectibleIds.has(c.id)?'checked':''}></td>
         <td data-label="${t('col_kategorie')}">${escapeHtml(c.kategorie)}</td>
-        <td data-label="${t('col_objekt')}">${escapeHtml(c.objekt)}${c.assignedBy ? ` <span class="badge" style="background:rgba(0,229,255,0.15);color:var(--cyan);border:1px solid var(--cyan);font-size:10px;cursor:help;" title="${escapeHtml(t('tooltip_assigned_by').replace('{person}', c.assignedBy).replace('{date}', new Date(c.assignedAt).toLocaleDateString()))}">🎁 ${t('label_zugewiesen')}</span>` : ''}</td>
+        <td data-label="${t('col_objekt')}">${escapeHtml(c.objekt)}${c.assignedBy ? ` <span class="badge" style="background:rgba(0,229,255,0.15);color:var(--cyan);border:1px solid var(--cyan);font-size:10px;cursor:help;" title="${escapeHtml(t('tooltip_assigned_by').replace('{person}', c.assignedBy).replace('{date}', new Date(c.assignedAt).toLocaleDateString()))}">🎁 ${t('label_zugewiesen')}</span>` : ''}${c.flaggedForReview ? ` <span class="badge" style="background:rgba(255,166,48,0.15);color:var(--accent);border:1px solid var(--accent);font-size:10px;cursor:help;" title="${t('tooltip_flagged_for_review')}">⚠ ${t('label_pruefen_vor_zuweisung')}</span> <button type="button" class="btn-icon" data-action="clear-flag" data-flag-id="${escapeHtml(c.id)}" data-flag-kind="privCollectible" title="${t('tooltip_geprueft_freigeben')}" style="padding:1px 6px;font-size:11px;">✓</button>` : ''}</td>
         <td data-label="${t('col_qualitaet_stufe2')}">${c.tier ? escapeHtml(c.tier) : '<span style="color:var(--ink-soft);">—</span>'}</td>
         <td data-label="${t('col_lagerort')}"><span style="display:inline-flex;align-items:center;">${c.standort ? locationDot(c.standort)+escapeHtml(c.standort) : '<span style="color:var(--ink-soft);">—</span>'}</span></td>
         <td data-label="${t('col_anzahl')}" class="qty-cell">${c.anzahl}</td>
@@ -11305,7 +11367,7 @@ function renderPrivateCollectibles(){
         const c = privateCollectibles.find(pc=>pc.id === btn.dataset.id);
         privateCollectibles = privateCollectibles.filter(pc=>pc.id !== btn.dataset.id);
         await savePrivateCollectibles();
-        if(c) await logAction('Privates Sammelobjekt gelöscht', `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''} — ${c.anzahl}x`);
+        if(c){ await logAction('Privates Sammelobjekt gelöscht', `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''} — ${c.anzahl}x`); await moveToPrivTrash(c, 'privCollectible'); }
         renderPrivateCollectibles();
         updatePrivateProjectAvailability();
         renderPrivateProjects();
@@ -11577,14 +11639,22 @@ async function saveCollectiblesCatalog(){
 function renderCatalogLists(){
   const matContainer = document.getElementById('materialListContainer');
   if(matContainer){
-    matContainer.innerHTML = MATERIALS.map((m,idx)=>`
+    matContainer.innerHTML = MATERIALS.map((m,idx)=> (catalogEditing && catalogEditing.kind==='material' && catalogEditing.key===m.name) ? `
+      <div class="user-row catalog-edit-row">
+        <div class="user-info" style="flex-wrap:wrap;gap:8px;">
+          <strong>${escapeHtml(m.name)}</strong>
+          <label class="catalog-edit-field">${t('label_kategorie')} <input type="text" id="catEditMatCategory" list="matCategoryList" value="${escapeHtml(m.category)}"></label>
+          <label class="catalog-edit-field">${t('label_sollbestand_optional')} <input type="number" id="catEditMatMinStock" min="0" step="1" value="${m.minStock!=null ? m.minStock : ''}" style="max-width:110px;"></label>
+        </div>
+        <div class="actions-cell"><button class="btn-icon" data-action="catalog-save" title="${t('btn_save')}">✓</button><button class="btn-icon danger" data-action="catalog-cancel" title="${t('btn_cancel')}">✕</button></div>
+      </div>` : `
       <div class="user-row">
         <div class="user-info">
           <span style="color:var(--ink-soft);font-size:11px;white-space:nowrap;">${escapeHtml(m.category)}</span>
           <span>${escapeHtml(m.name)}</span>
           ${m.minStock!=null ? `<span style="color:var(--steel);font-size:11px;white-space:nowrap;">Soll: ${m.minStock}</span>` : ''}
         </div>
-        <div class="actions-cell"><button class="btn-icon danger" data-action="delete-material" data-idx="${idx}" title="${t('btn_delete')}">🗑</button></div>
+        <div class="actions-cell"><button class="btn-icon" data-action="catalog-edit" data-kind="material" data-key="${escapeHtml(m.name)}" title="${t('btn_edit')}">✎</button><button class="btn-icon danger" data-action="delete-material" data-idx="${idx}" title="${t('btn_delete')}">🗑</button></div>
       </div>
     `).join('');
     matContainer.querySelectorAll('[data-action="delete-material"]').forEach(btn=>{
@@ -11600,13 +11670,21 @@ function renderCatalogLists(){
 
   const locContainer = document.getElementById('locationListContainer');
   if(locContainer){
-    locContainer.innerHTML = LOCATIONS.map((l,idx)=>`
+    locContainer.innerHTML = LOCATIONS.map((l,idx)=> (catalogEditing && catalogEditing.kind==='location' && catalogEditing.key===locLabel(l)) ? `
+      <div class="user-row catalog-edit-row">
+        <div class="user-info" style="flex-wrap:wrap;gap:8px;">
+          <strong>${escapeHtml(l.code)} – ${escapeHtml(l.name)}</strong>
+          <label class="catalog-edit-field">${t('label_system')} <input type="text" id="catEditLocSystem" list="locSystemList" value="${escapeHtml(l.system)}"></label>
+          <span class="catalog-edit-note">${t('hint_catalog_loc_identity')}</span>
+        </div>
+        <div class="actions-cell"><button class="btn-icon" data-action="catalog-save" title="${t('btn_save')}">✓</button><button class="btn-icon danger" data-action="catalog-cancel" title="${t('btn_cancel')}">✕</button></div>
+      </div>` : `
       <div class="user-row">
         <div class="user-info">
           <span style="color:var(--ink-soft);font-size:11px;white-space:nowrap;">${escapeHtml(l.system)}</span>
           <span>${escapeHtml(l.code)} – ${escapeHtml(l.name)}</span>
         </div>
-        <div class="actions-cell"><button class="btn-icon danger" data-action="delete-location" data-idx="${idx}" title="${t('btn_delete')}">🗑</button></div>
+        <div class="actions-cell"><button class="btn-icon" data-action="catalog-edit" data-kind="location" data-key="${escapeHtml(locLabel(l))}" title="${t('btn_edit')}">✎</button><button class="btn-icon danger" data-action="delete-location" data-idx="${idx}" title="${t('btn_delete')}">🗑</button></div>
       </div>
     `).join('');
     locContainer.querySelectorAll('[data-action="delete-location"]').forEach(btn=>{
@@ -11631,7 +11709,15 @@ function renderCatalogLists(){
 
   const collCatContainer = document.getElementById('collectibleCatalogListContainer');
   if(collCatContainer){
-    collCatContainer.innerHTML = COLLECTIBLES.map((c,idx)=>`
+    collCatContainer.innerHTML = COLLECTIBLES.map((c,idx)=> (catalogEditing && catalogEditing.kind==='collectible' && catalogEditing.key===c.name) ? `
+      <div class="user-row catalog-edit-row">
+        <div class="user-info" style="flex-wrap:wrap;gap:8px;">
+          <strong>${escapeHtml(c.name)}</strong>
+          <label class="catalog-edit-field">${t('label_mengeneinheit')} <select id="catEditCollEinheit"><option value="Stück" ${(c.einheit||'Stück')==='Stück'?'selected':''}>Stück</option><option value="SCU" ${c.einheit==='SCU'?'selected':''}>SCU</option></select></label>
+          <label class="catalog-edit-field" style="flex:1;min-width:220px;">${t('label_qualitaetsstufen_optional')} <input type="text" id="catEditCollTiers" value="${escapeHtml((c.tiers||[]).join(', '))}" style="width:100%;"></label>
+        </div>
+        <div class="actions-cell"><button class="btn-icon" data-action="catalog-save" title="${t('btn_save')}">✓</button><button class="btn-icon danger" data-action="catalog-cancel" title="${t('btn_cancel')}">✕</button></div>
+      </div>` : `
       <div class="user-row">
         <div class="user-info">
           <span style="color:var(--ink-soft);font-size:11px;white-space:nowrap;">${escapeHtml(c.category)}</span>
@@ -11639,7 +11725,7 @@ function renderCatalogLists(){
           <span style="color:var(--steel);font-size:11px;white-space:nowrap;">${escapeHtml(c.einheit || 'Stück')}</span>
           ${c.tiers && c.tiers.length ? `<span style="color:var(--ink-soft);font-size:11px;">${c.tiers.map(escapeHtml).join(' / ')}</span>` : ''}
         </div>
-        <div class="actions-cell"><button class="btn-icon danger" data-action="delete-collectible-catalog" data-idx="${idx}" title="${t('btn_delete')}">🗑</button></div>
+        <div class="actions-cell"><button class="btn-icon" data-action="catalog-edit" data-kind="collectible" data-key="${escapeHtml(c.name)}" title="${t('btn_edit')}">✎</button><button class="btn-icon danger" data-action="delete-collectible-catalog" data-idx="${idx}" title="${t('btn_delete')}">🗑</button></div>
       </div>
     `).join('');
     collCatContainer.querySelectorAll('[data-action="delete-collectible-catalog"]').forEach(btn=>{
@@ -11655,6 +11741,107 @@ function renderCatalogLists(){
   const collCatList = document.getElementById('collCategoryList');
   if(collCatList){
     collCatList.innerHTML = [...new Set(COLLECTIBLES.map(c=>c.category))].map(c=>`<option value="${escapeHtml(c)}">`).join('');
+  }
+  ['materialListContainer','locationListContainer','collectibleCatalogListContainer'].forEach(cid=>{
+    const cont = document.getElementById(cid);
+    if(!cont) return;
+    cont.querySelectorAll('[data-action="catalog-edit"]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        catalogEditing = { kind: btn.dataset.kind, key: btn.dataset.key };
+        renderCatalogLists();
+        const row = document.querySelector('.catalog-edit-row');
+        if(row){ row.scrollIntoView({block:'nearest'}); const f = row.querySelector('input,select'); if(f) f.focus(); }
+      });
+    });
+    cont.querySelectorAll('[data-action="catalog-cancel"]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ catalogEditing = null; renderCatalogLists(); });
+    });
+    cont.querySelectorAll('[data-action="catalog-save"]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ saveCatalogEdit(); });
+    });
+  });
+}
+
+// ============================================================
+// Katalog-Eintraege bearbeiten (ab v0.147, nur Rolle owner). Bewusst
+// OHNE Umbenennen: Der Name (bei Lagerorten "Code – Name") ist die
+// Kennung, ueber die Bestand, Bedarfe, Projekte und Vorlagen auf den
+// Katalog verweisen. Bearbeitbar sind nur beschreibende Felder:
+// Material -> Kategorie, Sollbestand; Lagerort -> System;
+// Sammelobjekt -> Mengeneinheit, Qualitaetsstufen.
+// Gespeichert wird als gezielte Aenderung auf den frisch gelesenen
+// Datenbankstand (Aenderungen anderer Sitzungen bleiben erhalten); kann
+// dieser nicht gelesen werden, wird nicht gespeichert.
+// ============================================================
+let catalogEditing = null;
+const CATALOG_EDIT_DEFS = {
+  material:    { storageKey: ()=>MATERIALS_KEY, get: ()=>MATERIALS, set: v=>{ MATERIALS = v; materialsBaseline = JSON.parse(JSON.stringify(v)); }, keyOf: m=>m.name, statusId: 'matFormStatus', label: 'Material' },
+  location:    { storageKey: ()=>LOCATIONS_KEY, get: ()=>LOCATIONS, set: v=>{ LOCATIONS = v; }, keyOf: l=>locLabel(l), statusId: 'locFormStatus', label: 'Lagerort' },
+  collectible: { storageKey: ()=>COLLECTIBLES_CATALOG_KEY, get: ()=>COLLECTIBLES, set: v=>{ COLLECTIBLES = v; }, keyOf: c=>c.name, statusId: 'collCatalogFormStatus', label: 'Sammelobjekt' }
+};
+function readCatalogEditPatch(kind){
+  if(kind === 'material'){
+    const category = (document.getElementById('catEditMatCategory').value || '').trim();
+    const raw = document.getElementById('catEditMatMinStock').value;
+    if(!category) return { error: t('val_category_name_required') };
+    const minStock = raw === '' ? null : parseFloat(raw);
+    if(minStock != null && (isNaN(minStock) || minStock < 0)) return { error: t('val_catalog_edit_invalid') };
+    return { patch: { category, minStock } };
+  }
+  if(kind === 'location'){
+    const system = (document.getElementById('catEditLocSystem').value || '').trim();
+    if(!system) return { error: t('val_catalog_edit_invalid') };
+    return { patch: { system } };
+  }
+  const einheit = document.getElementById('catEditCollEinheit').value === 'SCU' ? 'SCU' : 'Stück';
+  const tiers = (document.getElementById('catEditCollTiers').value || '').split(',').map(x=>x.trim()).filter(Boolean);
+  return { patch: { einheit, tiers } };
+}
+async function saveCatalogEdit(){
+  if(!catalogEditing) return;
+  const { kind, key } = catalogEditing;
+  const def = CATALOG_EDIT_DEFS[kind];
+  const statusEl = document.getElementById(def.statusId);
+  if(!currentUser || currentUser.role !== 'owner'){ setStatusMsg(statusEl, t('val_nur_owner'), true); return; }
+  const { patch, error } = readCatalogEditPatch(kind);
+  if(error){ setStatusMsg(statusEl, error, true); return; }
+  const result = await applyCatalogEdit(kind, key, patch);
+  if(!result.ok){ setStatusMsg(statusEl, t(result.missing ? 'msg_catalog_edit_missing' : 'msg_save_failed'), true); return; }
+  const changes = Object.keys(patch).filter(k=>JSON.stringify(result.before[k]) !== JSON.stringify(patch[k]))
+    .map(k=>{
+      const LBL = { category:'Kategorie', minStock:'Sollbestand', system:'System', einheit:'Einheit', tiers:'Qualitätsstufen' };
+      const fmtV = v => Array.isArray(v) ? (v.length ? v.join('/') : '–') : (v ?? (k==='einheit' ? 'Stück' : '–'));
+      return `${LBL[k]||k}: ${fmtV(result.before[k])} → ${fmtV(patch[k])}`;
+    })
+    .filter(x=>{ const [a,b] = x.split(': ')[1].split(' → '); return a !== b; });
+  if(changes.length) await logAction('Katalog bearbeitet', `${def.label} ${key}: ${changes.join(', ')}`);
+  catalogEditing = null;
+  setStatusMsg(statusEl, t('msg_catalog_edit_saved').replace('{name}', key), false);
+  setTimeout(()=>{ statusEl.textContent=''; }, 3500);
+  renderCatalogLists();
+  await refreshCatalogDropdowns();
+  if(kind === 'collectible'){ renderCollectibles(); renderPrivateCollectibles(); }
+  else { render(); renderPrivate(); renderSummary(); }
+  scheduleRenderDashboard();
+}
+async function applyCatalogEdit(kind, key, patch){
+  const def = CATALOG_EDIT_DEFS[kind];
+  try{
+    let list = JSON.parse(JSON.stringify(def.get()));
+    const res = await window.storage.getStrict(def.storageKey(), true);
+    if(res && res.value){
+      const fresh = JSON.parse(res.value);
+      if(Array.isArray(fresh) && fresh.length) list = fresh;
+    }
+    const item = list.find(x=>def.keyOf(x) === key);
+    if(!item) return { ok:false, missing:true };
+    const before = JSON.parse(JSON.stringify(item));
+    Object.assign(item, patch);
+    await window.storage.setOrThrow(def.storageKey(), JSON.stringify(list), true);
+    def.set(list);
+    return { ok:true, before };
+  }catch(e){
+    return { ok:false };
   }
 }
 
@@ -12774,11 +12961,14 @@ async function unlinkEntryFromProject(id, kind){
 // erstmal so liegen" -- der Eintrag verbleibt dabei unverändert im
 // freien Bestand, nur die Markierung selbst verschwindet.
 async function clearReviewFlag(id, kind){
-  const list = kind==='collectible' ? collectibles : entries;
-  const item = list.find(e=>e.id===id);
+  // Ab v0.148 auch fuer private Eintraege (privEntry/privCollectible).
+  const lists = { entry: entries, collectible: collectibles, privEntry: privateEntries, privCollectible: privateCollectibles };
+  const savers = { entry: save, collectible: saveCollectibles, privEntry: savePrivateEntries, privCollectible: savePrivateCollectibles };
+  const item = (lists[kind] || entries).find(e=>e.id===id);
   if(!item) return false;
+  if((kind==='privEntry' || kind==='privCollectible') && item.owner !== currentUser.username) return false;
   delete item.flaggedForReview;
-  await (kind==='collectible' ? saveCollectibles() : save());
+  await (savers[kind] || save)();
   return true;
 }
 
@@ -14047,6 +14237,7 @@ document.getElementById('btnReleaseToPrivate').addEventListener('click', async (
       const oldProjekt = privateEntries[idx].projekt;
       privateEntries[idx].projekt = '';
       privateEntries[idx].projektTyp = null;
+      privateEntries[idx].flaggedForReview = true;
       await savePrivateEntries();
       await logAction('Projekt-Zuordnung aufgehoben', `${privateEntries[idx].material} — zurück in privaten Bestand (war: ${oldProjekt})`);
       renderPrivate();
@@ -14057,6 +14248,7 @@ document.getElementById('btnReleaseToPrivate').addEventListener('click', async (
       const oldProjekt = privateCollectibles[idx].projekt;
       privateCollectibles[idx].projekt = '';
       privateCollectibles[idx].projektTyp = null;
+      privateCollectibles[idx].flaggedForReview = true;
       await savePrivateCollectibles();
       await logAction('Projekt-Zuordnung aufgehoben', `${privateCollectibles[idx].objekt} — zurück in privaten Bestand (war: ${oldProjekt})`);
       renderPrivateCollectibles();
@@ -14074,6 +14266,7 @@ document.getElementById('btnReleaseToShared').addEventListener('click', async ()
     if(idx>-1){
       privateEntries[idx].projekt = '';
       privateEntries[idx].projektTyp = null;
+      privateEntries[idx].flaggedForReview = true;
       await transferPrivateEntry(id);
     }
   } else {
@@ -14081,6 +14274,7 @@ document.getElementById('btnReleaseToShared').addEventListener('click', async ()
     if(idx>-1){
       privateCollectibles[idx].projekt = '';
       privateCollectibles[idx].projektTyp = null;
+      privateCollectibles[idx].flaggedForReview = true;
       await transferPrivateCollectible(id);
     }
   }
@@ -16585,8 +16779,9 @@ function renderPrivateProjects(){
         privateProjects = privateProjects.filter(pr=>pr.id !== btn.dataset.id);
         await savePrivateProjects();
         if(p){
-          await releaseProjectReferences(p.ziel, 'private');
+          const releasedRefs = await releaseProjectReferences(p.ziel, 'private');
           await logAction('Privates Projekt gelöscht', `${p.ziel}${refs.total>0 ? ` (Zuordnung bei ${refs.total} Eintrag(en) aufgehoben)` : ''}`);
+          await moveToPrivTrash(p, 'privProject', { releasedRefs });
         }
         renderPrivateProjects();
       }, confirmTitle);
@@ -17183,6 +17378,7 @@ btnBulkDeletePrivCollectibles.addEventListener('click', ()=>{
     await savePrivateCollectibles();
     for(const c of toDelete){
       await logAction('Privates Sammelobjekt gelöscht', `${c.objekt}${c.tier ? ' ('+c.tier+')' : ''} — ${c.anzahl}x (Sammel-Löschung)`);
+      await moveToPrivTrash(c, 'privCollectible');
     }
     selectedPrivCollectibleIds.clear();
     renderPrivateCollectibles();
@@ -17216,8 +17412,9 @@ btnBulkDeletePrivProjects.addEventListener('click', ()=>{
     await savePrivateProjects();
     for(const p of toDelete){
       const refs = countProjectReferences(p.ziel, 'private');
-      await releaseProjectReferences(p.ziel, 'private');
+      const releasedRefs = await releaseProjectReferences(p.ziel, 'private');
       await logAction('Privates Projekt gelöscht', `${p.ziel} (Sammel-Löschung)${refs.total>0 ? `, Zuordnung bei ${refs.total} Eintrag(en) aufgehoben` : ''}`);
+      await moveToPrivTrash(p, 'privProject', { releasedRefs });
     }
     selectedPrivProjectIds.clear();
     renderPrivateProjects();
@@ -17281,7 +17478,7 @@ btnBulkReleasePrivEntries.addEventListener('click', ()=>{
     const sel = privateEntries.filter(e=>selectedPrivateEntryIds.has(e.id) && e.owner===currentUser.username);
     const ok = sel.filter(e=>e.projekt);
     const logs = ok.map(e=>`${e.material} — zurück in privaten Bestand (war: ${e.projekt})`);
-    ok.forEach(e=>{ e.projekt = ''; e.projektTyp = null; });
+    ok.forEach(e=>{ e.projekt = ''; e.projektTyp = null; e.flaggedForReview = true; });
     if(ok.length) await savePrivateEntries();
     for(const l of logs) await logAction('Projekt-Zuordnung aufgehoben', l + ' — Sammel-Aktion');
     selectedPrivateEntryIds.clear();
@@ -17298,7 +17495,7 @@ btnBulkDeletePrivEntries.addEventListener('click', ()=>{
     const delIds = new Set(toDelete.map(e=>e.id));
     privateEntries = privateEntries.filter(e=>!delIds.has(e.id));
     await savePrivateEntries();
-    for(const e of toDelete) await logAction('Privatbestand gelöscht', `${e.material}, ${e.menge} ${e.einheit} @ ${e.lagerort} (Sammel-Löschung)`);
+    for(const e of toDelete){ await logAction('Privatbestand gelöscht', `${e.material}, ${e.menge} ${e.einheit} @ ${e.lagerort} (Sammel-Löschung)`); await moveToPrivTrash(e, 'privEntry'); }
     selectedPrivateEntryIds.clear();
     renderPrivate(); updateProjectAvailability(); renderProjects(); updatePrivateProjectAvailability(); renderPrivateProjects();
     setPrivateStatus(t('msg_bulk_deleted').replace('{count}', toDelete.length));
@@ -17392,7 +17589,8 @@ async function load(){
     loadPrivateProjects(),
     loadProjectTemplates(),
     loadWikeloTemplates(),
-    loadTrash()
+    loadTrash(),
+    loadPrivTrash()
   ]);
 
   // Dropdowns aufbauen — erst jetzt, da sie MATERIALS/LOCATIONS/projects benötigen.
@@ -17691,7 +17889,14 @@ async function renderDashboard(){
     const flaggedCount = entries.filter(e=>e.flaggedForReview).length + collectibles.filter(c=>c.flaggedForReview).length;
     if(flaggedCount > 0){
       const hasEarlierParts = nurKritisch.length > 0 || projectsWithGaps.length > 0;
-      parts.push(`<div style="${hasEarlierParts ? 'margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,59,92,0.2);' : ''}font-family:'Share Tech Mono', monospace;font-size:12.5px;color:var(--ink-soft);cursor:pointer;" data-goto-flagged="1" title="${t('tooltip_flagged_for_review')}">${t('label_markierte_eintraege_summary').replace('{count}', flaggedCount)}</div>`);
+      // Ab v0.147: getrennt nach Material und Sammelobjekten, jeder Teil
+      // springt in den passenden Reiter und aktiviert dort den Pruef-Filter.
+      const flaggedEntriesCount = entries.filter(e=>e.flaggedForReview).length;
+      const flaggedCollCount = collectibles.filter(c=>c.flaggedForReview).length;
+      const flaggedLinks = [];
+      if(flaggedEntriesCount > 0) flaggedLinks.push(`<a href="#" class="flagged-goto" data-goto-flagged="entries" title="${t('tooltip_flagged_for_review')}">${t('label_flagged_entries').replace('{count}', flaggedEntriesCount)}</a>`);
+      if(flaggedCollCount > 0) flaggedLinks.push(`<a href="#" class="flagged-goto" data-goto-flagged="collectibles" title="${t('tooltip_flagged_for_review')}">${t('label_flagged_collectibles').replace('{count}', flaggedCollCount)}</a>`);
+      parts.push(`<div style="${hasEarlierParts ? 'margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,59,92,0.2);' : ''}font-family:'Share Tech Mono', monospace;font-size:12.5px;color:var(--ink-soft);">⚠ ${flaggedLinks.join(' · ')} ${t('label_flagged_suffix')}</div>`);
     }
     // Ab v0.139: Erinnerung an die vollstaendige Sicherung (nur owner),
     // wenn die letzte Vollsicherung einen Monat oder laenger zurueckliegt.
@@ -17717,11 +17922,14 @@ async function renderDashboard(){
         const target = document.getElementById('projectReminderPanel');
         if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
       });
-      const gotoFlaggedEl = criticalBanner.querySelector('[data-goto-flagged]');
-      if(gotoFlaggedEl) gotoFlaggedEl.addEventListener('click', ()=>{
-        switchTab('bestand');
-        const cb = document.getElementById('filterFlagged');
-        if(cb){ cb.checked = true; render(); }
+      criticalBanner.querySelectorAll('[data-goto-flagged]').forEach(gotoFlaggedEl=>{
+        gotoFlaggedEl.addEventListener('click', (ev)=>{
+          ev.preventDefault();
+          const isColl = gotoFlaggedEl.dataset.gotoFlagged === 'collectibles';
+          switchTab(isColl ? 'sammelobjekte' : 'bestand');
+          const cb = document.getElementById(isColl ? 'coll-filterFlagged' : 'filterFlagged');
+          if(cb){ cb.checked = true; isColl ? renderCollectibles() : render(); }
+        });
       });
     } else {
       criticalBanner.style.display = 'none';
@@ -18273,8 +18481,11 @@ document.addEventListener('click', (e)=>{
     const kind = clearFlagBtn.dataset.flagKind;
     clearReviewFlag(clearFlagBtn.dataset.flagId, kind).then(ok=>{
       if(ok){
-        logAction('Prüf-Markierung entfernt', kind==='collectible' ? 'Sammelobjekt' : 'Material');
-        if(kind==='collectible') renderCollectibles(); else render();
+        logAction('Prüf-Markierung entfernt', ({ collectible:'Sammelobjekt', privEntry:'Privatbestand', privCollectible:'Privates Sammelobjekt' })[kind] || 'Material');
+        if(kind==='collectible') renderCollectibles();
+        else if(kind==='privEntry') renderPrivate();
+        else if(kind==='privCollectible') renderPrivateCollectibles();
+        else render();
       }
     });
     return;
@@ -21642,14 +21853,14 @@ document.getElementById('priv-filterReservierung').addEventListener('change', ()
 // CSV-Export der privaten Bereiche (wie bei den geteilten)
 function exportPrivBestandCSV(){
   downloadCSV('privatbestand.csv',
-    [t('col_material'), t('col_qualitaet'), t('col_menge'), t('col_einheit'), t('col_lagerort'), t('col_verantwortlicher'), t('col_projekt')],
-    myPrivateEntries().map(e=>[e.material, e.qualitaet, e.menge, einheitLabel(e.einheit), e.lagerort, e.person, e.projekt ? e.projekt + (e.projektTyp === 'private' ? ' (' + t('label_privat') + ')' : '') : ''])
+    [t('col_material'), t('col_qualitaet'), t('col_menge'), t('col_einheit'), t('col_lagerort'), t('col_verantwortlicher'), t('col_projekt'), t('label_pruefen_vor_zuweisung')],
+    myPrivateEntries().map(e=>[e.material, e.qualitaet, e.menge, einheitLabel(e.einheit), e.lagerort, e.person, e.projekt ? e.projekt + (e.projektTyp === 'private' ? ' (' + t('label_privat') + ')' : '') : '', e.flaggedForReview ? t('label_pruefen_vor_zuweisung') : ''])
   );
 }
 function exportPrivCollectiblesCSV(){
   downloadCSV('sammelobjekte-privat.csv',
-    [t('col_kategorie'), t('col_objekt'), t('col_qualitaet_stufe2'), t('col_lagerort'), t('col_anzahl'), t('col_projekt')],
-    myPrivateCollectibles().map(c=>[c.kategorie, c.objekt, c.tier||'', c.standort||'', c.anzahl, c.projekt ? c.projekt + (c.projektTyp === 'private' ? ' (' + t('label_privat') + ')' : '') : ''])
+    [t('col_kategorie'), t('col_objekt'), t('col_qualitaet_stufe2'), t('col_lagerort'), t('col_anzahl'), t('col_projekt'), t('label_pruefen_vor_zuweisung')],
+    myPrivateCollectibles().map(c=>[c.kategorie, c.objekt, c.tier||'', c.standort||'', c.anzahl, c.projekt ? c.projekt + (c.projektTyp === 'private' ? ' (' + t('label_privat') + ')' : '') : '', c.flaggedForReview ? t('label_pruefen_vor_zuweisung') : ''])
   );
 }
 function exportPrivProjectsCSV(){
@@ -21669,12 +21880,12 @@ document.getElementById('btnExportPrivProjects').addEventListener('click', expor
 // Ab v0.145: Hinweis auf aktive Filter (Hinweiszeile, deutlicher Pruef-Filter, genauere Leer-Meldung)
 const FILTER_HINT_TABLES = {
   bestand:          { anchor:'bulkActionsBar',               noun:'noun_eintraege', render:()=>render(),                     filters:[['search','text'],['filterLagerort','select','label_lagerort'],['filterQualitaet','qual'],['filterReservierung','select'],['filterFlagged','flag']] },
-  privBestand:      { anchor:'privBestandBulkActionsBar',    noun:'noun_eintraege', render:()=>renderPrivate(),              filters:[['priv-search','text'],['priv-filterLagerort','select','label_lagerort'],['priv-filterQualitaet','qual'],['priv-filterReservierung','select']] },
+  privBestand:      { anchor:'privBestandBulkActionsBar',    noun:'noun_eintraege', render:()=>renderPrivate(),              filters:[['priv-search','text'],['priv-filterLagerort','select','label_lagerort'],['priv-filterQualitaet','qual'],['priv-filterReservierung','select'],['priv-filterFlagged','flag']] },
   needs:            { anchor:'needBulkActionsBar',           noun:'noun_bedarfe',   render:()=>renderNeeds(),                filters:[['need-search','text'],['need-filterPrio','select','label_prioritaet']] },
   projects:         { anchor:'projectBulkActionsBar',        noun:'noun_projekte',  render:()=>renderProjects(),             filters:[['proj-search','text']], completed:'showCompletedProjects' },
   privProjects:     { anchor:'privProjectBulkActionsBar',    noun:'noun_projekte',  render:()=>renderPrivateProjects(),      filters:[['priv-proj-search','text']], completed:'showCompletedPrivProjects' },
   collectibles:     { anchor:'collectibleBulkActionsBar',    noun:'noun_objekte',   render:()=>renderCollectibles(),         filters:[['coll-search','text'],['coll-filterKategorie','select','label_kategorie'],['coll-filterFlagged','flag']] },
-  privCollectibles: { anchor:'privCollectibleBulkActionsBar',noun:'noun_objekte',   render:()=>renderPrivateCollectibles(),  filters:[['priv-coll-search','text'],['priv-coll-filterKategorie','select','label_kategorie']] }
+  privCollectibles: { anchor:'privCollectibleBulkActionsBar',noun:'noun_objekte',   render:()=>renderPrivateCollectibles(),  filters:[['priv-coll-search','text'],['priv-coll-filterKategorie','select','label_kategorie'],['priv-coll-filterFlagged','flag']] }
 };
 function activeFilterLabels(key){
   const cfg = FILTER_HINT_TABLES[key]; const out = [];
@@ -21748,6 +21959,35 @@ document.addEventListener('click', ev=>{
   ev.preventDefault();
   resetTableFilters(btn.dataset.filterReset, btn.dataset.showCompleted === '1');
 });
+
+// Ab v0.148: Pruef-Markierung im privaten Bereich -- Filter-Verdrahtung
+// und Hinweis oben im Reiter "Privat Bestaende" (die Uebersicht bleibt
+// den geteilten Daten vorbehalten).
+document.getElementById('priv-filterFlagged').addEventListener('change', ()=>renderPrivate());
+document.getElementById('priv-coll-filterFlagged').addEventListener('change', ()=>renderPrivateCollectibles());
+function updatePrivFlaggedHint(){
+  const el = document.getElementById('privFlaggedHint');
+  if(!el || !currentUser) return;
+  const nE = myPrivateEntries().filter(e=>e.flaggedForReview).length;
+  const nC = myPrivateCollectibles().filter(c=>c.flaggedForReview).length;
+  if(!nE && !nC){ el.style.display = 'none'; el.innerHTML = ''; return; }
+  const links = [];
+  if(nE) links.push(`<a href="#" class="flagged-goto" data-goto-priv-flagged="entries">${t('label_flagged_entries').replace('{count}', nE)}</a>`);
+  if(nC) links.push(`<a href="#" class="flagged-goto" data-goto-priv-flagged="collectibles">${t('label_flagged_collectibles').replace('{count}', nC)}</a>`);
+  el.innerHTML = `<span class="fh-text">⚠ ${t('label_priv_flagged_prefix')} ${links.join(' · ')} ${t('label_flagged_suffix')}</span>`;
+  el.style.display = '';
+  el.querySelectorAll('[data-goto-priv-flagged]').forEach(a=>{
+    a.addEventListener('click', ev=>{
+      ev.preventDefault();
+      const isColl = a.dataset.gotoPrivFlagged === 'collectibles';
+      const cb = document.getElementById(isColl ? 'priv-coll-filterFlagged' : 'priv-filterFlagged');
+      if(cb) cb.checked = true;
+      if(isColl) renderPrivateCollectibles(); else renderPrivate();
+      const target = document.getElementById(isColl ? 'privateCollectibleTableContainer' : 'privateTableContainer');
+      if(target) target.scrollIntoView({behavior:'smooth', block:'center'});
+    });
+  });
+}
 
 function armConfirm(btn, onConfirm, confirmTitle){
   if(btn.dataset.confirming === '1'){
@@ -22689,12 +22929,12 @@ function showFieldError(statusEl, message, fieldEl){
 // Papierkorb — gelöschte Bestandseinträge landen hier statt sofort
 // unwiderruflich weg zu sein. Einträge werden nach 7 Tagen automatisch
 // beim nächsten Speichern aussortiert; in der Anzeige erscheinen ohnehin
-// nur Einträge der letzten 24 Stunden, um den Papierkorb übersichtlich
+// nur Einträge der letzten 48 Stunden, um den Papierkorb übersichtlich
 // zu halten.
 // ============================================================
 const TRASH_KEY = 'trash-entries';
 let trash = [];
-const TRASH_VISIBLE_HOURS = 24;
+const TRASH_VISIBLE_HOURS = 48; // ab v0.147 (vorher 24)
 const TRASH_MAX_AGE_DAYS = 7;
 
 async function loadTrash(){
@@ -22800,25 +23040,7 @@ async function restoreFromTrash(id){
     await saveProjects();
     // Beim Loeschen geloeste Zuordnungen wiederherstellen -- nur, wenn der
     // Eintrag noch existiert und inzwischen nicht anderweitig zugeordnet wurde.
-    let reassigned = 0;
-    const lists = { entries, collectibles, privateEntries, privateCollectibles, needs };
-    const dirty = new Set();
-    (releasedRefs||[]).forEach(r=>{
-      const arr = lists[r.list];
-      const x = arr && arr.find(y=>y.id===r.id);
-      if(!x) return;
-      if(r.list==='needs'){
-        if(x.sourceProjekt) return;
-        x.sourceProjekt = r.projekt; x.sourceProjektTyp = r.projektTyp || 'shared';
-      } else {
-        if(x.projekt) return;
-        x.projekt = r.projekt;
-        if(r.list!=='entries') x.projektTyp = r.projektTyp || (r.list==='collectibles' ? null : 'shared');
-      }
-      reassigned++; dirty.add(r.list);
-    });
-    const savers = { entries: save, collectibles: saveCollectibles, privateEntries: savePrivateEntries, privateCollectibles: savePrivateCollectibles, needs: saveNeeds };
-    await Promise.all([...dirty].map(n=>savers[n]()));
+    const reassigned = await reapplyReleasedRefs(releasedRefs);
     await logAction('Projekt aus Papierkorb wiederhergestellt', `${restored.ziel}${reassigned ? ` (${reassigned} Zuordnung(en) wiederhergestellt)` : ''}`);
     sendDiscordNotification('projektGeloescht', `♻️ **Projekt wiederhergestellt**: ${restored.ziel} — von ${currentUser.username}`);
   } else if(effectiveKind === 'need'){
@@ -22848,6 +23070,143 @@ async function restoreFromTrash(id){
   renderPrivateCollectibles();
   return true;
 }
+
+// Ab v0.147 als eigene Funktion (geteilter und privater Papierkorb).
+async function reapplyReleasedRefs(releasedRefs){
+  let reassigned = 0;
+  const lists = { entries, collectibles, privateEntries, privateCollectibles, needs };
+  const dirty = new Set();
+  (releasedRefs||[]).forEach(r=>{
+    const arr = lists[r.list];
+    const x = arr && arr.find(y=>y.id===r.id);
+    if(!x) return;
+    if(r.list==='needs'){
+      if(x.sourceProjekt) return;
+      x.sourceProjekt = r.projekt; x.sourceProjektTyp = r.projektTyp || 'shared';
+    } else {
+      if(x.projekt) return;
+      x.projekt = r.projekt;
+      if(r.list!=='entries') x.projektTyp = r.projektTyp || (r.list==='collectibles' ? null : 'shared');
+    }
+    reassigned++; dirty.add(r.list);
+  });
+  const savers = { entries: save, collectibles: saveCollectibles, privateEntries: savePrivateEntries, privateCollectibles: savePrivateCollectibles, needs: saveNeeds };
+  await Promise.all([...dirty].map(n=>savers[n]()));
+  return reassigned;
+}
+
+// ============================================================
+// Privater Papierkorb (ab v0.147): eigener Speicherbereich je Person und
+// Organisation, nur fuer die Person selbst sichtbar. Gleiche Fristen wie
+// der geteilte Papierkorb (48 Stunden wiederherstellbar, nach 7 Tagen
+// endgueltig entfernt). Der private Zuruecksetzen-Vorgang nutzt weiterhin
+// seine eigenen Sicherungen und landet nicht hier.
+// ============================================================
+const PRIV_TRASH_KEY = 'private-trash';
+let privTrash = [];
+function privTrashKeyFor(username, orgId){ return orgDataKey(`${PRIV_TRASH_KEY}__${username}`, orgId); }
+function privTrashKey(){ return privTrashKeyFor(currentUser ? currentUser.username : '', currentOrgId); }
+async function loadPrivTrash(){
+  try{
+    const res = await window.storage.get(privTrashKey(), true);
+    privTrash = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){ privTrash = []; }
+}
+async function savePrivTrash(){
+  const cutoff = Date.now() - TRASH_MAX_AGE_DAYS*24*60*60*1000;
+  privTrash = privTrash.filter(t=> new Date(t.deletedAt).getTime() > cutoff);
+  try{
+    await window.storage.setOrThrow(privTrashKey(), JSON.stringify(privTrash), true);
+    return true;
+  }catch(e){ return false; }
+}
+async function moveToPrivTrash(item, kind, extra){
+  if(!currentUser) return;
+  privTrash.push({ ...item, ...(extra||{}), kind, deletedAt: new Date().toISOString(), deletedBy: currentUser.username });
+  await savePrivTrash();
+  if(privTrashVisible) renderPrivTrash();
+}
+function recentPrivTrash(){
+  const cutoff = Date.now() - TRASH_VISIBLE_HOURS*60*60*1000;
+  return privTrash.filter(t=> new Date(t.deletedAt).getTime() > cutoff);
+}
+let privTrashVisible = false;
+async function togglePrivTrashView(){
+  const container = document.getElementById('privTrashContainer');
+  const btn = document.getElementById('btnTogglePrivTrash');
+  privTrashVisible = !privTrashVisible;
+  container.style.display = privTrashVisible ? '' : 'none';
+  btn.textContent = t(privTrashVisible ? 'btn_hide_trash' : 'btn_show_trash');
+  if(privTrashVisible){ await loadPrivTrash(); renderPrivTrash(); }
+}
+function describePrivTrashItem(item){
+  if(item.kind === 'privProject') return { typeLabel: t('label_typ_projekt'), description: `${item.ziel} (${item.anzahl}x)` };
+  if(item.kind === 'privCollectible') return { typeLabel: t('label_typ_sammelobjekt'), description: `${item.objekt}${item.tier ? ' ('+item.tier+')' : ''} — ${item.anzahl}x` };
+  return { typeLabel: t('label_typ_bestand'), description: `${item.material}, ${item.menge} ${einheitLabel(item.einheit)} @ ${item.lagerort}` };
+}
+function renderPrivTrash(){
+  const container = document.getElementById('privTrashContainer');
+  if(!container) return;
+  const items = recentPrivTrash().sort((a,b)=> new Date(b.deletedAt) - new Date(a.deletedAt));
+  if(items.length === 0){
+    container.innerHTML = `<div class="empty"><div class="big">${t('empty_trash_title')}</div>${t('empty_trash_sub')}</div>`;
+    return;
+  }
+  let html = `<table><thead><tr><th>${t('col_typ')}</th><th>${t('col_beschreibung')}</th><th>${t('col_geloescht_am')}</th><th></th></tr></thead><tbody>`;
+  items.forEach(tr=>{
+    const { typeLabel, description } = describePrivTrashItem(tr);
+    html += `<tr>
+      <td data-label="${t('col_typ')}">${escapeHtml(typeLabel)}</td>
+      <td data-label="${t('col_beschreibung')}">${escapeHtml(description)}</td>
+      <td data-label="${t('col_geloescht_am')}" class="qty-cell">${escapeHtml(new Date(tr.deletedAt).toLocaleString('de-DE'))}</td>
+      <td class="actions-cell"><button class="btn-icon" data-action="restore-priv-trash" data-id="${escapeHtml(tr.id)}" title="${t('btn_restore')}">↺</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+  container.querySelectorAll('[data-action="restore-priv-trash"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const ok = await restoreFromPrivTrash(btn.dataset.id);
+      if(ok) setPrivateStatus(t('msg_entry_restored'));
+    });
+  });
+}
+async function restoreFromPrivTrash(id){
+  const tr = privTrash.find(t=>t.id===id);
+  if(!tr || !currentUser) return false;
+  const { deletedAt, deletedBy, kind, releasedRefs, ...restored } = tr;
+  restored.owner = currentUser.username;
+  const locLabels = new Set(LOCATIONS.map(l=>locLabel(l)));
+  const sharedZiele = new Set(projects.map(p=>p.ziel));
+  const myPrivZiele = new Set(privateProjects.filter(p=>p.owner===currentUser.username).map(p=>p.ziel));
+  const projectStillExists = (ziel, typ) => (typ||'shared')==='private' ? myPrivZiele.has(ziel) : sharedZiele.has(ziel);
+  if(kind === 'privProject'){
+    if(myPrivZiele.has(restored.ziel)){ setPrivateStatus(t('msg_trash_restore_name_conflict').replace('{name}', restored.ziel), true); return false; }
+    privateProjects.push(restored);
+    await savePrivateProjects();
+    const reassigned = await reapplyReleasedRefs(releasedRefs);
+    await logAction('Privates Projekt aus Papierkorb wiederhergestellt', `${restored.ziel}${reassigned ? ` (${reassigned} Zuordnung(en) wiederhergestellt)` : ''}`);
+  } else if(kind === 'privCollectible'){
+    if(!COLLECTIBLES.some(c=>c.name===restored.objekt) || (restored.standort && restored.standort!=='–' && !locLabels.has(restored.standort))){ setPrivateStatus(t('msg_trash_restore_catalog_missing'), true); return false; }
+    if(restored.projekt && !projectStillExists(restored.projekt, restored.projektTyp)){ restored.projekt = ''; restored.projektTyp = null; }
+    privateCollectibles.push(restored);
+    await savePrivateCollectibles();
+    await logAction('Privates Sammelobjekt aus Papierkorb wiederhergestellt', `${restored.objekt}${restored.tier ? ' ('+restored.tier+')' : ''} — ${restored.anzahl}x`);
+  } else {
+    if(!MATERIALS.some(m=>m.name===restored.material) || !locLabels.has(restored.lagerort)){ setPrivateStatus(t('msg_trash_restore_catalog_missing'), true); return false; }
+    if(restored.projekt && !projectStillExists(restored.projekt, restored.projektTyp)){ restored.projekt = ''; restored.projektTyp = null; }
+    privateEntries.push(restored);
+    await savePrivateEntries();
+    await logAction('Privatbestand aus Papierkorb wiederhergestellt', `${restored.material}, ${restored.menge} ${restored.einheit} @ ${restored.lagerort}`);
+  }
+  privTrash = privTrash.filter(t=>t.id!==id);
+  await savePrivTrash();
+  renderPrivate(); renderPrivateCollectibles(); updatePrivateProjectAvailability(); renderPrivateProjects();
+  updateProjectAvailability(); renderProjects();
+  renderPrivTrash();
+  return true;
+}
+document.getElementById('btnTogglePrivTrash').addEventListener('click', togglePrivTrashView);
 
 // Liefert eine kurze, menschenlesbare Typ-Bezeichnung sowie eine
 // einzeilige Beschreibung fuer einen Papierkorb-Eintrag, je nach Typ
@@ -23543,7 +23902,13 @@ async function loadPrivateEntries(){
     privateEntries = [];
   }
 }
+// Ab v0.148: Eine Pruef-Markierung hat ihren Zweck erfuellt, sobald der
+// Eintrag wieder einem Projekt zugeordnet ist -- zentral beim Speichern
+// entfernt, damit alle Zuordnungswege (Bearbeiten, Erfassungs-Zuordnung,
+// Uebertragen) abgedeckt sind.
+function dropFlagsOnAssigned(list){ list.forEach(x=>{ if(x.projekt && x.flaggedForReview) delete x.flaggedForReview; }); }
 async function savePrivateEntries(){
+  dropFlagsOnAssigned(privateEntries);
   try{
     await window.storage.setOrThrow(orgKey(PRIVATE_STORAGE_KEY), JSON.stringify(privateEntries), true);
     return true;
@@ -23668,7 +24033,10 @@ function getFilteredPrivate(){
     // Ab v0.144: wie im geteilten Bestand nach frei/reserviert filterbar
     const resv = (document.getElementById('priv-filterReservierung') || {}).value || '';
     const matchesResv = !resv || (resv === 'frei' && !e.projekt) || (resv === 'reserviert' && !!e.projekt);
-    return matchesSearch && matchesLoc && matchesQual && matchesResv;
+    // Ab v0.148: Pruef-Filter auch im Privatbestand
+    const nurMarkiert = !!(document.getElementById('priv-filterFlagged') || {}).checked;
+    const matchesFlagged = !nurMarkiert || !!e.flaggedForReview;
+    return matchesSearch && matchesLoc && matchesQual && matchesResv && matchesFlagged;
   });
   if(privateSortKey){
     list.sort((a,b)=>{
@@ -23875,6 +24243,7 @@ async function transferPrivateEntry(id, amount){
   let logDetail;
   if(match){
     match.menge = Math.round((match.menge + transferAmount) * 100) / 100;
+    if(e.flaggedForReview && !match.projekt) match.flaggedForReview = true;
     logDetail = `${e.material}, +${transferAmount} ${e.einheit} @ ${e.lagerort} (neuer Bestand: ${match.menge} ${e.einheit})`;
   } else {
     entries.push({
@@ -23882,7 +24251,8 @@ async function transferPrivateEntry(id, amount){
       material: e.material, qualitaet: e.qualitaet,
       menge: transferAmount, einheit: e.einheit,
       lagerort: e.lagerort, person: e.person, projekt: effektivesProjekt,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      ...(e.flaggedForReview && !effektivesProjekt ? { flaggedForReview: true } : {})
     });
     logDetail = `${e.material}, ${transferAmount} ${e.einheit} @ ${e.lagerort} (neuer Eintrag)`;
   }
@@ -23964,6 +24334,7 @@ async function transferEntryToPrivate(id, amount){
   let logDetail;
   if(match){
     match.menge = Math.round((match.menge + transferAmount) * 100) / 100;
+    if(e.flaggedForReview && !match.projekt) match.flaggedForReview = true;
     logDetail = `${e.material}, +${transferAmount} ${e.einheit} @ ${e.lagerort} (neuer Bestand: ${match.menge} ${e.einheit})${onBehalfNote}`;
   } else {
     privateEntries.push({
@@ -23972,7 +24343,8 @@ async function transferEntryToPrivate(id, amount){
       menge: transferAmount, einheit: e.einheit,
       lagerort: e.lagerort, person: e.person,
       projekt: e.projekt||'', projektTyp: e.projekt ? 'shared' : null,
-      owner: e.person
+      owner: e.person,
+      ...(e.flaggedForReview && !e.projekt ? { flaggedForReview: true } : {})
     });
     logDetail = `${e.material}, ${transferAmount} ${e.einheit} @ ${e.lagerort} (neuer privater Eintrag)${onBehalfNote}`;
   }
@@ -24554,8 +24926,17 @@ async function moveUserResetBackups(orgId, oldName, newName){
   await window.storage.setOrThrow(privResetBackupKeyFor(newName, orgId), JSON.stringify(list), true);
   await window.storage.delete(privResetBackupKeyFor(oldName, orgId), true);
 }
+// Ab v0.147: privaten Papierkorb beim Umbenennen mitziehen bzw. beim Loeschen entfernen.
+async function moveUserPrivTrash(orgId, oldName, newName){
+  const res = await window.storage.getStrict(privTrashKeyFor(oldName, orgId), true);
+  if(!res || !res.value) return;
+  const list = JSON.parse(res.value).map(x=>{ const y = { ...x }; ['owner','person','besitzer','user','deletedBy'].forEach(f=>{ if(y[f]===oldName) y[f] = newName; }); return y; });
+  await window.storage.setOrThrow(privTrashKeyFor(newName, orgId), JSON.stringify(list), true);
+  await window.storage.delete(privTrashKeyFor(oldName, orgId), true);
+}
 async function deleteUserResetBackups(orgId, username){
   try{ await window.storage.delete(privResetBackupKeyFor(username, orgId), true); }catch(e){}
+  try{ await window.storage.delete(privTrashKeyFor(username, orgId), true); }catch(e){}
 }
 
 // ============================================================
@@ -24732,6 +25113,7 @@ function renderPrivate(){
   renderRecentChips('priv-lagerort-recent-chips', 'priv-lagerort', getRecentDistinctValues(mine, 'lagerort', 1));
   const list = getFilteredPrivate();
   updateFilterHint('privBestand', list.length, myPrivateEntries().length);
+  updatePrivFlaggedHint();
   const container = document.getElementById('privateTableContainer');
 
   if(mine.length === 0){
@@ -24788,7 +25170,7 @@ function renderPrivate(){
       const pct = Math.min(100, Math.round((e.menge/max)*100));
       html += `<tr>
         <td><input type="checkbox" class="priv-entry-select-cb" data-id="${e.id}" ${selectedPrivateEntryIds.has(e.id)?'checked':''}></td>
-        <td data-label="${t('col_material')}">${escapeHtml(e.material)}${e.assignedBy ? ` <span class="badge" style="background:rgba(0,229,255,0.15);color:var(--cyan);border:1px solid var(--cyan);font-size:10px;cursor:help;" title="${escapeHtml(t('tooltip_assigned_by').replace('{person}', e.assignedBy).replace('{date}', new Date(e.assignedAt).toLocaleDateString()))}">🎁 ${t('label_zugewiesen')}</span>` : ''}</td>
+        <td data-label="${t('col_material')}">${escapeHtml(e.material)}${e.assignedBy ? ` <span class="badge" style="background:rgba(0,229,255,0.15);color:var(--cyan);border:1px solid var(--cyan);font-size:10px;cursor:help;" title="${escapeHtml(t('tooltip_assigned_by').replace('{person}', e.assignedBy).replace('{date}', new Date(e.assignedAt).toLocaleDateString()))}">🎁 ${t('label_zugewiesen')}</span>` : ''}${e.flaggedForReview ? ` <span class="badge" style="background:rgba(255,166,48,0.15);color:var(--accent);border:1px solid var(--accent);font-size:10px;cursor:help;" title="${t('tooltip_flagged_for_review')}">⚠ ${t('label_pruefen_vor_zuweisung')}</span> <button type="button" class="btn-icon" data-action="clear-flag" data-flag-id="${escapeHtml(e.id)}" data-flag-kind="privEntry" title="${t('tooltip_geprueft_freigeben')}" style="padding:1px 6px;font-size:11px;">✓</button>` : ''}</td>
         <td data-label="${t('label_qualitaet')}"><span class="badge ${badgeClass(e.qualitaet)}">${e.qualitaet}</span></td>
         <td data-label="${t('label_menge')}">
           <div class="qty-cell">${e.menge} ${escapeHtml(einheitLabel(e.einheit))}</div>
@@ -24837,7 +25219,7 @@ function renderPrivate(){
         const e = privateEntries.find(pe=>pe.id === btn.dataset.id);
         privateEntries = privateEntries.filter(pe=>pe.id !== btn.dataset.id);
         await savePrivateEntries();
-        if(e) await logAction('Privatbestand gelöscht', `${e.material}, ${e.menge} ${e.einheit} @ ${e.lagerort}`);
+        if(e){ await logAction('Privatbestand gelöscht', `${e.material}, ${e.menge} ${e.einheit} @ ${e.lagerort}`); await moveToPrivTrash(e, 'privEntry'); }
         renderPrivate();
         // Ab 11. Oktober 2026: auch die Ansichten neu berechnen, die diesen
         // Eintrag indirekt anzeigen -- "privat zugesagt" bei geteilten
